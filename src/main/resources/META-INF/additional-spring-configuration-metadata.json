@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "middle.tier.backup.db.url",
+      "type": "java.lang.String",
+      "description": "Description for middle.tier.backup.db.url."
+    },
+    {
+      "name": "middle.tier.backup.db.username",
+      "type": "java.lang.String",
+      "description": "Description for middle.tier.backup.db.username."
+    },
+    {
+      "name": "middle.tier.backup.db.password",
+      "type": "java.lang.String",
+      "description": "Description for middle.tier.backup.db.password."
+    }
+  ]
+}

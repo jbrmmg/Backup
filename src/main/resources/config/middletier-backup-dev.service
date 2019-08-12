@@ -1,0 +1,12 @@
+# https://wiki.ubuntu.com/SystemdForUpstartUsers
+# JBR MiddleTier Backup Service (DEV)
+
+[Unit]
+Description=JBR MiddleTier Backup Service (DEV)
+After=mysql.service
+
+[Service]
+ExecStart=/usr/bin/java -Xms768M -Xmx768M -Dspring.config.location=file:/usr/bin/jbr/dev/MiddleTier-Backup-DEV.properties -Dlogging.config=file:/usr/bin/jbr/dev/MiddleTier-Backup-DEV-log4j.xml -jar /usr/bin/jbr/dev/MiddleTier-Backup-DEV-onejar.jar
+
+[Install]
+WantedBy=multi-user.target
