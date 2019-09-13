@@ -22,7 +22,7 @@
     <appender name="Database" class="ch.qos.logback.classic.db.DBAppender">
         <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
             <driverClass>com.mysql.cj.jdbc.Driver</driverClass>
-            <url>{db.pdn.log.server}?useSSL=false</url>
+            <url>${db.pdn.log.server}?useSSL=false</url>
             <user>loginsert</user>
             <password>rIYpQtmG</password>
         </connectionSource>
