@@ -22,7 +22,7 @@
     <appender name="Database" class="ch.qos.logback.classic.db.DBAppender">
         <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
             <driverClass>com.mysql.cj.jdbc.Driver</driverClass>
-            <url>jdbc:mysql://raspbianpi4.jbrmmg.me.uk:3306/logdb?useSSL=false</url>
+            <url>${db.dev.log.server}?useSSL=false</url>
             <user>loginsert</user>
             <password>rIYpQtmG</password>
         </connectionSource>
