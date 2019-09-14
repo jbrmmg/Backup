@@ -9,20 +9,6 @@
         </encoder>
     </appender>
 
-    <appender name="Database" class="ch.qos.logback.classic.db.DBAppender">
-        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
-            <driverClass>com.mysql.cj.jdbc.Driver</driverClass>
-            <url>${db.dev.log.server}?useSSL=false</url>
-            <user>loginsert</user>
-            <password>rIYpQtmG</password>
-        </connectionSource>
-    </appender>
-
-    <logger name="com.jbr.middletier.backup.schedule">
-        <level value="info"/>
-        <appender-ref ref="Database"/>
-    </logger>
-
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
