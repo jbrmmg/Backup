@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.type;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.apache.commons.io.FileUtils;
@@ -21,8 +22,11 @@ import java.util.zip.ZipOutputStream;
 public class ZipupBackup implements PerformBackup  {
     final static private Logger LOG = LoggerFactory.getLogger(ZipupBackup.class);
 
-    @Value("${middle.tier.backup.zipdirectory}")
-    private String directory;
+    private final ApplicationProperties applicationProperties;
+
+    public ZipupBackup(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
 
     private void getAllFiles(File dir, List<File> fileList) throws IOException {
         File[] files = dir.listFiles();
@@ -79,7 +83,7 @@ public class ZipupBackup implements PerformBackup  {
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         try {
-            String zipFilename = String.format("%s/backups.zip", directory);
+            String zipFilename = String.format("%s/backups.zip", applicationProperties.getZipDirectory());
 
             // If zip file exists, delete it.
             File zipFile = new File(zipFilename);

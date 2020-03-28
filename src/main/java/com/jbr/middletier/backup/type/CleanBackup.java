@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.type;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.apache.commons.io.FileUtils;
@@ -24,24 +25,21 @@ import java.util.Date;
 public class CleanBackup implements PerformBackup {
     final static private Logger LOG = LoggerFactory.getLogger(CleanBackup.class);
 
-    @Value("${middle.tier.backup.directory}")
-    private String directory;
+    private final ApplicationProperties applicationProperties;
 
-    @Value("${middle.tier.backup.directory.dateformat}")
-    private String dateFormat;
-
-    @Value("${middle.tier.backup.directory.maxdays}")
-    private int maxDays;
+    public CleanBackup(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
 
     private boolean shouldDirectoryBeDeleted(String directory) {
         try {
-            DateFormat formatter = new SimpleDateFormat(dateFormat);
+            DateFormat formatter = new SimpleDateFormat(applicationProperties.getDirectoryDateFormat());
 
             // Convert the directory name to a date.
             Date directoryDate = formatter.parse(directory);
 
             ZonedDateTime now = ZonedDateTime.now();
-            ZonedDateTime maxDaysAgo = now.plusDays(-1 * maxDays);
+            ZonedDateTime maxDaysAgo = now.plusDays(-1 * applicationProperties.getDirectoryDays());
 
             if (directoryDate.toInstant().isBefore(maxDaysAgo.toInstant())) {
                 // Delete this directory.
@@ -68,7 +66,7 @@ public class CleanBackup implements PerformBackup {
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         // Remove any backup directories older than x days
-        File folder = new File(directory);
+        File folder = new File(applicationProperties.getDirectoryName());
         if(!folder.exists()) {
             throw new IllegalStateException("Backup directory does not exist.");
         }
@@ -78,7 +76,7 @@ public class CleanBackup implements PerformBackup {
             for (File listOfFile : listOfFiles) {
                 if (listOfFile.isDirectory()) {
                     if (shouldDirectoryBeDeleted(listOfFile.getName())) {
-                        deleleDirectory(String.format("%s/%s", directory, listOfFile.getName()));
+                        deleleDirectory(String.format("%s/%s", applicationProperties.getDirectoryName(), listOfFile.getName()));
                     }
                 }
             }

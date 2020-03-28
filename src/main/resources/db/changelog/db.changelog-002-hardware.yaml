@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: jason
+      changes:
+        - createTable:
+            tableName: hardware
+            columns:
+              - column:
+                  name: macAddress
+                  type: char(17)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: reservedIP
+                  type: char(1)
+              - column:
+                  name: IP
+                  type: varchar(15)
+              - column:
+                  name: name
+                  type: varchar(200)

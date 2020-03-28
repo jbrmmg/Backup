@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.manager;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,27 +22,27 @@ import java.util.Calendar;
 public class BackupManager {
     final static private Logger LOG = LoggerFactory.getLogger(BackupManager.class);
 
-    @Value("${middle.tier.backup.directory}")
-    private String directory;
+    private final ApplicationProperties applicationProperties;
 
-    @Value("${middle.tier.backup.directory.dateformat}")
-    private String dateFormat;
+    public BackupManager(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
 
     public String todaysDirectory() {
-        DateFormat formatter = new SimpleDateFormat(dateFormat);
+        DateFormat formatter = new SimpleDateFormat(this.applicationProperties.getDirectoryDateFormat());
         Calendar calendar = Calendar.getInstance();
 
-        return String.format("%s/%s/",directory,formatter.format(calendar.getTime()));
+        return String.format("%s/%s/",this.applicationProperties.getDirectoryName(),formatter.format(calendar.getTime()));
     }
 
     public void initialiseDay() throws IOException {
         LOG.info("Initialise the backup directory.");
 
-        Path directoryPath = Paths.get(directory);
+        Path directoryPath = Paths.get(this.applicationProperties.getDirectoryName());
 
         // Does the directory exist?
         if(Files.notExists(directoryPath)) {
-            throw new IllegalStateException(String.format("The defined directory path %s does not exist.", directory));
+            throw new IllegalStateException(String.format("The defined directory path %s does not exist.", this.applicationProperties.getDirectoryName()));
         }
 
         // What should today's directory be called?
