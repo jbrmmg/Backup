@@ -64,7 +64,7 @@ public class BackupCtrl {
     }
 
     @SuppressWarnings("unchecked")
-    @Scheduled(cron = "${middle.tier.backup.schedule}")
+    @Scheduled(cron = "${backup.schedule}")
     public void scheduleBackup() {
         LOG.info("Running backups.");
 

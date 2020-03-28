@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false
+    username: ${db.pdn.backup.user}
+    password: ${db.pdn.backup.password}
+
+  boot:
+    admin:
+      client:
+        url: ${spring.admin.clienturl}
+
+
+  application:
+    name: Middle Tier Backup
+
+  h2:
+    console:
+      enabled: false
+
+logging.file: /var/log/jbr/MiddleTier-Backup-PDN.log
+logging:
+  file:
+    max-history: 3
+    max-size: 100MB
+
+server:
+  port: 12013
+
+backup:
+  service-name: "Middle Tier Production"
+  directory:
+    name: /media/Shared/Backups
+    days: 30
+    zip: /media/Shared/BackupZip
+  schedule: 0 20 0/1 * * ?
+
+  db-url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false
+  db-username: ${db.pdn.backup.user}
+  db-password: ${db.pdn.backup.password}
+
+  zip-directory: /media/Shared/BackupZip
+
+info:
+  app:
+    version: Production

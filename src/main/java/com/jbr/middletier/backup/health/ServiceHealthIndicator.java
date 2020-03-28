@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.health;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import org.slf4j.Logger;
@@ -20,15 +21,16 @@ import java.util.List;
 public class ServiceHealthIndicator implements HealthIndicator {
     final static private Logger LOG = LoggerFactory.getLogger(ServiceHealthIndicator.class);
 
-    @Value("${middle.tier.service.name}")
-    private String serviceName;
+    private final ApplicationProperties applicationProperties;
 
     private final
     BackupRepository backupRepository;
 
     @Autowired
-    public ServiceHealthIndicator(BackupRepository backupRepository) {
+    public ServiceHealthIndicator(BackupRepository backupRepository,
+                                  ApplicationProperties applicationProperties) {
         this.backupRepository = backupRepository;
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
@@ -37,11 +39,11 @@ public class ServiceHealthIndicator implements HealthIndicator {
             List<Backup> backupList = (List<Backup>) backupRepository.findAll();
             LOG.info(String.format("Check Database %s.", backupList.size()));
 
-            return Health.up().withDetail("service", serviceName).withDetail("Backup Types",backupList.size()).build();
+            return Health.up().withDetail("service", applicationProperties.getServiceName()).withDetail("Backup Types",backupList.size()).build();
         } catch (Exception e) {
             LOG.error("Failed to check health",e);
         }
 
-        return Health.down().withDetail("service", serviceName).build();
+        return Health.down().withDetail("service", applicationProperties.getServiceName()).build();
     }
 }
