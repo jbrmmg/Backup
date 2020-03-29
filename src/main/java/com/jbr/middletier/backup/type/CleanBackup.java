@@ -33,13 +33,13 @@ public class CleanBackup implements PerformBackup {
 
     private boolean shouldDirectoryBeDeleted(String directory) {
         try {
-            DateFormat formatter = new SimpleDateFormat(applicationProperties.getDirectoryDateFormat());
+            DateFormat formatter = new SimpleDateFormat(applicationProperties.getDirectory().getDateFormat());
 
             // Convert the directory name to a date.
             Date directoryDate = formatter.parse(directory);
 
             ZonedDateTime now = ZonedDateTime.now();
-            ZonedDateTime maxDaysAgo = now.plusDays(-1 * applicationProperties.getDirectoryDays());
+            ZonedDateTime maxDaysAgo = now.plusDays(-1 * applicationProperties.getDirectory().getDays());
 
             if (directoryDate.toInstant().isBefore(maxDaysAgo.toInstant())) {
                 // Delete this directory.
@@ -66,7 +66,7 @@ public class CleanBackup implements PerformBackup {
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         // Remove any backup directories older than x days
-        File folder = new File(applicationProperties.getDirectoryName());
+        File folder = new File(applicationProperties.getDirectory().getName());
         if(!folder.exists()) {
             throw new IllegalStateException("Backup directory does not exist.");
         }
@@ -76,7 +76,7 @@ public class CleanBackup implements PerformBackup {
             for (File listOfFile : listOfFiles) {
                 if (listOfFile.isDirectory()) {
                     if (shouldDirectoryBeDeleted(listOfFile.getName())) {
-                        deleleDirectory(String.format("%s/%s", applicationProperties.getDirectoryName(), listOfFile.getName()));
+                        deleleDirectory(String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()));
                     }
                 }
             }

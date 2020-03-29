@@ -29,20 +29,20 @@ public class BackupManager {
     }
 
     public String todaysDirectory() {
-        DateFormat formatter = new SimpleDateFormat(this.applicationProperties.getDirectoryDateFormat());
+        DateFormat formatter = new SimpleDateFormat(this.applicationProperties.getDirectory().getDateFormat());
         Calendar calendar = Calendar.getInstance();
 
-        return String.format("%s/%s/",this.applicationProperties.getDirectoryName(),formatter.format(calendar.getTime()));
+        return String.format("%s/%s/",this.applicationProperties.getDirectory().getName(),formatter.format(calendar.getTime()));
     }
 
     public void initialiseDay() throws IOException {
         LOG.info("Initialise the backup directory.");
 
-        Path directoryPath = Paths.get(this.applicationProperties.getDirectoryName());
+        Path directoryPath = Paths.get(this.applicationProperties.getDirectory().getName());
 
         // Does the directory exist?
         if(Files.notExists(directoryPath)) {
-            throw new IllegalStateException(String.format("The defined directory path %s does not exist.", this.applicationProperties.getDirectoryName()));
+            throw new IllegalStateException(String.format("The defined directory path %s does not exist.", this.applicationProperties.getDirectory().getName()));
         }
 
         // What should today's directory be called?

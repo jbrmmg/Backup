@@ -4,35 +4,41 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix="backup",ignoreUnknownFields = true)
 public class ApplicationProperties {
+    public class Directory {
+        private String name;
+        private int days;
+        private String zip;
+        private String dateFormat;
+
+        public void setName(String directoryName) { this.name = directoryName; }
+
+        public String getName() { return this.name; }
+
+        public void setDays(int directoryDays) { this.days = directoryDays; }
+
+        public int getDays() { return this.days; }
+
+        public void setZip(String directoryZip) { this.zip = directoryZip; }
+
+        public String getZip() { return this.zip; }
+
+        public void setDateFormat(String directoryDateFormat) { this.dateFormat = directoryDateFormat; }
+
+        public String getDateFormat() { return this.dateFormat; }
+    }
+
+    private Directory directory = new Directory();
     private String serviceName;
-    private String directoryName;
-    private int directoryDays;
-    private String directoryZip;
-    private String directoryDateFormat;
     private String dbUrl;
     private String dbPassword;
     private String dbUsername;
     private String zipDirectory;
 
+    public Directory getDirectory() { return this.directory; }
+
     public void setServiceName(String serviceName) { this.serviceName = serviceName; }
 
     public String getServiceName() { return this.serviceName; }
-
-    public void setDirectoryName(String directoryName) { this.directoryName = directoryName; }
-
-    public String getDirectoryName() { return this.directoryName; }
-
-    public void setDirectoryDays(int directoryDays) { this.directoryDays = directoryDays; }
-
-    public int getDirectoryDays() { return this.directoryDays; }
-
-    public void setDirectoryZip(String directoryZip) { this.directoryZip = directoryZip; }
-
-    public String getDirectoryZip() { return this.directoryZip; }
-
-    public void setDirectoryDateFormat(String directoryDateFormat) { this.directoryDateFormat = directoryDateFormat; }
-
-    public String getDirectoryDateFormat() { return this.directoryDateFormat; }
 
     public void setDbUrl(String dbUrl) { this.dbUrl = dbUrl; }
 

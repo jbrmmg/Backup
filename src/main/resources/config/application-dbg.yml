@@ -19,7 +19,7 @@ backup:
     name: /home/jason/Working/BackupDev
     days: 5
     zip: /home/jason/Working/BackupDevZip
-  schedule: 0 45 0/1 * * ?
+  schedule: 0 0/1 * ? * *
 
   db-url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
   db-username: ${db.dev.backup.user}
