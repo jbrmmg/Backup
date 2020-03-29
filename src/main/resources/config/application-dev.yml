@@ -1,0 +1,44 @@
+spring:
+  datasource:
+    url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
+    username: ${db.dev.backup.user}
+    password: ${db.dev.backup.password}
+
+  boot:
+    admin:
+      client:
+        url: ${spring.admin.clienturl}
+
+  application:
+    name: Middle Tier Backup (Development)
+
+  h2:
+    console:
+      enabled: false
+
+logging.file: /var/log/jbr/MiddleTier-BackupDB-DEV.log
+logging:
+  file:
+    max-history: 3
+    max-size: 100MB
+
+server:
+  port: 10013
+
+backup:
+  service-name: "Middle Tier Development"
+  directory:
+    name: /home/jason/Working/Backup
+    days: 10
+    zip: /home/jason/Working/BackupDevZip
+  schedule: 0 13 0/1 * * ?
+
+  db-url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
+  db-username: ${db.dev.backup.user}
+  db-password: ${db.dev.backup.password}
+
+  zip-directory: /home/jason/Working/BackupDevZip
+
+info:
+  app:
+    version: Development

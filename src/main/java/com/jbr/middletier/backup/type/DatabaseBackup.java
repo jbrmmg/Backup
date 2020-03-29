@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.type;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.slf4j.Logger;
@@ -19,21 +20,18 @@ import java.nio.file.Paths;
 public class DatabaseBackup implements PerformBackup {
     final static private Logger LOG = LoggerFactory.getLogger(DatabaseBackup.class);
 
-    @Value("${middle.tier.backup.db.url}")
-    private String dbUrl;
+    private final ApplicationProperties applicationProperties;
 
-    @Value("${middle.tier.backup.db.username}")
-    private String dbUsername;
-
-    @Value("${middle.tier.backup.db.password}")
-    private String dbPassword;
+    public DatabaseBackup(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
 
     private String getDBServerName() {
         // Get the database server name.
-        String[] urlElements = dbUrl.split(":");
+        String[] urlElements = applicationProperties.getDbUrl().split(":");
 
         if(urlElements.length < 3) {
-            throw new IllegalStateException(String.format("Cannot determine DB server name from url - %s (x:x:x)",dbUrl));
+            throw new IllegalStateException(String.format("Cannot determine DB server name from url - %s (x:x:x)",applicationProperties.getDbUrl()));
         }
 
         return urlElements[2].replace("//","");
@@ -59,8 +57,8 @@ public class DatabaseBackup implements PerformBackup {
 
         return String.format("mysqldump -h %s -u %s -p%s %s > %s/%s/%s.sql",
                 getDBServerName(),
-                dbUsername,
-                dbPassword,
+                applicationProperties.getDbUsername(),
+                applicationProperties.getDbPassword(),
                 backup.getArtifact(),
                 backupManager.todaysDirectory(),
                 backup.getBackupName(),

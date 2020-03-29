@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: jason
+      changes:
+        - createTable:
+            tableName: backup
+            columns:
+              - column:
+                  name: id
+                  type: char(4)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(45)
+              - column:
+                  name: directory
+                  type: varchar(45)
+              - column:
+                  name: artifact
+                  type: varchar(100)
+              - column:
+                  name: backupname
+                  type: varchar(35)
+              - column:
+                  name: filename
+                  type: varchar(100)
+              - column:
+                  name: time
+                  type: int(11)
