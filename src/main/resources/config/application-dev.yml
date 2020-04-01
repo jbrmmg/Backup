@@ -16,7 +16,7 @@ spring:
     console:
       enabled: false
 
-logging.file: /var/log/jbr/MiddleTier-BackupDB-DEV.log
+logging.file: /var/log/jbr/MiddleTier-Backup-DEV.log
 logging:
   file:
     max-history: 3
