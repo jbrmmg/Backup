@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -70,6 +71,7 @@ public class FileBackup implements PerformBackup {
             performFileBackup(backup.getDirectory(),String.format("%s/%s",backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact());
         } catch (Exception ex) {
             LOG.error("Failed to perform file backup",ex);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"file backup " + ex);
         }
     }
 }

@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,7 @@ public class DatabaseBackup implements PerformBackup {
 
     private final ApplicationProperties applicationProperties;
 
+    @Autowired
     public DatabaseBackup(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
     }
@@ -68,6 +70,7 @@ public class DatabaseBackup implements PerformBackup {
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         try {
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Zipup backup");
             LOG.info(String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
 
             // Perform a database backup.
@@ -113,6 +116,7 @@ public class DatabaseBackup implements PerformBackup {
 
             LOG.info("Backup completed.");
         } catch (Exception ex) {
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"db backup " + ex);
             LOG.error("Failed to perform database backup",ex);
         }
     }

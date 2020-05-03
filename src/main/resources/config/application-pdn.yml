@@ -28,6 +28,7 @@ server:
 
 backup:
   service-name: "Middle Tier Production"
+  web-log-url: http://localhost:12001/jbr/int/log/data
   directory:
     name: /media/Shared/Backups
     days: 30

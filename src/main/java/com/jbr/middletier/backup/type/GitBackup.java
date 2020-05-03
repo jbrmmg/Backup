@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -75,6 +76,7 @@ public class GitBackup extends FileBackup {
             LOG.info("Backup completed.");
         } catch (Exception ex) {
             LOG.error("Failed to perform git backup", ex);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"git backup " + ex);
         }
     }
 }

@@ -2,7 +2,7 @@ package com.jbr.middletier.backup.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix="backup",ignoreUnknownFields = true)
+@ConfigurationProperties(prefix="backup")
 public class ApplicationProperties {
     public class Directory {
         private String name;
@@ -33,6 +33,7 @@ public class ApplicationProperties {
     private String dbPassword;
     private String dbUsername;
     private String zipDirectory;
+    private String webLogUrl;
 
     public Directory getDirectory() { return this.directory; }
 
@@ -55,4 +56,8 @@ public class ApplicationProperties {
     public void setZipDirectory(String zipDirectory) { this.zipDirectory = zipDirectory; }
 
     public String getZipDirectory() { return this.zipDirectory; }
+
+    public void setWebLogUrl(String webLogUrl) { this.webLogUrl = webLogUrl; }
+
+    public String getWebLogUrl() { return this.webLogUrl; }
 }
