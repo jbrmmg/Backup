@@ -64,6 +64,7 @@ public class BackupManager {
         // If not exists, create it.
         if(Files.notExists(todaysDirectoryPath)) {
             Files.createDirectory(todaysDirectoryPath);
+            postWebLog(webLogLevel.INFO,"Created directory + " + todaysDirectoryPath);
         }
     }
 
