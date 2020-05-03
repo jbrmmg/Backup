@@ -51,7 +51,7 @@ public class GitBackup extends FileBackup {
 
                         // Copy file if not already created.
                         LOG.info(String.format("File %s copy to %s", listOfFile.getName(), destinationPath.toString()));
-                        performFileBackup(backup.getDirectory(), destinationPath.toString(), listOfFile.getName());
+                        performFileBackup(backupManager, backup.getDirectory(), destinationPath.toString(), listOfFile.getName());
                     } else if (listOfFile.isDirectory()) {
                         if (listOfFile.getName().equalsIgnoreCase("target")) {
                             continue;
