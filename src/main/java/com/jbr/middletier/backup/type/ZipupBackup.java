@@ -83,6 +83,7 @@ public class ZipupBackup implements PerformBackup  {
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         try {
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Zipup backup");
             String zipFilename = String.format("%s/backups.zip", applicationProperties.getZipDirectory());
 
             // If zip file exists, delete it.
@@ -106,6 +107,7 @@ public class ZipupBackup implements PerformBackup  {
             LOG.info("Done");
         } catch (Exception ex) {
             LOG.error("Failed to perform zip backup",ex);
+            backupManager.postWebLog( BackupManager.webLogLevel.INFO, "zipup backup " + ex);
         }
     }
 }

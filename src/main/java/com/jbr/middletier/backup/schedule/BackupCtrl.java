@@ -68,6 +68,8 @@ public class BackupCtrl {
     public void scheduleBackup() {
         LOG.info("Running backups.");
 
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Running Backups.");
+
         // Get the current time, and look for any backup that has
         Calendar calendar = Calendar.getInstance();
         int endTime = calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE);
@@ -80,5 +82,7 @@ public class BackupCtrl {
 
         // If any backups return, perform the backup.
         performBackups(backupList);
+
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Running Backups complete.");
     }
 }

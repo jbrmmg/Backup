@@ -31,7 +31,7 @@ public class CleanBackup implements PerformBackup {
         this.applicationProperties = applicationProperties;
     }
 
-    private boolean shouldDirectoryBeDeleted(String directory) {
+    private boolean shouldDirectoryBeDeleted(BackupManager backupManager,String directory) {
         try {
             DateFormat formatter = new SimpleDateFormat(applicationProperties.getDirectory().getDateFormat());
 
@@ -48,23 +48,27 @@ public class CleanBackup implements PerformBackup {
             }
         } catch ( ParseException ex ) {
             LOG.warn(String.format("Failed to convert directory name %s to a date",directory));
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory " + ex);
         }
 
         return false;
     }
 
-    private void deleleDirectory(String directory) {
+    private void deleleDirectory(BackupManager backupManager, String directory) {
         try {
             File directoryToDelete = new File(directory);
             FileUtils.deleteDirectory(directoryToDelete);
             LOG.info(String.format("Deleted %s",directory));
         } catch ( IOException ex ) {
             LOG.warn(String.format("Failed to deleted %s",directory));
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"delete directory " + ex);
         }
     }
 
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Clean Backup.");
+
         // Remove any backup directories older than x days
         File folder = new File(applicationProperties.getDirectory().getName());
         if(!folder.exists()) {
@@ -75,8 +79,8 @@ public class CleanBackup implements PerformBackup {
         if(listOfFiles != null) {
             for (File listOfFile : listOfFiles) {
                 if (listOfFile.isDirectory()) {
-                    if (shouldDirectoryBeDeleted(listOfFile.getName())) {
-                        deleleDirectory(String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()));
+                    if (shouldDirectoryBeDeleted(backupManager, listOfFile.getName())) {
+                        deleleDirectory(backupManager, String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()));
                     }
                 }
             }
