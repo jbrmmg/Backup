@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -21,7 +22,7 @@ import static java.nio.file.StandardCopyOption.*;
 public class FileBackup implements PerformBackup {
     final static private Logger LOG = LoggerFactory.getLogger(FileBackup.class);
 
-    void performFileBackup(String sourceDirectory, String destinationDirectory, String artifactName) throws IOException {
+    void performFileBackup(BackupManager backupManager, String sourceDirectory, String destinationDirectory, String artifactName) throws IOException {
         // Perform a file backup.
 
         // Check that the source directory exists.
@@ -58,6 +59,7 @@ public class FileBackup implements PerformBackup {
         Path sourceFilePath = Paths.get(String.format("%s/%s",sourceDirectory,artifactName));
         Path destinationFilePath = Paths.get(String.format("%s/%s",destinationDirectory,artifactName));
         LOG.info(String.format("Copy %s/%s to %s/%s",sourceDirectory,artifactName,destinationDirectory,artifactName));
+        backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("Copy %s/%s to %s/%s",sourceDirectory,artifactName,destinationDirectory,artifactName));
         Files.copy(sourceFilePath,destinationFilePath,REPLACE_EXISTING);
     }
 
@@ -67,9 +69,10 @@ public class FileBackup implements PerformBackup {
             LOG.info(String.format("File Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
 
             // Perform a file backup.
-            performFileBackup(backup.getDirectory(),String.format("%s/%s",backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact());
+            performFileBackup(backupManager,backup.getDirectory(),String.format("%s/%s",backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact());
         } catch (Exception ex) {
             LOG.error("Failed to perform file backup",ex);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"file backup " + ex);
         }
     }
 }

@@ -18,13 +18,4 @@ public class DefaultProfileUtil {
         defProperties.put(SPRING_PROFILE_DEFAULT,"dbg");
         app.setDefaultProperties(defProperties);
     }
-
-    public static String[] getActiveProfiles(Environment environment) {
-        String[] profiles = environment.getActiveProfiles();
-        if(profiles.length == 0) {
-            return environment.getDefaultProfiles();
-        }
-
-        return profiles;
-    }
 }

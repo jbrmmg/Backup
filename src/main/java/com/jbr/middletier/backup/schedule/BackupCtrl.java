@@ -66,7 +66,7 @@ public class BackupCtrl {
     @SuppressWarnings("unchecked")
     @Scheduled(cron = "${backup.schedule}")
     public void scheduleBackup() {
-        LOG.info("Running backups.");
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Running Backups.");
 
         // Get the current time, and look for any backup that has
         Calendar calendar = Calendar.getInstance();
