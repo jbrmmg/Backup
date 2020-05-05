@@ -59,7 +59,7 @@ public class FileBackup implements PerformBackup {
         Path sourceFilePath = Paths.get(String.format("%s/%s",sourceDirectory,artifactName));
         Path destinationFilePath = Paths.get(String.format("%s/%s",destinationDirectory,artifactName));
         LOG.info(String.format("Copy %s/%s to %s/%s",sourceDirectory,artifactName,destinationDirectory,artifactName));
-        backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("Copy %s/%s to %s/%s",sourceDirectory,artifactName,destinationDirectory,artifactName));
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("Copy %s/%s to %s/%s",sourceDirectory,artifactName,destinationDirectory,artifactName));
         Files.copy(sourceFilePath,destinationFilePath,REPLACE_EXISTING);
     }
 
