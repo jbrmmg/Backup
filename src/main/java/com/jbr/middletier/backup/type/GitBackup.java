@@ -51,7 +51,7 @@ public class GitBackup extends FileBackup {
 
                         // Copy file if not already created.
                         LOG.info(String.format("File %s copy to %s", listOfFile.getName(), destinationPath.toString()));
-                        performFileBackup(backupManager, backup.getDirectory(), destinationPath.toString(), listOfFile.getName());
+                        performFileBackup(backupManager, backup.getDirectory(), destinationPath.toString(), listOfFile.getName(), false);
                     } else if (listOfFile.isDirectory()) {
                         if (listOfFile.getName().equalsIgnoreCase("target")) {
                             continue;
@@ -69,6 +69,8 @@ public class GitBackup extends FileBackup {
                         File source = new File(String.format("%s/%s", backup.getDirectory(), listOfFile.getName()));
                         File destination = new File(newDirectoryPath.toString());
                         FileUtils.copyDirectory(source, destination, true);
+
+                        backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("Directory %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
                     }
                 }
             }
