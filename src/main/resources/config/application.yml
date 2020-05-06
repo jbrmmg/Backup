@@ -24,7 +24,7 @@ spring:
     contexts: default
 
 backup:
-  service-name: "Middle Tier Debug"
+  service-name: middletier-backup-dbg
   web-log-url: http://localhost:10001/jbr/int/log/data
   directory:
     date-format: yyyy-MM-dd
