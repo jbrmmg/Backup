@@ -27,7 +27,7 @@ server:
   port: 12013
 
 backup:
-  service-name: "Middle Tier Production"
+  service-name: middletier-backup
   web-log-url: http://localhost:12001/jbr/int/log/data
   directory:
     name: /media/Shared/Backups
