@@ -19,6 +19,26 @@ databaseChangeLog:
                     nullable: false
 
         - createTable:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: destination
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - createTable:
             tableName: directory
             columns:
               - column:
@@ -58,18 +78,8 @@ databaseChangeLog:
                   name: regex
                   type: varchar(50)
               - column:
-                  name: manual
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
-                  name: remove
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
-                  name: backup
-                  type: boolean
+                  name: action
+                  type: varchar(20)
                   constraints:
                     nullable: false
 
@@ -98,6 +108,12 @@ databaseChangeLog:
                   name: classification_id
                   type: int
               - column:
+                  name: size
+                  type: int
+              - column:
+                  name: date
+                  type: datetime
+              - column:
                   name: removed
                   type: boolean
                   constraints:
@@ -124,6 +140,20 @@ databaseChangeLog:
             referencedTableName: classification
             referencedColumnNames: id
 
+        - addForeignKeyConstraint:
+            constraintName: fk_source_synchronize
+            baseTableName: synchronize
+            baseColumnNames: source
+            referencedTableName: source
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_destination_synchronize
+            baseTableName: synchronize
+            baseColumnNames: destination
+            referencedTableName: source
+            referencedColumnNames: id
+
         - insert:
             tableName: classification
             columns:
@@ -131,14 +161,8 @@ databaseChangeLog:
                   name: regex
                   value: .*\.dxf~$
               - column:
-                  name: manual
-                  valueBoolean: true
-              - column:
-                  name: remove
-                  valueBoolean: false
-              - column:
-                  name: backup
-                  valueBoolean: false
+                  name: action
+                  value: WARN
 
         - insert:
             tableName: classification
@@ -147,14 +171,8 @@ databaseChangeLog:
                   name: regex
                   value: ^\.DS_Store$
               - column:
-                  name: manual
-                  valueBoolean: false
-              - column:
-                  name: remove
-                  valueBoolean: true
-              - column:
-                  name: backup
-                  valueBoolean: false
+                  name: action
+                  value: DELETE
 
         - insert:
             tableName: classification
@@ -163,14 +181,8 @@ databaseChangeLog:
                   name: regex
                   value: ^\._\.DS_Store$
               - column:
-                  name: manual
-                  valueBoolean: false
-              - column:
-                  name: remove
-                  valueBoolean: true
-              - column:
-                  name: backup
-                  valueBoolean: false
+                  name: action
+                  value: DELETE
 
         - insert:
             tableName: classification
@@ -179,14 +191,8 @@ databaseChangeLog:
                   name: regex
                   value: .*\.pdf$
               - column:
-                  name: manual
-                  valueBoolean: false
-              - column:
-                  name: remove
-                  valueBoolean: false
-              - column:
-                  name: backup
-                  valueBoolean: true
+                  name: action
+                  value: BACKUP
 
         - insert:
             tableName: classification
@@ -195,11 +201,5 @@ databaseChangeLog:
                   name: regex
                   value: .*\.jpg$
               - column:
-                  name: manual
-                  valueBoolean: false
-              - column:
-                  name: remove
-                  valueBoolean: false
-              - column:
-                  name: backup
-                  valueBoolean: true
+                  name: action
+                  value: BACKUP

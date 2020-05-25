@@ -13,16 +13,10 @@ public class Classification {
     @Column(name="regex")
     private String regex;
 
-    @Column(name="manual")
-    private boolean manual;
+    @Column(name="action")
+    private String action;
 
-    @Column(name="remove")
-    private boolean remove;
-
-    @Column(name="backup")
-    private boolean backup;
-
-    public boolean fileMatches(File file) {
+    public boolean fileMatches(FileInfo file) {
         return file.getName().matches(regex);
     }
 }
