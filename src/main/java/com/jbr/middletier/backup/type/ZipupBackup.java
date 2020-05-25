@@ -34,7 +34,7 @@ public class ZipupBackup implements PerformBackup  {
             for (File file : files) {
                 fileList.add(file);
                 if (file.isDirectory()) {
-                    LOG.info(String.format("Directory: %s", file.getCanonicalPath()));
+                    LOG.info(String.format("DirectoryInfo: %s", file.getCanonicalPath()));
                     getAllFiles(file, fileList);
                 } else {
                     LOG.info(String.format("     file: %s", file.getCanonicalPath()));

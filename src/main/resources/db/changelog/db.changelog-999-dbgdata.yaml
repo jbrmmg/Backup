@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 999
+      author: jason
+      context: dbg
+      changes:
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: path
+                  value: /media/Shared/Documents
+              - column:
+                  name: id
+                  value: 1
