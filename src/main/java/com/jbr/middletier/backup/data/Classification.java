@@ -17,6 +17,6 @@ public class Classification {
     private String action;
 
     public boolean fileMatches(FileInfo file) {
-        return file.getName().matches(regex);
+        return file.getName().toLowerCase().matches(regex);
     }
 }

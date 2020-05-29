@@ -25,5 +25,7 @@ public class DirectoryInfo {
 
     public void setSource(Source source) { this.source = source; }
 
+    public void clearRemoved() { this.removed = false; }
+
     public void setPath(String path) { this.path = path; }
 }

@@ -10,9 +10,6 @@ spring:
     username: ${db.dev.backup.user}
     password: ${db.dev.backup.password}
 
-  liquibase:
-    contexts: dbg
-
   jpa:
     properties:
       hibernate:

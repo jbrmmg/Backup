@@ -10,4 +10,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-003-files.yaml
 
   - include:
+      file: /db/changelog/db.changelog-004-classification-data.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

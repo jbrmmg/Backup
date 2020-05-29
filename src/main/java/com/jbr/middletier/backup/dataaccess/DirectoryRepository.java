@@ -20,4 +20,10 @@ public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integ
     @Modifying
     @Query("UPDATE DirectoryInfo SET removed=true")
     void markAllRemoved();
+
+    // Mark everything as removed.
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM DirectoryInfo WHERE removed=true")
+    void deleteRemoved();
 }

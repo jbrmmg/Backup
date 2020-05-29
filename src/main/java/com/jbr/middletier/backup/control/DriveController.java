@@ -64,7 +64,11 @@ public class DriveController {
             newDirectoryInfo.setSource(nextSource);
 
             directory = Optional.of(directoryRepository.save(newDirectoryInfo));
+        } else {
+            directory.get().clearRemoved();
+            directoryRepository.save(directory.get());
         }
+
 
         // Does the file exist?
         Optional<FileInfo> file = fileRepository.findByDirectoryInfoAndName(directory.get(),path.getFileName().toString());
@@ -119,6 +123,9 @@ public class DriveController {
                 return result;
             }
         }
+
+        fileRepository.deleteRemoved();
+        directoryRepository.deleteRemoved();
 
         return OkStatus.getOkStatus();
     }

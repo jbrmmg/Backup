@@ -75,8 +75,16 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
+                  name: order
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
                   name: regex
                   type: varchar(50)
+              - column:
+                  name: icon
+                  type: varchar(60)
               - column:
                   name: action
                   type: varchar(20)
@@ -153,53 +161,3 @@ databaseChangeLog:
             baseColumnNames: destination
             referencedTableName: source
             referencedColumnNames: id
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: .*\.dxf~$
-              - column:
-                  name: action
-                  value: WARN
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: ^\.DS_Store$
-              - column:
-                  name: action
-                  value: DELETE
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: ^\._\.DS_Store$
-              - column:
-                  name: action
-                  value: DELETE
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: .*\.pdf$
-              - column:
-                  name: action
-                  value: BACKUP
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: .*\.jpg$
-              - column:
-                  name: action
-                  value: BACKUP
