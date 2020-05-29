@@ -4,6 +4,26 @@ databaseChangeLog:
       author: jason
       changes:
         - createTable:
+            tableName: location
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+
+        - createTable:
             tableName: source
             columns:
               - column:
@@ -16,6 +36,11 @@ databaseChangeLog:
                   type: int
                   constraints:
                     primaryKey: true
+                    nullable: false
+              - column:
+                  name: location
+                  type: int
+                  constraints:
                     nullable: false
 
         - createTable:
@@ -126,6 +151,9 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
+              - column:
+                  name: md5
+                  type: varchar(32)
 
         - addForeignKeyConstraint:
             constraintName: fk_directory_file
@@ -160,4 +188,12 @@ databaseChangeLog:
             baseTableName: synchronize
             baseColumnNames: destination
             referencedTableName: source
+            referencedColumnNames: id
+
+
+        - addForeignKeyConstraint:
+            constraintName: fk_location_source
+            baseTableName: source
+            baseColumnNames: location
+            referencedTableName: location
             referencedColumnNames: id

@@ -1,9 +1,6 @@
 package com.jbr.middletier.backup.data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -17,6 +14,10 @@ public class Source {
     @Column(name="path")
     @NotNull
     private String path;
+
+    @JoinColumn(name="location")
+    @ManyToOne(optional = false)
+    private Location location;
 
     public void setPath(String path) { this.path = path; }
 

@@ -18,6 +18,8 @@ public class Synchronize {
     @ManyToOne(optional = false)
     private Source destination;
 
+    public Integer getId() { return this.id; }
+
     public Source getSource() { return this.source; }
 
     public Source getDestination() { return this.destination; }

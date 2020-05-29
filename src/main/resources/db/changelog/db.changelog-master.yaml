@@ -13,4 +13,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-004-classification-data.yaml
 
   - include:
+      file: /db/changelog/db.changelog-005-location-data.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
