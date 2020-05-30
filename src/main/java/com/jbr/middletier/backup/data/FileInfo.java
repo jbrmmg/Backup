@@ -47,13 +47,26 @@ public class FileInfo {
 
     public void setDate(Date date) { this.date = date; }
 
+    public void setMD5(String md5) { this.md5 = md5; }
+
     public void clearRemoved() { this.removed = false; }
 
     public Integer getId() { return this.id; }
 
     public String getName() { return this.name; }
 
+    public long getSize() { return this.size; }
+
+    public Date getDate() { return this.date; }
+
+    public String getMD5() { return this.md5; }
+
     public DirectoryInfo getDirectoryInfo() { return this.directoryInfo; }
 
     public Classification getClassification() { return this.classification; }
+
+    @Override
+    public String toString() {
+        return "FileInfo: " + id + directoryInfo.toString() + "-" + name + " " + md5;
+    }
 }

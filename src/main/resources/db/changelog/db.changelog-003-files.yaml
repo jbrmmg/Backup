@@ -115,6 +115,11 @@ databaseChangeLog:
                   type: varchar(20)
                   constraints:
                     nullable: false
+              - column:
+                  name: useMD5
+                  type: boolean
+                  constraints:
+                    nullable: false
 
         - createTable:
             tableName: file
@@ -154,6 +159,32 @@ databaseChangeLog:
               - column:
                   name: md5
                   type: varchar(32)
+
+        - createTable:
+            tableName: action_confirm
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: path
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: action
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: confirmed
+                  type: boolean
+                  constraints:
+                    nullable: false
 
         - addForeignKeyConstraint:
             constraintName: fk_directory_file

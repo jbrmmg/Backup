@@ -24,4 +24,9 @@ public class Source {
     public String getPath() { return this.path; }
 
     public int getId() { return this.id; }
+
+    @Override
+    public String toString() {
+        return path;
+    }
 }
