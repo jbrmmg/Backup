@@ -27,6 +27,10 @@ server:
   port: 12013
 
 backup:
+  gather-schedule: 0 0 10 * * ?
+  gather-enabled: true
+  synchronize-schedule: 0 0 12 * * ?
+  synchronize-enabled: true
   service-name: middletier-backup
   web-log-url: http://localhost:12001/jbr/int/log/data
   directory:
@@ -34,6 +38,7 @@ backup:
     days: 30
     zip: /media/Shared/BackupZip
   schedule: 0 20 0/1 * * ?
+  enabled: false
 
   db-url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false
   db-username: ${db.pdn.backup.user}

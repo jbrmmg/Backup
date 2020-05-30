@@ -1,0 +1,230 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: jason
+      changes:
+        - createTable:
+            tableName: location
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: source
+            columns:
+              - column:
+                  name: path
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: location
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: destination
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: directory
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: path
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: removed
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: classification
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: regex
+                  type: varchar(50)
+              - column:
+                  name: icon
+                  type: varchar(60)
+              - column:
+                  name: action
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: useMD5
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(200)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: directory_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: classification_id
+                  type: int
+              - column:
+                  name: size
+                  type: int
+              - column:
+                  name: date
+                  type: datetime
+              - column:
+                  name: removed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: md5
+                  type: varchar(32)
+
+        - createTable:
+            tableName: action_confirm
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: path
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: action
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: confirmed
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_directory_file
+            baseTableName: file
+            baseColumnNames: directory_id
+            referencedTableName: directory
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_source_directory
+            baseTableName: directory
+            baseColumnNames: source_id
+            referencedTableName: source
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_classification_file
+            baseTableName: file
+            baseColumnNames: classification_id
+            referencedTableName: classification
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_source_synchronize
+            baseTableName: synchronize
+            baseColumnNames: source
+            referencedTableName: source
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_destination_synchronize
+            baseTableName: synchronize
+            baseColumnNames: destination
+            referencedTableName: source
+            referencedColumnNames: id
+
+
+        - addForeignKeyConstraint:
+            constraintName: fk_location_source
+            baseTableName: source
+            baseColumnNames: location
+            referencedTableName: location
+            referencedColumnNames: id

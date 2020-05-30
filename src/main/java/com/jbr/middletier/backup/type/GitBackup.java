@@ -37,7 +37,7 @@ public class GitBackup extends FileBackup {
             // Get a list of files that are in the directory.
             File folder = new File(backup.getDirectory());
             if(!folder.exists()) {
-                throw new IllegalStateException("Directory does not exist.");
+                throw new IllegalStateException("DirectoryInfo does not exist.");
             }
 
             File[] listOfFiles = folder.listFiles();
@@ -57,7 +57,7 @@ public class GitBackup extends FileBackup {
                             continue;
                         }
 
-                        LOG.info(String.format("Directory %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
+                        LOG.info(String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
 
                         // If not existing, create the directory.
                         Path newDirectoryPath = Paths.get(String.format("%s/%s", destinationPath.toString(), listOfFile.getName()));
@@ -70,7 +70,7 @@ public class GitBackup extends FileBackup {
                         File destination = new File(newDirectoryPath.toString());
                         FileUtils.copyDirectory(source, destination, true);
 
-                        backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("Directory %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
+                        backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
                     }
                 }
             }

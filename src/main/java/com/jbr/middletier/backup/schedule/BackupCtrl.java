@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.schedule;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
@@ -25,22 +26,20 @@ import java.util.List;
 public class BackupCtrl {
     final static private Logger LOG = LoggerFactory.getLogger(BackupCtrl.class);
 
-    private final
-    TypeManager typeManager;
-
-    private final
-    BackupManager backupManager;
-
-    private final
-    BackupRepository backupRepository;
+    private final TypeManager typeManager;
+    private final BackupManager backupManager;
+    private final BackupRepository backupRepository;
+    private final ApplicationProperties applicationProperties;
 
     @Autowired
     public BackupCtrl(TypeManager typeManager,
                       BackupManager backupManager,
-                      BackupRepository backupRepository) {
+                      BackupRepository backupRepository,
+                      ApplicationProperties applicationProperties) {
         this.typeManager = typeManager;
         this.backupManager = backupManager;
         this.backupRepository = backupRepository;
+        this.applicationProperties = applicationProperties;
     }
 
     private void performBackups(List<Backup> backups) {
@@ -64,8 +63,12 @@ public class BackupCtrl {
     }
 
     @SuppressWarnings("unchecked")
-    @Scheduled(cron = "${backup.schedule}")
+    @Scheduled(cron = "#{@applicationProperties.schedule}")
     public void scheduleBackup() {
+        if(!applicationProperties.getEnabled()) {
+            return;
+        }
+
         // Get the current time, and look for any backup that has
         Calendar calendar = Calendar.getInstance();
         int endTime = calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE);

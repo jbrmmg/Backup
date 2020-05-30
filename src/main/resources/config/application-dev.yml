@@ -26,12 +26,17 @@ server:
   port: 10013
 
 backup:
+  gather-schedule: 0 0 0 * * ?
+  gather-enabled: false
+  synchronize-schedule: 0 0 0 * * ?
+  synchronize-enabled: false
   service-name: middletier-backup-dev
   directory:
     name: /home/jason/Working/Backup
     days: 10
     zip: /home/jason/Working/BackupDevZip
   schedule: 0 13 0/1 * * ?
+  enabled: false
 
   db-url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
   db-username: ${db.dev.backup.user}
