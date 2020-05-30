@@ -10,9 +10,6 @@ spring:
     username: ${db.dev.backup.user}
     password: ${db.dev.backup.password}
 
-  liquibase:
-    contexts: dbg
-
   jpa:
     properties:
       hibernate:
@@ -25,6 +22,7 @@ backup:
     days: 5
     zip: /home/jason/Working/BackupDevZip
   schedule: 0 0/1 * ? * *
+  enabled: false
 
   db-url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
   db-username: ${db.dev.backup.user}

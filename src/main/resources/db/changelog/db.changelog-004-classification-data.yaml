@@ -1,0 +1,422 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: jason
+      changes:
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: ^\.ds_store$
+              - column:
+                  name: action
+                  value: DELETE
+              - column:
+                  name: order
+                  value: 1
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: ^\._\.ds_store$
+              - column:
+                  name: action
+                  value: DELETE
+              - column:
+                  name: order
+                  value: 2
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.dxf~$
+              - column:
+                  name: action
+                  value: WARN
+              - column:
+                  name: order
+                  value: 3
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.pdf$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 4
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.jpg$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 5
+
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.dxf$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 6
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.svg$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 7
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.odg$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 8
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.png$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 9
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.txt$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 10
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.html$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 11
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.success$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 12
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.mp3$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 13
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.odt$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 14
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.doc$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 15
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.rtf$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 16
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.ods$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 17
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.kdbx$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 18
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.jpeg$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 19
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.gpx$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 20
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.gif$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 21
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.txt~$
+              - column:
+                  name: action
+                  value: WARN
+              - column:
+                  name: order
+                  value: 22
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.conf$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 23
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.eml$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 24
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.planner$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 25
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.zargo$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 26
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: ^hosts$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 27
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.odp$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 28
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: ^jbrcert.cert$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 29
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: ^jbrcert.key$
+              - column:
+                  name: action
+                  value: BACKUP
+              - column:
+                  name: order
+                  value: 30
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.kdbx.lock$
+              - column:
+                  name: action
+                  value: WARN
+              - column:
+                  name: order
+                  value: 31
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: ^\.~lock\..*\.od.*#$
+              - column:
+                  name: action
+                  value: IGNORE
+              - column:
+                  name: order
+                  value: 32

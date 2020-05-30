@@ -4,6 +4,26 @@ databaseChangeLog:
       author: jason
       changes:
         - createTable:
+            tableName: location
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+
+        - createTable:
             tableName: source
             columns:
               - column:
@@ -16,6 +36,11 @@ databaseChangeLog:
                   type: int
                   constraints:
                     primaryKey: true
+                    nullable: false
+              - column:
+                  name: location
+                  type: int
+                  constraints:
                     nullable: false
 
         - createTable:
@@ -75,8 +100,16 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
+                  name: order
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
                   name: regex
                   type: varchar(50)
+              - column:
+                  name: icon
+                  type: varchar(60)
               - column:
                   name: action
                   type: varchar(20)
@@ -118,6 +151,9 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
+              - column:
+                  name: md5
+                  type: varchar(32)
 
         - addForeignKeyConstraint:
             constraintName: fk_directory_file
@@ -154,52 +190,10 @@ databaseChangeLog:
             referencedTableName: source
             referencedColumnNames: id
 
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: .*\.dxf~$
-              - column:
-                  name: action
-                  value: WARN
 
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: ^\.DS_Store$
-              - column:
-                  name: action
-                  value: DELETE
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: ^\._\.DS_Store$
-              - column:
-                  name: action
-                  value: DELETE
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: .*\.pdf$
-              - column:
-                  name: action
-                  value: BACKUP
-
-        - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: regex
-                  value: .*\.jpg$
-              - column:
-                  name: action
-                  value: BACKUP
+        - addForeignKeyConstraint:
+            constraintName: fk_location_source
+            baseTableName: source
+            baseColumnNames: location
+            referencedTableName: location
+            referencedColumnNames: id

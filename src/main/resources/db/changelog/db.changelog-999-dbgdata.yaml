@@ -14,3 +14,6 @@ databaseChangeLog:
               - column:
                   name: id
                   value: 1
+              - column:
+                  name: location
+                  value: 1

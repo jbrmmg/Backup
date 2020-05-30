@@ -34,6 +34,9 @@ public class FileInfo {
     @NotNull
     private boolean removed;
 
+    @Column(name="md5")
+    private String md5;
+
     public void setName(String name) { this.name = name; }
 
     public void setDirectoryInfo(DirectoryInfo directoryInfo) { this.directoryInfo = directoryInfo; }
@@ -46,7 +49,11 @@ public class FileInfo {
 
     public void clearRemoved() { this.removed = false; }
 
+    public Integer getId() { return this.id; }
+
     public String getName() { return this.name; }
+
+    public DirectoryInfo getDirectoryInfo() { return this.directoryInfo; }
 
     public Classification getClassification() { return this.classification; }
 }

@@ -23,7 +23,11 @@ public class DirectoryInfo {
     @NotNull
     private boolean removed;
 
+    public String getPath() { return this.path; }
+
     public void setSource(Source source) { this.source = source; }
+
+    public void clearRemoved() { this.removed = false; }
 
     public void setPath(String path) { this.path = path; }
 }

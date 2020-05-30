@@ -1,7 +1,9 @@
 package com.jbr.middletier.backup.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 @ConfigurationProperties(prefix="backup")
 public class ApplicationProperties {
     public class Directory {
@@ -34,6 +36,12 @@ public class ApplicationProperties {
     private String dbUsername;
     private String zipDirectory;
     private String webLogUrl;
+    private String schedule;
+    private boolean enabled;
+    private String gatherSchedule;
+    private boolean gatherEnabled;
+    private String synchronizeSchedule;
+    private boolean synchonizeEnabled;
 
     public Directory getDirectory() { return this.directory; }
 
@@ -60,4 +68,28 @@ public class ApplicationProperties {
     public void setWebLogUrl(String webLogUrl) { this.webLogUrl = webLogUrl; }
 
     public String getWebLogUrl() { return this.webLogUrl; }
+
+    public void setSchedule(String schedule) { this.schedule = schedule; }
+
+    public String getSchedule() { return this.schedule; }
+
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+    public boolean getEnabled() { return this.enabled; }
+
+    public void setGatherSchedule(String schedule) { this.gatherSchedule = schedule; }
+
+    public String getGatherSchedule() { return this.gatherSchedule; }
+
+    public void setGatherEnabled(boolean enabled) { this.gatherEnabled = enabled; }
+
+    public boolean getGatherEnabled() { return this.gatherEnabled; }
+
+    public void setSynchronizeSchedule(String schedule) { this.synchronizeSchedule = schedule; }
+
+    public String getSynchronizeSchedule() { return this.synchronizeSchedule; }
+
+    public void setSynchronizeEnabled(boolean enabled) { this.synchonizeEnabled = enabled; }
+
+    public boolean getSynchronizeEnabled() { return this.synchonizeEnabled; }
 }
