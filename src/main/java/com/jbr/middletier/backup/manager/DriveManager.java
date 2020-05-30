@@ -294,7 +294,7 @@ public class DriveManager {
     }
 
     private void warn(SynchronizeStatus status) {
-        LOG.warn("File warning - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+        LOG.warn("File warning- " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
         backupManager.postWebLog(BackupManager.webLogLevel.WARN,"File warning - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
     }
 
