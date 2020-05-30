@@ -23,4 +23,9 @@ public class Synchronize {
     public Source getSource() { return this.source; }
 
     public Source getDestination() { return this.destination; }
+
+    @Override
+    public String toString() {
+        return source.toString() +" -> " + destination.toString();
+    }
 }

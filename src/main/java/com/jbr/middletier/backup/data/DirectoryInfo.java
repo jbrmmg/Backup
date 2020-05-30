@@ -25,9 +25,16 @@ public class DirectoryInfo {
 
     public String getPath() { return this.path; }
 
+    public Source getSource() { return this.source; }
+
     public void setSource(Source source) { this.source = source; }
 
     public void clearRemoved() { this.removed = false; }
 
     public void setPath(String path) { this.path = path; }
+
+    @Override
+    public String toString() {
+        return "DirectoryInfo: " + id + "-" + path;
+    }
 }

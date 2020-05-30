@@ -30,22 +30,39 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
     void deleteRemoved();
 
     @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
-            "f.name, " +
-            "d.path," +
-            "c.action," +
-            "f.size," +
-            "f.date," +
-            "f2.size," +
-            "f2.date," +
-            "f.md5," +
-            "f2.md5" +
+            "f," +
+            "d," +
+            "c," +
+            "s.source," +
+            "s.destination," +
+            "f2," +
+            "d2" +
             ") FROM Synchronize AS s " +
-            "INNER JOIN DirectoryInfo AS d ON d.source = s.source AND d.source = s.source " +
+            "INNER JOIN DirectoryInfo AS d ON d.source = s.source " +
             "INNER JOIN FileInfo AS f ON f.directoryInfo.id = d.id " +
             "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.path = d.path AND d2.source = s.destination " +
             "LEFT OUTER JOIN FileInfo AS f2 ON f2.directoryInfo.id = d2.id AND f.name = f2.name " +
             "LEFT OUTER JOIN Classification AS c ON f.classification.id = c.id " +
             "WHERE s.id = ?1"
-            )
+    )
     List<SynchronizeStatus> findSynchronizeStatus(int synchronize);
+
+    @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
+            "f," +
+            "d," +
+            "c," +
+            "s.source," +
+            "s.destination," +
+            "f2," +
+            "d2" +
+            ") FROM Synchronize AS s " +
+            "INNER JOIN DirectoryInfo AS d ON d.source = s.destination " +
+            "INNER JOIN FileInfo AS f ON f.directoryInfo.id = d.id " +
+            "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.path = d.path AND d2.source = s.source " +
+            "LEFT OUTER JOIN FileInfo AS f2 ON f2.directoryInfo.id = d2.id AND f.name = f2.name " +
+            "LEFT OUTER JOIN Classification AS c ON f.classification.id = c.id " +
+            "WHERE s.id = ?1 " +
+            "AND f2. name is null"
+    )
+    List<SynchronizeStatus> findSynchronizeExtraFiles(int synchronize);
 }
