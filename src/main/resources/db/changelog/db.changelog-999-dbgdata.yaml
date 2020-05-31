@@ -10,7 +10,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: path
-                  value: /media/Shared/Documents/PDF/MoneyReports/2017
+                  value: /media/Shared/Documents/Drawing
               - column:
                   name: id
                   value: 1
@@ -23,7 +23,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: path
-                  value: /media/Backup/Documents/PDF/MoneyReports/2017
+                  value: /media/Backup/Documents/Drawing
               - column:
                   name: id
                   value: 2
@@ -36,7 +36,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: path
-                  value: /media/GoogleDrive/Documents/PDF/MoneyReports/2017
+                  value: /media/GoogleDrive/Documents/Drawing
               - column:
                   name: id
                   value: 3

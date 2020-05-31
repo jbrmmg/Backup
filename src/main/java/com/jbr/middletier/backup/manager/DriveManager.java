@@ -32,7 +32,7 @@ public class DriveManager {
     final private ClassificationRepository classificationRepository;
     final private SynchronizeRepository synchronizeRepository;
     final private BackupManager backupManager;
-    final private ApplicationProperties applicationProperties;
+    final public ApplicationProperties applicationProperties;
     final private ActionConfirmRepository actionConfirmRepository;
 
     @Autowired
@@ -165,11 +165,11 @@ public class DriveManager {
         }
     }
 
-    public void setSourceStatus(Source source, String status) {
+    private void setSourceStatus(Source source, String status) {
         try {
             source.setStatus(status);
             sourceRepository.save(source);
-        } catch(Exception ex) {
+        } catch(Exception ignored) {
 
         }
     }
@@ -298,11 +298,6 @@ public class DriveManager {
         try {
             LOG.info("Process backup - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
 
-            // TODO remove this.
-            if (status.sourceFile.getMD5() == null || status.sourceFile.getMD5().length() == 0) {
-                return;
-            }
-
             // Update the last modified time if necessary.
             equalizeDate(status.sourceFile, status.destinationFile);
 
@@ -397,7 +392,7 @@ public class DriveManager {
                 continue;
             }
 
-            if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
+            if(nextSynchronize.getDestination().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
                 backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
                 continue;
             }
