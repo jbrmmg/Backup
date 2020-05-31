@@ -65,7 +65,9 @@ public class BackupCtrl {
     @SuppressWarnings("unchecked")
     @Scheduled(cron = "#{@applicationProperties.schedule}")
     public void scheduleBackup() {
+        LOG.info("Backup");
         if(!applicationProperties.getEnabled()) {
+            LOG.warn("Disabled!");
             return;
         }
 
