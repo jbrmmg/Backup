@@ -277,6 +277,7 @@ public class DriveManager {
             return;
         }
 
+        LOG.info("Updating date " + source.getDate().getTime() + " - " + destination.getDate().getTime());
         // Make the date of the destination, equal to the source.
         File destinationFile = new File(destination.getDirectoryInfo().getSource().getPath() + "/" +
                 destination.getDirectoryInfo().getPath() + "/" +
