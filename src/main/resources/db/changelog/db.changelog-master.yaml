@@ -19,4 +19,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-006-source-status.yaml
 
   - include:
+      file: /db/changelog/db.changelog-007-extentions.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

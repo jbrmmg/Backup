@@ -98,20 +98,80 @@ public class DriveManager {
         return "";
     }
 
+    private boolean passFilter(String directory, Source nextSource) {
+        // Is there a filter?
+        if(nextSource.getFilter() != null && nextSource.getFilter().length() > 0 ) {
+            // The filter is applied to the first directory after the source.
+            String pathToFilter = directory.replace(nextSource.getPath(),"");
+
+            String[] folders = pathToFilter.split("/");
+
+            int index = 0;
+            String filterFolder = "";
+            while( (filterFolder.length() == 0) && (index < folders.length) ) {
+                filterFolder = folders[index];
+                index++;
+            }
+
+            if(filterFolder.length() > 0) {
+                // Does it meet the filter?
+                if(!filterFolder.matches(nextSource.getFilter())) {
+                    LOG.trace("here");
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     private void processPath(Path path, Source nextSource, Iterable<Classification> classifications) {
+        String directoryName = "";
+
+        if(path.toFile().isDirectory()) {
+            if(path.toAbsolutePath().toString().equals(nextSource.getPath())) {
+                return;
+            }
+
+            directoryName = path.toAbsolutePath().toString().replace(nextSource.getPath(),"");
+        } else {
+            directoryName = path.toAbsolutePath().getParent().toString().replace(nextSource.getPath(),"");
+        }
+
+        if(!passFilter(directoryName,nextSource)) {
+            return;
+        }
+
         // Get the directory.
-        Optional<DirectoryInfo> directory = directoryRepository.findBySourceAndPath(nextSource,
-                path.toAbsolutePath().getParent().toString().replace(nextSource.getPath(),""));
+        Optional<DirectoryInfo> directory = directoryRepository.findBySourceAndPath(nextSource,directoryName);
 
         if(!directory.isPresent()) {
             DirectoryInfo newDirectoryInfo = new DirectoryInfo();
-            newDirectoryInfo.setPath(path.toAbsolutePath().getParent().toString().replace(nextSource.getPath(),""));
+            newDirectoryInfo.setPath(directoryName);
             newDirectoryInfo.setSource(nextSource);
 
             directory = Optional.of(directoryRepository.save(newDirectoryInfo));
         } else {
             directory.get().clearRemoved();
             directoryRepository.save(directory.get());
+        }
+
+        // Check the folder file.
+        Optional<FileInfo> directoryFile = fileRepository.findByDirectoryInfoAndName(directory.get(),".");
+        if(!directoryFile.isPresent()) {
+            // Create a file to represent the folder.
+            directoryFile = Optional.of(new FileInfo());
+            directoryFile.get().setName(".");
+            directoryFile.get().setDirectoryInfo(directory.get());
+            directoryFile.get().setClassification(classifyFile(directoryFile.get(),classifications));
+        }
+
+        directoryFile.get().clearRemoved();
+        fileRepository.save(directoryFile.get());
+
+        // If this is a directory, we are done.
+        if(path.toFile().isDirectory()) {
+            return;
         }
 
         Date fileDate = new Date(path.toFile().lastModified());
@@ -197,8 +257,7 @@ public class DriveManager {
             // Read directory structure into the database.
             try (Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
                 paths
-                        .filter(Files::isRegularFile)
-                        .forEach(path -> processPath(path,nextSource,classifications));
+                   .forEach(path -> processPath(path,nextSource,classifications));
             } catch (IOException e) {
                 setSourceStatus(nextSource,"ERROR");
                 backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());
@@ -339,6 +398,50 @@ public class DriveManager {
         }
     }
 
+    private void deleteFileIfConfirmed(String name) {
+        File file = new File(name);
+
+        if(file.exists()) {
+            // Has this action been confirmed?
+            List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(name,"DELETE");
+
+            if(confirmedActions.size() > 0) {
+                boolean confirmed = false;
+                for(ActionConfirm nextConfirm: confirmedActions) {
+                    if(nextConfirm.confirmed()) {
+                        confirmed = true;
+                    }
+                }
+
+                if(confirmed) {
+                    // Delete the file.
+                    LOG.info("Delete the file - " + file );
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+
+                    for(ActionConfirm nextConfirm: confirmedActions) {
+                        actionConfirmRepository.delete(nextConfirm);
+                    }
+                }
+            } else {
+                // Create an action to be confirmed.
+                ActionConfirm actionConfirm = new ActionConfirm();
+                actionConfirm.setPath(name);
+                actionConfirm.setAction("DELETE");
+                actionConfirm.setConfirmed(false);
+
+                actionConfirmRepository.save(actionConfirm);
+            }
+        }
+    }
+
+    private void deleteDestinationFolder(SynchronizeStatus status) {
+        LOG.info("Delete the destination folder - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+        String folderName = status.sourceFile.getDirectoryInfo().getSource().getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath();
+
+        deleteFileIfConfirmed(folderName);
+    }
+
     private void delete(SynchronizeStatus status, boolean standard, boolean classified) {
         LOG.info("File should be deleted - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
 
@@ -353,40 +456,7 @@ public class DriveManager {
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
 
         String filename = status.sourceFile.getDirectoryInfo().getSource().getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath() + "/" + status.sourceFile.getName();
-        File deleteFile = new File(filename);
-
-        if(deleteFile.exists()) {
-            // Has this action been confirmed?
-            List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(filename,"DELETE");
-
-            if(confirmedActions.size() > 0) {
-                boolean confirmed = false;
-                for(ActionConfirm nextConfirm: confirmedActions) {
-                    if(nextConfirm.confirmed()) {
-                        confirmed = true;
-                    }
-                }
-
-                if(confirmed) {
-                    // Delete the file.
-                    LOG.info("Delete the file - " + deleteFile );
-                    //noinspection ResultOfMethodCallIgnored
-                    deleteFile.delete();
-
-                    for(ActionConfirm nextConfirm: confirmedActions) {
-                        actionConfirmRepository.delete(nextConfirm);
-                    }
-                }
-            } else {
-                // Create an action to be confirmed.
-                ActionConfirm actionConfirm = new ActionConfirm();
-                actionConfirm.setPath(filename);
-                actionConfirm.setAction("DELETE");
-                actionConfirm.setConfirmed(false);
-
-                actionConfirmRepository.save(actionConfirm);
-            }
-        }
+        deleteFileIfConfirmed(filename);
     }
 
     public void synchronize() {
@@ -425,6 +495,9 @@ public class DriveManager {
                         warn(nextStatus);
                         break;
 
+                    case "FOLDER":
+                        break;
+
                     default:
                         LOG.warn("Unexpected action - " + nextStatus.classification.getAction() + " " + nextStatus.sourceDirectory.getPath() + " " + nextStatus.sourceFile.getName());
                         backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.classification.getAction());
@@ -445,6 +518,10 @@ public class DriveManager {
                     case "DELETE":
                     case "WARN":
                         delete(nextStatus,false, true);
+                        break;
+
+                    case "FOLDER":
+                        deleteDestinationFolder(nextStatus);
                         break;
 
                     default:
