@@ -22,6 +22,9 @@ public class Classification {
     @Column(name="useMD5")
     private Boolean useMD5;
 
+    @Column(name="type")
+    private String type;
+
     public Integer getId() { return this.id; }
 
     public String getRegex() { return this.regex; }

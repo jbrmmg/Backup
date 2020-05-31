@@ -22,6 +22,9 @@ public class Source {
     @Column(name="status")
     private String status;
 
+    @Column(name="filter")
+    private String filter;
+
     public void setPath(String path) { this.path = path; }
 
     public void setStatus(String status) { this.status = status; }
@@ -29,6 +32,8 @@ public class Source {
     public String getStatus() { return this.status; }
 
     public String getPath() { return this.path; }
+
+    public String getFilter() { return this.filter; }
 
     public int getId() { return this.id; }
 

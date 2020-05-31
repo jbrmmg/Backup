@@ -10,39 +10,29 @@ databaseChangeLog:
             columns:
               - column:
                   name: path
-                  value: /media/Shared/Documents/Drawing
+                  value: /home/jason/Working/TestSyn/Source
               - column:
                   name: id
                   value: 1
               - column:
                   name: location
                   value: 1
+              - column:
+                  name: filter
+                  value: \d{4}$
 
         - insert:
             tableName: source
             columns:
               - column:
                   name: path
-                  value: /media/Backup/Documents/Drawing
+                  value: /home/jason/Working/TestSyn/Destination
               - column:
                   name: id
                   value: 2
               - column:
                   name: location
                   value: 2
-
-        - insert:
-            tableName: source
-            columns:
-              - column:
-                  name: path
-                  value: /media/GoogleDrive/Documents/Drawing
-              - column:
-                  name: id
-                  value: 3
-              - column:
-                  name: location
-                  value: 3
 
         - insert:
             tableName: synchronize
@@ -56,19 +46,6 @@ databaseChangeLog:
               - column:
                   name: destination
                   value: 2
-
-        - insert:
-            tableName: synchronize
-            columns:
-              - column:
-                  name: id
-                  value: 2
-              - column:
-                  name: source
-                  value: 1
-              - column:
-                  name: destination
-                  value: 3
 
         - update:
             columns:
@@ -76,4 +53,20 @@ databaseChangeLog:
                   name: useMD5
                   valueBoolean: true
             tableName: classification
-            where: id = 4
+            where: regex = '.*\.txt$'
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: regex
+                  value: .*\.$
+              - column:
+                  name: action
+                  value: FOLDER
+              - column:
+                  name: order
+                  value: 33
+              - column:
+                  name: useMD5
+                  valueBoolean: false
