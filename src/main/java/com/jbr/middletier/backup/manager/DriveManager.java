@@ -138,13 +138,13 @@ public class DriveManager {
                 if(newClassification != null) {
                     file.get().setClassification(newClassification);
                 }
+            }
 
-                if((file.get().getSize() != path.toFile().length()) ||
-                        (file.get().getDate().compareTo(fileDate) != 0)) {
-                    file.get().setSize(path.toFile().length());
-                    file.get().setDate(fileDate);
-                    file.get().setMD5(getMD5(path,newClassification));
-                }
+            if((file.get().getSize() != path.toFile().length()) ||
+                    (file.get().getDate().compareTo(fileDate) != 0)) {
+                file.get().setSize(path.toFile().length());
+                file.get().setDate(fileDate);
+                file.get().setMD5(getMD5(path,file.get().getClassification()));
             }
 
             file.get().clearRemoved();
