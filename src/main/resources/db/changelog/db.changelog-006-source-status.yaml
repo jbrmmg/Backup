@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6
+      author: jason
+      changes:
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: status
+                  type: varchar(15)
+

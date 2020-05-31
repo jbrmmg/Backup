@@ -10,10 +10,70 @@ databaseChangeLog:
             columns:
               - column:
                   name: path
-                  value: /media/Shared/Documents
+                  value: /media/Shared/Documents/PDF/MoneyReports/2017
               - column:
                   name: id
                   value: 1
               - column:
                   name: location
                   value: 1
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: path
+                  value: /media/Backup/Documents/PDF/MoneyReports/2017
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: location
+                  value: 2
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: path
+                  value: /media/GoogleDrive/Documents/PDF/MoneyReports/2017
+              - column:
+                  name: id
+                  value: 3
+              - column:
+                  name: location
+                  value: 3
+
+        - insert:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: source
+                  value: 1
+              - column:
+                  name: destination
+                  value: 2
+
+        - insert:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: source
+                  value: 1
+              - column:
+                  name: destination
+                  value: 3
+
+        - update:
+            columns:
+              - column:
+                  name: useMD5
+                  valueBoolean: true
+            tableName: classification
+            where: id = 4

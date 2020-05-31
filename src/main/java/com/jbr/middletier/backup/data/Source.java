@@ -19,7 +19,14 @@ public class Source {
     @ManyToOne(optional = false)
     private Location location;
 
+    @Column(name="status")
+    private String status;
+
     public void setPath(String path) { this.path = path; }
+
+    public void setStatus(String status) { this.status = status; }
+
+    public String getStatus() { return this.status; }
 
     public String getPath() { return this.path; }
 
