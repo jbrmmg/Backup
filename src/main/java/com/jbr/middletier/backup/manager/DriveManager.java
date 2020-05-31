@@ -331,6 +331,14 @@ public class DriveManager {
         backupManager.postWebLog(BackupManager.webLogLevel.WARN,"File warning - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
     }
 
+    private void removeIfBackedup(SynchronizeStatus status) {
+        // Does this exist on the remote server?
+        if(status.destinationFile != null) {
+            status.sourceFile = status.destinationFile;
+            delete(status,false, true);
+        }
+    }
+
     private void delete(SynchronizeStatus status, boolean standard, boolean classified) {
         LOG.info("File should be deleted - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
 
@@ -405,6 +413,7 @@ public class DriveManager {
                         break;
 
                     case "IGNORE":
+                        removeIfBackedup(nextStatus);
                         break;
 
                     case "DELETE":
@@ -412,6 +421,7 @@ public class DriveManager {
                         break;
 
                     case "WARN":
+                        removeIfBackedup(nextStatus);
                         warn(nextStatus);
                         break;
 
