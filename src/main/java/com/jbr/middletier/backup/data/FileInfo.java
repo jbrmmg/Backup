@@ -37,6 +37,9 @@ public class FileInfo {
     @Column(name="md5")
     private String md5;
 
+    @Column(name="flags")
+    private String flags;
+
     public void setName(String name) { this.name = name; }
 
     public void setDirectoryInfo(DirectoryInfo directoryInfo) { this.directoryInfo = directoryInfo; }

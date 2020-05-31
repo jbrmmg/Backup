@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7
+      author: jason
+      changes:
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: filter
+                  type: varchar(60)
+
+        - addColumn:
+            tableName: file
+            columns:
+              - column:
+                  name: flags
+                  type: varchar(5)
+
+        - addColumn:
+            tableName: classification
+            columns:
+              - column:
+                  name: type
+                  type: varchar(30)
+
+
