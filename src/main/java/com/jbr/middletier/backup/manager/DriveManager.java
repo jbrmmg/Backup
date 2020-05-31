@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import jdk.internal.jline.internal.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -277,6 +278,7 @@ public class DriveManager {
             return;
         }
 
+        Log.info("Updating date " + source.getDate().getTime() + " - " + destination.getDate().getTime());
         // Make the date of the destination, equal to the source.
         File destinationFile = new File(destination.getDirectoryInfo().getSource().getPath() + "/" +
                 destination.getDirectoryInfo().getPath() + "/" +
