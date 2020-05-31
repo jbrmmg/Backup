@@ -165,6 +165,15 @@ public class DriveManager {
         }
     }
 
+    public void setSourceStatus(Source source, String status) {
+        try {
+            source.setStatus(status);
+            sourceRepository.save(source);
+        } catch(Exception ex) {
+
+        }
+    }
+
     public void gather() throws IOException {
         Iterable<Source> sources = sourceRepository.findAll();
 
@@ -174,7 +183,16 @@ public class DriveManager {
         directoryRepository.markAllRemoved();
 
         for(Source nextSource: sources) {
+            if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
+                continue;
+            }
+
+            setSourceStatus(nextSource,"GATHERING");
+
             backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
+
+            // If the source does not exist, create it.
+            createDirectory(nextSource.getPath());
 
             // Read directory structure into the database.
             try (Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
@@ -182,9 +200,12 @@ public class DriveManager {
                         .filter(Files::isRegularFile)
                         .forEach(path -> processPath(path,nextSource,classifications));
             } catch (IOException e) {
+                setSourceStatus(nextSource,"ERROR");
                 backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());
                 throw e;
             }
+
+            setSourceStatus(nextSource,"OK");
         }
 
         fileRepository.deleteRemoved();
@@ -205,6 +226,22 @@ public class DriveManager {
     private boolean copyFile(FileInfo source, FileInfo destination) {
         if(destination == null) {
             return true;
+        }
+
+        // If the files have an MD5 and its different then copy.
+        String sourceMD5 = "";
+        if(source.getMD5() != null) {
+            sourceMD5 = source.getMD5();
+        }
+
+        String destinationMD5 = "";
+        if(destination.getMD5() != null) {
+            destinationMD5 = destination.getMD5();
+        }
+
+        if(sourceMD5.length() > 0 && sourceMD5.equals(destinationMD5)) {
+            // MD 5 matches - do not copy
+            return false;
         }
 
         return source.getSize() != destination.getSize();
@@ -353,6 +390,16 @@ public class DriveManager {
 
         for(Synchronize nextSynchronize : synchronizes) {
             backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+
+            if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getSource().getStatus().equals("OK")) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+                continue;
+            }
+
+            if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
+                continue;
+            }
 
             for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
                 // Perform the appropriate actions

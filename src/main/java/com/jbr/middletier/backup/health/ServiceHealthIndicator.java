@@ -37,7 +37,7 @@ public class ServiceHealthIndicator implements HealthIndicator {
     public Health health() {
         try {
             List<Backup> backupList = (List<Backup>) backupRepository.findAll();
-            LOG.info(String.format("Check Database %s.", backupList.size()));
+            LOG.debug(String.format("Check Database %s.", backupList.size()));
 
             return Health.up().withDetail("service", applicationProperties.getServiceName()).withDetail("Backup Types",backupList.size()).build();
         } catch (Exception e) {

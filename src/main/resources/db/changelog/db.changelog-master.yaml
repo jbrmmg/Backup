@@ -16,4 +16,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-005-location-data.yaml
 
   - include:
+      file: /db/changelog/db.changelog-006-source-status.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
