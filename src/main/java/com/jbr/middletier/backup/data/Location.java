@@ -22,11 +22,16 @@ public class Location {
     @NotNull
     private String size;
 
+    @Column(name="check_duplicates")
+    private Boolean checkDuplicates;
+
     public int getId() { return this.id; }
 
     public String getName() { return this.name; }
 
     public String getSize() { return this.size; }
+
+    public boolean getCheckDuplicates() { return this.checkDuplicates == null ? false : this.checkDuplicates; }
 
     @Override
     public String toString() {

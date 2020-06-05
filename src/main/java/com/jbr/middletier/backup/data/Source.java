@@ -25,6 +25,9 @@ public class Source {
     @Column(name="filter")
     private String filter;
 
+    @Column(name="auto_gather")
+    private Boolean autoGather;
+
     public void setPath(String path) { this.path = path; }
 
     public void setStatus(String status) { this.status = status; }
@@ -34,6 +37,10 @@ public class Source {
     public String getPath() { return this.path; }
 
     public String getFilter() { return this.filter; }
+
+    public boolean getAutoGather() { return this.autoGather == null ? false : this.autoGather; }
+
+    public Location getLocation() { return this.location; }
 
     public int getId() { return this.id; }
 
