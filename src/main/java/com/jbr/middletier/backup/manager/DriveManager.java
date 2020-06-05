@@ -641,9 +641,7 @@ public class DriveManager {
                 }
             }
 
-            if(!importFile.getMD5().equals(fileInfo.getMD5())) {
-                return false;
-            }
+            return importFile.getMD5().equals(fileInfo.getMD5());
         }
 
         return true;
@@ -665,6 +663,7 @@ public class DriveManager {
             if(fileAlreadyExists(path,nextFile,classifications)) {
                 // Delete the file from import.
                 LOG.info(path.toString() + " exists in source, deleting");
+                //noinspection ResultOfMethodCallIgnored
                 path.toFile().delete();
                 return;
             }
@@ -679,7 +678,7 @@ public class DriveManager {
             boolean confirmed = false;
             String parameter = "";
             for(ActionConfirm nextConfirm: confirmedActions) {
-                if(nextConfirm.confirmed() && nextConfirm.getParameter() != null & nextConfirm.getParameter().length() > 0) {
+                if(nextConfirm.confirmed() && nextConfirm.getParameter() != null && nextConfirm.getParameter().length() > 0) {
                     parameter = nextConfirm.getParameter();
                     confirmed = true;
                 }
