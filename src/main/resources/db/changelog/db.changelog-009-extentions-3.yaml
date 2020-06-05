@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9
+      author: jason
+      changes:
+        - addColumn:
+            tableName: action_confirm
+            columns:
+              - column:
+                  name: parameter_required
+                  type: boolean
+              - column:
+                  name: parameter
+                  type: varchar(50)

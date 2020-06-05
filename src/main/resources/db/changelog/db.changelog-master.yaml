@@ -25,4 +25,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-008-extentions-2.yaml
 
   - include:
+      file: /db/changelog/db.changelog-009-extentions-3.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

@@ -23,6 +23,12 @@ public class ActionConfirm {
     @NotNull
     private Boolean confirmed;
 
+    @Column(name="parameter_required")
+    private Boolean parameterRequired;
+
+    @Column(name="parameter")
+    private String parameter;
+
     public String getPath() { return this.path; }
 
     public void setPath(String path) { this.path = path; }
@@ -32,6 +38,10 @@ public class ActionConfirm {
     public void setAction(String action) { this.action = action; }
 
     public void setConfirmed(Boolean confirmed) { this.confirmed = confirmed; }
+
+    public void setParameterRequired(boolean parameterRequired) { this.parameterRequired = parameterRequired; }
+
+    public String getParameter() { return this.parameter; }
 
     public boolean confirmed() { return this.confirmed; }
 }
