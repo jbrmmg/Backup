@@ -32,7 +32,7 @@ public class DriveManager {
     final private ClassificationRepository classificationRepository;
     final private SynchronizeRepository synchronizeRepository;
     final private BackupManager backupManager;
-    final public ApplicationProperties applicationProperties;
+    final private ApplicationProperties applicationProperties;
     final private ActionConfirmRepository actionConfirmRepository;
 
     @Autowired
@@ -126,14 +126,14 @@ public class DriveManager {
     }
 
     private void processPath(Path path, Source nextSource, Iterable<Classification> classifications) {
-        String directoryName = "";
+        String directoryName;
 
         if(path.toFile().isDirectory()) {
             if(path.toAbsolutePath().toString().equals(nextSource.getPath())) {
-                return;
+                directoryName = "";
+            } else {
+                directoryName = path.toAbsolutePath().toString().replace(nextSource.getPath(), "");
             }
-
-            directoryName = path.toAbsolutePath().toString().replace(nextSource.getPath(),"");
         } else {
             directoryName = path.toAbsolutePath().getParent().toString().replace(nextSource.getPath(),"");
         }
