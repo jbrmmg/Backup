@@ -1,0 +1,38 @@
+logging:
+  level:
+    ROOT: INFO
+    com.jbr.middletier: DEBUG
+#    org.hibernate.type.descriptor.sql: TRACE
+
+spring:
+  datasource:
+    url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false
+    username: ${db.pdn.backup.user}
+    password: ${db.pdn.backup.password}
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+#    show-sql: true
+
+backup:
+  directory:
+    name: /home/jason/Working/BackupDev
+    days: 5
+    zip: /home/jason/Working/BackupDevZip
+  schedule: 0 0/1 * ? * *
+  enabled: false
+
+  db-url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
+  db-username: ${db.dev.backup.user}
+  db-password: ${db.dev.backup.password}
+
+  zip-directory: /home/jason/Working/BackupDevZip
+
+server:
+  port: 13013
+
+info:
+  app:
+    version: Debug
