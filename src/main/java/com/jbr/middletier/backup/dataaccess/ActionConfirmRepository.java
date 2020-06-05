@@ -17,4 +17,10 @@ public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, S
     @Modifying
     @Query("DELETE FROM ActionConfirm WHERE action='DELETE_DUP' AND confirmed=0")
     void clearDuplicateDelete();
+
+    // Clear imports.
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM ActionConfirm WHERE action='IMPORT' AND confirmed=0")
+    void clearImports();
 }

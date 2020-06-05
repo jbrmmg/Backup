@@ -36,6 +36,7 @@ public class DriveManager {
     final private BackupManager backupManager;
     final private ApplicationProperties applicationProperties;
     final private ActionConfirmRepository actionConfirmRepository;
+    final private IgnoreFileRepository ignoreFileRepository;
 
     @Autowired
     public DriveManager(DirectoryRepository directoryRepository,
@@ -45,7 +46,8 @@ public class DriveManager {
                         SynchronizeRepository synchronizeRepository,
                         BackupManager backupManager,
                         ApplicationProperties applicationProperties,
-                        ActionConfirmRepository actionConfirmRepository ) {
+                        ActionConfirmRepository actionConfirmRepository,
+                        IgnoreFileRepository ignoreFileRepository) {
         this.directoryRepository = directoryRepository;
         this.fileRepository = fileRepository;
         this.sourceRepository = sourceRepository;
@@ -54,6 +56,7 @@ public class DriveManager {
         this.backupManager = backupManager;
         this.applicationProperties = applicationProperties;
         this.actionConfirmRepository = actionConfirmRepository;
+        this.ignoreFileRepository = ignoreFileRepository;
     }
 
     private Classification classifyFile(FileInfo file, Iterable<Classification> classifications)  {
@@ -609,23 +612,39 @@ public class DriveManager {
         }
     }
 
-    private boolean fileAlreadyExists(Path path, FileInfo fileInfo, Iterable<Classification> classifications) {
+    private boolean ignoreFile(FileInfo importFile) {
+        // Is this a file to ignore?
+        List<IgnoreFile> ignoreFiles = ignoreFileRepository.findByName(importFile.getName());
+
+        for(IgnoreFile nextFile: ignoreFiles) {
+            if(!nextFile.getSize().equals(importFile.getSize())) {
+                continue;
+            }
+
+            if(!nextFile.getMD5().equals(importFile.getMD5())) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
+
+    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) {
         if(!path.getFileName().toString().equals(fileInfo.getName())) {
-            return false;
+            return FileTestResultType.DIFFERENT;
         }
 
         // Check the size.
         long size = path.toFile().length();
         if(fileInfo.getSize() != size) {
-            return false;
+            return FileTestResultType.DIFFERENT;
         }
 
-        // Setup a new file.
-        FileInfo importFile = new FileInfo();
-        importFile.setName(path.getFileName().toString());
-        importFile.setClassification(classifyFile(importFile,classifications));
-        importFile.setMD5(getMD5(path,importFile.getClassification()));
-
+        // Check MD 5
         if((importFile.getMD5() != null) && importFile.getMD5().length() > 0) {
             if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
                 // Source filename
@@ -635,21 +654,43 @@ public class DriveManager {
                 fileInfo.setMD5(getMD5(new File(sourceFilename).toPath(),fileInfo.getClassification()));
 
                 if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
-                    return false;
+                    return FileTestResultType.DIFFERENT;
                 } else {
                     fileRepository.save(fileInfo);
                 }
             }
 
-            return importFile.getMD5().equals(fileInfo.getMD5());
+            if(importFile.getMD5().equals(fileInfo.getMD5())) {
+                return FileTestResultType.EXACT;
+            }
+
+            return FileTestResultType.CLOSE;
         }
 
-        return true;
+        return FileTestResultType.EXACT;
     }
 
-    private void processImport(Path path, Source source, Iterable<Classification> classifications) {
+    private void processImport(Path path, Source source, Iterable<Classification> classifications, String reviewDirectory) {
+        // Get details of the file to import.
+        FileInfo importFileInfo = new FileInfo();
+        importFileInfo.setName(path.getFileName().toString());
+        importFileInfo.setSize(path.toFile().length());
+        importFileInfo.setDate(new Date(path.toFile().lastModified()));
+        importFileInfo.setClassification(classifyFile(importFileInfo,classifications));
+        importFileInfo.setMD5(getMD5(path,importFileInfo.getClassification()));
+
+        // Is this file being ignored?
+        if(ignoreFile(importFileInfo)) {
+            // Delete the file from import.
+            LOG.info(path.toString() + " marked for ignore, deleting");
+            //noinspection ResultOfMethodCallIgnored
+            path.toFile().delete();
+            return;
+        }
+
         // Does this file already exist in the source?
         List<FileInfo> existingFiles = fileRepository.findByName(path.getFileName().toString());
+        boolean closeMatch = false;
 
         for(FileInfo nextFile: existingFiles) {
             LOG.info(nextFile.toString());
@@ -660,12 +701,17 @@ public class DriveManager {
             }
 
             // Get the details of the file - size & md5.
-            if(fileAlreadyExists(path,nextFile,classifications)) {
+            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFileInfo);
+            if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info(path.toString() + " exists in source, deleting");
                 //noinspection ResultOfMethodCallIgnored
                 path.toFile().delete();
                 return;
+            }
+
+            if(testResult == FileTestResultType.CLOSE) {
+                closeMatch = true;
             }
         }
 
@@ -673,7 +719,13 @@ public class DriveManager {
         // Photos are in <source> / <year> / <month> / <event> / filename
 
         // Do we have the event name?
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(path.toString(),"IMPORT");
+        String actionString = path.toString();
+
+        if(closeMatch) {
+            actionString += "(CLOSE)";
+        }
+
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(actionString,"IMPORT");
         if(confirmedActions.size() > 0) {
             boolean confirmed = false;
             String parameter = "";
@@ -687,6 +739,19 @@ public class DriveManager {
             if(confirmed && parameter.length() > 0) {
                 for(ActionConfirm nextConfirm: confirmedActions) {
                     actionConfirmRepository.delete(nextConfirm);
+                }
+
+                // If the parameter value is IGNORE then add this file to the ignore list.
+                if(parameter.equalsIgnoreCase("ignore")) {
+                    IgnoreFile ignoreFile = new IgnoreFile();
+                    ignoreFile.setDate(importFileInfo.getDate());
+                    ignoreFile.setName(importFileInfo.getName());
+                    ignoreFile.setSize(importFileInfo.getSize());
+                    ignoreFile.setMD5(importFileInfo.getMD5());
+
+                    ignoreFileRepository.save(ignoreFile);
+
+                    return;
                 }
 
                 // The file can be copied.
@@ -718,16 +783,31 @@ public class DriveManager {
         } else {
             // Create an action to be confirmed.
             ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setPath(path.toString());
+            actionConfirm.setPath(actionString);
             actionConfirm.setAction("IMPORT");
             actionConfirm.setConfirmed(false);
             actionConfirm.setParameterRequired(true);
 
             actionConfirmRepository.save(actionConfirm);
+
+            // Create a link for review.
+            try {
+                File linkFile = new File(reviewDirectory + "/" + (closeMatch ? "close." : "") + path.getFileName());
+
+                if (Files.exists(linkFile.toPath())) {
+                    Files.delete(linkFile.toPath());
+                }
+
+                Files.createSymbolicLink(linkFile.toPath(), path);
+            } catch(Exception ex) {
+                LOG.error("Failed to create link - " + path.toString());
+            }
         }
     }
 
     public void importPhoto(ImportRequest importRequest) throws IOException {
+        actionConfirmRepository.clearImports();
+
         Iterable<Classification> classifications = classificationRepository.findAll();
 
         // Check the path exists
@@ -747,7 +827,7 @@ public class DriveManager {
         try (Stream<Path> paths = Files.walk(Paths.get(importRequest.path))) {
             paths
                     .filter(Files::isRegularFile)
-                    .forEach(path -> processImport(path,source.get(),classifications));
+                    .forEach(path -> processImport(path,source.get(),classifications, importRequest.reviewDirectory));
         } catch (IOException e) {
             LOG.error("Failed to process import - ",e);
             throw e;
