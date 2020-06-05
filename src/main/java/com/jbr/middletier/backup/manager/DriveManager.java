@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -487,6 +488,7 @@ public class DriveManager {
             actionConfirm.setPath(name);
             actionConfirm.setAction(action);
             actionConfirm.setConfirmed(false);
+            actionConfirm.setParameterRequired(false);
 
             actionConfirmRepository.save(actionConfirm);
         }
@@ -604,6 +606,152 @@ public class DriveManager {
             }
 
             LOG.info(nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+        }
+    }
+
+    private boolean fileAlreadyExists(Path path, FileInfo fileInfo, Iterable<Classification> classifications) {
+        if(!path.getFileName().toString().equals(fileInfo.getName())) {
+            return false;
+        }
+
+        // Check the size.
+        long size = path.toFile().length();
+        if(fileInfo.getSize() != size) {
+            return false;
+        }
+
+        // Setup a new file.
+        FileInfo importFile = new FileInfo();
+        importFile.setName(path.getFileName().toString());
+        importFile.setClassification(classifyFile(importFile,classifications));
+        importFile.setMD5(getMD5(path,importFile.getClassification()));
+
+        if((importFile.getMD5() != null) && importFile.getMD5().length() > 0) {
+            if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
+                // Source filename
+                String sourceFilename = fileInfo.getDirectoryInfo().getSource().getPath() + fileInfo.getDirectoryInfo().getPath() + "/" + fileInfo.getName();
+
+                // Need to get the MD5.
+                fileInfo.setMD5(getMD5(new File(sourceFilename).toPath(),fileInfo.getClassification()));
+
+                if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
+                    return false;
+                } else {
+                    fileRepository.save(fileInfo);
+                }
+            }
+
+            if(!importFile.getMD5().equals(fileInfo.getMD5())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void processImport(Path path, Source source, Iterable<Classification> classifications) {
+        // Does this file already exist in the source?
+        List<FileInfo> existingFiles = fileRepository.findByName(path.getFileName().toString());
+
+        for(FileInfo nextFile: existingFiles) {
+            LOG.info(nextFile.toString());
+
+            // Make sure this file is from the same source.
+            if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
+                continue;
+            }
+
+            // Get the details of the file - size & md5.
+            if(fileAlreadyExists(path,nextFile,classifications)) {
+                // Delete the file from import.
+                LOG.info(path.toString() + " exists in source, deleting");
+                path.toFile().delete();
+                return;
+            }
+        }
+
+        // We can import this file but need to know where.
+        // Photos are in <source> / <year> / <month> / <event> / filename
+
+        // Do we have the event name?
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(path.toString(),"IMPORT");
+        if(confirmedActions.size() > 0) {
+            boolean confirmed = false;
+            String parameter = "";
+            for(ActionConfirm nextConfirm: confirmedActions) {
+                if(nextConfirm.confirmed() && nextConfirm.getParameter() != null & nextConfirm.getParameter().length() > 0) {
+                    parameter = nextConfirm.getParameter();
+                    confirmed = true;
+                }
+            }
+
+            if(confirmed && parameter.length() > 0) {
+                for(ActionConfirm nextConfirm: confirmedActions) {
+                    actionConfirmRepository.delete(nextConfirm);
+                }
+
+                // The file can be copied.
+                String newFilename = source.getPath();
+
+                // Use the date of the file.
+                Date fileDate = new Date(path.toFile().lastModified());
+
+                SimpleDateFormat sdf1 = new SimpleDateFormat("YYYY");
+                SimpleDateFormat sdf2 = new SimpleDateFormat("MMMM");
+
+                newFilename += "/" + sdf1.format(fileDate);
+                newFilename += "/" + sdf2.format(fileDate);
+                newFilename += "/" + parameter;
+
+                createDirectory(newFilename);
+
+                newFilename += "/" + path.getFileName();
+
+                try {
+                    LOG.info("Importing file " + path.toString() + " to " + newFilename);
+                    Files.move(path,
+                            Paths.get(newFilename),
+                            REPLACE_EXISTING);
+                } catch (IOException e) {
+                    LOG.error("Unable to import " + path);
+                }
+            }
+        } else {
+            // Create an action to be confirmed.
+            ActionConfirm actionConfirm = new ActionConfirm();
+            actionConfirm.setPath(path.toString());
+            actionConfirm.setAction("IMPORT");
+            actionConfirm.setConfirmed(false);
+            actionConfirm.setParameterRequired(true);
+
+            actionConfirmRepository.save(actionConfirm);
+        }
+    }
+
+    public void importPhoto(ImportRequest importRequest) throws IOException {
+        Iterable<Classification> classifications = classificationRepository.findAll();
+
+        // Check the path exists
+        File importPath = new File(importRequest.path);
+        if(!importPath.exists()) {
+            throw new IOException("The path does not exist - " + importPath);
+        }
+
+        // Validate the source.
+        Optional<Source> source = sourceRepository.findById(importRequest.source);
+        if(!source.isPresent()) {
+            throw new  IOException("The source does not exist - " + importRequest.source);
+        }
+
+        // Perform the import, find all the files to import and take action.
+        // Read directory structure into the database.
+        try (Stream<Path> paths = Files.walk(Paths.get(importRequest.path))) {
+            paths
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> processImport(path,source.get(),classifications));
+        } catch (IOException e) {
+            LOG.error("Failed to process import - ",e);
+            throw e;
         }
     }
 }

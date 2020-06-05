@@ -234,4 +234,13 @@ public class DriveController {
 
         return OkStatus.getOkStatus();
     }
+
+    @RequestMapping(path="/import", method= RequestMethod.POST)
+    public @ResponseBody OkStatus importPhotoDirectory(@RequestBody ImportRequest importRequest) throws IOException {
+        LOG.info("Import - " + importRequest.path);
+
+        driveManager.importPhoto(importRequest);
+
+        return OkStatus.getOkStatus();
+    }
 }
