@@ -17,6 +17,8 @@ import java.util.Optional;
 public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSpecificationExecutor {
     Optional<FileInfo> findByDirectoryInfoAndName(DirectoryInfo directoryInfo, String name);
 
+    List<FileInfo> findByName(String name);
+
     // Mark everything as removed.
     @Transactional
     @Modifying
@@ -65,4 +67,15 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
             "AND f2. name is null"
     )
     List<SynchronizeStatus> findSynchronizeExtraFiles(int synchronize);
+
+    @Query("SELECT f.name\n" +
+            "FROM Source s\n" +
+            "INNER JOIN DirectoryInfo d ON d.source.id = s.id \n" +
+            "INNER JOIN FileInfo f ON f.directoryInfo.id = d.id \n" +
+            "INNER JOIN Classification c ON f.classification.id = c.id \n" +
+            "WHERE s.id = ?1\n" +
+            "AND c.action = 'BACKUP'\n" +
+            "GROUP BY f.name\n" +
+            "HAVING count(*) > 1 ")
+    List<String> findDuplicates(int source);
 }

@@ -68,6 +68,26 @@ public class FileInfo {
 
     public Classification getClassification() { return this.classification; }
 
+    public boolean duplicate(FileInfo otherFile) {
+        if(this.id == otherFile.id) {
+            return false;
+        }
+
+        if(!this.name.equals(otherFile.name)) {
+            return false;
+        }
+
+        if((this.size != null) && (otherFile.size != null) && !this.size.equals(otherFile.size)) {
+            return false;
+        }
+
+        if((this.md5 != null) && (otherFile.md5 != null) && !this.md5.equals(otherFile.md5)) {
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public String toString() {
         return "FileInfo: " + id + directoryInfo.toString() + "-" + name + " " + md5;

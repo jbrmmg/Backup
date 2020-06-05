@@ -217,6 +217,15 @@ public class DriveController {
         return OkStatus.getOkStatus();
     }
 
+    @RequestMapping(path="/duplicate", method= RequestMethod.POST)
+    public @ResponseBody OkStatus duplicate(@RequestBody String temp) {
+        LOG.info("Process drive - " + temp);
+
+        driveManager.duplicateCheck();
+
+        return OkStatus.getOkStatus();
+    }
+
     @RequestMapping(path="/sync", method= RequestMethod.POST)
     public @ResponseBody OkStatus synchronize(@RequestBody String temp) {
         LOG.info("Syncronize drives - " + temp);

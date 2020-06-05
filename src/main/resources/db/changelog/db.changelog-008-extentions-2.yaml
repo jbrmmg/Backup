@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8
+      author: jason
+      changes:
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: auto_gather
+                  type: boolean
+
+        - addColumn:
+            tableName: location
+            columns:
+              - column:
+                  name: check_duplicates
+                  type: boolean
+
+        - update:
+            columns:
+              - column:
+                  name: auto_gather
+                  valueBoolean: true
+            tableName: source
+
+
+        - update:
+            columns:
+              - column:
+                  name: check_duplicates
+                  valueBoolean: false
+            tableName: location

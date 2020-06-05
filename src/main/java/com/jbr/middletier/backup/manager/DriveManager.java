@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -219,6 +220,8 @@ public class DriveManager {
         if(applicationProperties.getSynchronizeEnabled()) {
             try {
                 gather();
+
+                duplicateCheck();
             } catch (Exception ex) {
                 LOG.error("Failed to gather",ex);
             }
@@ -234,6 +237,64 @@ public class DriveManager {
         }
     }
 
+    private void processDuplicate(FileInfo potentialDuplicate) {
+        String name = "duplicate - " + potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getPath() + "//" + potentialDuplicate.getName();
+
+        if(checkAction(name,"DELETE_DUP")) {
+            LOG.info("Delete duplicate file - " + potentialDuplicate.toString());
+
+            // TODO - actually delete the file.
+        }
+    }
+
+    private void checkDuplicateOfFile(List<FileInfo> files, Source source) {
+        // Get list of files from the original source.
+        List<FileInfo> checkFiles = new ArrayList<>();
+
+        for(FileInfo nextFile: files) {
+            if(nextFile.getDirectoryInfo().getSource().getId() == source.getId()) {
+                checkFiles.add(nextFile);
+            }
+        }
+
+        if(checkFiles.size() <= 1) {
+            return;
+        }
+
+        // If files have the same size and MD5 then they are potential duplicates.
+        for(FileInfo nextFile: checkFiles) {
+            for(FileInfo nextFile2: checkFiles) {
+                if(nextFile.duplicate(nextFile2)) {
+                    LOG.info("Duplicate - " + nextFile.toString());
+
+                    processDuplicate(nextFile);
+                    processDuplicate(nextFile2);
+                }
+            }
+        }
+    }
+
+    public void duplicateCheck() {
+        actionConfirmRepository.clearDuplicateDelete();
+
+        Iterable<Source> sources = sourceRepository.findAll();
+
+        // Check for duplicates in sources.
+        for(Source nextSource: sources) {
+            if(nextSource.getLocation().getCheckDuplicates()) {
+                // Find files that have the same name and size.
+                List<String> files = fileRepository.findDuplicates(nextSource.getId());
+
+                // Are these files really duplicates.
+                for(String nextFile: files) {
+                    List<FileInfo> duplicates = fileRepository.findByName(nextFile);
+                    LOG.info("Check: " + nextFile);
+                    checkDuplicateOfFile(duplicates, nextSource);
+                }
+            }
+        }
+    }
+
     public void gather() throws IOException {
         Iterable<Source> sources = sourceRepository.findAll();
 
@@ -244,6 +305,10 @@ public class DriveManager {
 
         for(Source nextSource: sources) {
             if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
+                continue;
+            }
+
+            if(!nextSource.getAutoGather() ) {
                 continue;
             }
 
@@ -398,39 +463,47 @@ public class DriveManager {
         }
     }
 
+    private boolean checkAction(String name, String action) {
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(name,action);
+
+        if(confirmedActions.size() > 0) {
+            boolean confirmed = false;
+            for(ActionConfirm nextConfirm: confirmedActions) {
+                if(nextConfirm.confirmed()) {
+                    confirmed = true;
+                }
+            }
+
+            if(confirmed) {
+                for(ActionConfirm nextConfirm: confirmedActions) {
+                    actionConfirmRepository.delete(nextConfirm);
+                }
+
+                return true;
+            }
+        } else {
+            // Create an action to be confirmed.
+            ActionConfirm actionConfirm = new ActionConfirm();
+            actionConfirm.setPath(name);
+            actionConfirm.setAction(action);
+            actionConfirm.setConfirmed(false);
+
+            actionConfirmRepository.save(actionConfirm);
+        }
+
+        return false;
+    }
+
     private void deleteFileIfConfirmed(String name) {
         File file = new File(name);
 
         if(file.exists()) {
             // Has this action been confirmed?
-            List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(name,"DELETE");
+            if(checkAction(name, "DELETE")) {
+                LOG.info("Delete the file - " + file );
 
-            if(confirmedActions.size() > 0) {
-                boolean confirmed = false;
-                for(ActionConfirm nextConfirm: confirmedActions) {
-                    if(nextConfirm.confirmed()) {
-                        confirmed = true;
-                    }
-                }
-
-                if(confirmed) {
-                    // Delete the file.
-                    LOG.info("Delete the file - " + file );
-                    //noinspection ResultOfMethodCallIgnored
-                    file.delete();
-
-                    for(ActionConfirm nextConfirm: confirmedActions) {
-                        actionConfirmRepository.delete(nextConfirm);
-                    }
-                }
-            } else {
-                // Create an action to be confirmed.
-                ActionConfirm actionConfirm = new ActionConfirm();
-                actionConfirm.setPath(name);
-                actionConfirm.setAction("DELETE");
-                actionConfirm.setConfirmed(false);
-
-                actionConfirmRepository.save(actionConfirm);
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
             }
         }
     }
