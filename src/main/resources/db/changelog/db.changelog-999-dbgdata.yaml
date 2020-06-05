@@ -20,6 +20,9 @@ databaseChangeLog:
               - column:
                   name: filter
                   value: \d{4}$
+              - column:
+                  name: auto_gather
+                  valueBoolean: true
 
         - insert:
             tableName: source
@@ -33,6 +36,9 @@ databaseChangeLog:
               - column:
                   name: location
                   value: 2
+              - column:
+                  name: auto_gather
+                  valueBoolean: true
 
         - insert:
             tableName: synchronize
@@ -70,3 +76,10 @@ databaseChangeLog:
               - column:
                   name: useMD5
                   valueBoolean: false
+
+        - update:
+            columns:
+              - column:
+                  name: check_duplicates
+                  valueBoolean: true
+            tableName: location
