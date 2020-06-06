@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/jbr/ext/hardware")
 public class HardwareController {
     final static private Logger LOG = LoggerFactory.getLogger(HardwareController.class);

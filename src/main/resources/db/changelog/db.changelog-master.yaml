@@ -28,4 +28,10 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-009-extentions-3.yaml
 
   - include:
+      file: /db/changelog/db.changelog-010-ignore.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-011-import.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
