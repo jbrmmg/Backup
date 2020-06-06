@@ -42,12 +42,17 @@ public class ApplicationProperties {
     private boolean gatherEnabled;
     private String synchronizeSchedule;
     private boolean synchonizeEnabled;
+    private String reviewDirectory;
 
     public Directory getDirectory() { return this.directory; }
 
     public void setServiceName(String serviceName) { this.serviceName = serviceName; }
 
     public String getServiceName() { return this.serviceName; }
+
+    public void setReviewDirectory(String reviewDirectory) { this.reviewDirectory = reviewDirectory; }
+
+    public String getReviewDirectory() { return this.reviewDirectory; }
 
     public void setDbUrl(String dbUrl) { this.dbUrl = dbUrl; }
 

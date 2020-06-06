@@ -34,6 +34,7 @@ backup:
   web-log-url: http://localhost:10001/jbr/int/log/data
   directory:
     date-format: yyyy-MM-dd
+  review-directory: /home/jason/Working/ImportReview
 
 management:
   endpoint:

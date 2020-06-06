@@ -77,6 +77,25 @@ databaseChangeLog:
                   name: useMD5
                   valueBoolean: false
 
+        - insert:
+            tableName: action_confirm
+            columns:
+              - column:
+                  name: path
+                  value: This is test
+              - column:
+                  name: action
+                  value: TEST
+              - column:
+                  name: confirmed
+                  valueBoolean: true
+              - column:
+                  name: parameter_required
+                  valueBoolean: false
+              - column:
+                  name: parameter
+                  valueBoolean: Testing
+
         - update:
             columns:
               - column:

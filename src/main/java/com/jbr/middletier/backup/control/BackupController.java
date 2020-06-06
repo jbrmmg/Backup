@@ -17,7 +17,7 @@ import java.util.Optional;
  * Created by jason on 08/02/17.
  */
 
-@Controller
+@RestController
 @RequestMapping("/jbr/ext/backup")
 public class BackupController {
     final static private Logger LOG = LoggerFactory.getLogger(BackupController.class);

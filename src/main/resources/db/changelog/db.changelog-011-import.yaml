@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11
+      author: jason
+      changes:
+        - createTable:
+            tableName: import_file
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: filename
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: path
+                  type: varchar(300)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: md5
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: to_source
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false

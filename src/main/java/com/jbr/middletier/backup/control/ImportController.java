@@ -1,0 +1,54 @@
+package com.jbr.middletier.backup.control;
+
+import com.jbr.middletier.backup.data.ImportFile;
+import com.jbr.middletier.backup.data.ImportRequest;
+import com.jbr.middletier.backup.data.OkStatus;
+import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
+import com.jbr.middletier.backup.manager.DriveManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+
+@RestController
+@RequestMapping("/jbr/int/backup")
+public class ImportController {
+    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+
+    final private DriveManager driveManager;
+    final private ImportFileRepository importFileRepository;
+
+    @Autowired
+    public ImportController(DriveManager driverManager,
+                            ImportFileRepository importFileRepository ) {
+        this.driveManager = driverManager;
+        this.importFileRepository = importFileRepository;
+    }
+
+    @RequestMapping(path="/import", method= RequestMethod.POST)
+    public @ResponseBody OkStatus importPhotoDirectory(@RequestBody ImportRequest importRequest) throws IOException {
+        LOG.info("Import - " + importRequest.getPath());
+
+        driveManager.importPhoto(importRequest);
+
+        return OkStatus.getOkStatus();
+    }
+
+    @RequestMapping(path="/importprocess", method= RequestMethod.POST)
+    public @ResponseBody OkStatus importPhotoProcess() throws IOException {
+        LOG.info("Import - process");
+
+        driveManager.importPhotoProcess();
+
+        return OkStatus.getOkStatus();
+    }
+
+    @RequestMapping(path="/importfiles", method= RequestMethod.GET)
+    public @ResponseBody Iterable<ImportFile> getImportFiles() {
+        LOG.info("Get the import files.");
+
+        return importFileRepository.findAll();
+    }
+}

@@ -9,8 +9,10 @@ import org.springframework.data.repository.CrudRepository;
 import javax.transaction.Transactional;
 import java.util.List;
 
-public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, String>, JpaSpecificationExecutor {
+public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, Integer>, JpaSpecificationExecutor {
     List<ActionConfirm> findByPathAndAction(String path, String action);
+
+    List<ActionConfirm> findByConfirmed(Boolean confirmed);
 
     // Mark everything as removed.
     @Transactional
