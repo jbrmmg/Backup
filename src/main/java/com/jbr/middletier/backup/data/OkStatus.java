@@ -9,7 +9,7 @@ public class OkStatus {
 
     public String getStatus() { return this.status; }
 
-    public void setStatus(String status) { this.status = status; }
+    public OkStatus setStatus(String status) { this.status = status; return this; }
 
     public static OkStatus getOkStatus() {
         return new OkStatus();

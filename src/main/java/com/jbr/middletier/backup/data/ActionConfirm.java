@@ -9,7 +9,7 @@ public class ActionConfirm {
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Integer id;
 
     @Column(name="path")
     @NotNull
@@ -29,6 +29,8 @@ public class ActionConfirm {
     @Column(name="parameter")
     private String parameter;
 
+    public Integer getId() { return this.id; }
+
     public String getPath() { return this.path; }
 
     public void setPath(String path) { this.path = path; }
@@ -42,6 +44,8 @@ public class ActionConfirm {
     public void setParameterRequired(boolean parameterRequired) { this.parameterRequired = parameterRequired; }
 
     public String getParameter() { return this.parameter; }
+
+    public void setParameter(String parameter) { this.parameter = parameter; }
 
     public boolean confirmed() { return this.confirmed; }
 }

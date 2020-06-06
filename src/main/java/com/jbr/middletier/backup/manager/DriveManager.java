@@ -37,6 +37,7 @@ public class DriveManager {
     final private ApplicationProperties applicationProperties;
     final private ActionConfirmRepository actionConfirmRepository;
     final private IgnoreFileRepository ignoreFileRepository;
+    final private ImportFileRepository importFileRepository;
 
     @Autowired
     public DriveManager(DirectoryRepository directoryRepository,
@@ -47,7 +48,8 @@ public class DriveManager {
                         BackupManager backupManager,
                         ApplicationProperties applicationProperties,
                         ActionConfirmRepository actionConfirmRepository,
-                        IgnoreFileRepository ignoreFileRepository) {
+                        IgnoreFileRepository ignoreFileRepository,
+                        ImportFileRepository importFileRepository ) {
         this.directoryRepository = directoryRepository;
         this.fileRepository = fileRepository;
         this.sourceRepository = sourceRepository;
@@ -57,6 +59,7 @@ public class DriveManager {
         this.applicationProperties = applicationProperties;
         this.actionConfirmRepository = actionConfirmRepository;
         this.ignoreFileRepository = ignoreFileRepository;
+        this.importFileRepository = importFileRepository;
     }
 
     private Classification classifyFile(FileInfo file, Iterable<Classification> classifications)  {
@@ -670,14 +673,30 @@ public class DriveManager {
         return FileTestResultType.EXACT;
     }
 
-    private void processImport(Path path, Source source, Iterable<Classification> classifications, String reviewDirectory) {
+    private void processImport(ImportFile importFile, Source source, Iterable<Classification> classifications, String reviewDirectory) {
+        // If this file is completed then exit.
+        if(importFile.getStatus().equalsIgnoreCase("complete")) {
+            return;
+        }
+
+        // Get the path to the import file.
+        Path path = new File(importFile.getPath() + "/" + importFile.getName()).toPath();
+
         // Get details of the file to import.
         FileInfo importFileInfo = new FileInfo();
-        importFileInfo.setName(path.getFileName().toString());
-        importFileInfo.setSize(path.toFile().length());
-        importFileInfo.setDate(new Date(path.toFile().lastModified()));
+        importFileInfo.setName(importFile.getName());
+        importFileInfo.setSize(importFile.getSize());
+        importFileInfo.setDate(importFile.getDate());
         importFileInfo.setClassification(classifyFile(importFileInfo,classifications));
-        importFileInfo.setMD5(getMD5(path,importFileInfo.getClassification()));
+        if(importFile.getMD5().length() <= 0) {
+            importFileInfo.setMD5(getMD5(path, importFileInfo.getClassification()));
+
+            importFile.setMD5(importFileInfo.getMD5());
+
+            importFileRepository.save(importFile);
+        } else {
+            importFileInfo.setMD5(importFile.getMD5());
+        }
 
         // Is this file being ignored?
         if(ignoreFile(importFileInfo)) {
@@ -806,31 +825,66 @@ public class DriveManager {
     }
 
     public void importPhoto(ImportRequest importRequest) throws IOException {
+        importFileRepository.clearImports();
         actionConfirmRepository.clearImports();
 
-        Iterable<Classification> classifications = classificationRepository.findAll();
-
         // Check the path exists
-        File importPath = new File(importRequest.path);
+        File importPath = new File(importRequest.getPath());
         if(!importPath.exists()) {
             throw new IOException("The path does not exist - " + importPath);
         }
 
         // Validate the source.
-        Optional<Source> source = sourceRepository.findById(importRequest.source);
+        Optional<Source> source = sourceRepository.findById(importRequest.getSource());
         if(!source.isPresent()) {
-            throw new  IOException("The source does not exist - " + importRequest.source);
+            throw new  IOException("The source does not exist - " + importRequest.getSource());
         }
 
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
-        try (Stream<Path> paths = Files.walk(Paths.get(importRequest.path))) {
+        try (Stream<Path> paths = Files.walk(Paths.get(importRequest.getPath()))) {
             paths
                     .filter(Files::isRegularFile)
-                    .forEach(path -> processImport(path,source.get(),classifications, importRequest.reviewDirectory));
+                    .forEach(path -> {
+                        // Insert data into the import files table.
+                        ImportFile importFile = new ImportFile();
+                        importFile.setName(path.getFileName().toString());
+                        importFile.setPath(path.getParent().toString());
+                        importFile.setDate(new Date(path.toFile().lastModified()));
+                        importFile.setSize(path.toFile().length());
+                        importFile.setMD5("");
+                        importFile.setTo(importRequest.getSource());
+                        importFile.setStatus("READ");
+
+                        importFileRepository.save(importFile);
+                    });
         } catch (IOException e) {
             LOG.error("Failed to process import - ",e);
             throw e;
+        }
+    }
+
+    public void importPhotoProcess() throws IOException {
+        LOG.info("Import Photo Process - TODO");
+
+        Iterable<Classification> classifications = classificationRepository.findAll();
+        Optional<Source> source = Optional.empty();
+
+        for(ImportFile nextFile: importFileRepository.findAllByOrderByDate()) {
+            LOG.info(nextFile.getName());
+
+            if(!source.isPresent()) {
+                source = sourceRepository.findById(nextFile.getTo());
+
+                if(!source.isPresent()) {
+                    throw new  IOException("The source does not exist - " + nextFile.getTo());
+                }
+            }
+
+            processImport(nextFile,source.get(),classifications, applicationProperties.getReviewDirectory());
+
+            nextFile.setStatus("COMPLETE");
+            importFileRepository.save(nextFile);
         }
     }
 }
