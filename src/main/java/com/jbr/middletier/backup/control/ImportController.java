@@ -36,6 +36,15 @@ public class ImportController {
         return OkStatus.getOkStatus();
     }
 
+    @RequestMapping(path="/import", method= RequestMethod.DELETE)
+    public @ResponseBody OkStatus removeEntries() throws IOException {
+        LOG.info("Remove entries from import table");
+
+        driveManager.removeEntries();
+
+        return OkStatus.getOkStatus();
+    }
+
     @RequestMapping(path="/importprocess", method= RequestMethod.POST)
     public @ResponseBody OkStatus importPhotoProcess() throws IOException {
         LOG.info("Import - process");
