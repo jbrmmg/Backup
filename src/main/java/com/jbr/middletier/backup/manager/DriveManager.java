@@ -224,13 +224,15 @@ public class DriveManager {
 
     @Scheduled(cron = "#{@applicationProperties.gatherSchedule}")
     public void gatherCron() {
-        if(applicationProperties.getSynchronizeEnabled()) {
+        if(applicationProperties.getGatherEnabled()) {
             try {
                 gather();
 
                 duplicateCheck();
+
+                synchronize();
             } catch (Exception ex) {
-                LOG.error("Failed to gather",ex);
+                LOG.error("Failed to gather / synchronize",ex);
             }
         }
     }
@@ -341,17 +343,6 @@ public class DriveManager {
 
         fileRepository.deleteRemoved();
         directoryRepository.deleteRemoved();
-    }
-
-    @Scheduled(cron = "#{@applicationProperties.synchronizeSchedule}")
-    public void synchronizeCron()  {
-        if(applicationProperties.getSynchronizeEnabled()) {
-            try {
-                synchronize();
-            } catch (Exception ex) {
-                LOG.error("Failed to syncrhonize",ex);
-            }
-        }
     }
 
     private boolean copyFile(FileInfo source, FileInfo destination) {
