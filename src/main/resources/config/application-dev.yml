@@ -28,8 +28,6 @@ server:
 backup:
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false
-  synchronize-schedule: 0 0 0 * * ?
-  synchronize-enabled: false
   service-name: middletier-backup-dev
   directory:
     name: /home/jason/Working/Backup

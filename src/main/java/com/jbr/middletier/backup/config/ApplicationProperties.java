@@ -89,12 +89,4 @@ public class ApplicationProperties {
     public void setGatherEnabled(boolean enabled) { this.gatherEnabled = enabled; }
 
     public boolean getGatherEnabled() { return this.gatherEnabled; }
-
-    public void setSynchronizeSchedule(String schedule) { this.synchronizeSchedule = schedule; }
-
-    public String getSynchronizeSchedule() { return this.synchronizeSchedule; }
-
-    public void setSynchronizeEnabled(boolean enabled) { this.synchonizeEnabled = enabled; }
-
-    public boolean getSynchronizeEnabled() { return this.synchonizeEnabled; }
 }

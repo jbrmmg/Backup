@@ -26,8 +26,6 @@ spring:
 backup:
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false
-  synchronize-schedule: 0 0 0 * * ?
-  synchronize-enabled: false
   schedule: 0 20 0/1 * * ?
   enabled: false
   service-name: middletier-backup-dbg
