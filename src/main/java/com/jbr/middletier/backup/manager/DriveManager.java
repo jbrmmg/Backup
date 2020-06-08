@@ -883,11 +883,13 @@ public class DriveManager {
         // Remove entries from import table if they are no longer present.
         for (ImportFile nextFile : importFileRepository.findAll()) {
             // Does this file still exist?
-            File existingFile = new File(nextFile.getPath() + "\\" + nextFile.getName());
+            File existingFile = new File(nextFile.getPath() + "/" + nextFile.getName());
 
             if(!existingFile.exists()) {
-                LOG.info("Remove this import file - " + nextFile);
+                LOG.info("Remove this import file - " + nextFile.getName());
                 importFileRepository.delete(nextFile);
+            } else {
+                LOG.info("Keeping " + nextFile.getName());
             }
         }
     }
