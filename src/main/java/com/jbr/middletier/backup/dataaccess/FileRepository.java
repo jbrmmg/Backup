@@ -19,6 +19,8 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
 
     List<FileInfo> findByName(String name);
 
+    List<FileInfo> findByDirectoryInfoId(Integer id);
+
     // Mark everything as removed.
     @Transactional
     @Modifying
