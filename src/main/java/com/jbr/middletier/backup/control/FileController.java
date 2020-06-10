@@ -150,7 +150,7 @@ public class FileController {
     }
 
     @RequestMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE,method= RequestMethod.GET)
-    public @ResponseBody byte[] getFileImage(@RequestParam Integer id ) throws Exception {
+    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws Exception {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
@@ -168,4 +168,25 @@ public class FileController {
 
         return Files.readAllBytes(imgPath.toPath());
     }
+
+    @RequestMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE,method=RequestMethod.GET)
+    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws Exception {
+        Optional<FileInfo> file = fileRepository.findById(id);
+
+        if(!file.isPresent()) {
+            throw new Exception(id + " does not exist");
+        }
+
+        if(!file.get().getName().toLowerCase().contains(".mp4") && !file.get().getName().toLowerCase().contains(".mov")) {
+            return null;
+        }
+
+        String filename = file.get().getDirectoryInfo().getSource().getPath() + file.get().getDirectoryInfo().getPath() + "/" + file.get().getName();
+        LOG.info("Get file: " + filename);
+
+        File imgPath = new File(filename);
+
+        return Files.readAllBytes(imgPath.toPath());
+    }
+
 }
