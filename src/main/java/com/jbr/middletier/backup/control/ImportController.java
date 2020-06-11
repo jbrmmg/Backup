@@ -28,7 +28,7 @@ public class ImportController {
     }
 
     @RequestMapping(path="/import", method= RequestMethod.POST)
-    public @ResponseBody OkStatus importPhotoDirectory(@RequestBody ImportRequest importRequest) throws IOException {
+    public @ResponseBody OkStatus importPhotoDirectory(@RequestBody ImportRequest importRequest) throws Exception {
         LOG.info("Import - " + importRequest.getPath());
 
         driveManager.importPhoto(importRequest);
@@ -46,7 +46,7 @@ public class ImportController {
     }
 
     @RequestMapping(path="/importprocess", method= RequestMethod.POST)
-    public @ResponseBody OkStatus importPhotoProcess() throws IOException {
+    public @ResponseBody OkStatus importPhotoProcess() throws Exception {
         LOG.info("Import - process");
 
         driveManager.importPhotoProcess();
@@ -57,6 +57,20 @@ public class ImportController {
     @RequestMapping(path="/importfiles", method= RequestMethod.GET)
     public @ResponseBody Iterable<ImportFile> getImportFiles() {
         LOG.info("Get the import files.");
+
+        return importFileRepository.findAll();
+    }
+
+    @RequestMapping(path="/importfiles", method= RequestMethod.PUT)
+    public @ResponseBody Iterable<ImportFile> resetFiles() {
+        LOG.info("Get the import files.");
+
+        Iterable<ImportFile> result = importFileRepository.findAll();
+
+        for(ImportFile nextImport: result) {
+            nextImport.setStatus("READ");
+            importFileRepository.save(nextImport);
+        }
 
         return importFileRepository.findAll();
     }

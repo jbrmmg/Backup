@@ -34,4 +34,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-011-import.yaml
 
   - include:
+      file: /db/changelog/db.changelog-012-refactor.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

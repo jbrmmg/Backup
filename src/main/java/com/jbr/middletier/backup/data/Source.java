@@ -16,7 +16,7 @@ public class Source {
     private String path;
 
     @JoinColumn(name="location")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = true)
     private Location location;
 
     @Column(name="status")
@@ -25,8 +25,17 @@ public class Source {
     @Column(name="filter")
     private String filter;
 
-    @Column(name="auto_gather")
-    private Boolean autoGather;
+    @Column(name="source_type")
+    private String type;
+
+    @Column(name="destination")
+    private Integer destinationId;
+
+    public enum SourceTypeType { Standard, Import }
+
+    public Source() {
+        setTypeEnum(SourceTypeType.Standard);
+    }
 
     public void setPath(String path) { this.path = path; }
 
@@ -38,11 +47,44 @@ public class Source {
 
     public String getFilter() { return this.filter; }
 
-    public boolean getAutoGather() { return this.autoGather == null ? false : this.autoGather; }
+    public String getType() { return this.type; }
+
+    public void setType(String type) { this.type = type; }
+
+    public SourceTypeType getTypeEnum() throws Exception {
+        switch(this.getType()) {
+            case "STD":
+                return SourceTypeType.Standard;
+            case "IMP":
+                return SourceTypeType.Import;
+            default:
+                throw new Exception(this.getType() + " invalid type");
+        }
+    }
+
+    public void setTypeEnum(SourceTypeType type) {
+        switch(type) {
+            case Standard:
+                this.type = "STD";
+                break;
+            case Import:
+                this.type = "IMP";
+                break;
+        }
+    }
+
 
     public Location getLocation() { return this.location; }
 
     public int getId() { return this.id; }
+
+    public void setId(int id) { this.id = id; }
+
+    public int getDestinationId() { return this.destinationId == null ? -1 : this.destinationId; }
+
+    public void setDestinationId(int id) { this.destinationId = id; }
+
+    public void setLocation(Location location) { this.location = location; }
 
     @Override
     public String toString() {

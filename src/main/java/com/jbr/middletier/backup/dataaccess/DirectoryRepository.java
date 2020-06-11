@@ -17,32 +17,13 @@ import java.util.Optional;
 public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integer>, JpaSpecificationExecutor {
     Optional<DirectoryInfo> findBySourceAndPath(Source source, String path);
 
+    List<DirectoryInfo> findBySource(Source source);
+
     // Mark everything as removed.
     @Transactional
     @Modifying
-    @Query("UPDATE DirectoryInfo SET removed=true")
-    void markAllRemoved();
-
-    /*
-    @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
-            "f," +
-            "d," +
-            "c," +
-            "s.source," +
-            "s.destination," +
-            "f2," +
-            "d2" +
-            ") FROM Synchronize AS s " +
-            "INNER JOIN DirectoryInfo AS d ON d.source = s.destination " +
-            "INNER JOIN FileInfo AS f ON f.directoryInfo.id = d.id " +
-            "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.path = d.path AND d2.source = s.source " +
-            "LEFT OUTER JOIN FileInfo AS f2 ON f2.directoryInfo.id = d2.id AND f.name = f2.name " +
-            "LEFT OUTER JOIN Classification AS c ON f.classification.id = c.id " +
-            "WHERE s.id = ?1 " +
-            "AND f2. name is null"
-    )
-    List<SynchronizeStatus> findSynchronizeExtraFiles(int synchronize);
-     */
+    @Query("UPDATE DirectoryInfo SET removed=true WHERE source.id = ?1")
+    void markAllRemoved(int source);
 
     // Mark everything as removed.
     @Transactional
@@ -55,7 +36,7 @@ public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integ
            "LENGTH(d.path) - LENGTH(REPLACE(d.path,'/','')), " +
            "d.path, " +
            "d.id ) " +
-           "FROM DirectoryInfo AS d \n" +
+           "FROM DirectoryInfo AS d " +
            "WHERE d.source.id = ?1 " +
            "AND LENGTH(d.path) - LENGTH(REPLACE(d.path,'/','')) = ?2 " +
            "AND path like ?3 " +

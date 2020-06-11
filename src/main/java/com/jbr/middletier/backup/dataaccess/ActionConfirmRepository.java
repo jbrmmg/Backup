@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dataaccess;
 
 import com.jbr.middletier.backup.data.ActionConfirm;
+import com.jbr.middletier.backup.data.FileInfo;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +11,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, Integer>, JpaSpecificationExecutor {
-    List<ActionConfirm> findByPathAndAction(String path, String action);
+    List<ActionConfirm> findByFileInfoAndAction(FileInfo fileInfo, String action);
 
     List<ActionConfirm> findByConfirmed(Boolean confirmed);
 
