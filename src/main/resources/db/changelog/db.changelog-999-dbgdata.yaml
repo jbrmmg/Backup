@@ -21,8 +21,9 @@ databaseChangeLog:
                   name: filter
                   value: \d{4}$
               - column:
-                  name: auto_gather
-                  valueBoolean: true
+                  name: source_type
+                  value: STD
+
 
         - insert:
             tableName: source
@@ -37,8 +38,8 @@ databaseChangeLog:
                   name: location
                   value: 2
               - column:
-                  name: auto_gather
-                  valueBoolean: true
+                  name: source_type
+                  value: STD
 
         - insert:
             tableName: synchronize
@@ -80,9 +81,6 @@ databaseChangeLog:
         - insert:
             tableName: action_confirm
             columns:
-              - column:
-                  name: path
-                  value: This is test
               - column:
                   name: action
                   value: TEST

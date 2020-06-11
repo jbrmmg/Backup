@@ -53,7 +53,7 @@ public class FileController {
 
         try {
             driveManager.gather();
-        } catch (IOException e) {
+        } catch (Exception e) {
             OkStatus status = new OkStatus();
             status.setStatus("Failed - " + e.toString());
         }

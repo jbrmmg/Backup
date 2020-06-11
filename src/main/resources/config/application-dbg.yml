@@ -2,7 +2,7 @@ logging:
   level:
     ROOT: INFO
     com.jbr.middletier: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+#    org.hibernate.type.descriptor.sql: TRACE
 
 spring:
   liquibase:

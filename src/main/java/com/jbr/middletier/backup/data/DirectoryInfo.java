@@ -27,6 +27,8 @@ public class DirectoryInfo {
 
     public Source getSource() { return this.source; }
 
+    public Integer getId() { return this.id; }
+
     public void setSource(Source source) { this.source = source; }
 
     public void clearRemoved() { this.removed = false; }
