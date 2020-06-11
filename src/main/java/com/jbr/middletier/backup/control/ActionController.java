@@ -56,21 +56,6 @@ public class ActionController {
         return ignoreFileRepository.findAll();
     }
 
-    @RequestMapping(path="action-image",produces=MediaType.IMAGE_JPEG_VALUE,method=RequestMethod.GET)
-    public @ResponseBody byte[] getActionImage(@RequestParam Integer actionId) throws IOException {
-        LOG.info("Get action image.");
-
-        Optional<ActionConfirm> existingAction = actionConfirmRepository.findById(actionId);
-
-        if(!existingAction.isPresent()) {
-            throw new ActionNotFoundException(actionId);
-        }
-
-        File imgPath = new File(existingAction.get().getPath());
-
-        return Files.readAllBytes(imgPath.toPath());
-    }
-
     @RequestMapping(path="/actions",method=RequestMethod.POST)
     public @ResponseBody ActionConfirm confirm (@RequestBody ConfirmActionRequest action) {
         LOG.info("Confirm action");

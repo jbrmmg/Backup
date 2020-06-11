@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +27,7 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Component
-public class DriveManager {
+public class DriveManager implements ClearImports {
     final static private Logger LOG = LoggerFactory.getLogger(DriveManager.class);
 
     final private DirectoryRepository directoryRepository;
@@ -38,6 +40,7 @@ public class DriveManager {
     final private ActionConfirmRepository actionConfirmRepository;
     final private IgnoreFileRepository ignoreFileRepository;
     final private ImportFileRepository importFileRepository;
+    final private LocationRepository locationRepository;
 
     @Autowired
     public DriveManager(DirectoryRepository directoryRepository,
@@ -49,7 +52,8 @@ public class DriveManager {
                         ApplicationProperties applicationProperties,
                         ActionConfirmRepository actionConfirmRepository,
                         IgnoreFileRepository ignoreFileRepository,
-                        ImportFileRepository importFileRepository ) {
+                        ImportFileRepository importFileRepository,
+                        LocationRepository locationRepository ) {
         this.directoryRepository = directoryRepository;
         this.fileRepository = fileRepository;
         this.sourceRepository = sourceRepository;
@@ -60,6 +64,7 @@ public class DriveManager {
         this.actionConfirmRepository = actionConfirmRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.importFileRepository = importFileRepository;
+        this.locationRepository = locationRepository;
     }
 
     private Classification classifyFile(FileInfo file, Iterable<Classification> classifications)  {
@@ -133,7 +138,7 @@ public class DriveManager {
         return true;
     }
 
-    private void processPath(Path path, Source nextSource, Iterable<Classification> classifications) {
+    private void processPath(Path path, Source nextSource, Iterable<Classification> classifications, boolean skipMD5, boolean createImportFile) {
         String directoryName;
 
         if(path.toFile().isDirectory()) {
@@ -195,10 +200,20 @@ public class DriveManager {
             newFile.setClassification(classifyFile(newFile,classifications));
             newFile.setDate(fileDate);
             newFile.setSize(path.toFile().length());
-            newFile.setMD5(getMD5(path,newFile.getClassification()));
+            if(skipMD5) {
+                newFile.setMD5(getMD5(path, newFile.getClassification()));
+            }
             newFile.clearRemoved();
 
             fileRepository.save(newFile);
+
+            if(createImportFile) {
+                ImportFile newImportFile = new ImportFile();
+                newImportFile.setStatus("READ");
+                newImportFile.setFileInfo(newFile);
+
+                importFileRepository.save(newImportFile);
+            }
         } else {
             if(file.get().getClassification() == null) {
                 Classification newClassification = classifyFile(file.get(),classifications);
@@ -212,7 +227,9 @@ public class DriveManager {
                     (file.get().getDate().compareTo(fileDate) != 0)) {
                 file.get().setSize(path.toFile().length());
                 file.get().setDate(fileDate);
-                file.get().setMD5(getMD5(path,file.get().getClassification()));
+                if(skipMD5) {
+                    file.get().setMD5(getMD5(path, file.get().getClassification()));
+                }
             }
 
             file.get().clearRemoved();
@@ -247,9 +264,7 @@ public class DriveManager {
     }
 
     private void processDuplicate(FileInfo potentialDuplicate) {
-        String name = "duplicate - " + potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getPath() + "//" + potentialDuplicate.getName();
-
-        if(checkAction(name,"DELETE_DUP")) {
+        if(checkAction(potentialDuplicate,"DELETE_DUP")) {
             LOG.info("Delete duplicate file - " + potentialDuplicate.toString());
 
             // TODO - actually delete the file.
@@ -304,20 +319,20 @@ public class DriveManager {
         }
     }
 
-    public void gather() throws IOException {
+    public void gather() throws Exception {
         Iterable<Source> sources = sourceRepository.findAll();
 
         Iterable<Classification> classifications = classificationRepository.findAll();
 
-        fileRepository.markAllRemoved();
-        directoryRepository.markAllRemoved();
-
         for(Source nextSource: sources) {
+            fileRepository.markAllRemoved(nextSource.getId());
+            directoryRepository.markAllRemoved(nextSource.getId());
+
             if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
                 continue;
             }
 
-            if(!nextSource.getAutoGather() ) {
+            if(nextSource.getTypeEnum() != Source.SourceTypeType.Standard ) {
                 continue;
             }
 
@@ -331,7 +346,7 @@ public class DriveManager {
             // Read directory structure into the database.
             try (Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
                 paths
-                   .forEach(path -> processPath(path,nextSource,classifications));
+                   .forEach(path -> processPath(path,nextSource,classifications,false, false));
             } catch (IOException e) {
                 setSourceStatus(nextSource,"ERROR");
                 backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());
@@ -461,8 +476,8 @@ public class DriveManager {
         }
     }
 
-    private boolean checkAction(String name, String action) {
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(name,action);
+    private boolean checkAction(FileInfo fileInfo, String action) {
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action);
 
         if(confirmedActions.size() > 0) {
             boolean confirmed = false;
@@ -482,7 +497,7 @@ public class DriveManager {
         } else {
             // Create an action to be confirmed.
             ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setPath(name);
+            actionConfirm.setFileInfo(fileInfo);
             actionConfirm.setAction(action);
             actionConfirm.setConfirmed(false);
             actionConfirm.setParameterRequired(false);
@@ -493,25 +508,18 @@ public class DriveManager {
         return false;
     }
 
-    private void deleteFileIfConfirmed(String name) {
-        File file = new File(name);
+    private void deleteFileIfConfirmed(FileInfo fileInfo) {
+        File file = new File(fileInfo.getFullFilename());
 
         if(file.exists()) {
             // Has this action been confirmed?
-            if(checkAction(name, "DELETE")) {
+            if(checkAction(fileInfo, "DELETE")) {
                 LOG.info("Delete the file - " + file );
 
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
         }
-    }
-
-    private void deleteDestinationFolder(SynchronizeStatus status) {
-        LOG.info("Delete the destination folder - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
-        String folderName = status.sourceFile.getDirectoryInfo().getSource().getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath();
-
-        deleteFileIfConfirmed(folderName);
     }
 
     private void delete(SynchronizeStatus status, boolean standard, boolean classified) {
@@ -527,8 +535,7 @@ public class DriveManager {
         }
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
 
-        String filename = status.sourceFile.getDirectoryInfo().getSource().getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath() + "/" + status.sourceFile.getName();
-        deleteFileIfConfirmed(filename);
+        deleteFileIfConfirmed(status.sourceFile);
     }
 
     public void synchronize() {
@@ -593,7 +600,7 @@ public class DriveManager {
                         break;
 
                     case "FOLDER":
-                        deleteDestinationFolder(nextStatus);
+                        deleteFileIfConfirmed(nextStatus.sourceFile);
                         break;
 
                     default:
@@ -664,33 +671,34 @@ public class DriveManager {
         return FileTestResultType.EXACT;
     }
 
-    private void processImport(ImportFile importFile, Source source, Iterable<Classification> classifications, String reviewDirectory) {
+    private void processImport(ImportFile importFile, Source source) {
         // If this file is completed then exit.
         if(importFile.getStatus().equalsIgnoreCase("complete")) {
             return;
         }
 
         // Get the path to the import file.
-        Path path = new File(importFile.getPath() + "/" + importFile.getName()).toPath();
+        Path path = new File(importFile.getFileInfo().getFullFilename()).toPath();
+
+        // What is the classification? if yes, unless this is a backup file just remove it.
+        if(importFile.getFileInfo().getClassification() != null) {
+            if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
+                LOG.info(path.toString() + " not a backed up file, deleting");
+                //noinspection ResultOfMethodCallIgnored
+                path.toFile().delete();
+                return;
+            }
+        }
 
         // Get details of the file to import.
-        FileInfo importFileInfo = new FileInfo();
-        importFileInfo.setName(importFile.getName());
-        importFileInfo.setSize(importFile.getSize());
-        importFileInfo.setDate(importFile.getDate());
-        importFileInfo.setClassification(classifyFile(importFileInfo,classifications));
-        if(importFile.getMD5().length() <= 0) {
-            importFileInfo.setMD5(getMD5(path, importFileInfo.getClassification()));
+        if(importFile.getFileInfo().getMD5().length() <= 0) {
+            importFile.getFileInfo().setMD5(getMD5(path, importFile.getFileInfo().getClassification()));
 
-            importFile.setMD5(importFileInfo.getMD5());
-
-            importFileRepository.save(importFile);
-        } else {
-            importFileInfo.setMD5(importFile.getMD5());
+            fileRepository.save(importFile.getFileInfo());
         }
 
         // Is this file being ignored?
-        if(ignoreFile(importFileInfo)) {
+        if(ignoreFile(importFile.getFileInfo())) {
             // Delete the file from import.
             LOG.info(path.toString() + " marked for ignore, deleting");
             //noinspection ResultOfMethodCallIgnored
@@ -711,7 +719,7 @@ public class DriveManager {
             }
 
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFileInfo);
+            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile.getFileInfo());
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info(path.toString() + " exists in source, deleting");
@@ -728,14 +736,7 @@ public class DriveManager {
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
 
-        // Do we have the event name?
-        String actionString = path.toString();
-
-        if(closeMatch) {
-            actionString += "(CLOSE)";
-        }
-
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByPathAndAction(actionString,"IMPORT");
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile.getFileInfo(),"IMPORT");
         if(confirmedActions.size() > 0) {
             boolean confirmed = false;
             String parameter = "";
@@ -754,10 +755,10 @@ public class DriveManager {
                 // If the parameter value is IGNORE then add this file to the ignore list.
                 if(parameter.equalsIgnoreCase("ignore")) {
                     IgnoreFile ignoreFile = new IgnoreFile();
-                    ignoreFile.setDate(importFileInfo.getDate());
-                    ignoreFile.setName(importFileInfo.getName());
-                    ignoreFile.setSize(importFileInfo.getSize());
-                    ignoreFile.setMD5(importFileInfo.getMD5());
+                    ignoreFile.setDate(importFile.getFileInfo().getDate());
+                    ignoreFile.setName(importFile.getFileInfo().getName());
+                    ignoreFile.setSize(importFile.getFileInfo().getSize());
+                    ignoreFile.setMD5(importFile.getFileInfo().getMD5());
 
                     ignoreFileRepository.save(ignoreFile);
 
@@ -793,31 +794,49 @@ public class DriveManager {
         } else {
             // Create an action to be confirmed.
             ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setPath(actionString);
+            actionConfirm.setFileInfo(importFile.getFileInfo());
             actionConfirm.setAction("IMPORT");
             actionConfirm.setConfirmed(false);
             actionConfirm.setParameterRequired(true);
+            if(closeMatch) {
+                // Indicate it was a close match.
+                actionConfirm.setFlags("C");
+            }
 
             actionConfirmRepository.save(actionConfirm);
-
-            // Create a link for review.
-            try {
-                File linkFile = new File(reviewDirectory + "/" + (closeMatch ? "close." : "") + path.getFileName());
-
-                if (Files.exists(linkFile.toPath())) {
-                    Files.delete(linkFile.toPath());
-                }
-
-                Files.createSymbolicLink(linkFile.toPath(), path);
-            } catch(Exception ex) {
-                LOG.error("Failed to create link - " + path.toString());
-            }
         }
     }
 
-    public void importPhoto(ImportRequest importRequest) throws IOException {
-        importFileRepository.clearImports();
+    @Transactional
+    @Override
+    public void clearImports() throws Exception {
+        // Remove the files associated with imports - first remove files, then directories then source.
+        for(Source nextSource: sourceRepository.findAll()) {
+            if(nextSource.getTypeEnum() == Source.SourceTypeType.Import) {
+                for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
+                    for(FileInfo nextFile: fileRepository.findByDirectoryInfoId(nextDirectory.getId())) {
+                        fileRepository.delete(nextFile);
+                    }
+
+                    directoryRepository.delete(nextDirectory);
+                }
+
+                sourceRepository.delete(nextSource);
+            }
+        }
+
+        importFileRepository.deleteAll();
+    }
+
+
+    public void importPhoto(ImportRequest importRequest) throws Exception {
         actionConfirmRepository.clearImports();
+
+        // Get the classifications
+        Iterable<Classification> classifications = classificationRepository.findAll();
+
+        // Remove any existing import data.
+        clearImports();
 
         // Check the path exists
         File importPath = new File(importRequest.getPath());
@@ -831,48 +850,72 @@ public class DriveManager {
             throw new  IOException("The source does not exist - " + importRequest.getSource());
         }
 
+        int nextId = 0;
+        for(Source nextSource: sourceRepository.findAll()) {
+            if(nextSource.getId() >= nextId) {
+                nextId = nextSource.getId() + 1;
+            }
+        }
+
+        // Find the location.
+        Optional<Location> importLocation = Optional.empty();
+        for(Location nextLocation: locationRepository.findAll()) {
+            if(nextLocation.getName().equalsIgnoreCase("import")) {
+                importLocation = Optional.of(nextLocation);
+            }
+        }
+
+        if(!importLocation.isPresent()) {
+            throw new IOException("Cannot find import location.");
+        }
+
+        // Create a source to match this import
+        Source importSource = new Source();
+        importSource.setId(nextId);
+        importSource.setTypeEnum(Source.SourceTypeType.Import);
+        importSource.setPath(importRequest.getPath());
+        importSource.setDestinationId(source.get().getId());
+        importSource.setLocation(importLocation.get());
+
+        sourceRepository.save(importSource);
+
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         try (Stream<Path> paths = Files.walk(Paths.get(importRequest.getPath()))) {
             paths
-                    .filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        // Insert data into the import files table.
-                        ImportFile importFile = new ImportFile();
-                        importFile.setName(path.getFileName().toString());
-                        importFile.setPath(path.getParent().toString());
-                        importFile.setDate(new Date(path.toFile().lastModified()));
-                        importFile.setSize(path.toFile().length());
-                        importFile.setMD5("");
-                        importFile.setTo(importRequest.getSource());
-                        importFile.setStatus("READ");
-
-                        importFileRepository.save(importFile);
-                    });
+                    .forEach(path -> processPath(path,importSource,classifications,true, true));
         } catch (IOException e) {
             LOG.error("Failed to process import - ",e);
             throw e;
         }
     }
 
-    public void importPhotoProcess() throws IOException {
-        LOG.info("Import Photo Process - TODO");
+    public void importPhotoProcess() throws Exception {
+        LOG.info("Import Photo Process");
 
-        Iterable<Classification> classifications = classificationRepository.findAll();
+        // Get the source.
         Optional<Source> source = Optional.empty();
 
-        for(ImportFile nextFile: importFileRepository.findAllByOrderByDate()) {
-            LOG.info(nextFile.getName());
-
-            if(!source.isPresent()) {
-                source = sourceRepository.findById(nextFile.getTo());
-
-                if(!source.isPresent()) {
-                    throw new  IOException("The source does not exist - " + nextFile.getTo());
-                }
+        for(Source nextSource: sourceRepository.findAll()) {
+            if(nextSource.getTypeEnum() == Source.SourceTypeType.Import) {
+                source = Optional.of(nextSource);
             }
+        }
 
-            processImport(nextFile,source.get(),classifications, applicationProperties.getReviewDirectory());
+        if(!source.isPresent()) {
+            throw new Exception("There is no import source defined.");
+        }
+
+        // Get the place they are to be imported to.
+        Optional<Source> destination = sourceRepository.findById(source.get().getDestinationId());
+        if(!destination.isPresent()) {
+            throw new Exception("The destination is invalid.");
+        }
+
+        for(ImportFile nextFile: importFileRepository.findAll()) {
+            LOG.info(nextFile.getFileInfo().getFullFilename());
+
+            processImport(nextFile,destination.get());
 
             nextFile.setStatus("COMPLETE");
             importFileRepository.save(nextFile);
@@ -883,13 +926,13 @@ public class DriveManager {
         // Remove entries from import table if they are no longer present.
         for (ImportFile nextFile : importFileRepository.findAll()) {
             // Does this file still exist?
-            File existingFile = new File(nextFile.getPath() + "/" + nextFile.getName());
+            File existingFile = new File(nextFile.getFileInfo().getFullFilename());
 
             if(!existingFile.exists()) {
-                LOG.info("Remove this import file - " + nextFile.getName());
+                LOG.info("Remove this import file - " + nextFile.getFileInfo().getFullFilename());
                 importFileRepository.delete(nextFile);
             } else {
-                LOG.info("Keeping " + nextFile.getName());
+                LOG.info("Keeping " + nextFile.getFileInfo().getFullFilename());
             }
         }
     }

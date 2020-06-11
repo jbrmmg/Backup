@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import com.mysql.cj.x.protobuf.MysqlxDatatypes;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -88,8 +90,19 @@ public class FileInfo {
         return true;
     }
 
+    public String getFullFilename() {
+        StringBuilder result = new StringBuilder();
+
+        result.append(directoryInfo.getSource().getPath());
+        result.append(directoryInfo.getPath());
+        result.append("/");
+        result.append(getName());
+
+        return result.toString();
+    }
+
     @Override
     public String toString() {
-        return "FileInfo: " + id + directoryInfo.toString() + "-" + name + " " + md5;
+        return "FileInfo: " + id + getFullFilename() + " " + md5;
     }
 }
