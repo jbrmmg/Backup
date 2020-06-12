@@ -325,9 +325,6 @@ public class DriveManager implements ClearImports {
         Iterable<Classification> classifications = classificationRepository.findAll();
 
         for(Source nextSource: sources) {
-            fileRepository.markAllRemoved(nextSource.getId());
-            directoryRepository.markAllRemoved(nextSource.getId());
-
             if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
                 continue;
             }
@@ -335,6 +332,9 @@ public class DriveManager implements ClearImports {
             if(nextSource.getTypeEnum() != Source.SourceTypeType.Standard ) {
                 continue;
             }
+
+            fileRepository.markAllRemoved(nextSource.getId());
+            directoryRepository.markAllRemoved(nextSource.getId());
 
             setSourceStatus(nextSource,"GATHERING");
 
