@@ -157,7 +157,8 @@ public class FileController {
             throw new Exception(id + " does not exist");
         }
 
-        if(!file.get().getName().toLowerCase().contains(".jpg")) {
+        // Is this an image file
+        if(!file.get().getClassification().getIsImage()) {
             return null;
         }
 
@@ -177,7 +178,8 @@ public class FileController {
             throw new Exception(id + " does not exist");
         }
 
-        if(!file.get().getName().toLowerCase().contains(".mp4") && !file.get().getName().toLowerCase().contains(".mov")) {
+        // Is this a video file?
+        if(!file.get().getClassification().getIsVideo()) {
             return null;
         }
 

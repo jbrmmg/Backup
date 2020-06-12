@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 13
+      author: jason
+      changes:
+        - addColumn:
+            tableName: classification
+            columns:
+              - column:
+                  name: is_image
+                  type: boolean
+              - column:
+                  name: is_video
+                  type: boolean
+
+        - update:
+            columns:
+              - column:
+                  name: is_image
+                  valueBoolean: false
+            tableName: classification
+
+        - update:
+            columns:
+              - column:
+                  name: is_video
+                  valueBoolean: false
+            tableName: classification

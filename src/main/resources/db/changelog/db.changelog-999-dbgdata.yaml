@@ -77,6 +77,12 @@ databaseChangeLog:
               - column:
                   name: useMD5
                   valueBoolean: false
+              - column:
+                  name: is_image
+                  valueBoolean: false
+              - column:
+                  name: is_video
+                  valueBoolean: false
 
         - insert:
             tableName: action_confirm
