@@ -25,6 +25,12 @@ public class Classification {
     @Column(name="type")
     private String type;
 
+    @Column(name="is_image")
+    private Boolean isImage;
+
+    @Column(name="is_video")
+    private Boolean isVideo;
+
     public Integer getId() { return this.id; }
 
     public String getRegex() { return this.regex; }
@@ -34,6 +40,10 @@ public class Classification {
     public String getIcon() { return this.icon; }
 
     public Boolean getUseMD5() { return this.useMD5; }
+
+    public Boolean getIsVideo() { return this.isVideo; }
+
+    public Boolean getIsImage() { return this.isImage; }
 
     public boolean fileMatches(FileInfo file) {
         return file.getName().toLowerCase().matches(regex);

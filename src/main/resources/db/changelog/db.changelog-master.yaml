@@ -37,4 +37,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-012-refactor.yaml
 
   - include:
+      file: /db/changelog/db.changelog-013-imagetypes.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
