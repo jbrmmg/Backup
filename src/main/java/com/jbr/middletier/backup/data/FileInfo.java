@@ -60,7 +60,7 @@ public class FileInfo {
 
     public String getName() { return this.name; }
 
-    public long getSize() { return this.size; }
+    public Long getSize() { return this.size; }
 
     public Date getDate() { return this.date; }
 

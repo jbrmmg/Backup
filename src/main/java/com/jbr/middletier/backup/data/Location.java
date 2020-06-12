@@ -31,7 +31,7 @@ public class Location {
 
     public String getSize() { return this.size; }
 
-    public boolean getCheckDuplicates() { return this.checkDuplicates == null ? false : this.checkDuplicates; }
+    public Boolean getCheckDuplicates() { return this.checkDuplicates; }
 
     @Override
     public String toString() {
