@@ -80,7 +80,7 @@ public class Source {
 
     public void setId(int id) { this.id = id; }
 
-    public int getDestinationId() { return this.destinationId == null ? -1 : this.destinationId; }
+    public Integer getDestinationId() { return this.destinationId; }
 
     public void setDestinationId(int id) { this.destinationId = id; }
 
