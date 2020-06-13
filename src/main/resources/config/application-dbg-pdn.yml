@@ -3,7 +3,7 @@ logging:
   level:
     ROOT: INFO
     com.jbr.middletier: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+#    org.hibernate.type.descriptor.sql: TRACE
 
 spring:
   datasource:
@@ -15,7 +15,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    show-sql: true
+#    show-sql: true
 
 backup:
   directory:

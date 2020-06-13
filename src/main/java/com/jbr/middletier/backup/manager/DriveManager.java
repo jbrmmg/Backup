@@ -200,7 +200,7 @@ public class DriveManager implements ClearImports {
             newFile.setClassification(classifyFile(newFile,classifications));
             newFile.setDate(fileDate);
             newFile.setSize(path.toFile().length());
-            if(skipMD5) {
+            if(!skipMD5) {
                 newFile.setMD5(getMD5(path, newFile.getClassification()));
             }
             newFile.clearRemoved();
@@ -223,11 +223,14 @@ public class DriveManager implements ClearImports {
                 }
             }
 
-            if((file.get().getSize() != path.toFile().length()) ||
-                    (file.get().getDate().compareTo(fileDate) != 0)) {
+            long dbTime = file.get().getDate().getTime() / 1000;
+            long fileTime = fileDate.getTime() / 1000;
+
+            if((file.get().getSize().compareTo(path.toFile().length()) != 0) ||
+                    (Math.abs(dbTime - fileTime) > 1)) {
                 file.get().setSize(path.toFile().length());
                 file.get().setDate(fileDate);
-                if(skipMD5) {
+                if(!skipMD5) {
                     file.get().setMD5(getMD5(path, file.get().getClassification()));
                 }
             }
