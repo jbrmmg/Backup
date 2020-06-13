@@ -381,7 +381,7 @@ public class DriveManager implements ClearImports {
             return false;
         }
 
-        return source.getSize() != destination.getSize();
+        return !source.getSize().equals(destination.getSize());
     }
 
     private void equalizeDate(FileInfo source, FileInfo destination) {
@@ -400,7 +400,7 @@ public class DriveManager implements ClearImports {
         }
 
         // Must be the same size.
-        if(source.getSize() != destination.getSize()) {
+        if(!source.getSize().equals(destination.getSize())) {
             return;
         }
 
