@@ -1,9 +1,6 @@
 package com.jbr.middletier.backup.control;
 
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.HierarchyResponse;
-import com.jbr.middletier.backup.data.OkStatus;
-import com.jbr.middletier.backup.data.Synchronize;
+import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
@@ -139,14 +136,41 @@ public class FileController {
     }
 
     @RequestMapping(path="/file",method= RequestMethod.GET)
-    public @ResponseBody FileInfo getFile( @RequestParam Integer id ) throws Exception {
+    public @ResponseBody
+    FileInfoExtra getFile(@RequestParam Integer id ) throws Exception {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
             throw new Exception(id + " does not exist");
         }
 
-        return file.get();
+        FileInfoExtra result = new FileInfoExtra(file.get());
+
+        // Are there backups of this file?
+        List<FileInfo> sameName = fileRepository.findByName(file.get().getName());
+
+        // Must be the same size and md5 if present.
+        List<FileInfo> backups = new ArrayList<>();
+
+        String fileMD5 = file.get().getMD5() != null ? file.get().getMD5() : "";
+
+        for(FileInfo nextSameName: sameName) {
+            if(nextSameName.getId() == file.get().getId()) {
+                continue;
+            }
+
+            if(nextSameName.getSize().equals(file.get().getSize())) {
+                String nextMD6 = nextSameName.getMD5() != null ? nextSameName.getMD5() : "";
+
+                if(fileMD5.equals(nextMD6) || fileMD5.equals("") || nextMD6.equals("") ) {
+                    backups.add(nextSameName);
+                }
+            }
+        }
+
+        result.setBackups(backups);
+
+        return result;
     }
 
     @RequestMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE,method= RequestMethod.GET)
