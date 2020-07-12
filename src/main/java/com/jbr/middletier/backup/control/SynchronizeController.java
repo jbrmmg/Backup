@@ -2,10 +2,11 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -17,6 +18,7 @@ public class SynchronizeController {
 
     final private SynchronizeRepository synchronizeRepository;
 
+    @Contract(pure = true)
     @Autowired
     public SynchronizeController(SynchronizeRepository synchronizeRepository) {
         this.synchronizeRepository = synchronizeRepository;
@@ -29,7 +31,7 @@ public class SynchronizeController {
     }
 
     @RequestMapping(path="/synchronize", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Synchronize> createSynchronize(@RequestBody Synchronize synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> createSynchronize(@NotNull @RequestBody Synchronize synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
@@ -41,7 +43,7 @@ public class SynchronizeController {
     }
 
     @RequestMapping(path="/synchronize", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Synchronize> updateSynchronize(@RequestBody Synchronize synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> updateSynchronize(@NotNull @RequestBody Synchronize synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
             throw new Exception(synchronize.getId() + " does not exist");

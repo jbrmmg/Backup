@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.data;
 
 import javax.persistence.*;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="classification")
 public class Classification {

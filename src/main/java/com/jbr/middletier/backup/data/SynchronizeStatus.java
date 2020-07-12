@@ -1,19 +1,14 @@
 package com.jbr.middletier.backup.data;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.Date;
-
+@SuppressWarnings("unused")
 public class SynchronizeStatus {
-    final static private Logger LOG = LoggerFactory.getLogger(SynchronizeStatus.class);
-
-    public FileInfo sourceFile;
-    public DirectoryInfo sourceDirectory;
-    public Classification classification;
-    public Source source;
-    public Source destination;
-    public FileInfo destinationFile;
-    public DirectoryInfo destinationDirectory;
+    private FileInfo sourceFile;
+    private DirectoryInfo sourceDirectory;
+    private Classification classification;
+    private Source source;
+    private Source destination;
+    private FileInfo destinationFile;
+    private DirectoryInfo destinationDirectory;
 
     public SynchronizeStatus(FileInfo sourceFile,
                              DirectoryInfo sourceDirectory,
@@ -30,6 +25,15 @@ public class SynchronizeStatus {
         this.destinationFile = destinationFile;
         this.destinationDirectory = destinationDirectory;
     }
+
+    public FileInfo getSourceFile() { return this.sourceFile; }
+    public void setSourceFile(FileInfo sourceFile) { this.sourceFile = sourceFile; }
+    public DirectoryInfo getSourceDirectory() { return this.sourceDirectory; }
+    public Classification getClassification() { return this.classification; }
+    public Source getSource() { return this.source; }
+    public Source getDestination() { return this.destination; }
+    public FileInfo getDestinationFile() { return this.destinationFile; }
+    public DirectoryInfo getDestinationDirectory() { return this.destinationDirectory; }
 
     @Override
     public String toString() {

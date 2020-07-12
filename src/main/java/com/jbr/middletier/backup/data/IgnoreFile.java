@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="ignore_file")
 public class IgnoreFile {
@@ -25,7 +26,13 @@ public class IgnoreFile {
     @Column(name="md5")
     private String md5;
 
+    public void setId(Integer id) { this.id = id; }
+
+    public Integer getId() { return this.id; }
+
     public void setName(String name) { this.name = name; }
+
+    public String getNmae() { return this.name; }
 
     public void setDate(Date date) { this.date = date; }
 
