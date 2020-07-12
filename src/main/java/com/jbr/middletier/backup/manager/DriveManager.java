@@ -102,6 +102,8 @@ public class DriveManager implements ClearImports {
             while(dis.read() != -1);
             md = dis.getMessageDigest();
 
+            dis.close();
+
             return bytesToHex(md.digest());
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
@@ -270,7 +272,13 @@ public class DriveManager implements ClearImports {
         if(checkAction(potentialDuplicate,"DELETE_DUP")) {
             LOG.info("Delete duplicate file - " + potentialDuplicate.toString());
 
-            // TODO - actually delete the file.
+            String deleteFile = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getPath() + "/" + potentialDuplicate.getName();
+
+            File fileToDelete = new File(deleteFile);
+            if(fileToDelete.exists()) {
+                LOG.info("Deleted.");
+                fileToDelete.delete();
+            }
         }
     }
 
@@ -341,13 +349,15 @@ public class DriveManager implements ClearImports {
 
             setSourceStatus(nextSource,"GATHERING");
 
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
+            try {
+                backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
 
-            // If the source does not exist, create it.
-            createDirectory(nextSource.getPath());
+                // If the source does not exist, create it.
+                createDirectory(nextSource.getPath());
 
-            // Read directory structure into the database.
-            try (Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
+                // Read directory structure into the database.
+                Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()));
+
                 paths
                    .forEach(path -> processPath(path,nextSource,classifications,false, false));
             } catch (IOException e) {
