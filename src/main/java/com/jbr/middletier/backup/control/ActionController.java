@@ -67,11 +67,16 @@ public class ActionController {
             throw new ActionNotFoundException(action.getId());
         }
 
-        // Update the action.
-        existingAction.get().setConfirmed(true);
-        existingAction.get().setParameter(action.getParameter());
+        // What type is this?
+        if(existingAction.get().getAction().equals("IMPORT") || action.getConfirm()) {
+            // For import, always confirm the action.
+            existingAction.get().setConfirmed(true);
+            existingAction.get().setParameter(action.getParameter());
 
-        actionConfirmRepository.save(existingAction.get());
+            actionConfirmRepository.save(existingAction.get());
+        } else {
+            actionConfirmRepository.deleteById(action.getId());
+        }
 
         return existingAction.get();
     }
