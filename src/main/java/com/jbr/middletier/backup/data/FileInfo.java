@@ -4,7 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
 @Table(name="file")
 public class FileInfo {
@@ -22,6 +22,7 @@ public class FileInfo {
     private DirectoryInfo directoryInfo;
 
     @JoinColumn(name="classificationId")
+    @ManyToOne(optional = true)
     private Classification classification;
 
     @Column(name="date")
