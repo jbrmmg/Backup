@@ -3,7 +3,7 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
 @Table(name="source")
 public class Source {
@@ -17,6 +17,7 @@ public class Source {
     private String path;
 
     @JoinColumn(name="location")
+    @ManyToOne(optional = true)
     private Location location;
 
     @Column(name="status")
