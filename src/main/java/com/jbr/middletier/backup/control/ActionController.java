@@ -3,15 +3,12 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
-import com.jbr.middletier.backup.manager.DriveManager;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Optional;
 
 @RestController
@@ -19,18 +16,13 @@ import java.util.Optional;
 public class ActionController {
     final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
-    final private DriveManager driveManager;
-    final private FileRepository fileRepository;
     final private IgnoreFileRepository ignoreFileRepository;
     final private ActionConfirmRepository actionConfirmRepository;
 
+    @Contract(pure = true)
     @Autowired
-    public ActionController(DriveManager driverManager,
-                            FileRepository fileRepository,
-                            IgnoreFileRepository ignoreFileRepository,
+    public ActionController(IgnoreFileRepository ignoreFileRepository,
                             ActionConfirmRepository actionConfirmRepository ) {
-        this.driveManager = driverManager;
-        this.fileRepository = fileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionConfirmRepository = actionConfirmRepository;
     }
@@ -57,7 +49,7 @@ public class ActionController {
     }
 
     @RequestMapping(path="/actions",method=RequestMethod.POST)
-    public @ResponseBody ActionConfirm confirm (@RequestBody ConfirmActionRequest action) {
+    public @ResponseBody ActionConfirm confirm (@NotNull @RequestBody ConfirmActionRequest action) {
         LOG.info("Confirm action");
 
         // Is this a valid action?

@@ -2,10 +2,11 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.dataaccess.*;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -17,6 +18,7 @@ public class LocationController {
 
     final private LocationRepository locationRepository;
 
+    @Contract(pure = true)
     @Autowired
     public LocationController(LocationRepository locationRepository) {
         this.locationRepository = locationRepository;
@@ -30,7 +32,7 @@ public class LocationController {
     }
 
     @RequestMapping(path="/location", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Location> createLocation(@RequestBody Location location) throws Exception {
+    public @ResponseBody Iterable<Location> createLocation(@NotNull @RequestBody Location location) throws Exception {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
@@ -42,7 +44,7 @@ public class LocationController {
     }
 
     @RequestMapping(path="/location", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Location> updateLocation(@RequestBody Location location) throws Exception {
+    public @ResponseBody Iterable<Location> updateLocation(@NotNull @RequestBody Location location) throws Exception {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(!existing.isPresent()) {
             throw new Exception(location.getId() + " does not exist");
@@ -54,7 +56,7 @@ public class LocationController {
     }
 
     @RequestMapping(path="/location", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Location> deleteLocation(@RequestBody Location location) throws Exception {
+    public @ResponseBody Iterable<Location> deleteLocation(@NotNull @RequestBody Location location) throws Exception {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(!existing.isPresent()) {
             throw new Exception(location.getId() + " does not exist");

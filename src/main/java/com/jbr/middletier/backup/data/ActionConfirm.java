@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="action_confirm")
 public class ActionConfirm {
@@ -43,6 +44,8 @@ public class ActionConfirm {
     public void setAction(String action) { this.action = action; }
 
     public void setConfirmed(Boolean confirmed) { this.confirmed = confirmed; }
+
+    public Boolean getParameterRequired() { return this.parameterRequired; }
 
     public void setParameterRequired(boolean parameterRequired) { this.parameterRequired = parameterRequired; }
 

@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
 import com.jbr.middletier.backup.manager.DriveManager;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +28,7 @@ public class FileController {
     final private SynchronizeRepository synchronizeRepository;
     final private DirectoryRepository directoryRepository;
 
+    @Contract(pure = true)
     @Autowired
     public FileController(DriveManager driverManager,
                           FileRepository fileRepository,
@@ -155,7 +156,7 @@ public class FileController {
         String fileMD5 = file.get().getMD5() != null ? file.get().getMD5() : "";
 
         for(FileInfo nextSameName: sameName) {
-            if(nextSameName.getId() == file.get().getId()) {
+            if(nextSameName.getId().equals(file.get().getId())) {
                 continue;
             }
 

@@ -1,8 +1,6 @@
 package com.jbr.middletier.backup.config;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.core.env.Environment;
-
 import java.util.HashMap;
 import java.util.Map;
 

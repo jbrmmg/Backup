@@ -2,10 +2,11 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -17,6 +18,7 @@ public class ClassificationController {
 
     final private ClassificationRepository classificationRepository;
 
+    @Contract(pure = true)
     @Autowired
     public ClassificationController(ClassificationRepository classificationRepository) {
         this.classificationRepository = classificationRepository;
@@ -29,7 +31,7 @@ public class ClassificationController {
     }
 
     @RequestMapping(path="/classification", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Classification> createClassification(@RequestBody Classification classification) throws Exception {
+    public @ResponseBody Iterable<Classification> createClassification(@NotNull @RequestBody Classification classification) throws Exception {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
@@ -41,7 +43,7 @@ public class ClassificationController {
     }
 
     @RequestMapping(path="/classification", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Classification> updateClassification(@RequestBody Classification classification) throws Exception {
+    public @ResponseBody Iterable<Classification> updateClassification(@NotNull @RequestBody Classification classification) throws Exception {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(!existing.isPresent()) {
             throw new Exception(classification.getId() + " does not exist");
@@ -53,7 +55,7 @@ public class ClassificationController {
     }
 
     @RequestMapping(path="/classification", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Classification> deleteClassification(@RequestBody Classification classification) throws Exception {
+    public @ResponseBody Iterable<Classification> deleteClassification(@NotNull @RequestBody Classification classification) throws Exception {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(!existing.isPresent()) {
             throw new Exception(classification.getId() + " does not exist");

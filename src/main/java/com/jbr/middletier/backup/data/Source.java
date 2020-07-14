@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="source")
 public class Source {
@@ -16,7 +17,6 @@ public class Source {
     private String path;
 
     @JoinColumn(name="location")
-    @ManyToOne(optional = true)
     private Location location;
 
     @Column(name="status")
@@ -40,6 +40,8 @@ public class Source {
     public void setPath(String path) { this.path = path; }
 
     public void setStatus(String status) { this.status = status; }
+
+    public void setFilter(String filter) { this.filter = filter; }
 
     public String getStatus() { return this.status; }
 

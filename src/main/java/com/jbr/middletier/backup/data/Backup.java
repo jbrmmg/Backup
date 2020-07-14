@@ -43,6 +43,8 @@ public class Backup implements Comparable<Backup>{
         return id;
     }
 
+    public void setId(String id) { this.id = id; }
+
     public String getType() {
         return type;
     }

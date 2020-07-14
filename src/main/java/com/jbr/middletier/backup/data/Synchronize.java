@@ -24,6 +24,12 @@ public class Synchronize {
 
     public Source getDestination() { return this.destination; }
 
+    public void setId(Integer id) { this.id = id; }
+
+    public void setSource(Source source) { this.source = source; }
+
+    public void setDestination(Source destination) { this.destination = destination; }
+
     @Override
     public String toString() {
         return source.toString() +" -> " + destination.toString();

@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="directory")
 public class DirectoryInfo {
@@ -21,13 +22,15 @@ public class DirectoryInfo {
 
     @Column(name="removed")
     @NotNull
-    private boolean removed;
+    private Boolean removed;
 
     public String getPath() { return this.path; }
 
     public Source getSource() { return this.source; }
 
     public Integer getId() { return this.id; }
+
+    public Boolean getRemoved() { return this.removed; }
 
     public void setSource(Source source) { this.source = source; }
 
