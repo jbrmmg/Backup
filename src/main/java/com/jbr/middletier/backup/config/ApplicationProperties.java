@@ -40,8 +40,6 @@ public class ApplicationProperties {
     private boolean enabled;
     private String gatherSchedule;
     private boolean gatherEnabled;
-    private String synchronizeSchedule;
-    private boolean synchonizeEnabled;
     private String reviewDirectory;
 
     public Directory getDirectory() { return this.directory; }

@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.data;
 
+@SuppressWarnings("unused")
 public class HierarchyResponse {
     private int id;
     private int level;

@@ -2,10 +2,11 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -17,6 +18,7 @@ public class SourceController {
 
     final private SourceRepository sourceRepository;
 
+    @Contract(pure = true)
     @Autowired
     public SourceController(SourceRepository sourceRepository) {
         this.sourceRepository = sourceRepository;
@@ -29,7 +31,7 @@ public class SourceController {
     }
 
     @RequestMapping(path="/source", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Source> createSource(@RequestBody Source source) throws Exception {
+    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody Source source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
@@ -41,7 +43,7 @@ public class SourceController {
     }
 
     @RequestMapping(path="/source", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Source> updateSource(@RequestBody Source source) throws Exception {
+    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody Source source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
             throw new Exception(source.getId() + " does not exist");
@@ -63,6 +65,4 @@ public class SourceController {
 
         return sourceRepository.findAll();
     }
-
-
 }

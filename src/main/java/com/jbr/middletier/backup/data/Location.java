@@ -6,6 +6,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="location")
 public class Location {
@@ -32,6 +33,14 @@ public class Location {
     public String getSize() { return this.size; }
 
     public Boolean getCheckDuplicates() { return this.checkDuplicates; }
+
+    public void setId(Integer id) { this.id = id; }
+
+    public void setName(String name) { this.name = name; }
+
+    public void setSize(String size) { this.size = size; }
+
+    public void setCheckDuplicates(Boolean checkDuplicates) { this.checkDuplicates = checkDuplicates; }
 
     @Override
     public String toString() {

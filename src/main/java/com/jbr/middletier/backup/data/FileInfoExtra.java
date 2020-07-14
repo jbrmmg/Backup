@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.data;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class FileInfoExtra {
     private FileInfo file;
     private List<FileInfo> backups;

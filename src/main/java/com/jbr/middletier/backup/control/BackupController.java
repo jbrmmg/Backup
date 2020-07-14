@@ -5,10 +5,11 @@ import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -25,6 +26,7 @@ public class BackupController {
 
     final private BackupRepository backupRepository;
 
+    @Contract(pure = true)
     @Autowired
     BackupController(BackupRepository backupRepository) {
         this.backupRepository = backupRepository;
@@ -50,7 +52,7 @@ public class BackupController {
     }
 
     @RequestMapping(method=RequestMethod.PUT)
-    public @ResponseBody OkStatus update(@RequestBody Backup backup) throws InvalidBackupIdException {
+    public @ResponseBody OkStatus update(@NotNull @RequestBody Backup backup) throws InvalidBackupIdException {
         LOG.info("Update backup - " + backup.getId());
 
         // Check that the item exists.
@@ -73,7 +75,7 @@ public class BackupController {
     }
 
     @RequestMapping(method=RequestMethod.POST)
-    public @ResponseBody OkStatus create(@RequestBody Backup backup) throws BackupAlreadyExistsException {
+    public @ResponseBody OkStatus create(@NotNull @RequestBody Backup backup) throws BackupAlreadyExistsException {
         LOG.info("Create backup - " + backup.getId());
 
         // Check that the item exists.
@@ -88,7 +90,7 @@ public class BackupController {
     }
 
     @RequestMapping(method=RequestMethod.DELETE)
-    public @ResponseBody OkStatus delete(@RequestBody Backup backup) throws InvalidBackupIdException {
+    public @ResponseBody OkStatus delete(@NotNull @RequestBody Backup backup) throws InvalidBackupIdException {
         LOG.info("Delete backup - " + backup.getId());
 
         // Check that the item exists.

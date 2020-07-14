@@ -5,12 +5,12 @@ import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.manager.DriveManager;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -20,6 +20,7 @@ public class ImportController {
     final private DriveManager driveManager;
     final private ImportFileRepository importFileRepository;
 
+    @Contract(pure = true)
     @Autowired
     public ImportController(DriveManager driverManager,
                             ImportFileRepository importFileRepository ) {
@@ -28,7 +29,7 @@ public class ImportController {
     }
 
     @RequestMapping(path="/import", method= RequestMethod.POST)
-    public @ResponseBody OkStatus importPhotoDirectory(@RequestBody ImportRequest importRequest) throws Exception {
+    public @ResponseBody OkStatus importPhotoDirectory(@NotNull @RequestBody ImportRequest importRequest) throws Exception {
         LOG.info("Import - " + importRequest.getPath());
 
         driveManager.importPhoto(importRequest);
@@ -37,7 +38,7 @@ public class ImportController {
     }
 
     @RequestMapping(path="/import", method= RequestMethod.DELETE)
-    public @ResponseBody OkStatus removeEntries() throws IOException {
+    public @ResponseBody OkStatus removeEntries() {
         LOG.info("Remove entries from import table");
 
         driveManager.removeEntries();

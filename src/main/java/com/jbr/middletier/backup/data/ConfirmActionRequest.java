@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.data;
 
+@SuppressWarnings("unused")
 public class ConfirmActionRequest {
     private int id;
     private String parameter;

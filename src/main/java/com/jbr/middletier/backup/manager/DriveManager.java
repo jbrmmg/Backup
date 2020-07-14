@@ -277,7 +277,9 @@ public class DriveManager implements ClearImports {
             File fileToDelete = new File(deleteFile);
             if(fileToDelete.exists()) {
                 LOG.info("Deleted.");
-                fileToDelete.delete();
+                if(!fileToDelete.delete()) {
+                    LOG.warn("Delete failed.");
+                }
             }
         }
     }
@@ -446,19 +448,19 @@ public class DriveManager implements ClearImports {
 
     private void backup(SynchronizeStatus status) {
         try {
-            LOG.info("Process backup - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+            LOG.info("Process backup - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
 
             // Update the last modified time if necessary.
-            equalizeDate(status.sourceFile, status.destinationFile);
+            equalizeDate(status.getSourceFile(), status.getDestinationFile());
 
             // Does the file need to be copied?
-            if (copyFile(status.sourceFile, status.destinationFile)) {
-                LOG.info("Copy File - " + status.sourceFile.toString());
+            if (copyFile(status.getSourceFile(), status.getDestinationFile())) {
+                LOG.info("Copy File - " + status.getSourceFile().toString());
 
-                String sourceFilename = status.source.getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath() + "/" + status.sourceFile.getName();
-                String destinationFilename = status.destination.getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath() + "/" + status.sourceFile.getName();
+                String sourceFilename = status.getSource().getPath() + "/" + status.getSourceFile().getDirectoryInfo().getPath() + "/" + status.getSourceFile().getName();
+                String destinationFilename = status.getDestination().getPath() + "/" + status.getSourceFile().getDirectoryInfo().getPath() + "/" + status.getSourceFile().getName();
 
-                createDirectory(status.destination.getPath() + "/" + status.sourceFile.getDirectoryInfo().getPath());
+                createDirectory(status.getDestination().getPath() + "/" + status.getSourceFile().getDirectoryInfo().getPath());
 
                 LOG.info("Copy file from " + sourceFilename + " to " + destinationFilename);
 
@@ -469,7 +471,7 @@ public class DriveManager implements ClearImports {
                 // Set the last modified date on the copied file to be the same as the source.
                 File destinationFile = new File(destinationFilename);
                 //noinspection ResultOfMethodCallIgnored
-                destinationFile.setLastModified(status.sourceFile.getDate().getTime());
+                destinationFile.setLastModified(status.getSourceFile().getDate().getTime());
             }
         } catch(Exception ex) {
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to backup " + status.toString());
@@ -477,14 +479,14 @@ public class DriveManager implements ClearImports {
     }
 
     private void warn(SynchronizeStatus status) {
-        LOG.warn("File warning- " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
-        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"File warning - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+        LOG.warn("File warning- " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"File warning - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
     }
 
     private void removeIfBackedup(SynchronizeStatus status) {
         // Does this exist on the remote server?
-        if(status.destinationFile != null) {
-            status.sourceFile = status.destinationFile;
+        if(status.getDestinationFile() != null) {
+            status.setSourceFile(status.getDestinationFile());
             delete(status,false, true);
         }
     }
@@ -536,19 +538,19 @@ public class DriveManager implements ClearImports {
     }
 
     private void delete(SynchronizeStatus status, boolean standard, boolean classified) {
-        LOG.info("File should be deleted - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+        LOG.info("File should be deleted - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
 
         if(!standard) {
-            LOG.info("File should be deleted (should not have been copied) - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted (should not be there) - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+            LOG.info("File should be deleted (should not have been copied) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted (should not be there) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
         }
         if(!classified) {
-            LOG.info("File should be deleted (should not have been copied - unclassified) - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted (should not be there - unclassified) - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+            LOG.info("File should be deleted (should not have been copied - unclassified) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted (should not be there - unclassified) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
         }
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted - " + status.sourceDirectory.getPath() + "/" + status.sourceFile.getName());
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
 
-        deleteFileIfConfirmed(status.sourceFile);
+        deleteFileIfConfirmed(status.getSourceFile());
     }
 
     public void synchronize() {
@@ -569,7 +571,7 @@ public class DriveManager implements ClearImports {
 
             for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
                 // Perform the appropriate actions
-                switch(nextStatus.classification.getAction()) {
+                switch(nextStatus.getClassification().getAction()) {
                     case "BACKUP":
                         backup(nextStatus);
                         break;
@@ -591,20 +593,20 @@ public class DriveManager implements ClearImports {
                         break;
 
                     default:
-                        LOG.warn("Unexpected action - " + nextStatus.classification.getAction() + " " + nextStatus.sourceDirectory.getPath() + " " + nextStatus.sourceFile.getName());
-                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.classification.getAction());
+                        LOG.warn("Unexpected action - " + nextStatus.getClassification().getAction() + " " + nextStatus.getSourceDirectory().getPath() + " " + nextStatus.getSourceFile().getName());
+                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.getClassification().getAction());
                 }
             }
 
             for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
                 // These are files that should not exists.
-                if(nextStatus.classification == null) {
+                if(nextStatus.getClassification() == null) {
                     delete(nextStatus,false, false);
                     continue;
                 }
 
                 // Perform the appropriate actions
-                switch(nextStatus.classification.getAction()) {
+                switch(nextStatus.getClassification().getAction()) {
                     case "BACKUP":
                     case "IGNORE":
                     case "DELETE":
@@ -613,12 +615,12 @@ public class DriveManager implements ClearImports {
                         break;
 
                     case "FOLDER":
-                        deleteFileIfConfirmed(nextStatus.sourceFile);
+                        deleteFileIfConfirmed(nextStatus.getSourceFile());
                         break;
 
                     default:
-                        LOG.warn("Unexpected action - " + nextStatus.classification.getAction() + " " + nextStatus.sourceDirectory.getPath() + " " + nextStatus.sourceFile.getName());
-                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.classification.getAction());
+                        LOG.warn("Unexpected action - " + nextStatus.getClassification().getAction() + " " + nextStatus.getSourceDirectory().getPath() + " " + nextStatus.getSourceFile().getName());
+                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.getClassification().getAction());
                 }
             }
 

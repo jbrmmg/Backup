@@ -1,11 +1,10 @@
 package com.jbr.middletier.backup.data;
 
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="file")
 public class FileInfo {
@@ -23,7 +22,6 @@ public class FileInfo {
     private DirectoryInfo directoryInfo;
 
     @JoinColumn(name="classificationId")
-    @ManyToOne(optional = true)
     private Classification classification;
 
     @Column(name="date")
@@ -34,7 +32,7 @@ public class FileInfo {
 
     @Column(name="removed")
     @NotNull
-    private boolean removed;
+    private Boolean removed;
 
     @Column(name="md5")
     private String md5;
@@ -70,8 +68,10 @@ public class FileInfo {
 
     public Classification getClassification() { return this.classification; }
 
+    public Boolean getRemoved() { return this.removed; }
+
     public boolean duplicate(FileInfo otherFile) {
-        if(this.id == otherFile.id) {
+        if(this.id.equals(otherFile.id)) {
             return false;
         }
 
@@ -83,22 +83,14 @@ public class FileInfo {
             return false;
         }
 
-        if((this.md5 != null) && (otherFile.md5 != null) && !this.md5.equals(otherFile.md5)) {
-            return false;
-        }
-
-        return true;
+        return (this.md5 == null) || (otherFile.md5 == null) || this.md5.equals(otherFile.md5);
     }
 
     public String getFullFilename() {
-        StringBuilder result = new StringBuilder();
-
-        result.append(directoryInfo.getSource().getPath());
-        result.append(directoryInfo.getPath());
-        result.append("/");
-        result.append(getName());
-
-        return result.toString();
+        return directoryInfo.getSource().getPath() +
+                directoryInfo.getPath() +
+                "/" +
+                getName();
     }
 
     @Override
