@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
@@ -27,17 +28,20 @@ public class FileController {
     final private FileRepository fileRepository;
     final private SynchronizeRepository synchronizeRepository;
     final private DirectoryRepository directoryRepository;
+    final private ActionConfirmRepository actionConfirmRepository;
 
     @Contract(pure = true)
     @Autowired
     public FileController(DriveManager driverManager,
                           FileRepository fileRepository,
                           SynchronizeRepository synchronizeRepository,
-                          DirectoryRepository directoryRepository ) {
+                          DirectoryRepository directoryRepository,
+                          ActionConfirmRepository actionConfirmRepository ) {
         this.driveManager = driverManager;
         this.fileRepository = fileRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.directoryRepository = directoryRepository;
+        this.actionConfirmRepository = actionConfirmRepository;
     }
 
     @RequestMapping(path="/files", method= RequestMethod.GET)
@@ -216,4 +220,23 @@ public class FileController {
         return Files.readAllBytes(imgPath.toPath());
     }
 
+    @RequestMapping(path="/file",method=RequestMethod.DELETE)
+    public @ResponseBody OkStatus deleteFile(@RequestParam Integer id) throws Exception {
+        Optional<FileInfo> file = fileRepository.findById(id);
+
+        if(!file.isPresent()) {
+            throw new Exception(id + " does not exist");
+        }
+
+        // Create a delete request.
+        ActionConfirm actionConfirm = new ActionConfirm();
+        actionConfirm.setFileInfo(file.get());
+        actionConfirm.setAction("DELETE");
+        actionConfirm.setConfirmed(false);
+        actionConfirm.setParameterRequired(false);
+
+        actionConfirmRepository.save(actionConfirm);
+
+        return OkStatus.getOkStatus();
+    }
 }
