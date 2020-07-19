@@ -3,3 +3,9 @@ backup:
   schedule: 0 0/1 * ? * *
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false
+  directory:
+    name: ./target/testfiles/Backup
+    days: 10
+    zip: ./target/testfiles/BackupDevZip
+    date-format: yyyy-MM-dd
+  zip-directory: ./target/testfiles/BackupDevZip

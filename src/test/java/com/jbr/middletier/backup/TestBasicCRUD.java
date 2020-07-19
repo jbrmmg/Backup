@@ -41,7 +41,6 @@ public class TestBasicCRUD {
 
     @Autowired
     void setConverters(HttpMessageConverter<?>[] converters) {
-
         this.mappingJackson2HttpMessageConverter = Arrays.stream(converters)
                 .filter(hmc -> hmc instanceof MappingJackson2HttpMessageConverter)
                 .findAny()
