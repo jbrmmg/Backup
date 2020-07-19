@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
+import com.jbr.middletier.backup.dto.SourceDTO;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -31,37 +32,38 @@ public class SourceController {
     }
 
     @RequestMapping(path="/source", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody Source source) throws Exception {
+    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
         }
 
-        sourceRepository.save(source);
+        sourceRepository.save(new Source(source));
 
         return sourceRepository.findAll();
     }
 
     @RequestMapping(path="/source", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody Source source) throws Exception {
+    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
             throw new Exception(source.getId() + " does not exist");
         }
 
-        sourceRepository.save(source);
+        existing.get().update(source);
+        sourceRepository.save(existing.get());
 
         return sourceRepository.findAll();
     }
 
     @RequestMapping(path="/source", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Source> deleteSource(@RequestBody Source source) throws Exception {
+    public @ResponseBody Iterable<Source> deleteSource(@RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
             throw new Exception(source.getId() + " does not exist");
         }
 
-        sourceRepository.delete(source);
+        sourceRepository.deleteById(source.getId());
 
         return sourceRepository.findAll();
     }

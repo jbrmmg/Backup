@@ -23,7 +23,7 @@ public class MiddleTier {
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(MiddleTier.class);
         DefaultProfileUtil.addDefaultProfile(app);
-        app.run(args);
+        app.run();
     }
 
 }

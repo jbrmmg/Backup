@@ -6,41 +6,43 @@ import com.jbr.middletier.backup.dataaccess.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 @Component
 public class DriveManager implements ClearImports {
     final static private Logger LOG = LoggerFactory.getLogger(DriveManager.class);
 
-    final private DirectoryRepository directoryRepository;
-    final private FileRepository fileRepository;
-    final private SourceRepository sourceRepository;
-    final private ClassificationRepository classificationRepository;
-    final private SynchronizeRepository synchronizeRepository;
-    final private BackupManager backupManager;
-    final private ApplicationProperties applicationProperties;
-    final private ActionConfirmRepository actionConfirmRepository;
-    final private IgnoreFileRepository ignoreFileRepository;
-    final private ImportFileRepository importFileRepository;
-    final private LocationRepository locationRepository;
+    private final DirectoryRepository directoryRepository;
+    private final FileRepository fileRepository;
+    private final SourceRepository sourceRepository;
+    private final ClassificationRepository classificationRepository;
+    private final SynchronizeRepository synchronizeRepository;
+    private final BackupManager backupManager;
+    private final ApplicationProperties applicationProperties;
+    private final ActionConfirmRepository actionConfirmRepository;
+    private final IgnoreFileRepository ignoreFileRepository;
+    private final ImportFileRepository importFileRepository;
+    private final LocationRepository locationRepository;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
     public DriveManager(DirectoryRepository directoryRepository,
@@ -53,7 +55,8 @@ public class DriveManager implements ClearImports {
                         ActionConfirmRepository actionConfirmRepository,
                         IgnoreFileRepository ignoreFileRepository,
                         ImportFileRepository importFileRepository,
-                        LocationRepository locationRepository ) {
+                        LocationRepository locationRepository,
+                        ResourceLoader resourceLoader) {
         this.directoryRepository = directoryRepository;
         this.fileRepository = fileRepository;
         this.sourceRepository = sourceRepository;
@@ -65,6 +68,7 @@ public class DriveManager implements ClearImports {
         this.ignoreFileRepository = ignoreFileRepository;
         this.importFileRepository = importFileRepository;
         this.locationRepository = locationRepository;
+        this.resourceLoader = resourceLoader;
     }
 
     private Classification classifyFile(FileInfo file, Iterable<Classification> classifications)  {
@@ -97,12 +101,11 @@ public class DriveManager implements ClearImports {
             // Calculate the MD5 for the file.
             MessageDigest md = MessageDigest.getInstance("MD5");
 
-            DigestInputStream dis = new DigestInputStream(Files.newInputStream(path),md);
-            //noinspection StatementWithEmptyBody
-            while(dis.read() != -1);
-            md = dis.getMessageDigest();
-
-            dis.close();
+            try(DigestInputStream dis = new DigestInputStream(Files.newInputStream(path),md) ) {
+                //noinspection StatementWithEmptyBody
+                while (dis.read() != -1) ;
+                md = dis.getMessageDigest();
+            }
 
             return bytesToHex(md.digest());
         } catch (Exception ex) {
@@ -140,7 +143,19 @@ public class DriveManager implements ClearImports {
         return true;
     }
 
-    private void processPath(Path path, Source nextSource, Iterable<Classification> classifications, boolean skipMD5, boolean createImportFile) {
+    private boolean deleteFileIfRequired(FileInfo file, List<ActionConfirm> deletes) {
+        for(ActionConfirm nextAction: deletes) {
+            if(nextAction.getPath().getId().equals(file.getId())) {
+                LOG.info("Deleteing the file " + file.getFullFilename());
+                deleteFileIfConfirmed(file);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void processPath(Path path, List<ActionConfirm> deletes, Source nextSource, Iterable<Classification> classifications, boolean skipMD5, boolean createImportFile) {
         String directoryName;
 
         if(path.toFile().isDirectory()) {
@@ -217,6 +232,12 @@ public class DriveManager implements ClearImports {
                 importFileRepository.save(newImportFile);
             }
         } else {
+            // Has this file been marked for delete?
+            if(deleteFileIfRequired(file.get(),deletes)) {
+                fileRepository.delete(file.get());
+                return;
+            }
+
             if(file.get().getClassification() == null) {
                 Classification newClassification = classifyFile(file.get(),classifications);
 
@@ -248,6 +269,8 @@ public class DriveManager implements ClearImports {
     public void gatherCron() {
         if(applicationProperties.getGatherEnabled()) {
             try {
+                sendActionEmail();
+
                 gather();
 
                 duplicateCheck();
@@ -334,8 +357,10 @@ public class DriveManager implements ClearImports {
 
     public void gather() throws Exception {
         Iterable<Source> sources = sourceRepository.findAll();
-
         Iterable<Classification> classifications = classificationRepository.findAll();
+
+        // Are any files to be deleted?
+        List<ActionConfirm> deleteActions = actionConfirmRepository.findByConfirmedAndAction(true,"DELETE");
 
         for(Source nextSource: sources) {
             if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
@@ -351,17 +376,15 @@ public class DriveManager implements ClearImports {
 
             setSourceStatus(nextSource,"GATHERING");
 
-            try {
-                backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
 
-                // If the source does not exist, create it.
-                createDirectory(nextSource.getPath());
+            // If the source does not exist, create it.
+            createDirectory(nextSource.getPath());
 
+            try(Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
                 // Read directory structure into the database.
-                Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()));
-
                 paths
-                   .forEach(path -> processPath(path,nextSource,classifications,false, false));
+                   .forEach(path -> processPath(path,deleteActions,nextSource,classifications,false, false));
             } catch (IOException e) {
                 setSourceStatus(nextSource,"ERROR");
                 backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());
@@ -434,8 +457,9 @@ public class DriveManager implements ClearImports {
         File destinationFile = new File(destination.getDirectoryInfo().getSource().getPath() + "/" +
                 destination.getDirectoryInfo().getPath() + "/" +
                 destination.getName() );
-        //noinspection ResultOfMethodCallIgnored
-        destinationFile.setLastModified(source.getDate().getTime());
+        if(!destinationFile.setLastModified(source.getDate().getTime())) {
+            LOG.warn("Failed to set the last modified date - " + destination.getFullFilename());
+        }
     }
 
     private void createDirectory(String path) {
@@ -471,7 +495,9 @@ public class DriveManager implements ClearImports {
                 // Set the last modified date on the copied file to be the same as the source.
                 File destinationFile = new File(destinationFilename);
                 //noinspection ResultOfMethodCallIgnored
-                destinationFile.setLastModified(status.getSourceFile().getDate().getTime());
+                if(!destinationFile.setLastModified(status.getSourceFile().getDate().getTime())) {
+                    LOG.warn("Failed to set the last modified date " + destinationFilename);
+                }
             }
         } catch(Exception ex) {
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to backup " + status.toString());
@@ -531,8 +557,9 @@ public class DriveManager implements ClearImports {
             if(checkAction(fileInfo, "DELETE")) {
                 LOG.info("Delete the file - " + file );
 
-                //noinspection ResultOfMethodCallIgnored
-                file.delete();
+                if(!file.delete()) {
+                    LOG.warn("Failed to delete the file " + fileInfo.getFullFilename());
+                }
             }
         }
     }
@@ -699,8 +726,9 @@ public class DriveManager implements ClearImports {
         if(importFile.getFileInfo().getClassification() != null) {
             if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
                 LOG.info(path.toString() + " not a backed up file, deleting");
-                //noinspection ResultOfMethodCallIgnored
-                path.toFile().delete();
+                if(!path.toFile().delete()) {
+                    LOG.warn("Failed to delete file " + path.toString());
+                }
                 return;
             }
         }
@@ -716,8 +744,9 @@ public class DriveManager implements ClearImports {
         if(ignoreFile(importFile.getFileInfo())) {
             // Delete the file from import.
             LOG.info(path.toString() + " marked for ignore, deleting");
-            //noinspection ResultOfMethodCallIgnored
-            path.toFile().delete();
+            if(!path.toFile().delete()) {
+                LOG.warn("Failed to delete file " + path.toString());
+            }
             return;
         }
 
@@ -738,8 +767,9 @@ public class DriveManager implements ClearImports {
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info(path.toString() + " exists in source, deleting");
-                //noinspection ResultOfMethodCallIgnored
-                path.toFile().delete();
+                if(!path.toFile().delete()) {
+                    LOG.warn("Failed to delete file " + path.toString());
+                }
                 return;
             }
 
@@ -786,7 +816,7 @@ public class DriveManager implements ClearImports {
                 // Use the date of the file.
                 Date fileDate = new Date(path.toFile().lastModified());
 
-                SimpleDateFormat sdf1 = new SimpleDateFormat("YYYY");
+                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
                 SimpleDateFormat sdf2 = new SimpleDateFormat("MMMM");
 
                 newFilename += "/" + sdf1.format(fileDate);
@@ -843,7 +873,7 @@ public class DriveManager implements ClearImports {
         importFileRepository.deleteAll();
     }
 
-
+    @Transactional
     public void importPhoto(ImportRequest importRequest) throws Exception {
         actionConfirmRepository.clearImports();
 
@@ -885,10 +915,8 @@ public class DriveManager implements ClearImports {
         }
 
         // Create a source to match this import
-        Source importSource = new Source();
-        importSource.setId(nextId);
+        Source importSource = new Source(nextId,importRequest.getPath());
         importSource.setTypeEnum(Source.SourceTypeType.Import);
-        importSource.setPath(importRequest.getPath());
         importSource.setDestinationId(source.get().getId());
         importSource.setLocation(importLocation.get());
 
@@ -898,7 +926,7 @@ public class DriveManager implements ClearImports {
         // Read directory structure into the database.
         try (Stream<Path> paths = Files.walk(Paths.get(importRequest.getPath()))) {
             paths
-                    .forEach(path -> processPath(path,importSource,classifications,true, true));
+                    .forEach(path -> processPath(path,new ArrayList<ActionConfirm>(),importSource,classifications,true, true));
         } catch (IOException e) {
             LOG.error("Failed to process import - ",e);
             throw e;
@@ -949,6 +977,76 @@ public class DriveManager implements ClearImports {
             } else {
                 LOG.info("Keeping " + nextFile.getFileInfo().getFullFilename());
             }
+        }
+    }
+
+    public void sendActionEmail() {
+        try {
+            // Only send the email if its enabled.
+            if (!applicationProperties.getEmail().getEnabled()) {
+                LOG.warn("Email disabled, not sending.");
+                return;
+            }
+
+            // Get a list of unconfirmed actions.
+            List<ActionConfirm> unconfirmedActions = actionConfirmRepository.findByConfirmed(false);
+
+            if (unconfirmedActions.size() == 0) {
+                LOG.info("No unconfirmed actions.");
+                return;
+            }
+
+            // Build the list of details.
+            StringBuilder emailText = new StringBuilder();
+            for (ActionConfirm nextAction : unconfirmedActions) {
+                emailText.append("<tr>");
+                emailText.append("<td class=\"action\">");
+                emailText.append(nextAction.getAction());
+                emailText.append("</td>");
+                emailText.append("<td class=\"parameter\">");
+                emailText.append(nextAction.getParameter() == null ? "" : nextAction.getParameter());
+                emailText.append("</td>");
+                emailText.append("<td class=\"filename\">");
+                emailText.append(nextAction.getPath().getFullFilename());
+                emailText.append("</td>");
+                emailText.append("</tr>");
+            }
+
+            // Get the email template.
+            Resource resource = resourceLoader.getResource("classpath:html/email.html");
+            InputStream is = resource.getInputStream();
+
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader reader = new BufferedReader(isr);
+
+            String template = reader.lines().collect(Collectors.joining(System.lineSeparator()));
+
+            // Send the email.
+            LOG.info("Sending the actions email.");
+            Properties properties = new Properties();
+            properties.put("mail.smtp.auth", "true");
+            properties.put("mail.smtp.starttls.enable", "true");
+            properties.put("mail.smtp.host", applicationProperties.getEmail().getHost());
+            properties.put("mail.smtp.port", "25");
+
+            Session session = Session.getInstance(properties,
+                    new javax.mail.Authenticator() {
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(applicationProperties.getEmail().getUser(), applicationProperties.getEmail().getPassword());
+                        }
+                    });
+
+            Message message = new MimeMessage(session);
+
+            message.setFrom(new InternetAddress(applicationProperties.getEmail().getFrom()));
+            message.addRecipients(Message.RecipientType.TO, InternetAddress.parse(applicationProperties.getEmail().getTo()));
+            message.setSubject("Backup actions.");
+
+            message.setContent(template.replace("<!-- TABLEROWS -->", emailText.toString()), "text/html");
+
+            Transport.send(message);
+        } catch (Exception ex) {
+            LOG.error("Failed to send email ", ex);
         }
     }
 }

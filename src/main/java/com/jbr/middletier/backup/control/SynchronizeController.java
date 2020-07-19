@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -31,37 +32,38 @@ public class SynchronizeController {
     }
 
     @RequestMapping(path="/synchronize", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Synchronize> createSynchronize(@NotNull @RequestBody Synchronize synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
         }
 
-        synchronizeRepository.save(synchronize);
+        synchronizeRepository.save(new Synchronize(synchronize));
 
         return synchronizeRepository.findAll();
     }
 
     @RequestMapping(path="/synchronize", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Synchronize> updateSynchronize(@NotNull @RequestBody Synchronize synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
             throw new Exception(synchronize.getId() + " does not exist");
         }
 
-        synchronizeRepository.save(synchronize);
+        existing.get().update(synchronize);
+        synchronizeRepository.save(existing.get());
 
         return synchronizeRepository.findAll();
     }
 
     @RequestMapping(path="/synchronize", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Synchronize> deleteSynchronize(@RequestBody Synchronize synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
             throw new Exception(synchronize.getId() + " does not exist");
         }
 
-        synchronizeRepository.delete(synchronize);
+        synchronizeRepository.deleteById(synchronize.getId());
 
         return synchronizeRepository.findAll();
     }

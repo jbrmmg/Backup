@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.Hardware;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.HardwareRepository;
+import com.jbr.middletier.backup.dto.HardwareDTO;
 import com.jbr.middletier.backup.exception.HardwareAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidHardwareIdException;
 import org.jetbrains.annotations.Contract;
@@ -47,7 +48,7 @@ public class HardwareController {
     }
 
     @RequestMapping(method=RequestMethod.PUT)
-    public @ResponseBody OkStatus update(@NotNull @RequestBody Hardware hardware) throws InvalidHardwareIdException {
+    public @ResponseBody OkStatus update(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
         LOG.info("Update hardware - " + hardware.getMacAddress());
 
         // Check that the item exists.
@@ -57,9 +58,7 @@ public class HardwareController {
             throw new InvalidHardwareIdException(hardware.getMacAddress());
         }
 
-        storedHardware.get().setIP(hardware.getIP());
-        storedHardware.get().setName(hardware.getName());
-        storedHardware.get().setReservedIP(hardware.getReservedIP());
+        storedHardware.get().update(hardware);
 
         hardwareRepository.save(storedHardware.get());
 
@@ -67,7 +66,7 @@ public class HardwareController {
     }
 
     @RequestMapping(method=RequestMethod.POST)
-    public @ResponseBody OkStatus create(@NotNull @RequestBody Hardware hardware) throws HardwareAlreadyExistsException {
+    public @ResponseBody OkStatus create(@NotNull @RequestBody HardwareDTO hardware) throws HardwareAlreadyExistsException {
         LOG.info("Create hardware - " + hardware.getMacAddress());
 
         // Check that the item exists.
@@ -76,13 +75,13 @@ public class HardwareController {
             throw new HardwareAlreadyExistsException(hardware.getMacAddress());
         }
 
-        hardwareRepository.save(hardware);
+        hardwareRepository.save(new Hardware(hardware));
 
         return OkStatus.getOkStatus();
     }
 
     @RequestMapping(method=RequestMethod.DELETE)
-    public @ResponseBody OkStatus delete(@NotNull @RequestBody Hardware hardware) throws InvalidHardwareIdException {
+    public @ResponseBody OkStatus delete(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
         LOG.info("Delete hardware - " + hardware.getMacAddress());
 
         // Check that the item exists.

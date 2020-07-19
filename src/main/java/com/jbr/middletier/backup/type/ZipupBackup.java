@@ -59,24 +59,24 @@ public class ZipupBackup implements PerformBackup  {
     private void addToZip(File directoryToZip, File file, ZipOutputStream zos) throws
             IOException {
 
-        FileInputStream fis = new FileInputStream(file);
+        try(FileInputStream fis = new FileInputStream(file)) {
 
-        // we want the zipEntry's path to be a relative path that is relative
-        // to the directory being zipped, so chop off the rest of the path
-        String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1,
-                file.getCanonicalPath().length());
-        LOG.info(String.format("Writing %s to zip file",zipFilePath));
-        ZipEntry zipEntry = new ZipEntry(zipFilePath);
-        zos.putNextEntry(zipEntry);
+            // we want the zipEntry's path to be a relative path that is relative
+            // to the directory being zipped, so chop off the rest of the path
+            String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1,
+                    file.getCanonicalPath().length());
+            LOG.info(String.format("Writing %s to zip file", zipFilePath));
+            ZipEntry zipEntry = new ZipEntry(zipFilePath);
+            zos.putNextEntry(zipEntry);
 
-        byte[] bytes = new byte[1024];
-        int length;
-        while ((length = fis.read(bytes)) >= 0) {
-            zos.write(bytes, 0, length);
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zos.write(bytes, 0, length);
+            }
+
+            zos.closeEntry();
         }
-
-        zos.closeEntry();
-        fis.close();
     }
 
     @Override

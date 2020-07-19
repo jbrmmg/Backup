@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.SourceDTO;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -35,7 +37,29 @@ public class Source {
     public enum SourceTypeType { Standard, Import }
 
     public Source() {
+        this.id = 0;
+        this.path = "";
+    }
+
+    public Source(int id, String path) {
+        this.id = id;
+        this.path = path;
         setTypeEnum(SourceTypeType.Standard);
+    }
+
+    public Source(SourceDTO source) {
+        this.id = source.getId();
+        this.path = source.getPath();
+        update(source);
+    }
+
+    public void update(SourceDTO source) {
+        this.path = source.getPath();
+        this.location = new Location(source.getLocation());
+        this.status = source.getStatus();
+        this.filter = source.getFilter();
+        this.type = source.getType();
+        this.destinationId = source.getDestinationId();
     }
 
     public void setPath(String path) { this.path = path; }

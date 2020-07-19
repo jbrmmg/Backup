@@ -38,7 +38,7 @@ public class CleanBackup implements PerformBackup {
             Date directoryDate = formatter.parse(directory);
 
             ZonedDateTime now = ZonedDateTime.now();
-            ZonedDateTime maxDaysAgo = now.plusDays(-1 * applicationProperties.getDirectory().getDays());
+            ZonedDateTime maxDaysAgo = now.plusDays(-1L * applicationProperties.getDirectory().getDays());
 
             if (directoryDate.toInstant().isBefore(maxDaysAgo.toInstant())) {
                 // Delete this directory.

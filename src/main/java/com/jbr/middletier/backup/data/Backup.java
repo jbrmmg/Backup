@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.BackupDTO;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -37,47 +39,53 @@ public class Backup implements Comparable<Backup>{
     @Column(name="time")
     private long time;
 
-    protected Backup() { }
+    protected Backup() {
+        this.id = "";
+        this.type = "";
+    }
+
+    public Backup(BackupDTO source) {
+        this.id = source.getId();
+        this.type = source.getType();
+        update(source);
+    }
+
+    public void update(BackupDTO source) {
+        this.type = source.getType();
+        this.directory = source.getDirectory();
+        this.artifact = source.getArtifact();
+        this.backupName = source.getBackupName();
+        this.fileName = source.getFileName();
+        this.time = source.getTime();
+    }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) { this.id = id; }
-
     public String getType() {
         return type;
     }
-
-    public void setType(String type) { this.type = type; }
 
     public String getDirectory() {
         return directory;
     }
 
-    public void setDirectory(String directory) { this.directory = directory; }
-
     public String getArtifact() {
         return artifact;
     }
-
-    public void setArtifact(String artifact) { this.artifact = artifact; }
 
     public String getBackupName() {
         return backupName;
     }
 
-    public void setBackupName(String backupName) { this.backupName = backupName; }
+    public String getFileName() { return this.fileName; }
 
-    public String getFileName() { return fileName; }
+    public void setId(String id) { this.id = id; }
 
-    public void setFileName(String fileName) { this.fileName = fileName; }
+    public void setType(String type) { this.type = type; }
 
-    public long getTime() {
-        return time;
-    }
-
-    public void setTime(long time) { this.time = time; }
+    public void setDirectory(String directory) { this.directory = directory; }
 
     @SuppressWarnings("NullableProblems")
     public int compareTo(Backup compareBackup) {

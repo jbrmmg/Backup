@@ -107,34 +107,36 @@ public class FileController {
                     result.add(response);
                 }
             }
-        } else {
-            // Get the next level
-            result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
 
-            // Update the display name.
-            for(HierarchyResponse nextResponse: result) {
-                String[] directories = nextResponse.getPath().split("/");
+            return result;
+        }
 
-                nextResponse.setDisplayName(directories[directories.length-1]);
+        // Get the next level
+        result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
+
+        // Update the display name.
+        for(HierarchyResponse nextResponse: result) {
+            String[] directories = nextResponse.getPath().split("/");
+
+            nextResponse.setDisplayName(directories[directories.length-1]);
+        }
+
+        // Get any files that are in this directory.
+        Iterable<FileInfo> files = fileRepository.findByDirectoryInfoId(lastResponse.getUnderlyingId());
+
+        for(FileInfo nextFile: files) {
+            if(nextFile.getName().equals(".")) {
+                continue;
             }
 
-            // Get any files that are in this directory.
-            Iterable<FileInfo> files = fileRepository.findByDirectoryInfoId(lastResponse.getUnderlyingId());
+            HierarchyResponse response = new HierarchyResponse();
+            response.setDirectory(false);
+            response.setLevel(lastResponse.getLevel());
+            response.setPath(nextFile.getDirectoryInfo().getPath());
+            response.setDisplayName(nextFile.getName());
+            response.setUnderlyingId(nextFile.getId());
 
-            for(FileInfo nextFile: files) {
-                if(nextFile.getName().equals(".")) {
-                    continue;
-                }
-
-                HierarchyResponse response = new HierarchyResponse();
-                response.setDirectory(false);
-                response.setLevel(lastResponse.getLevel());
-                response.setPath(nextFile.getDirectoryInfo().getPath());
-                response.setDisplayName(nextFile.getName());
-                response.setUnderlyingId(nextFile.getId());
-
-                result.add(response);
-            }
+            result.add(response);
         }
 
         return result;

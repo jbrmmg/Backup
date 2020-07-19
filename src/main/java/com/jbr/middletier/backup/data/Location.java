@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.LocationDTO;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -25,6 +27,25 @@ public class Location {
 
     @Column(name="check_duplicates")
     private Boolean checkDuplicates;
+
+    public Location() {
+        this.id = 0;
+        this.name = "";
+        this.size = "";
+    }
+
+    public Location(LocationDTO source) {
+        this.id = source.getId();
+        this.name = source.getName();
+        this.size = source.getSize();
+        update(source);
+    }
+
+    public void update(LocationDTO source) {
+        this.name = source.getName();
+        this.size = source.getSize();
+        this.checkDuplicates = source.getCheckDuplicates();
+    }
 
     public int getId() { return this.id; }
 

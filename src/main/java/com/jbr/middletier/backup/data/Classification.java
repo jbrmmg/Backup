@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.ClassificationDTO;
+import org.jetbrains.annotations.NotNull;
+
 import javax.persistence.*;
 
 @SuppressWarnings("unused")
@@ -11,6 +14,10 @@ public class Classification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name="\"order\"")
+    @NotNull
+    private Integer order;
+
     @Column(name="regex")
     private String regex;
 
@@ -21,6 +28,7 @@ public class Classification {
     private String icon;
 
     @Column(name="useMD5")
+    @NotNull
     private Boolean useMD5;
 
     @Column(name="type")
@@ -31,6 +39,29 @@ public class Classification {
 
     @Column(name="is_video")
     private Boolean isVideo;
+
+    public Classification() {
+        this.order = 0;
+        this.useMD5 = false;
+    }
+
+    public Classification(ClassificationDTO source) {
+        this.id = source.getId();
+        this.order = source.getOrder();
+        this.useMD5 = source.getUseMD5();
+        update(source);
+    }
+
+    public void update(ClassificationDTO source) {
+        this.regex = source.getRegex();
+        this.action = source.getAction();
+        this.icon = source.getIcon();
+        this.useMD5 = source.getUseMD5();
+        this.type = source.getType();
+        this.isImage = source.getImage();
+        this.isVideo = source.getVideo();
+        this.order = source.getOrder();
+    }
 
     public Integer getId() { return this.id; }
 

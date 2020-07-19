@@ -67,7 +67,7 @@ public class FileBackup implements PerformBackup {
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         try {
-            LOG.info(String.format("File Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
+            LOG.info(String.format("File Backup %s %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getFileName(), backup.getArtifact(), backup.getDirectory()));
 
             // Perform a file backup.
             performFileBackup(backupManager,backup.getDirectory(),String.format("%s/%s",backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact(),true);

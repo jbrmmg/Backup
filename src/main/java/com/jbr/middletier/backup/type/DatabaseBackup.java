@@ -103,7 +103,7 @@ public class DatabaseBackup implements PerformBackup {
 
             Thread t = new Thread(() -> {
                 try {
-                    Thread.sleep(1000 * 60 * 10);
+                    Thread.sleep(1000L * 60L * 10L);
                     LOG.warn("Killing backup, taken too long.");
                     backupProcess.destroy();
                 } catch (InterruptedException ignored) {

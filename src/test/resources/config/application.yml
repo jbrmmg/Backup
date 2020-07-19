@@ -1,0 +1,5 @@
+backup:
+  web-log-url:
+  schedule: 0 0/1 * ? * *
+  gather-schedule: 0 0 0 * * ?
+  gather-enabled: false
