@@ -31,9 +31,6 @@ public class Classification {
     @NotNull
     private Boolean useMD5;
 
-    @Column(name="type")
-    private String type;
-
     @Column(name="is_image")
     private Boolean isImage;
 
@@ -57,10 +54,12 @@ public class Classification {
         this.action = source.getAction();
         this.icon = source.getIcon();
         this.useMD5 = source.getUseMD5();
-        this.type = source.getType();
         this.isImage = source.getImage();
         this.isVideo = source.getVideo();
         this.order = source.getOrder();
+
+        // For future use.
+        String type = source.getType();
     }
 
     public Integer getId() { return this.id; }
@@ -71,6 +70,7 @@ public class Classification {
 
     public String getIcon() { return this.icon; }
 
+    @NotNull
     public Boolean getUseMD5() { return this.useMD5; }
 
     public Boolean getIsVideo() { return this.isVideo; }

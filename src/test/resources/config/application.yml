@@ -11,6 +11,8 @@ spring:
     contexts: default
 
 backup:
+  db-backup-command: sleep $$server$$ | echo Done > $$todaydir$$/$$backupname$$/$$output$$.sql
+  db-backup-max-time: 8
   web-log-url:
   schedule: 0 0/1 * ? * *
   gather-schedule: 0 0 0 * * ?
@@ -21,3 +23,4 @@ backup:
     zip: ./target/testfiles/BackupDevZip
     date-format: yyyy-MM-dd
   zip-directory: ./target/testfiles/BackupDevZip
+  db-url: test:test:test

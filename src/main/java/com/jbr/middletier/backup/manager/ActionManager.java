@@ -42,7 +42,7 @@ public class ActionManager {
         this.resourceLoader = resourceLoader;
     }
 
-    public boolean checkAction(FileInfo fileInfo, String action) {
+    boolean checkAction(FileInfo fileInfo, String action) {
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action);
 
         if(confirmedActions.size() > 0) {
@@ -74,7 +74,7 @@ public class ActionManager {
         return false;
     }
 
-    public void deleteFileIfConfirmed(FileInfo fileInfo) {
+    void deleteFileIfConfirmed(FileInfo fileInfo) {
         File file = new File(fileInfo.getFullFilename());
 
         if(file.exists()) {

@@ -12,6 +12,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by jason on 11/02/17.
@@ -39,6 +40,8 @@ public class DatabaseBackup implements PerformBackup {
     }
 
     private String getBackupCommand(BackupManager backupManager, Backup backup) {
+        String result = applicationProperties.getDbBackupCommand();
+
         if(backup.getDirectory().startsWith("db:")) {
             String[] databaseElements = backup.getDirectory().split(":");
 
@@ -46,24 +49,21 @@ public class DatabaseBackup implements PerformBackup {
                 throw new IllegalStateException(String.format("Cannot determine DB server name from url - %s (x:x:x:x)",backup.getDirectory()));
             }
 
-            return String.format("mysqldump -h %s -u %s -p%s %s > %s/%s/%s.sql",
-                    databaseElements[1],
-                    databaseElements[2],
-                    databaseElements[3],
-                    backup.getArtifact(),
-                    backupManager.todaysDirectory(),
-                    backup.getBackupName(),
-                    backup.getArtifact());
+            result = result.replace("$$server$$", databaseElements[1]);
+            result = result.replace("$$user$$", databaseElements[2]);
+            result = result.replace("$$password$$", databaseElements[3]);
+        } else {
+            result = result.replace("$$server$$", getDBServerName());
+            result = result.replace("$$user$$", applicationProperties.getDbUsername() == null ? "" : applicationProperties.getDbUsername());
+            result = result.replace("$$password$$", applicationProperties.getDbPassword() == null ? "" : applicationProperties.getDbPassword());
         }
 
-        return String.format("mysqldump -h %s -u %s -p%s %s > %s/%s/%s.sql",
-                getDBServerName(),
-                applicationProperties.getDbUsername(),
-                applicationProperties.getDbPassword(),
-                backup.getArtifact(),
-                backupManager.todaysDirectory(),
-                backup.getBackupName(),
-                backup.getArtifact());
+        result = result.replace("$$dbname$$",backup.getArtifact());
+        result = result.replace("$$todaydir$$",backupManager.todaysDirectory());
+        result = result.replace("$$backupname$$",backup.getBackupName());
+        result = result.replace("$$output$$",backup.getArtifact());
+
+        return result;
     }
 
     @Override
@@ -101,18 +101,8 @@ public class DatabaseBackup implements PerformBackup {
                     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                     .start();
 
-            Thread t = new Thread(() -> {
-                try {
-                    Thread.sleep(1000L * 60L * 10L);
-                    LOG.warn("Killing backup, taken too long.");
-                    backupProcess.destroy();
-                } catch (InterruptedException ignored) {
-                    backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Backup killed ");
-                }
-            });
-
-            backupProcess.waitFor();
-            t.interrupt();
+            backupProcess.waitFor(applicationProperties.getDbBackupMaxTime(), TimeUnit.SECONDS);
+            backupProcess.destroyForcibly();
 
             LOG.info("Backup completed.");
         } catch (Exception ex) {

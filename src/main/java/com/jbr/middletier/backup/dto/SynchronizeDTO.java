@@ -1,10 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.Source;
-
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-
 public class SynchronizeDTO {
     private Integer id;
     private SourceDTO source;

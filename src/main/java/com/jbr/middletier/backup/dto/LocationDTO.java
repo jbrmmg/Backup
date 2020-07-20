@@ -1,8 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import javax.persistence.Column;
-import javax.validation.constraints.NotNull;
-
 @SuppressWarnings("unused")
 public class LocationDTO {
     private Integer id;

@@ -21,6 +21,7 @@ public class Synchronize {
     @ManyToOne(optional = false)
     private Source destination;
 
+    @SuppressWarnings("unused")
     public Synchronize() {
         this.id = 0;
     }
@@ -35,13 +36,14 @@ public class Synchronize {
         this.destination = new Source(source.getDestination());
     }
 
+    @NotNull
     public Integer getId() { return this.id; }
 
     public Source getSource() { return this.source; }
 
     public Source getDestination() { return this.destination; }
 
-    public void setId(Integer id) { this.id = id; }
+    public void setId(@NotNull Integer id) { this.id = id; }
 
     public void setSource(Source source) { this.source = source; }
 

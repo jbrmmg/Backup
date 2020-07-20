@@ -40,8 +40,8 @@ public class DriveManager extends FileProcessor {
         try {
             source.setStatus(status);
             sourceRepository.save(source);
-        } catch(Exception ignored) {
-
+        } catch(Exception ex) {
+            LOG.warn("Failed to set source status.",ex);
         }
     }
 

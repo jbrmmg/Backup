@@ -75,6 +75,8 @@ public class ApplicationProperties {
     private String gatherSchedule;
     private boolean gatherEnabled;
     private String reviewDirectory;
+    private String dbBackupCommand;
+    private Long dbBackupMaxTime;
 
     public Directory getDirectory() { return this.directory; }
 
@@ -123,4 +125,12 @@ public class ApplicationProperties {
     public void setGatherEnabled(boolean enabled) { this.gatherEnabled = enabled; }
 
     public boolean getGatherEnabled() { return this.gatherEnabled; }
+
+    public void setDbBackupCommand(String dbBackupCommand) { this.dbBackupCommand = dbBackupCommand; }
+
+    public String getDbBackupCommand() { return this.dbBackupCommand; }
+
+    public void setDbBackupMaxTime(Long dbBackupMaxTime) { this.dbBackupMaxTime = dbBackupMaxTime; }
+
+    public Long getDbBackupMaxTime() { return this.dbBackupMaxTime; }
 }
