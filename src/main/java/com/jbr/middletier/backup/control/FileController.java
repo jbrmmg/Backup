@@ -6,6 +6,8 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
 import com.jbr.middletier.backup.manager.DriveManager;
+import com.jbr.middletier.backup.manager.DuplicateManager;
+import com.jbr.middletier.backup.manager.SynchronizeManager;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +26,13 @@ import java.util.Optional;
 public class FileController {
     final static private Logger LOG = LoggerFactory.getLogger(FileController.class);
 
-    final private DriveManager driveManager;
-    final private FileRepository fileRepository;
-    final private SynchronizeRepository synchronizeRepository;
-    final private DirectoryRepository directoryRepository;
-    final private ActionConfirmRepository actionConfirmRepository;
+    private final DriveManager driveManager;
+    private final FileRepository fileRepository;
+    private final SynchronizeRepository synchronizeRepository;
+    private final DirectoryRepository directoryRepository;
+    private final ActionConfirmRepository actionConfirmRepository;
+    private final DuplicateManager duplicateManager;
+    private final SynchronizeManager synchronizeManager;
 
     @Contract(pure = true)
     @Autowired
@@ -36,12 +40,16 @@ public class FileController {
                           FileRepository fileRepository,
                           SynchronizeRepository synchronizeRepository,
                           DirectoryRepository directoryRepository,
-                          ActionConfirmRepository actionConfirmRepository ) {
+                          ActionConfirmRepository actionConfirmRepository,
+                          DuplicateManager duplicateManager,
+                          SynchronizeManager synchronizeManager ) {
         this.driveManager = driverManager;
         this.fileRepository = fileRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.directoryRepository = directoryRepository;
         this.actionConfirmRepository = actionConfirmRepository;
+        this.duplicateManager = duplicateManager;
+        this.synchronizeManager = synchronizeManager;
     }
 
     @RequestMapping(path="/files", method= RequestMethod.GET)
@@ -67,7 +75,7 @@ public class FileController {
     public @ResponseBody OkStatus duplicate(@RequestBody String temp) {
         LOG.info("Process drive - " + temp);
 
-        driveManager.duplicateCheck();
+        duplicateManager.duplicateCheck();
 
         return OkStatus.getOkStatus();
     }
@@ -76,7 +84,7 @@ public class FileController {
     public @ResponseBody OkStatus synchronize(@RequestBody String temp) {
         LOG.info("Syncronize drives - " + temp);
 
-        driveManager.synchronize();
+        synchronizeManager.synchronize();
 
         return OkStatus.getOkStatus();
     }

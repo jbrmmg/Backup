@@ -4,7 +4,7 @@ import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
-import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.type.PerformBackup;
 import com.jbr.middletier.backup.type.TypeManager;
 import org.slf4j.Logger;
@@ -30,16 +30,28 @@ public class BackupCtrl {
     private final BackupManager backupManager;
     private final BackupRepository backupRepository;
     private final ApplicationProperties applicationProperties;
+    private final ActionManager emailManager;
+    private final DriveManager driveManager;
+    private final DuplicateManager duplicateManager;
+    private final SynchronizeManager synchronizeManager;
 
     @Autowired
     public BackupCtrl(TypeManager typeManager,
                       BackupManager backupManager,
                       BackupRepository backupRepository,
-                      ApplicationProperties applicationProperties) {
+                      ApplicationProperties applicationProperties,
+                      ActionManager emailManager,
+                      DriveManager driveManager,
+                      DuplicateManager duplicateManager,
+                      SynchronizeManager synchronizeManager) {
         this.typeManager = typeManager;
         this.backupManager = backupManager;
         this.backupRepository = backupRepository;
         this.applicationProperties = applicationProperties;
+        this.emailManager = emailManager;
+        this.driveManager = driveManager;
+        this.duplicateManager = duplicateManager;
+        this.synchronizeManager = synchronizeManager;
     }
 
     private void performBackups(List<Backup> backups) {
@@ -59,6 +71,23 @@ public class BackupCtrl {
             }
         } catch (Exception ex) {
             LOG.error("Failed to perform backup",ex);
+        }
+    }
+
+    @Scheduled(cron = "#{@applicationProperties.gatherSchedule}")
+    public void gatherCron() {
+        if(applicationProperties.getGatherEnabled()) {
+            try {
+                emailManager.sendActionEmail();
+
+                driveManager.gather();
+
+                duplicateManager.duplicateCheck();
+
+                synchronizeManager.synchronize();
+            } catch (Exception ex) {
+                LOG.error("Failed to gather / synchronize",ex);
+            }
         }
     }
 

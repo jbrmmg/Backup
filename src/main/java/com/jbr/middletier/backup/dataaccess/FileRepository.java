@@ -24,7 +24,7 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
     // Mark everything as removed.
     @Transactional
     @Modifying
-    @Query("UPDATE FileInfo SET removed=true WHERE id IN (SELECT id FROM DirectoryInfo WHERE source.id = ?1)")
+    @Query("UPDATE FileInfo SET removed=true WHERE directoryInfo.id IN (SELECT id FROM DirectoryInfo WHERE source.id = ?1)")
     void markAllRemoved(int source);
 
     // Mark everything as removed.

@@ -3,7 +3,7 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
-import com.jbr.middletier.backup.manager.DriveManager;
+import com.jbr.middletier.backup.manager.ActionManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.mail.MessagingException;
-import java.io.IOException;
 import java.util.Optional;
 
 @RestController
@@ -22,16 +20,16 @@ public class ActionController {
 
     final private IgnoreFileRepository ignoreFileRepository;
     final private ActionConfirmRepository actionConfirmRepository;
-    final private DriveManager driveManager;
+    final private ActionManager emailManager;
 
     @Contract(pure = true)
     @Autowired
     public ActionController(IgnoreFileRepository ignoreFileRepository,
                             ActionConfirmRepository actionConfirmRepository,
-                            DriveManager driveManager) {
+                            ActionManager emailManager) {
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionConfirmRepository = actionConfirmRepository;
-        this.driveManager = driveManager;
+        this.emailManager = emailManager;
     }
 
     @RequestMapping(path="/actions",method=RequestMethod.GET)
@@ -82,7 +80,7 @@ public class ActionController {
 
     @RequestMapping(path="/actionemail",method=RequestMethod.POST)
     public @ResponseBody  OkStatus emailActions() {
-        driveManager.sendActionEmail();
+        emailManager.sendActionEmail();
 
         return OkStatus.getOkStatus();
     }
