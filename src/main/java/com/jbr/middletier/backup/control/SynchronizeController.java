@@ -25,13 +25,13 @@ public class SynchronizeController {
         this.synchronizeRepository = synchronizeRepository;
     }
 
-    @RequestMapping(path="/synchronize", method= RequestMethod.GET)
+    @GetMapping(path="/synchronize")
     public @ResponseBody Iterable<Synchronize> getSynchronize() {
         LOG.info("Get the synchronize");
         return synchronizeRepository.findAll();
     }
 
-    @RequestMapping(path="/synchronize", method=RequestMethod.POST)
+    @PostMapping(path="/synchronize")
     public @ResponseBody Iterable<Synchronize> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(existing.isPresent()) {
@@ -43,7 +43,7 @@ public class SynchronizeController {
         return synchronizeRepository.findAll();
     }
 
-    @RequestMapping(path="/synchronize", method=RequestMethod.PUT)
+    @PutMapping(path="/synchronize")
     public @ResponseBody Iterable<Synchronize> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
@@ -56,7 +56,7 @@ public class SynchronizeController {
         return synchronizeRepository.findAll();
     }
 
-    @RequestMapping(path="/synchronize", method=RequestMethod.DELETE)
+    @DeleteMapping(path="/synchronize")
     public @ResponseBody Iterable<Synchronize> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws Exception {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {

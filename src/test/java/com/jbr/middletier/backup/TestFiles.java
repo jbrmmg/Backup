@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,9 +95,9 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(3)))
-                    .andExpect(jsonPath("$[0].name",is(".")))
-                    .andExpect(jsonPath("$[1].name",is("fileA.txt")))
-                    .andExpect(jsonPath("$[2].name",is("fileB.txt")));
+                    .andExpect(jsonPath("$[0].name", is(".")))
+                    .andExpect(jsonPath("$[1].name", is("fileA.txt")))
+                    .andExpect(jsonPath("$[2].name", is("fileB.txt")));
 
             // Remove the files
             assertTrue(testFileA.delete());
@@ -113,7 +114,7 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].name",is(".")));
+                    .andExpect(jsonPath("$[0].name", is(".")));
 
             // Clear out the data.
             fileRepository.deleteAll();
@@ -198,11 +199,11 @@ public class TestFiles extends WebTester {
             // Find the id of the file called FileA.jpg
             int id1 = -1;
             int id2 = -1;
-            for(FileInfo next: fileRepository.findAll()) {
-                if(next.getName().equals("fileA.jpg")) {
+            for (FileInfo next : fileRepository.findAll()) {
+                if (next.getName().equals("fileA.jpg")) {
                     id1 = next.getId();
                 }
-                if(next.getName().equals("fileB.mov")) {
+                if (next.getName().equals("fileB.mov")) {
                     id2 = next.getId();
                 }
             }
@@ -229,7 +230,7 @@ public class TestFiles extends WebTester {
                         .content(this.json(temp))
                         .contentType(getContentType()))
                         .andExpect(status().isOk());
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 assertTrue(true);
             }
 
@@ -263,7 +264,7 @@ public class TestFiles extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             assertTrue(true);
         }
 
@@ -273,7 +274,7 @@ public class TestFiles extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             assertTrue(true);
         }
 
@@ -283,7 +284,7 @@ public class TestFiles extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             assertTrue(true);
         }
     }
@@ -341,7 +342,7 @@ public class TestFiles extends WebTester {
             assertTrue(testFileC.createNewFile());
 
             Calendar calendar = Calendar.getInstance();
-            calendar.set(2020,Calendar.JANUARY,1);
+            calendar.set(2020, Calendar.JANUARY, 1);
             assertTrue(testFileC.setLastModified(calendar.getTimeInMillis()));
 
             ImportRequest importRequest = new ImportRequest();
@@ -366,8 +367,8 @@ public class TestFiles extends WebTester {
 
             // Get the action id.
             ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
-            for(ActionConfirm next: actionConfirmRepository.findAll()) {
-                if(next.getAction().equals("IMPORT")) {
+            for (ActionConfirm next : actionConfirmRepository.findAll()) {
+                if (next.getAction().equals("IMPORT")) {
                     confirmActionRequest.setId(next.getId());
                     confirmActionRequest.setConfirm(true);
                     confirmActionRequest.setParameter("Test");
@@ -422,7 +423,7 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             fail();
         }
     }
@@ -480,7 +481,7 @@ public class TestFiles extends WebTester {
             assertTrue(testFileC.createNewFile());
 
             Calendar calendar = Calendar.getInstance();
-            calendar.set(2020,Calendar.JANUARY,1);
+            calendar.set(2020, Calendar.JANUARY, 1);
             assertTrue(testFileC.setLastModified(calendar.getTimeInMillis()));
 
             ImportRequest importRequest = new ImportRequest();
@@ -505,8 +506,8 @@ public class TestFiles extends WebTester {
 
             // Get the action id.
             ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
-            for(ActionConfirm next: actionConfirmRepository.findAll()) {
-                if(next.getAction().equals("IMPORT")) {
+            for (ActionConfirm next : actionConfirmRepository.findAll()) {
+                if (next.getAction().equals("IMPORT")) {
                     confirmActionRequest.setId(next.getId());
                     confirmActionRequest.setConfirm(true);
                     confirmActionRequest.setParameter("IGNORE");
@@ -550,6 +551,146 @@ public class TestFiles extends WebTester {
                     .andExpect(status().isOk());
 
             String temp = "testing";
+            getMockMvc().perform(get("/jbr/int/backup/files")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(0)));
+        } catch (Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testSynchronization() {
+        try {
+            // get the current working directory.
+            String cwd = System.getProperty("user.dir");
+
+            // Setup a directory structure.
+            //   ./target/testfiles/gather
+            //                       fileA.txt
+            //                       fileB.txt
+
+            File testPath = new File("./target/testfiles/gather1");
+            if (testPath.exists()) {
+                FileUtils.cleanDirectory(testPath);
+                assertTrue(testPath.delete());
+            }
+
+            assertTrue(testPath.mkdirs());
+
+            File subPath = new File("./target/testfiles/gather1/Sub");
+            assertTrue(subPath.mkdir());
+
+            File testFileA = new File("./target/testfiles/gather1/Sub/fileA.txt");
+            assertTrue(testFileA.createNewFile());
+
+            File testFileB = new File("./target/testfiles/gather1/Sub/fileB.txt");
+            assertTrue(testFileB.createNewFile());
+
+            File testFileC = new File("./target/testfiles/gather1/Sub/fileC.txt");
+            assertTrue(testFileC.createNewFile());
+
+            File testPath2 = new File("./target/testfiles/gather2");
+            if (testPath2.exists()) {
+                FileUtils.cleanDirectory(testPath2);
+                assertTrue(testPath2.delete());
+            }
+
+            assertTrue(testPath2.mkdirs());
+
+            File subPath2 = new File("./target/testfiles/gather2/Sub");
+            assertTrue(subPath2.mkdir());
+
+            File testFileA2 = new File("./target/testfiles/gather2/Sub/fileA.txt");
+            assertTrue(testFileA2.createNewFile());
+
+            File testFileB2 = new File("./target/testfiles/gather2/Sub/fileB.txt");
+            assertTrue(testFileB2.createNewFile());
+
+            // Setup a new source
+            LocationDTO location = new LocationDTO();
+            location.setId(1);
+            SourceDTO source = new SourceDTO();
+            source.setId(1);
+            source.setType("STD");
+            source.setPath(cwd + "/target/testfiles/gather1");
+            source.setLocation(location);
+
+            getMockMvc().perform(post("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            SourceDTO source2 = new SourceDTO();
+            source2.setId(2);
+            source2.setType("STD");
+            source2.setPath(cwd + "/target/testfiles/gather2");
+            source2.setLocation(location);
+
+            getMockMvc().perform(post("/jbr/ext/backup/source")
+                    .content(this.json(source2))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            SynchronizeDTO synchronize = new SynchronizeDTO(1);
+            synchronize.setSource(source);
+            synchronize.setDestination(source2);
+
+            getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+                    .content(this.json(synchronize))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            // Perform the gather
+            String temp = "testing";
+            getMockMvc().perform(post("/jbr/int/backup/gather")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(get("/jbr/int/backup/files")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(9)));
+
+            getMockMvc().perform(post("/jbr/int/backup/sync")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(post("/jbr/int/backup/gather")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(get("/jbr/int/backup/files")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(8)));
+
+            // Clear out the data.
+            fileRepository.deleteAll();
+            directoryRepository.deleteAll();
+
+            getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+                    .content(this.json(synchronize))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source2))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
             getMockMvc().perform(get("/jbr/int/backup/files")
                     .content(this.json(temp))
                     .contentType(getContentType()))
