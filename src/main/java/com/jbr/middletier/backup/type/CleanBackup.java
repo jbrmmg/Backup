@@ -22,7 +22,7 @@ import java.util.Date;
 
 @Component
 public class CleanBackup implements PerformBackup {
-    final static private Logger LOG = LoggerFactory.getLogger(CleanBackup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CleanBackup.class);
 
     private final ApplicationProperties applicationProperties;
 

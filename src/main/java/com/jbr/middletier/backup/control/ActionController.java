@@ -16,7 +16,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/int/backup")
 public class ActionController {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
     final private IgnoreFileRepository ignoreFileRepository;
     final private ActionConfirmRepository actionConfirmRepository;

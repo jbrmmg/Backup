@@ -15,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class LocationController {
-    final static private Logger LOG = LoggerFactory.getLogger(LocationController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LocationController.class);
 
     final private LocationRepository locationRepository;
 

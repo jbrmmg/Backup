@@ -22,7 +22,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class BackupController {
-    final static private Logger LOG = LoggerFactory.getLogger(BackupController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
 
     final private BackupRepository backupRepository;
@@ -33,7 +33,7 @@ public class BackupController {
         this.backupRepository = backupRepository;
     }
 
-    @RequestMapping(path="/byId",method=RequestMethod.GET)
+    @GetMapping(path="/byId")
     public @ResponseBody Backup specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         LOG.info("List hardware.");
         // Check that the item exists.
@@ -46,13 +46,13 @@ public class BackupController {
         return storedHardware.get();
     }
 
-    @RequestMapping(method=RequestMethod.GET)
+    @GetMapping()
     public @ResponseBody Iterable<Backup> backups() {
         LOG.info("List backups Backup.");
         return backupRepository.findAll();
     }
 
-    @RequestMapping(method=RequestMethod.PUT)
+    @PutMapping()
     public @ResponseBody OkStatus update(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
         LOG.info("Update backup - " + backup.getId());
 
@@ -70,7 +70,7 @@ public class BackupController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(method=RequestMethod.POST)
+    @PostMapping()
     public @ResponseBody OkStatus create(@NotNull @RequestBody BackupDTO backup) throws BackupAlreadyExistsException {
         LOG.info("Create backup - " + backup.getId());
 
@@ -85,7 +85,7 @@ public class BackupController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(method=RequestMethod.DELETE)
+    @DeleteMapping()
     public @ResponseBody OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
         LOG.info("Delete backup - " + backup.getId());
 

@@ -19,7 +19,7 @@ import java.util.zip.ZipOutputStream;
  */
 @Component
 public class ZipupBackup implements PerformBackup  {
-    final static private Logger LOG = LoggerFactory.getLogger(ZipupBackup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZipupBackup.class);
 
     private final ApplicationProperties applicationProperties;
 

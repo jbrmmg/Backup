@@ -1,5 +1,9 @@
 package com.jbr.middletier.backup.dto;
 
+import com.jbr.middletier.backup.data.Source;
+
+import javax.validation.constraints.NotNull;
+
 @SuppressWarnings("unused")
 public class SourceDTO {
     private Integer id;
@@ -10,11 +14,21 @@ public class SourceDTO {
     private String type;
     private Integer destinationId;
 
+    public SourceDTO() {
+        setId(0);
+        setPath("");
+    }
+
+    public SourceDTO(int id, String path) {
+        setId(id);
+        setPath(path);
+    }
+
     public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(@NotNull Integer id) {
         this.id = id;
     }
 
@@ -22,7 +36,7 @@ public class SourceDTO {
         return path;
     }
 
-    public void setPath(String path) {
+    public void setPath(@NotNull String path) {
         this.path = path;
     }
 

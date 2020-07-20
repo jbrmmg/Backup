@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 public class DuplicateManager {
-    final static private Logger LOG = LoggerFactory.getLogger(DuplicateManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DuplicateManager.class);
 
     private final ActionConfirmRepository actionConfirmRepository;
     private final SourceRepository sourceRepository;

@@ -15,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class ClassificationController {
-    final static private Logger LOG = LoggerFactory.getLogger(ClassificationController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClassificationController.class);
 
     final private ClassificationRepository classificationRepository;
 

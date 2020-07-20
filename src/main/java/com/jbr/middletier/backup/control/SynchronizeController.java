@@ -15,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class SynchronizeController {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
     final private SynchronizeRepository synchronizeRepository;
 

@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class TestBackups {
-    final static private Logger LOG = LoggerFactory.getLogger(TestBackups.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TestBackups.class);
 
     @Autowired
     ApplicationProperties applicationProperties;
@@ -41,10 +41,9 @@ public class TestBackups {
 
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
+            backupManager.initialiseDay();
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("CLEAN");
-
+            BackupDTO backupDTO = new BackupDTO("CLEAN","CLEAN");
             Backup backup = new Backup(backupDTO);
 
             CleanBackup cleanBackup = new CleanBackup(applicationProperties);
@@ -89,11 +88,11 @@ public class TestBackups {
             }
 
             File testFile = new File(backupManager.todaysDirectory() + "//Sub1//TestA.txt");
-            assertTrue(testFile.createNewFile());
+            if(!testFile.exists()) {
+                assertTrue(testFile.createNewFile());
+            }
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("ZIP");
-
+            BackupDTO backupDTO = new BackupDTO("ZIP", "ZIP");
             Backup backup = new Backup(backupDTO);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
@@ -117,8 +116,7 @@ public class TestBackups {
                 assertTrue(backedup.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("File");
+            BackupDTO backupDTO = new BackupDTO("File", "File");
             backupDTO.setDirectory("./target/testfiles/Backup");
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
@@ -178,8 +176,7 @@ public class TestBackups {
                 assertTrue(expected2.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("Git");
+            BackupDTO backupDTO = new BackupDTO("Git","Git");
             backupDTO.setDirectory("./target/testfiles/BackupGit");
             backupDTO.setBackupName("TestGit");
             backupDTO.setFileName("Fred");
@@ -204,9 +201,7 @@ public class TestBackups {
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("Nas");
-
+            BackupDTO backupDTO = new BackupDTO("NAS", "NAS");
             Backup backup = new Backup(backupDTO);
 
             NasBackup nasBackup = new NasBackup();
@@ -230,8 +225,7 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("DB");
+            BackupDTO backupDTO = new BackupDTO("DB", "DB");
             backupDTO.setDirectory("db:2:usr:pwd");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
@@ -260,9 +254,8 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("DB");
-            backupDTO.setDirectory("db:20:usr:pwd");
+            BackupDTO backupDTO = new BackupDTO("DB", "DB");
+            backupDTO.setDirectory("TestDB");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");

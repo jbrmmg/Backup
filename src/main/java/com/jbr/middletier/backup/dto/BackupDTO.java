@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
+import javax.validation.constraints.NotNull;
+
 @SuppressWarnings("unused")
 public class BackupDTO {
     private String id;
@@ -10,11 +12,21 @@ public class BackupDTO {
     private String fileName;
     private long time;
 
+    public BackupDTO() {
+        setId("");
+        setType("");
+    }
+
+    public BackupDTO(String id, String type) {
+        setId(id);
+        setType(type);
+    }
+
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NotNull String id) {
         this.id = id;
     }
 
@@ -22,7 +34,7 @@ public class BackupDTO {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(@NotNull String type) {
         this.type = type;
     }
 

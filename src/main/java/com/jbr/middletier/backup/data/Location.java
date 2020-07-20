@@ -14,36 +14,33 @@ import javax.validation.constraints.NotNull;
 public class Location {
     @Id
     @Column(name="id")
-    @NotNull
     private Integer id;
 
     @Column(name="name")
-    @NotNull
     private String name;
 
     @Column(name="size")
-    @NotNull
     private String size;
 
     @Column(name="check_duplicates")
     private Boolean checkDuplicates;
 
     public Location() {
-        this.id = 0;
-        this.name = "";
-        this.size = "";
+        setId(0);
+        setName("");
+        setSize("");
     }
 
     public Location(LocationDTO source) {
-        this.id = source.getId();
-        this.name = source.getName();
-        this.size = source.getSize();
+        setId(source.getId());
+        setName(source.getName());
+        setSize(source.getSize());
         update(source);
     }
 
     public void update(LocationDTO source) {
-        this.name = source.getName();
-        this.size = source.getSize();
+        setName(source.getName());
+        setSize(source.getSize());
         this.checkDuplicates = source.getCheckDuplicates();
     }
 
@@ -55,13 +52,11 @@ public class Location {
 
     public Boolean getCheckDuplicates() { return this.checkDuplicates; }
 
-    public void setId(Integer id) { this.id = id; }
+    public void setId(@NotNull Integer id) { this.id = id; }
 
-    public void setName(String name) { this.name = name; }
+    public void setName(@NotNull String name) { this.name = name; }
 
-    public void setSize(String size) { this.size = size; }
-
-    public void setCheckDuplicates(Boolean checkDuplicates) { this.checkDuplicates = checkDuplicates; }
+    public void setSize(@NotNull String size) { this.size = size; }
 
     @Override
     public String toString() {

@@ -24,7 +24,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/int/backup")
 public class FileController {
-    final static private Logger LOG = LoggerFactory.getLogger(FileController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileController.class);
 
     private final DriveManager driveManager;
     private final FileRepository fileRepository;
@@ -52,13 +52,12 @@ public class FileController {
         this.synchronizeManager = synchronizeManager;
     }
 
-    @RequestMapping(path="/files", method= RequestMethod.GET)
+    @GetMapping(path="/files")
     public @ResponseBody
     Iterable<FileInfo> getFiles() { return fileRepository.findAll(); }
 
-    @RequestMapping(path="/gather", method= RequestMethod.POST)
-    public @ResponseBody
-    OkStatus gather(@RequestBody String temp) {
+    @PostMapping(path="/gather")
+    public @ResponseBody OkStatus gather(@RequestBody String temp) {
         LOG.info("Process drive - " + temp);
 
         try {
@@ -71,7 +70,7 @@ public class FileController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(path="/duplicate", method= RequestMethod.POST)
+    @PostMapping(path="/duplicate")
     public @ResponseBody OkStatus duplicate(@RequestBody String temp) {
         LOG.info("Process drive - " + temp);
 
@@ -80,7 +79,7 @@ public class FileController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(path="/sync", method= RequestMethod.POST)
+    @PostMapping(path="/sync")
     public @ResponseBody OkStatus synchronize(@RequestBody String temp) {
         LOG.info("Syncronize drives - " + temp);
 
@@ -89,7 +88,7 @@ public class FileController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(path="/hierarchy",method= RequestMethod.POST)
+    @PostMapping(path="/hierarchy")
     public @ResponseBody List<HierarchyResponse> hierarchy( @RequestBody HierarchyResponse lastResponse ) {
         List<HierarchyResponse> result = new ArrayList<>();
 
@@ -150,9 +149,8 @@ public class FileController {
         return result;
     }
 
-    @RequestMapping(path="/file",method= RequestMethod.GET)
-    public @ResponseBody
-    FileInfoExtra getFile(@RequestParam Integer id ) throws Exception {
+    @GetMapping(path="/file")
+    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws Exception {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
@@ -188,7 +186,7 @@ public class FileController {
         return result;
     }
 
-    @RequestMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE,method= RequestMethod.GET)
+    @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
     public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws Exception {
         Optional<FileInfo> file = fileRepository.findById(id);
 
@@ -209,7 +207,7 @@ public class FileController {
         return Files.readAllBytes(imgPath.toPath());
     }
 
-    @RequestMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE,method=RequestMethod.GET)
+    @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws Exception {
         Optional<FileInfo> file = fileRepository.findById(id);
 
@@ -230,7 +228,7 @@ public class FileController {
         return Files.readAllBytes(imgPath.toPath());
     }
 
-    @RequestMapping(path="/file",method=RequestMethod.DELETE)
+    @DeleteMapping(path="/file")
     public @ResponseBody OkStatus deleteFile(@RequestParam Integer id) throws Exception {
         Optional<FileInfo> file = fileRepository.findById(id);
 

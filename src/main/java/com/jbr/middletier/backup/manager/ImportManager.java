@@ -173,7 +173,7 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get details of the file to import.
-        if(importFile.getFileInfo().getMD5().length() <= 0) {
+        if(importFile.getFileInfo().getMD5() == null || importFile.getFileInfo().getMD5().length() <= 0) {
             importFile.getFileInfo().setMD5(getMD5(path, importFile.getFileInfo().getClassification()));
 
             fileRepository.save(importFile.getFileInfo());

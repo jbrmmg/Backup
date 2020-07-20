@@ -14,11 +14,9 @@ import javax.validation.constraints.NotNull;
 public class Hardware {
     @Id
     @Column(name="macaddress")
-    @NotNull
     private String macAddress;
 
     @Column(name="reservedip")
-    @NotNull
     private String reservedIP;
 
     @Column(name="ip")
@@ -32,17 +30,16 @@ public class Hardware {
         reservedIP = "";
     }
 
-
     public Hardware(HardwareDTO source) {
-        this.macAddress = source.getMacAddress();
-        this.reservedIP = source.getReservedIP();
+        setMacAddress(source.getMacAddress());
+        setReservedIP(source.getReservedIP());
         update(source);
     }
 
     public void update(HardwareDTO source) {
-        this.reservedIP = source.getReservedIP();
-        this.ip = source.getIp();
-        this.name = source.getName();
+        setReservedIP(source.getReservedIP());
+        setIP(source.getIp());
+        setName(source.getName());
     }
 
     public String getMacAddress() { return this.macAddress; }
@@ -53,9 +50,9 @@ public class Hardware {
 
     public String getName() { return this.name; }
 
-    public void setMacAddress(String macAddress) { this.macAddress = macAddress; }
+    public void setMacAddress(@NotNull String macAddress) { this.macAddress = macAddress; }
 
-    public void setReservedIP(String reservedIP) { this.reservedIP = reservedIP; }
+    public void setReservedIP(@NotNull String reservedIP) { this.reservedIP = reservedIP; }
 
     public void setIP(String ip) { this.ip = ip; }
 

@@ -10,7 +10,6 @@ import javax.persistence.*;
 public class Synchronize {
     @Id
     @Column(name="id")
-    @NotNull
     private Integer id;
 
     @JoinColumn(name="source")
@@ -23,17 +22,17 @@ public class Synchronize {
 
     @SuppressWarnings("unused")
     public Synchronize() {
-        this.id = 0;
+        setId(0);
     }
 
     public Synchronize(SynchronizeDTO source) {
-        this.id = source.getId();
+        setId(source.getId());
         update(source);
     }
 
     public void update(SynchronizeDTO source) {
-        this.source = new Source(source.getSource());
-        this.destination = new Source(source.getDestination());
+        setSource(new Source(source.getSource()));
+        setDestination(new Source(source.getDestination()));
     }
 
     @NotNull

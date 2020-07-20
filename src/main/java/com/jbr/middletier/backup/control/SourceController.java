@@ -15,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class SourceController {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
     final private SourceRepository sourceRepository;
 
@@ -25,13 +25,13 @@ public class SourceController {
         this.sourceRepository = sourceRepository;
     }
 
-    @RequestMapping(path="/source", method= RequestMethod.GET)
+    @GetMapping(path="/source")
     public @ResponseBody Iterable<Source> getSource() {
         LOG.info("Get the source");
         return sourceRepository.findAll();
     }
 
-    @RequestMapping(path="/source", method=RequestMethod.POST)
+    @PostMapping(path="/source")
     public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(existing.isPresent()) {
@@ -43,7 +43,7 @@ public class SourceController {
         return sourceRepository.findAll();
     }
 
-    @RequestMapping(path="/source", method=RequestMethod.PUT)
+    @PutMapping(path="/source")
     public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
@@ -56,7 +56,7 @@ public class SourceController {
         return sourceRepository.findAll();
     }
 
-    @RequestMapping(path="/source", method=RequestMethod.DELETE)
+    @DeleteMapping(path="/source")
     public @ResponseBody Iterable<Source> deleteSource(@RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {

@@ -19,7 +19,7 @@ import static java.nio.file.StandardCopyOption.*;
 
 @Component
 public class FileBackup implements PerformBackup {
-    final static private Logger LOG = LoggerFactory.getLogger(FileBackup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileBackup.class);
 
     void performFileBackup(BackupManager backupManager, String sourceDirectory, String destinationDirectory, String artifactName, boolean weblog) throws IOException {
         // Perform a file backup.

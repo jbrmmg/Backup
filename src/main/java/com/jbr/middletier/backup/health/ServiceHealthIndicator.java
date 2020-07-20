@@ -18,7 +18,7 @@ import java.util.List;
 
 @Component
 public class ServiceHealthIndicator implements HealthIndicator {
-    final static private Logger LOG = LoggerFactory.getLogger(ServiceHealthIndicator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceHealthIndicator.class);
 
     private final ApplicationProperties applicationProperties;
 

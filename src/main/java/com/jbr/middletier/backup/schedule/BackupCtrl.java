@@ -24,7 +24,7 @@ import java.util.List;
 
 @Component
 public class BackupCtrl {
-    final static private Logger LOG = LoggerFactory.getLogger(BackupCtrl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackupCtrl.class);
 
     private final TypeManager typeManager;
     private final BackupManager backupManager;

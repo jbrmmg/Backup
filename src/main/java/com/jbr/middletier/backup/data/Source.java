@@ -11,11 +11,9 @@ import javax.validation.constraints.NotNull;
 public class Source {
     @Id
     @Column(name="id")
-    @NotNull
     private Integer id;
 
     @Column(name="path")
-    @NotNull
     private String path;
 
     @JoinColumn(name="location")
@@ -37,32 +35,32 @@ public class Source {
     public enum SourceTypeType { Standard, Import }
 
     public Source() {
-        this.id = 0;
-        this.path = "";
+        setId(0);
+        setPath("");
     }
 
     public Source(int id, String path) {
-        this.id = id;
-        this.path = path;
+        setId(id);
+        setPath(path);
         setTypeEnum(SourceTypeType.Standard);
     }
 
     public Source(SourceDTO source) {
-        this.id = source.getId();
-        this.path = source.getPath();
+        setId(source.getId());
+        setPath(source.getPath());
         update(source);
     }
 
     public void update(SourceDTO source) {
-        this.path = source.getPath();
-        this.location = new Location(source.getLocation());
-        this.status = source.getStatus();
-        this.filter = source.getFilter();
-        this.type = source.getType();
-        this.destinationId = source.getDestinationId();
+        setPath(source.getPath());
+        setLocation(new Location(source.getLocation()));
+        setStatus(source.getStatus());
+        setFilter(source.getFilter());
+        setType(source.getType());
+        setDestinationId(source.getDestinationId());
     }
 
-    public void setPath(String path) { this.path = path; }
+    public void setPath(@NotNull String path) { this.path = path; }
 
     public void setStatus(String status) { this.status = status; }
 
@@ -105,11 +103,11 @@ public class Source {
 
     public int getId() { return this.id; }
 
-    public void setId(int id) { this.id = id; }
+    public void setId(@NotNull Integer id) { this.id = id; }
 
     public Integer getDestinationId() { return this.destinationId; }
 
-    public void setDestinationId(int id) { this.destinationId = id; }
+    public void setDestinationId(Integer id) { this.destinationId = id; }
 
     public void setLocation(Location location) { this.location = location; }
 

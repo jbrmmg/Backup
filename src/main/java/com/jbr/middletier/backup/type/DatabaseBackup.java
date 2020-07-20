@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class DatabaseBackup implements PerformBackup {
-    final static private Logger LOG = LoggerFactory.getLogger(DatabaseBackup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DatabaseBackup.class);
 
     private final ApplicationProperties applicationProperties;
 

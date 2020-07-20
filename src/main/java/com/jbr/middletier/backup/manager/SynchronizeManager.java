@@ -18,7 +18,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Component
 public class SynchronizeManager {
-    final static private Logger LOG = LoggerFactory.getLogger(SynchronizeManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SynchronizeManager.class);
 
     private final SynchronizeRepository synchronizeRepository;
     private final BackupManager backupManager;

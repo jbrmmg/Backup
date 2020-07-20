@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
+import javax.validation.constraints.NotNull;
+
 @SuppressWarnings("unused")
 public class HardwareDTO {
     private String macAddress;
@@ -7,11 +9,21 @@ public class HardwareDTO {
     private String ip;
     private String name;
 
+    public HardwareDTO() {
+        setMacAddress("");
+        setReservedIP("N");
+    }
+
+    public HardwareDTO(String macAddress, String reservedIP) {
+        setMacAddress(macAddress);
+        setReservedIP(reservedIP);
+    }
+
     public String getMacAddress() {
         return macAddress;
     }
 
-    public void setMacAddress(String macAddress) {
+    public void setMacAddress(@NotNull String macAddress) {
         this.macAddress = macAddress;
     }
 
@@ -19,7 +31,7 @@ public class HardwareDTO {
         return reservedIP;
     }
 
-    public void setReservedIP(String reservedIP) {
+    public void setReservedIP(@NotNull String reservedIP) {
         this.reservedIP = reservedIP;
     }
 

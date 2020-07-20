@@ -17,11 +17,9 @@ import javax.validation.constraints.NotNull;
 public class Backup implements Comparable<Backup>{
     @Id
     @Column(name="id")
-    @NotNull
     private String id;
 
     @Column(name="type")
-    @NotNull
     private String type;
 
     @Column(name="directory")
@@ -45,14 +43,15 @@ public class Backup implements Comparable<Backup>{
     }
 
     public Backup(BackupDTO source) {
-        this.id = source.getId();
-        this.type = source.getType();
+        setId(source.getId());
+        setType(source.getType());
         update(source);
     }
 
     public void update(BackupDTO source) {
-        this.type = source.getType();
-        this.directory = source.getDirectory();
+        setType(source.getType());
+        setDirectory(source.getDirectory());
+
         this.artifact = source.getArtifact();
         this.backupName = source.getBackupName();
         this.fileName = source.getFileName();
@@ -81,9 +80,9 @@ public class Backup implements Comparable<Backup>{
 
     public String getFileName() { return this.fileName; }
 
-    public void setId(String id) { this.id = id; }
+    public void setId(@NotNull String id) { this.id = id; }
 
-    public void setType(String type) { this.type = type; }
+    public void setType(@NotNull String type) { this.type = type; }
 
     public void setDirectory(String directory) { this.directory = directory; }
 

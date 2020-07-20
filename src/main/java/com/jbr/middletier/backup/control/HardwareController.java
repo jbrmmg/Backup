@@ -18,7 +18,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/hardware")
 public class HardwareController {
-    final static private Logger LOG = LoggerFactory.getLogger(HardwareController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HardwareController.class);
 
     final private HardwareRepository hardwareRepository;
 

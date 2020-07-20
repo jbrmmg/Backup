@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class ActionManager {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionManager.class);
 
     private final ApplicationProperties applicationProperties;
     private final ActionConfirmRepository actionConfirmRepository;

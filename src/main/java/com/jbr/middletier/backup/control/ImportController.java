@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/jbr/int/backup")
 public class ImportController {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
     final private ImportManager importManager;
     final private ImportFileRepository importFileRepository;
@@ -28,7 +28,7 @@ public class ImportController {
         this.importFileRepository = importFileRepository;
     }
 
-    @RequestMapping(path="/import", method= RequestMethod.POST)
+    @PostMapping(path="/import")
     public @ResponseBody OkStatus importPhotoDirectory(@NotNull @RequestBody ImportRequest importRequest) throws Exception {
         LOG.info("Import - " + importRequest.getPath());
 
@@ -37,7 +37,7 @@ public class ImportController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(path="/import", method= RequestMethod.DELETE)
+    @DeleteMapping(path="/import")
     public @ResponseBody OkStatus removeEntries() {
         LOG.info("Remove entries from import table");
 
@@ -46,7 +46,7 @@ public class ImportController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(path="/importprocess", method= RequestMethod.POST)
+    @PostMapping(path="/importprocess")
     public @ResponseBody OkStatus importPhotoProcess() throws Exception {
         LOG.info("Import - process");
 
@@ -55,14 +55,14 @@ public class ImportController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(path="/importfiles", method= RequestMethod.GET)
+    @GetMapping(path="/importfiles")
     public @ResponseBody Iterable<ImportFile> getImportFiles() {
         LOG.info("Get the import files.");
 
         return importFileRepository.findAll();
     }
 
-    @RequestMapping(path="/importfiles", method= RequestMethod.PUT)
+    @PutMapping(path="/importfiles")
     public @ResponseBody Iterable<ImportFile> resetFiles() {
         LOG.info("Get the import files.");
 

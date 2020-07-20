@@ -1,15 +1,25 @@
 package com.jbr.middletier.backup.dto;
 
+import javax.validation.constraints.NotNull;
+
 public class SynchronizeDTO {
     private Integer id;
     private SourceDTO source;
     private SourceDTO destination;
 
+    public SynchronizeDTO() {
+        setId(0);
+    }
+
+    public SynchronizeDTO(int id) {
+        setId(id);
+    }
+
     public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(@NotNull Integer id) {
         this.id = id;
     }
 

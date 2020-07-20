@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 @Component
 public class DriveManager extends FileProcessor {
-    final static private Logger LOG = LoggerFactory.getLogger(DriveManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DriveManager.class);
 
     private final SourceRepository sourceRepository;
     private final ClassificationRepository classificationRepository;

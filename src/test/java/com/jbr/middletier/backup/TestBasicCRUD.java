@@ -22,9 +22,7 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void backupCRUD() {
         try {
-            BackupDTO backup = new BackupDTO();
-            backup.setId("TST");
-            backup.setType("WhaT");
+            BackupDTO backup = new BackupDTO("TST","WhaT");
             backup.setTime(10);
             backup.setArtifact("Test");
             backup.setBackupName("Test");
@@ -77,11 +75,8 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void locationCRUD() {
         try {
-            LocationDTO location = new LocationDTO();
-            location.setId(6);
-            location.setName("Test");
+            LocationDTO location = new LocationDTO(6,"Test", "1MB");
             location.setCheckDuplicates(false);
-            location.setSize("1MB");
 
             getMockMvc().perform(post("/jbr/ext/backup/location")
                     .content(this.json(location))
@@ -155,9 +150,7 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void hardwareCRUD() {
         try {
-            HardwareDTO hardware = new HardwareDTO();
-            hardware.setMacAddress("00:00:00:00:00:00");
-            hardware.setReservedIP("N");
+            HardwareDTO hardware = new HardwareDTO("00:00:00:00:00:00","N");
             hardware.setName("Testing");
 
             getMockMvc().perform(get("/jbr/ext/hardware")
@@ -210,12 +203,9 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void sourceCRUD() {
         try {
-            LocationDTO location = new LocationDTO();
-            location.setId(1);
-            SourceDTO source = new SourceDTO();
-            source.setId(1);
+            LocationDTO location = new LocationDTO(1,"Test", "1MB");
+            SourceDTO source = new SourceDTO(1,"C:\\Testing");
             source.setType("STD");
-            source.setPath("C:\\Testing");
             source.setLocation(location);
 
             getMockMvc().perform(get("/jbr/ext/backup/source")
@@ -267,23 +257,17 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void syncrhonizeCRUD() {
         try {
-            LocationDTO location = new LocationDTO();
-            location.setId(1);
+            LocationDTO location = new LocationDTO(1, "Test", "1MB");
 
-            SourceDTO source = new SourceDTO();
-            source.setId(1);
+            SourceDTO source = new SourceDTO(1, "C:\\TestSource1");
             source.setLocation(location);
             source.setType("STD");
-            source.setPath("C:\\TestSource1");
 
-            SourceDTO destination = new SourceDTO();
-            destination.setId(2);
+            SourceDTO destination = new SourceDTO(2,"C:\\TestSource2");
             destination.setLocation(location);
             destination.setType("STD");
-            destination.setPath("C:\\TestSource2");
 
-            SynchronizeDTO syncrhonize = new SynchronizeDTO();
-            syncrhonize.setId(1);
+            SynchronizeDTO syncrhonize = new SynchronizeDTO(1);
             syncrhonize.setSource(source);
             syncrhonize.setDestination(destination);
 
