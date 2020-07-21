@@ -28,7 +28,7 @@ public class HardwareController {
         this.hardwareRepository = hardwareRepository;
     }
 
-    @RequestMapping(path="/byId",method=RequestMethod.GET)
+    @GetMapping(path="/byId")
     public @ResponseBody Hardware specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
         LOG.info("List hardware.");
         // Check that the item exists.

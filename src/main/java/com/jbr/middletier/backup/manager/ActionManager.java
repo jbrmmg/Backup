@@ -133,10 +133,10 @@ public class ActionManager {
             // Send the email.
             LOG.info("Sending the actions email.");
             Properties properties = new Properties();
-            properties.put("mail.smtp.auth", "true");
+            properties.put("mail.smtp.auth", applicationProperties.getEmail().getAuthenticate().toString());
             properties.put("mail.smtp.starttls.enable", "true");
             properties.put("mail.smtp.host", applicationProperties.getEmail().getHost());
-            properties.put("mail.smtp.port", "25");
+            properties.put("mail.smtp.port", applicationProperties.getEmail().getPort().toString());
 
             Session session = Session.getInstance(properties,
                     new javax.mail.Authenticator() {

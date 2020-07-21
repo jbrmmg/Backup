@@ -166,6 +166,13 @@
             <artifactId>mail</artifactId>
             <version>1.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail</artifactId>
+            <version>1.5.11</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <distributionManagement>

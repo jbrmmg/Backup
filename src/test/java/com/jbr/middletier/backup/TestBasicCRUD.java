@@ -200,7 +200,7 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[0].name",is("Testing2")));
 
 
-            getMockMvc().perform(get("/jbr/ext/hardware.byId?maxAddress=00:00:00:00:00:00")
+            getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:10")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().is(404));

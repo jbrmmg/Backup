@@ -2,6 +2,8 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
+import com.jbr.middletier.backup.dataaccess.BackupRepository;
+import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.type.*;
@@ -11,9 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -24,6 +29,9 @@ public class TestBackups {
 
     @Autowired
     ApplicationProperties applicationProperties;
+
+    @Autowired
+    BackupRepository backupRepository;
 
     @Test
     public void TestCleanBackup() {
@@ -271,4 +279,35 @@ public class TestBackups {
             fail();
         }
     }
+
+    @Test
+    public void testBackupBetween() {
+        BackupDTO backupDTO = new BackupDTO();
+        backupDTO.setId("TST1");
+        backupDTO.setTime(100);
+
+        Backup backup = new Backup(backupDTO);
+        backupRepository.save(backup);
+
+        backupDTO.setId("Tst2");
+        backupDTO.setTime(200);
+        backup = new Backup(backupDTO);
+        backupRepository.save(backup);
+
+        backupDTO.setId("Tst3");
+        backupDTO.setTime(300);
+        backup = new Backup(backupDTO);
+        backupRepository.save(backup);
+
+        backupDTO.setId("Tst4");
+        backupDTO.setTime(400);
+        backup = new Backup(backupDTO);
+        backupRepository.save(backup);
+
+        List<Backup> backupList = (List<Backup>) backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(199,301)));
+        assertEquals(2,backupList.size());
+
+        backupRepository.deleteAll();;
+    }
+
 }

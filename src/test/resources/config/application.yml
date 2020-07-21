@@ -24,3 +24,12 @@ backup:
     date-format: yyyy-MM-dd
   zip-directory: ./target/testfiles/BackupDevZip
   db-url: 20:test:20
+  email:
+    host: localhost
+    port: 3025
+    authenticate: false
+    user: backups@jbrmmg.me.uk
+    password: password
+    from: backups@jbrmmg.me.uk
+    to: jason@jbrmmg.me.uk
+    enabled: true

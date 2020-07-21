@@ -36,6 +36,8 @@ public class ApplicationProperties {
         private String from;
         private String to;
         private Boolean enabled;
+        private Integer port;
+        private Boolean authenticate;
 
         public void setHost(String host) { this.host = host;}
 
@@ -49,6 +51,10 @@ public class ApplicationProperties {
 
         public void setEnabled(Boolean enabled) { this.enabled = enabled; }
 
+        public void setPort(Integer port) { this.port = port; }
+
+        public void setAuthenticate(Boolean authenticate) { this.authenticate = authenticate; }
+
         public String getHost() { return this.host; }
 
         public String getUser() { return this.user; }
@@ -60,6 +66,10 @@ public class ApplicationProperties {
         public Boolean getEnabled() { return this.enabled; }
 
         public String getTo() { return this.to; }
+
+        public Integer getPort() { return this.port; }
+
+        public Boolean getAuthenticate() { return this.authenticate; }
     }
 
     private Directory directory = new Directory();

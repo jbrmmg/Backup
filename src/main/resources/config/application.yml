@@ -37,6 +37,8 @@ backup:
   review-directory: /home/jason/Working/ImportReview
   email:
     host: smtp.ionos.co.uk
+    port: 25
+    authenticate: true
     user: backups@jbrmmg.me.uk
     password: ${email.pdn.backup.password}
     from: backups@jbrmmg.me.uk
