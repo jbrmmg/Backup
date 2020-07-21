@@ -39,6 +39,11 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            getMockMvc().perform(post("/jbr/ext/backup")
+                    .content(this.json(backup))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
+
             backup.setType("What");
             getMockMvc().perform(put("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -56,6 +61,11 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
+
+            getMockMvc().perform(get("/jbr/ext/backup/byId?id=XXX")
+                    .content(this.json(backup))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
 
             getMockMvc().perform(delete("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -164,6 +174,11 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            getMockMvc().perform(post("/jbr/ext/hardware")
+                    .content(this.json(hardware))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
+
             getMockMvc().perform(get("/jbr/ext/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
@@ -183,6 +198,12 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].name",is("Testing2")));
+
+
+            getMockMvc().perform(get("/jbr/ext/hardware.byId?maxAddress=00:00:00:00:00:00")
+                    .content(this.json(hardware))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
 
             getMockMvc().perform(delete("/jbr/ext/hardware")
                     .content(this.json(hardware))

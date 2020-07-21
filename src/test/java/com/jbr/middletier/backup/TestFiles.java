@@ -533,6 +533,13 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            confirmActionRequest.setId(300);
+
+            getMockMvc().perform(post("/jbr/int/backup/actions")
+                    .content(this.json(confirmActionRequest))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
             getMockMvc().perform(put("/jbr/int/backup/importfiles")
                     .content(this.json(importRequest))
                     .contentType(getContentType()))
