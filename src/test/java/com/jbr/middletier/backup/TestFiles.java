@@ -1,10 +1,7 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.data.ActionConfirm;
-import com.jbr.middletier.backup.data.ConfirmActionRequest;
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.ImportRequest;
+import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.dto.LocationDTO;
@@ -12,6 +9,8 @@ import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration
 public class TestFiles extends WebTester {
+    private static final Logger LOG = LoggerFactory.getLogger(TestFiles.class);
+
     @Autowired
     private FileRepository fileRepository;
 
@@ -46,6 +47,9 @@ public class TestFiles extends WebTester {
 
     @Autowired
     private ImportFileRepository importFileRepository;
+
+    @Autowired
+    private SourceRepository sourceRepository;
 
     @Test
     public void testGather() {
@@ -138,6 +142,10 @@ public class TestFiles extends WebTester {
     @Test
     public void testFileWeb() {
         try {
+            for(Source next: sourceRepository.findAll()) {
+                LOG.info("Source {}",next.getId());
+            }
+
             // get the current working directory.
             String cwd = System.getProperty("user.dir");
 
@@ -417,6 +425,12 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            source.setId(2);
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
             String temp = "testing";
             getMockMvc().perform(get("/jbr/int/backup/files")
                     .content(this.json(temp))
@@ -550,6 +564,12 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            source.setId(2);
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
             String temp = "testing";
             getMockMvc().perform(get("/jbr/int/backup/files")
                     .content(this.json(temp))
@@ -608,6 +628,9 @@ public class TestFiles extends WebTester {
 
             File testFileB2 = new File("./target/testfiles/gather2/Sub/fileB.txt");
             assertTrue(testFileB2.createNewFile());
+
+            File testFileC2 = new File("./target/testfiles/gather2/Sub/fileC.txt");
+            assertFalse(testFileC2.exists());
 
             // Setup a new source
             LocationDTO location = new LocationDTO();
@@ -670,7 +693,8 @@ public class TestFiles extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(8)));
+                    .andExpect(jsonPath("$", hasSize(10)));
+            assertTrue(testFileC2.exists());
 
             // Clear out the data.
             fileRepository.deleteAll();
@@ -696,6 +720,214 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
+        } catch(Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testDuplicate() {
+        try {
+            // get the current working directory.
+            String cwd = System.getProperty("user.dir");
+
+            // Setup a directory structure.
+            //   ./target/testfiles/gather
+            //                       fileA.txt
+            //                       fileB.txt
+
+            File testPath = new File("./target/testfiles/duplicate");
+            if (testPath.exists()) {
+                FileUtils.cleanDirectory(testPath);
+                assertTrue(testPath.delete());
+            }
+
+            assertTrue(testPath.mkdirs());
+
+            File subPath = new File("./target/testfiles/duplicate/Sub");
+            assertTrue(subPath.mkdir());
+
+            File subPath2 = new File("./target/testfiles/duplicate/Sub2");
+            assertTrue(subPath2.mkdir());
+
+            File testFileA = new File("./target/testfiles/duplicate/Sub/fileA.txt");
+            assertTrue(testFileA.createNewFile());
+
+            File testFileB = new File("./target/testfiles/duplicate/Sub/fileB.txt");
+            assertTrue(testFileB.createNewFile());
+
+            File testFileC = new File("./target/testfiles/duplicate/Sub/fileC.txt");
+            assertTrue(testFileC.createNewFile());
+
+            File testFileB2 = new File("./target/testfiles/duplicate/Sub2/fileB.txt");
+            assertTrue(testFileB2.createNewFile());
+
+            // Setup a new source
+            LocationDTO location = new LocationDTO(1,"Main Shared Drive", "1.8TB");
+            location.setCheckDuplicates(true);
+
+            SourceDTO source = new SourceDTO();
+            source.setId(1);
+            source.setType("STD");
+            source.setPath(cwd + "/target/testfiles/duplicate");
+            source.setLocation(location);
+
+            getMockMvc().perform(post("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(put("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            // Perform the gather
+            String temp = "testing";
+            getMockMvc().perform(post("/jbr/int/backup/gather")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(post("/jbr/int/backup/duplicate")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(get("/jbr/int/backup/actions")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(2)));
+
+            // Clear out the data.
+            actionConfirmRepository.deleteAll();
+            ignoreFileRepository.deleteAll();
+            importFileRepository.deleteAll();
+            fileRepository.deleteAll();
+            directoryRepository.deleteAll();
+
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            temp = "testing";
+            getMockMvc().perform(get("/jbr/int/backup/files")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(0)));
+
+        } catch(Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testHierarchy() {
+        try {
+            // get the current working directory.
+            String cwd = System.getProperty("user.dir");
+
+            // Setup a directory structure.
+            //   ./target/testfiles/gather
+            //                       fileA.txt
+            //                       fileB.txt
+
+            File testPath = new File("./target/testfiles/duplicate");
+            if (testPath.exists()) {
+                FileUtils.cleanDirectory(testPath);
+                assertTrue(testPath.delete());
+            }
+
+            assertTrue(testPath.mkdirs());
+
+            File subPath = new File("./target/testfiles/duplicate/Sub");
+            assertTrue(subPath.mkdir());
+
+            File subPath2 = new File("./target/testfiles/duplicate/Sub2");
+            assertTrue(subPath2.mkdir());
+
+            File testFileA = new File("./target/testfiles/duplicate/Sub/fileA.txt");
+            assertTrue(testFileA.createNewFile());
+
+            File testFileB = new File("./target/testfiles/duplicate/Sub/fileB.txt");
+            assertTrue(testFileB.createNewFile());
+
+            File testFileC = new File("./target/testfiles/duplicate/Sub/fileC.txt");
+            assertTrue(testFileC.createNewFile());
+
+            File testFileB2 = new File("./target/testfiles/duplicate/Sub2/fileB.txt");
+            assertTrue(testFileB2.createNewFile());
+
+            LocationDTO location = new LocationDTO();
+            location.setId(1);
+
+            SourceDTO source = new SourceDTO();
+            source.setId(1);
+            source.setType("STD");
+            source.setPath(cwd + "/target/testfiles/duplicate");
+            source.setLocation(location);
+
+            getMockMvc().perform(post("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            SynchronizeDTO synchronize = new SynchronizeDTO(1);
+            synchronize.setSource(source);
+            synchronize.setDestination(source);
+
+            getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+                    .content(this.json(synchronize))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            // Perform the gather
+            String temp = "testing";
+            getMockMvc().perform(post("/jbr/int/backup/gather")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            HierarchyResponse hierarchy = new HierarchyResponse();
+            hierarchy.setId(-1);
+
+            getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+                    .content(this.json(hierarchy))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)));
+
+            hierarchy.setId(1);
+
+            getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+                    .content(this.json(hierarchy))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(2)));
+
+            // Clear out the data.
+            fileRepository.deleteAll();
+            directoryRepository.deleteAll();
+
+            getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+                    .content(this.json(synchronize))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(get("/jbr/int/backup/files")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(0)));
+
         } catch(Exception ex) {
             fail();
         }

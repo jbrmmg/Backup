@@ -184,6 +184,11 @@ public class SynchronizeManager {
             }
 
             for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
+                if(nextStatus.getClassification() == null) {
+                    LOG.warn("Unknown classification on file {}", nextStatus.getSourceFile().getId());
+                    continue;
+                }
+
                 // Perform the appropriate actions
                 switch(nextStatus.getClassification().getAction()) {
                     case "BACKUP":
