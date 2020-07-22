@@ -233,14 +233,10 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            try {
-                getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + id2)
-                        .content(this.json(temp))
-                        .contentType(getContentType()))
-                        .andExpect(status().isOk());
-            } catch (Exception ex) {
-                assertTrue(true);
-            }
+            getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + id2)
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(400));
 
             getMockMvc().perform(delete("/jbr/int/backup/file?id=" + id1)
                     .content(this.json(temp))
@@ -262,38 +258,28 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
-        } catch (Exception ex) {
-            fail();
-        }
 
-        try {
-            String temp = "testing";
             getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=3")
                     .content(this.json(temp))
                     .contentType(getContentType()))
-                    .andExpect(status().isOk());
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+                    .andExpect(status().is(404));
 
-        try {
-            String temp = "testing";
             getMockMvc().perform(get("/jbr/int/backup/fileImage?id=3")
                     .content(this.json(temp))
                     .contentType(getContentType()))
-                    .andExpect(status().isOk());
-        } catch (Exception ex) {
-            assertTrue(true);
-        }
+                    .andExpect(status().is(404));
 
-        try {
-            String temp = "testing";
             getMockMvc().perform(get("/jbr/int/backup/file?id=3")
                     .content(this.json(temp))
                     .contentType(getContentType()))
-                    .andExpect(status().isOk());
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(delete("/jbr/int/backup/file?id=3")
+                    .content(this.json(temp))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
         } catch (Exception ex) {
-            assertTrue(true);
+            fail();
         }
     }
 
@@ -868,6 +854,9 @@ public class TestFiles extends WebTester {
             File testFileB2 = new File("./target/testfiles/duplicate/Sub2/fileB.txt");
             assertTrue(testFileB2.createNewFile());
 
+            File testFileD = new File("./target/testfiles/duplicate/fileD.txt");
+            assertTrue(testFileD.createNewFile());
+
             LocationDTO location = new LocationDTO();
             location.setId(1);
 
@@ -908,12 +897,13 @@ public class TestFiles extends WebTester {
                     .andExpect(jsonPath("$", hasSize(1)));
 
             hierarchy.setId(1);
+            hierarchy.setUnderlyingId(2);
 
             getMockMvc().perform(post("/jbr/int/backup/hierarchy")
                     .content(this.json(hierarchy))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(2)));
+                    .andExpect(jsonPath("$", hasSize(3)));
 
             // Clear out the data.
             fileRepository.deleteAll();

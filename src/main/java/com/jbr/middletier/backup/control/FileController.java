@@ -5,6 +5,8 @@ import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.exception.InvalidFileIdException;
+import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.DriveManager;
 import com.jbr.middletier.backup.manager.DuplicateManager;
 import com.jbr.middletier.backup.manager.SynchronizeManager;
@@ -16,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,22 +60,17 @@ public class FileController {
     Iterable<FileInfo> getFiles() { return fileRepository.findAll(); }
 
     @PostMapping(path="/gather")
-    public @ResponseBody OkStatus gather(@RequestBody String temp) {
-        LOG.info("Process drive - " + temp);
+    public @ResponseBody OkStatus gather(@RequestBody String reason) throws Exception {
+        LOG.info("Process drive - {}", reason);
 
-        try {
-            driveManager.gather();
-        } catch (Exception e) {
-            OkStatus status = new OkStatus();
-            status.setStatus("Failed - " + e.toString());
-        }
+        driveManager.gather();
 
         return OkStatus.getOkStatus();
     }
 
     @PostMapping(path="/duplicate")
     public @ResponseBody OkStatus duplicate(@RequestBody String temp) {
-        LOG.info("Process drive - " + temp);
+        LOG.info("Process drive - {}", temp);
 
         duplicateManager.duplicateCheck();
 
@@ -81,7 +79,7 @@ public class FileController {
 
     @PostMapping(path="/sync")
     public @ResponseBody OkStatus synchronize(@RequestBody String temp) {
-        LOG.info("Syncronize drives - " + temp);
+        LOG.info("Syncronize drives - {}", temp);
 
         synchronizeManager.synchronize();
 
@@ -96,23 +94,13 @@ public class FileController {
         if(lastResponse.getId() == -1) {
             // Level 1 - get those sources that are the left hand side of synchronisation.
             for(Synchronize nextSynchronize: synchronizeRepository.findAll()) {
-                boolean alreadyAdded = false;
+                HierarchyResponse response = new HierarchyResponse(nextSynchronize.getSource().getId(),0,"/",-1);
 
-                for(HierarchyResponse nextResponse: result) {
-                    if(nextResponse.getId() == nextSynchronize.getSource().getId()) {
-                        alreadyAdded = true;
-                    }
-                }
+                String[] directories = nextSynchronize.getSource().getPath().split("/");
 
-                if(!alreadyAdded) {
-                    HierarchyResponse response = new HierarchyResponse(nextSynchronize.getSource().getId(),0,"/",-1);
+                response.setDisplayName(directories[directories.length-1]);
 
-                    String[] directories = nextSynchronize.getSource().getPath().split("/");
-
-                    response.setDisplayName(directories[directories.length-1]);
-
-                    result.add(response);
-                }
+                result.add(response);
             }
 
             return result;
@@ -150,11 +138,11 @@ public class FileController {
     }
 
     @GetMapping(path="/file")
-    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws Exception {
+    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws InvalidFileIdException {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
-            throw new Exception(id + " does not exist");
+            throw new InvalidFileIdException(id);
         }
 
         FileInfoExtra result = new FileInfoExtra(file.get());
@@ -187,53 +175,51 @@ public class FileController {
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws Exception {
+    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
-            throw new Exception(id + " does not exist");
+            throw new InvalidFileIdException(id);
         }
 
         // Is this an image file
-        if(!file.get().getClassification().getIsImage()) {
-            return null;
+        if(file.get().getClassification() == null || !file.get().getClassification().getIsImage()) {
+            throw new InvalidMediaTypeException("image");
         }
 
-        String filename = file.get().getDirectoryInfo().getSource().getPath() + file.get().getDirectoryInfo().getPath() + "/" + file.get().getName();
-        LOG.info("Get file: " + filename);
+        LOG.info("Get file: {}", file.get().getFullFilename());
 
-        File imgPath = new File(filename);
+        File imgPath = new File(file.get().getFullFilename());
 
         return Files.readAllBytes(imgPath.toPath());
     }
 
     @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws Exception {
+    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
-            throw new Exception(id + " does not exist");
+            throw new InvalidFileIdException(id);
         }
 
         // Is this a video file?
-        if(!file.get().getClassification().getIsVideo()) {
-            return null;
+        if(file.get().getClassification() == null || !file.get().getClassification().getIsVideo()) {
+            throw new InvalidMediaTypeException("video");
         }
 
-        String filename = file.get().getDirectoryInfo().getSource().getPath() + file.get().getDirectoryInfo().getPath() + "/" + file.get().getName();
-        LOG.info("Get file: " + filename);
+        LOG.info("Get file: {}", file.get().getFullFilename());
 
-        File imgPath = new File(filename);
+        File imgPath = new File(file.get().getFullFilename());
 
         return Files.readAllBytes(imgPath.toPath());
     }
 
     @DeleteMapping(path="/file")
-    public @ResponseBody OkStatus deleteFile(@RequestParam Integer id) throws Exception {
+    public @ResponseBody OkStatus deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
-            throw new Exception(id + " does not exist");
+            throw new InvalidFileIdException(id);
         }
 
         // Create a delete request.

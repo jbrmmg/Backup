@@ -37,6 +37,16 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Invalid hardware id", ex));
     }
 
+    @ExceptionHandler(InvalidFileIdException.class)
+    protected ResponseEntity<Object> handleInvalidFileId(InvalidFileIdException ex) {
+        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Invalid file id", ex));
+    }
+
+    @ExceptionHandler({InvalidMediaTypeException.class})
+    public ResponseEntity<Object> handleInvalidMidiaTypeException(InvalidMediaTypeException ex) {
+        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Invalid file type for request.",ex));
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Unexpected Exception",ex));
