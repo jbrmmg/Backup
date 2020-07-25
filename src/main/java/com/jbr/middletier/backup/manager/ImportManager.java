@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,13 +67,13 @@ public class ImportManager extends FileProcessor {
         // Check the path exists
         File importPath = new File(importRequest.getPath());
         if(!importPath.exists()) {
-            throw new IOException("The path does not exist - " + importPath);
+            throw new ImportRequestException("The path does not exist - " + importPath);
         }
 
         // Validate the source.
         Optional<Source> source = sourceRepository.findById(importRequest.getSource());
         if(!source.isPresent()) {
-            throw new  IOException("The source does not exist - " + importRequest.getSource());
+            throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
         int nextId = 0;
@@ -96,7 +97,7 @@ public class ImportManager extends FileProcessor {
 
         // Create a source to match this import
         Source importSource = new Source(nextId,importRequest.getPath());
-        importSource.setTypeEnum(Source.SourceTypeType.Import);
+        importSource.setTypeEnum(Source.SourceTypeType.IMPORT);
         importSource.setDestinationId(source.get().getId());
         importSource.setLocation(importLocation.get());
 
@@ -114,7 +115,7 @@ public class ImportManager extends FileProcessor {
     public void clearImports() throws Exception {
         // Remove the files associated with imports - first remove files, then directories then source.
         for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getTypeEnum() == Source.SourceTypeType.Import) {
+            if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
                 for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
                     for(FileInfo nextFile: fileRepository.findByDirectoryInfoId(nextDirectory.getId())) {
                         fileRepository.delete(nextFile);
@@ -291,19 +292,19 @@ public class ImportManager extends FileProcessor {
         Optional<Source> source = Optional.empty();
 
         for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getTypeEnum() == Source.SourceTypeType.Import) {
+            if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
                 source = Optional.of(nextSource);
             }
         }
 
         if(!source.isPresent()) {
-            throw new Exception("There is no import source defined.");
+            throw new ImportRequestException("There is no import source defined.");
         }
 
         // Get the place they are to be imported to.
         Optional<Source> destination = sourceRepository.findById(source.get().getDestinationId());
         if(!destination.isPresent()) {
-            throw new Exception("The destination is invalid.");
+            throw new ImportRequestException("Destination for import is not found.");
         }
 
         for(ImportFile nextFile: importFileRepository.findAll()) {

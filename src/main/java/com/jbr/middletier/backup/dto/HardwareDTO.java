@@ -2,7 +2,7 @@ package com.jbr.middletier.backup.dto;
 
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class HardwareDTO {
     private String macAddress;
     private String reservedIP;

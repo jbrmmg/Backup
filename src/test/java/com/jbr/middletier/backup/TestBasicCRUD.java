@@ -1,9 +1,12 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -19,6 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration
 public class TestBasicCRUD extends WebTester {
+    @Autowired
+    ClassificationRepository classificationRepository;
+
     @Test
     public void backupCRUD() {
         try {
@@ -118,6 +124,8 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void classificationCRUD() {
         try {
+            int classificationCount = (int)classificationRepository.count();
+
             /*
              * NOTE: assumes that classifications entered by liquibase are constant, if you add one then you
              * will need update the counts.
@@ -131,10 +139,17 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(33)));
+                    .andExpect(jsonPath("$", hasSize(classificationCount + 1)));
+
+            int id = 0;
+            for(Classification next: classificationRepository.findAll()) {
+                if(next.getAction().equals("FRED")) {
+                    id = next.getId();
+                }
+            }
 
             classification = new ClassificationDTO();
-            classification.setId(33);
+            classification.setId(id);
             classification.setOrder(1);
             classification.setAction("FRED2");
             classification.setUseMD5(false);
@@ -143,7 +158,7 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(33)))
+                    .andExpect(jsonPath("$", hasSize(classificationCount + 1)))
                     .andExpect(jsonPath("$[32].action",is("FRED2")));
 
 
@@ -151,7 +166,7 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(32)));
+                    .andExpect(jsonPath("$", hasSize(classificationCount)));
         } catch (Exception ex) {
             fail();
         }

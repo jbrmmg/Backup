@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.dto;
 
 import javax.validation.constraints.NotNull;
 
+@SuppressWarnings("unused")
 public class SynchronizeDTO {
     private Integer id;
     private SourceDTO source;

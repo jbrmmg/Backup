@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.dto;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
 
 @SuppressWarnings("unused")
 public class LocationDTO {

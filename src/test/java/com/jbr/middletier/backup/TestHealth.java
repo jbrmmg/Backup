@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 public class TestHealth extends WebTester {
     @Test
-    public void TestHealth() throws Exception {
+    public void TestHealthURL() throws Exception {
         getMockMvc().perform(get("/actuator/health")
                 .contentType(getContentType()))
                 .andExpect(status().isOk());

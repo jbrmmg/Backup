@@ -2,7 +2,6 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.ActionConfirm;
-import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;

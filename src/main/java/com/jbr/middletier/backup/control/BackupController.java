@@ -4,7 +4,6 @@ import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
-import com.jbr.middletier.backup.exception.ActionNotFoundException;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
 import org.jetbrains.annotations.Contract;

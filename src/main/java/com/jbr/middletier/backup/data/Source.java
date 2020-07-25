@@ -5,7 +5,7 @@ import com.jbr.middletier.backup.dto.SourceDTO;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings({"unused", "DefaultAnnotationParam"})
+@SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
 @Table(name="source")
 public class Source {
@@ -32,7 +32,7 @@ public class Source {
     @Column(name="destination")
     private Integer destinationId;
 
-    public enum SourceTypeType { Standard, Import }
+    public enum SourceTypeType { STANDARD, IMPORT }
 
     public Source() {
         setId(0);
@@ -42,7 +42,7 @@ public class Source {
     public Source(int id, String path) {
         setId(id);
         setPath(path);
-        setTypeEnum(SourceTypeType.Standard);
+        setTypeEnum(SourceTypeType.STANDARD);
     }
 
     public Source(SourceDTO source) {
@@ -79,9 +79,9 @@ public class Source {
     public SourceTypeType getTypeEnum() throws Exception {
         switch(this.getType()) {
             case "STD":
-                return SourceTypeType.Standard;
+                return SourceTypeType.STANDARD;
             case "IMP":
-                return SourceTypeType.Import;
+                return SourceTypeType.IMPORT;
             default:
                 throw new Exception(this.getType() + " invalid type");
         }
@@ -89,10 +89,10 @@ public class Source {
 
     public void setTypeEnum(SourceTypeType type) {
         switch(type) {
-            case Standard:
+            case STANDARD:
                 this.type = "STD";
                 break;
-            case Import:
+            case IMPORT:
                 this.type = "IMP";
                 break;
         }

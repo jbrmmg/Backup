@@ -57,7 +57,7 @@ public class DriveManager extends FileProcessor {
                 continue;
             }
 
-            if(nextSource.getTypeEnum() != Source.SourceTypeType.Standard ) {
+            if(nextSource.getTypeEnum() != Source.SourceTypeType.STANDARD ) {
                 continue;
             }
 

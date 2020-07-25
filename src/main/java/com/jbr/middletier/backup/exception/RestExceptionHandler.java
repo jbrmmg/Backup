@@ -47,6 +47,11 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Invalid file type for request.",ex));
     }
 
+    @ExceptionHandler({ImportRequestException.class})
+    public ResponseEntity<Object> handleAll(ImportRequestException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Cannot find source or import directory",ex));
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Unexpected Exception",ex));

@@ -3,7 +3,6 @@ package com.jbr.middletier.backup;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import org.junit.Before;
@@ -21,6 +20,7 @@ import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("FieldCanBeLocal")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration

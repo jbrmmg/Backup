@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+@SuppressWarnings("unchecked")
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class TestBackups {
@@ -325,7 +326,7 @@ public class TestBackups {
         List<Backup> backupList = (List<Backup>) backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(199,301)));
         assertEquals(2,backupList.size());
 
-        backupRepository.deleteAll();;
+        backupRepository.deleteAll();
     }
 
     @Test
