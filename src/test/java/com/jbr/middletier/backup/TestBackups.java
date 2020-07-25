@@ -146,6 +146,7 @@ public class TestBackups {
             if (testFile.exists()) {
                 assertTrue(testFile.delete());
             }
+            assertTrue(testFile.getParentFile().mkdirs());
             assertTrue(testFile.createNewFile());
 
             Backup backup = new Backup(backupDTO);
@@ -165,6 +166,10 @@ public class TestBackups {
     @Test
     public void TestGitBackup() {
         try {
+            File backupDir = new File("./target/testfiles/Backup");
+            if (!backupDir.exists()) {
+                assertTrue(backupDir.mkdirs());
+            }
             File source = new File("./target/testfiles/BackupGit");
             if (!source.exists()) {
                 assertTrue(source.mkdirs());
@@ -240,6 +245,11 @@ public class TestBackups {
     @Test
     public void TestDatabaseBackup() {
         try {
+            File backupDir = new File("./target/testfiles/Backup");
+            if (!backupDir.exists()) {
+                assertTrue(backupDir.mkdirs());
+            }
+
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
 
@@ -272,6 +282,11 @@ public class TestBackups {
     @Test
     public void TestDatabaseBackupTimeout() {
         try {
+            File backupDir = new File("./target/testfiles/Backup");
+            if (!backupDir.exists()) {
+                assertTrue(backupDir.mkdirs());
+            }
+
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
 
