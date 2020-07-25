@@ -21,6 +21,7 @@ public class MiddleTier {
     private static final Logger log = LoggerFactory.getLogger(MiddleTier.class);
 
     public static void main(String[] args) {
+        log.info("Starting up.");
         SpringApplication app = new SpringApplication(MiddleTier.class);
         DefaultProfileUtil.addDefaultProfile(app);
         app.run();

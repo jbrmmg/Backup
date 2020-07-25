@@ -49,7 +49,7 @@ public class BackupCtrl {
 
             // Process backups.
             for (Backup backup : backups) {
-                LOG.info(String.format("Perform backup %s.",backup.getId()));
+                LOG.info("Perform backup {}",backup.getId());
 
                 // Get the backup type.
                 PerformBackup performBackup = typeManager.getBackup(backup.getType());

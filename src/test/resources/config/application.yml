@@ -13,10 +13,12 @@ spring:
 backup:
   db-backup-command: sleep $$server$$ | echo Done > $$todaydir$$/$$backupname$$/$$output$$.sql
   db-backup-max-time: 8
-  web-log-url:
+  web-log-url: http://localhost:10001/jbr/int/log/data
   schedule: 0 0/1 * ? * *
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false
+  service-name: test-backup
+  enabled: true
   directory:
     name: ./target/testfiles/Backup
     days: 10

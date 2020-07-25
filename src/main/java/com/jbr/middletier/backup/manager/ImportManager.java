@@ -24,7 +24,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Component
 public class ImportManager extends FileProcessor {
-    private final static Logger LOG = LoggerFactory.getLogger(ImportManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
     private final ImportFileRepository importFileRepository;
     private final SourceRepository sourceRepository;

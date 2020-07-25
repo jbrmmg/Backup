@@ -6,7 +6,7 @@ import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
-import com.jbr.middletier.backup.type.*;
+import com.jbr.middletier.backup.schedule.BackupCtrl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -33,6 +33,14 @@ public class TestBackups {
     @Autowired
     BackupRepository backupRepository;
 
+    @Autowired
+    BackupCtrl backupCtrl;
+
+    private int GetBackupTime() {
+        Calendar calendar = Calendar.getInstance();
+        return calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE) - 5;
+    }
+
     @Test
     public void TestCleanBackup() {
         try {
@@ -47,17 +55,16 @@ public class TestBackups {
                 fail();
             }
 
-            // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
-            backupManager.initialiseDay();
-
-            BackupDTO backupDTO = new BackupDTO("CLEAN","CLEAN");
+            BackupDTO backupDTO = new BackupDTO("CLN","clean");
+            backupDTO.setTime(GetBackupTime());
             Backup backup = new Backup(backupDTO);
 
-            CleanBackup cleanBackup = new CleanBackup(applicationProperties);
-            cleanBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertFalse(testFile.exists());
+
+            backupRepository.deleteAll();
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -100,13 +107,16 @@ public class TestBackups {
                 assertTrue(testFile.createNewFile());
             }
 
-            BackupDTO backupDTO = new BackupDTO("ZIP", "ZIP");
+            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            backupDTO.setTime(GetBackupTime());
             Backup backup = new Backup(backupDTO);
 
-            ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertTrue(backupZip.exists());
+
+            backupRepository.deleteAll();
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -124,11 +134,12 @@ public class TestBackups {
                 assertTrue(backedup.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("File", "File");
+            BackupDTO backupDTO = new BackupDTO("File", "file");
             backupDTO.setDirectory("./target/testfiles/Backup");
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.txt");
+            backupDTO.setTime(GetBackupTime());
 
             File testFile = new File("./target/testfiles/Backup/test.txt");
             if (testFile.exists()) {
@@ -138,10 +149,12 @@ public class TestBackups {
 
             Backup backup = new Backup(backupDTO);
 
-            FileBackup fileBackup = new FileBackup();
-            fileBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertTrue(backedup.exists());
+
+            backupRepository.deleteAll();
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -184,19 +197,22 @@ public class TestBackups {
                 assertTrue(expected2.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("Git","Git");
+            BackupDTO backupDTO = new BackupDTO("Git","git");
             backupDTO.setDirectory("./target/testfiles/BackupGit");
             backupDTO.setBackupName("TestGit");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.txt");
+            backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
 
-            GitBackup gitBackup = new GitBackup();
-            gitBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertTrue(expected1.exists());
             assertFalse(expected2.exists());
+
+            backupRepository.deleteAll();
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -207,13 +223,11 @@ public class TestBackups {
     public void TestNasBackup() {
         try {
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
-
-            BackupDTO backupDTO = new BackupDTO("NAS", "NAS");
+            BackupDTO backupDTO = new BackupDTO("NAS", "nas");
             Backup backup = new Backup(backupDTO);
 
-            NasBackup nasBackup = new NasBackup();
-            nasBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertTrue(true);
         } catch (Exception ex) {
@@ -233,18 +247,21 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("DB", "DB");
+            BackupDTO backupDTO = new BackupDTO("DB", "database");
             backupDTO.setDirectory("db:2:usr:pwd");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");
+            backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
 
-            DatabaseBackup dbBackup = new DatabaseBackup(applicationProperties);
-            dbBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertTrue(expected1.exists());
+
+            backupRepository.deleteAll();
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -262,16 +279,17 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("DB", "DB");
+            BackupDTO backupDTO = new BackupDTO("DB", "database");
             backupDTO.setDirectory("TestDB");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");
+            backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
 
-            DatabaseBackup dbBackup = new DatabaseBackup(applicationProperties);
-            dbBackup.performBackup(backupManager, backup);
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
 
             assertTrue(expected1.exists());
         } catch (Exception ex) {
@@ -281,7 +299,7 @@ public class TestBackups {
     }
 
     @Test
-    public void testBackupBetween() {
+    public void TestBackupBetween() {
         BackupDTO backupDTO = new BackupDTO();
         backupDTO.setId("TST1");
         backupDTO.setTime(100);
@@ -310,4 +328,22 @@ public class TestBackups {
         backupRepository.deleteAll();;
     }
 
+    @Test
+    public void TestInvalidType() {
+        try {
+            // Perform the test.
+            BackupDTO backupDTO = new BackupDTO("BOB", "bob");
+            backupDTO.setTime(GetBackupTime());
+
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            assertTrue(true);
+        }
+
+        backupRepository.deleteAll();
+    }
 }

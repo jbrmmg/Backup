@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GatherSynchronizeCtrl {
-    private static final Logger LOG = LoggerFactory.getLogger(BackupCtrl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GatherSynchronizeCtrl.class);
 
     private final ApplicationProperties applicationProperties;
     private final ActionManager emailManager;
