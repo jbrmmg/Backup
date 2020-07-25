@@ -102,6 +102,11 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[4].id",is(6)))
                     .andExpect(jsonPath("$[4].name",is("Test")));
 
+            getMockMvc().perform(post("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
+
             location.setName("TestUpd");
             getMockMvc().perform(put("/jbr/ext/backup/location")
                     .content(this.json(location))
@@ -112,6 +117,22 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[4].name",is("TestUpd")));
 
             getMockMvc().perform(delete("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(4)));
+
+            getMockMvc().perform(put("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(delete("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(get("/jbr/ext/backup/location")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())

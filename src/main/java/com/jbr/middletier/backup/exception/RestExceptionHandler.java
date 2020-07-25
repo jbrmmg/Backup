@@ -82,6 +82,16 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.CONFLICT,"Classification id must be null on create",ex));
     }
 
+    @ExceptionHandler({InvalidLocationIdException.class})
+    public ResponseEntity<Object> handleAll(InvalidLocationIdException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Location not found",ex));
+    }
+
+    @ExceptionHandler({LocationAlreadyExistsException.class})
+    public ResponseEntity<Object> handleAll(LocationAlreadyExistsException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.CONFLICT,"Location already exists",ex));
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Unexpected Exception",ex));

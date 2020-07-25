@@ -230,23 +230,6 @@ public class TestBackups {
     }
 
     @Test
-    public void TestNasBackup() {
-        try {
-            // Perform the test.
-            BackupDTO backupDTO = new BackupDTO("NAS", "nas");
-            Backup backup = new Backup(backupDTO);
-
-            backupRepository.save(backup);
-            backupCtrl.scheduleBackup();
-
-            assertTrue(true);
-        } catch (Exception ex) {
-            LOG.error("Test failed - ", ex);
-            fail();
-        }
-    }
-
-    @Test
     public void TestDatabaseBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
