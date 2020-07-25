@@ -102,6 +102,11 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[4].id",is(6)))
                     .andExpect(jsonPath("$[4].name",is("Test")));
 
+            getMockMvc().perform(post("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
+
             location.setName("TestUpd");
             getMockMvc().perform(put("/jbr/ext/backup/location")
                     .content(this.json(location))
@@ -112,6 +117,22 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[4].name",is("TestUpd")));
 
             getMockMvc().perform(delete("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(4)));
+
+            getMockMvc().perform(put("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(delete("/jbr/ext/backup/location")
+                    .content(this.json(location))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(get("/jbr/ext/backup/location")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -161,12 +182,32 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$", hasSize(classificationCount + 1)))
                     .andExpect(jsonPath("$[32].action",is("FRED2")));
 
+            getMockMvc().perform(get("/jbr/ext/backup/classification")
+                    .content(this.json(classification))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(classificationCount + 1)));
 
             getMockMvc().perform(delete("/jbr/ext/backup/classification")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount)));
+
+            getMockMvc().perform(put("/jbr/ext/backup/classification")
+                    .content(this.json(classification))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(delete("/jbr/ext/backup/classification")
+                    .content(this.json(classification))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(post("/jbr/ext/backup/classification")
+                    .content(this.json(classification))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
         } catch (Exception ex) {
             fail();
         }
@@ -255,6 +296,11 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            getMockMvc().perform(post("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
+
             getMockMvc().perform(get("/jbr/ext/backup/source")
                     .content(this.json(source))
                     .contentType(getContentType()))
@@ -285,6 +331,16 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
+
+            getMockMvc().perform(put("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(delete("/jbr/ext/backup/source")
+                    .content(this.json(source))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
         } catch (Exception ex) {
             fail();
         }
@@ -328,6 +384,16 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+                    .content(this.json(syncrhonize))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(409));
+
+            getMockMvc().perform(put("/jbr/ext/backup/synchronize")
+                    .content(this.json(syncrhonize))
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
             getMockMvc().perform(get("/jbr/ext/backup/synchronize")
                     .content(this.json(syncrhonize))
                     .contentType(getContentType()))
@@ -339,6 +405,16 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(syncrhonize))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
+
+            getMockMvc().perform(put("/jbr/ext/backup/synchronize")
+                    .content(this.json(syncrhonize))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
+
+            getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+                    .content(this.json(syncrhonize))
+                    .contentType(getContentType()))
+                    .andExpect(status().is(404));
 
             getMockMvc().perform(delete("/jbr/ext/backup/source")
                     .content(this.json(source))
@@ -361,6 +437,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
+
         } catch (Exception ex) {
             fail();
         }
