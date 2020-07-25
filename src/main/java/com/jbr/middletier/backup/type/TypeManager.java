@@ -16,7 +16,6 @@ public class TypeManager {
     private final static String database_type = "database";
     private final static String git_type = "git";
     private final static String clean_type = "clean";
-    private final static String nas_type = "nas";
     private final static String zipup_type = "zipup";
 
     private final PerformBackup fileBackup;
@@ -27,8 +26,6 @@ public class TypeManager {
 
     private final PerformBackup cleanBackup;
 
-    private final PerformBackup nasBackup;
-
     private final PerformBackup zipupBackup;
 
     private final BackupManager backupManager;
@@ -38,14 +35,12 @@ public class TypeManager {
                        PerformBackup databaseBackup,
                        PerformBackup gitBackup,
                        PerformBackup cleanBackup,
-                       PerformBackup nasBackup,
                        PerformBackup zipupBackup,
                        BackupManager backupManager) {
         this.fileBackup = fileBackup;
         this.databaseBackup = databaseBackup;
         this.gitBackup = gitBackup;
         this.cleanBackup = cleanBackup;
-        this.nasBackup = nasBackup;
         this.zipupBackup = zipupBackup;
         this.backupManager = backupManager;
     }
@@ -66,10 +61,6 @@ public class TypeManager {
 
         if(type.equalsIgnoreCase(clean_type)) {
             return cleanBackup;
-        }
-
-        if(type.equalsIgnoreCase(nas_type)) {
-            return nasBackup;
         }
 
         if(type.equalsIgnoreCase(zipup_type)) {

@@ -146,8 +146,12 @@ public class TestBackups {
             if (testFile.exists()) {
                 assertTrue(testFile.delete());
             }
-            assertTrue(testFile.getParentFile().mkdirs());
-            assertTrue(testFile.createNewFile());
+            if(!testFile.getParentFile().exists()) {
+                assertTrue(testFile.getParentFile().mkdirs());
+            }
+            if(!testFile.exists()) {
+                assertTrue(testFile.createNewFile());
+            }
 
             Backup backup = new Backup(backupDTO);
 
@@ -219,23 +223,6 @@ public class TestBackups {
             assertFalse(expected2.exists());
 
             backupRepository.deleteAll();
-        } catch (Exception ex) {
-            LOG.error("Test failed - ", ex);
-            fail();
-        }
-    }
-
-    @Test
-    public void TestNasBackup() {
-        try {
-            // Perform the test.
-            BackupDTO backupDTO = new BackupDTO("NAS", "nas");
-            Backup backup = new Backup(backupDTO);
-
-            backupRepository.save(backup);
-            backupCtrl.scheduleBackup();
-
-            assertTrue(true);
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
