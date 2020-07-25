@@ -30,28 +30,16 @@ public class BackupCtrl {
     private final BackupManager backupManager;
     private final BackupRepository backupRepository;
     private final ApplicationProperties applicationProperties;
-    private final ActionManager emailManager;
-    private final DriveManager driveManager;
-    private final DuplicateManager duplicateManager;
-    private final SynchronizeManager synchronizeManager;
 
     @Autowired
     public BackupCtrl(TypeManager typeManager,
                       BackupManager backupManager,
                       BackupRepository backupRepository,
-                      ApplicationProperties applicationProperties,
-                      ActionManager emailManager,
-                      DriveManager driveManager,
-                      DuplicateManager duplicateManager,
-                      SynchronizeManager synchronizeManager) {
+                      ApplicationProperties applicationProperties) {
         this.typeManager = typeManager;
         this.backupManager = backupManager;
         this.backupRepository = backupRepository;
         this.applicationProperties = applicationProperties;
-        this.emailManager = emailManager;
-        this.driveManager = driveManager;
-        this.duplicateManager = duplicateManager;
-        this.synchronizeManager = synchronizeManager;
     }
 
     private void performBackups(List<Backup> backups) {
@@ -74,24 +62,6 @@ public class BackupCtrl {
         }
     }
 
-    @Scheduled(cron = "#{@applicationProperties.gatherSchedule}")
-    public void gatherCron() {
-        if(applicationProperties.getGatherEnabled()) {
-            try {
-                emailManager.sendActionEmail();
-
-                driveManager.gather();
-
-                duplicateManager.duplicateCheck();
-
-                synchronizeManager.synchronize();
-            } catch (Exception ex) {
-                LOG.error("Failed to gather / synchronize",ex);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
     @Scheduled(cron = "#{@applicationProperties.schedule}")
     public void scheduleBackup() {
         LOG.info("Backup");
@@ -105,7 +75,8 @@ public class BackupCtrl {
         int endTime = calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE);
         int startTime = endTime - 120;
 
-        List<Backup> backupList = (List<Backup>) backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(startTime,endTime)));
+        @SuppressWarnings("unchecked")
+        List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(startTime,endTime)));
 
         // Sort the list by the backup time.
         Collections.sort(backupList);

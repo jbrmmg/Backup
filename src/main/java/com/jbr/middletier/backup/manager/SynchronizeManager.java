@@ -45,22 +45,22 @@ public class SynchronizeManager {
     }
 
     private void warn(SynchronizeStatus status) {
-        LOG.warn("File warning- " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
-        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"File warning - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+        LOG.warn("File warning- {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
+        backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("File warning - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
     }
 
     private void delete(SynchronizeStatus status, boolean standard, boolean classified) {
-        LOG.info("File should be deleted - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+        LOG.info("File should be deleted - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
 
         if(!standard) {
-            LOG.info("File should be deleted (should not have been copied) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted (should not be there) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+            LOG.info("File should be deleted (should not have been copied) - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted (should not be there) - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
         }
         if(!classified) {
-            LOG.info("File should be deleted (should not have been copied - unclassified) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted (should not be there - unclassified) - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+            LOG.info("File should be deleted (should not have been copied - unclassified) - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted (should not be there - unclassified) - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
         }
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"File should be deleted - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
 
         actionManager.deleteFileIfConfirmed(status.getSourceFile());
     }
@@ -119,38 +119,37 @@ public class SynchronizeManager {
             return;
         }
 
-        LOG.info("Updating date " + source.getDate().getTime() + " - " + destination.getDate().getTime());
+        LOG.info("Updating date {} - {}", source.getDate().getTime(), destination.getDate().getTime());
         // Make the date of the destination, equal to the source.
-        File destinationFile = new File(destination.getDirectoryInfo().getSource().getPath() + "/" +
-                destination.getDirectoryInfo().getPath() + "/" +
-                destination.getName() );
+        File destinationFile = new File( destination.getFullFilename() );
         if(!destinationFile.setLastModified(source.getDate().getTime())) {
-            LOG.warn("Failed to set the last modified date - " + destination.getFullFilename());
+            LOG.warn("Failed to set the last modified date - {}", destination.getFullFilename());
         }
     }
 
     private void backup(SynchronizeStatus status) {
         try {
-            LOG.info("Process backup - " + status.getSourceDirectory().getPath() + "/" + status.getSourceFile().getName());
+            LOG.info("Process backup - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
 
             // Update the last modified time if necessary.
             equalizeDate(status.getSourceFile(), status.getDestinationFile());
 
             // Does the file need to be copied?
             if (copyFile(status.getSourceFile(), status.getDestinationFile())) {
-                LOG.info("Copy File - " + status.getSourceFile().toString());
+                LOG.info("Copy File - {}", status.getSourceFile().toString());
 
-                String sourceFilename = status.getSource().getPath() + "/" + status.getSourceFile().getDirectoryInfo().getPath() + "/" + status.getSourceFile().getName();
-                String destinationFilename = status.getDestination().getPath() + "/" + status.getSourceFile().getDirectoryInfo().getPath() + "/" + status.getSourceFile().getName();
+                String sourceFilename = status.getSourceFile().getFullFilename();
+                String destinationFilename = String.format("%s/%s/%s",
+                        status.getDestination().getPath(),
+                        status.getSourceFile().getDirectoryInfo().getPath(),
+                        status.getSourceFile().getName() );
 
-                File directory = new File(status.getDestination().getPath() + "/" + status.getSourceFile().getDirectoryInfo().getPath());
-                if(!directory.exists()) {
-                    if(!directory.mkdirs()) {
-                        LOG.warn("Make directories failed.");
-                    }
+                File directory = new File(String.format("%s/%s", status.getDestination().getPath(), status.getSourceFile().getDirectoryInfo().getPath()));
+                if(!directory.exists() && !directory.mkdirs() ) {
+                    LOG.warn("Make directories failed.");
                 }
 
-                LOG.info("Copy file from " + sourceFilename + " to " + destinationFilename);
+                LOG.info("Copy file from {} to {}", sourceFilename, destinationFilename);
 
                 Files.copy(Paths.get(sourceFilename),
                         Paths.get(destinationFilename),
@@ -159,7 +158,7 @@ public class SynchronizeManager {
                 // Set the last modified date on the copied file to be the same as the source.
                 File destinationFile = new File(destinationFilename);
                 if(!destinationFile.setLastModified(status.getSourceFile().getDate().getTime())) {
-                    LOG.warn("Failed to set the last modified date " + destinationFilename);
+                    LOG.warn("Failed to set the last modified date {}", destinationFilename);
                 }
             }
         } catch(Exception ex) {
@@ -212,8 +211,8 @@ public class SynchronizeManager {
                         break;
 
                     default:
-                        LOG.warn("Unexpected action - " + nextStatus.getClassification().getAction() + " " + nextStatus.getSourceDirectory().getPath() + " " + nextStatus.getSourceFile().getName());
-                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.getClassification().getAction());
+                        LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
+                        backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
                 }
             }
 
@@ -238,12 +237,12 @@ public class SynchronizeManager {
                         break;
 
                     default:
-                        LOG.warn("Unexpected action - " + nextStatus.getClassification().getAction() + " " + nextStatus.getSourceDirectory().getPath() + " " + nextStatus.getSourceFile().getName());
-                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Unexpected action - " + nextStatus.getClassification().getAction());
+                        LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
+                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
                 }
             }
 
-            LOG.info(nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+            LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
         }
     }
 }

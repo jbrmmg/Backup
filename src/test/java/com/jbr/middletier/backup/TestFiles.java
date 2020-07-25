@@ -54,6 +54,7 @@ public class TestFiles extends WebTester {
     @Test
     public void testGather() {
         try {
+            LOG.info("Test Gather");
             // Setup a directory structure.
             //   ./target/testfiles/gather
             //                       fileA.txt
@@ -142,6 +143,7 @@ public class TestFiles extends WebTester {
     @Test
     public void testFileWeb() {
         try {
+            LOG.info("Test File Web");
             for(Source next: sourceRepository.findAll()) {
                 LOG.info("Source {}",next.getId());
             }
@@ -286,6 +288,7 @@ public class TestFiles extends WebTester {
     @Test
     public void testImport() {
         try {
+            LOG.info("Test Import");
             // get the current working directory.
             String cwd = System.getProperty("user.dir");
 
@@ -431,6 +434,8 @@ public class TestFiles extends WebTester {
     @Test
     public void testImportIngore() {
         try {
+            LOG.info("Test Import ignore");
+
             // get the current working directory.
             String cwd = System.getProperty("user.dir");
 
@@ -577,6 +582,8 @@ public class TestFiles extends WebTester {
     @Test
     public void testSynchronization() {
         try {
+            LOG.info("Test synchronize");
+
             // get the current working directory.
             String cwd = System.getProperty("user.dir");
 
@@ -721,6 +728,8 @@ public class TestFiles extends WebTester {
     @Test
     public void testDuplicate() {
         try {
+            LOG.info("Test Duplicate");
+
             // get the current working directory.
             String cwd = System.getProperty("user.dir");
 
@@ -820,6 +829,8 @@ public class TestFiles extends WebTester {
     @Test
     public void testHierarchy() {
         try {
+            LOG.info("Test Hierarchy");
+
             // get the current working directory.
             String cwd = System.getProperty("user.dir");
 
@@ -835,6 +846,7 @@ public class TestFiles extends WebTester {
             }
 
             assertTrue(testPath.mkdirs());
+            LOG.info("Test Hierarchy 1");
 
             File subPath = new File("./target/testfiles/duplicate/Sub");
             assertTrue(subPath.mkdir());
@@ -903,7 +915,7 @@ public class TestFiles extends WebTester {
                     .content(this.json(hierarchy))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(3)));
+                    .andExpect(jsonPath("$", hasSize(2)));
 
             // Clear out the data.
             fileRepository.deleteAll();

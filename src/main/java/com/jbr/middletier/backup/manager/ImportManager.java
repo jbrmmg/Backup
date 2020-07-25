@@ -24,7 +24,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Component
 public class ImportManager extends FileProcessor {
-    private final static Logger LOG = LoggerFactory.getLogger(SynchronizeManager.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
     private final ImportFileRepository importFileRepository;
     private final SourceRepository sourceRepository;
@@ -106,10 +106,7 @@ public class ImportManager extends FileProcessor {
         // Read directory structure into the database.
         try (Stream<Path> paths = Files.walk(Paths.get(importRequest.getPath()))) {
             paths
-                    .forEach(path -> processPath(path,new ArrayList<ActionConfirm>(),importSource,classifications,true));
-        } catch (IOException e) {
-            LOG.error("Failed to process import - ",e);
-            throw e;
+                    .forEach(path -> processPath(path,new ArrayList<>(),importSource,classifications,true));
         }
     }
 
@@ -152,7 +149,7 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    private void processImport(ImportFile importFile, Source source) {
+    private void processImport(ImportFile importFile, Source source) throws IOException {
         // If this file is completed then exit.
         if(importFile.getStatus().equalsIgnoreCase("complete")) {
             return;
@@ -164,9 +161,9 @@ public class ImportManager extends FileProcessor {
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(importFile.getFileInfo().getClassification() != null) {
             if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
-                LOG.info(path.toString() + " not a backed up file, deleting");
+                LOG.info("{} not a backed up file, deleting", path.toString());
                 if(!path.toFile().delete()) {
-                    LOG.warn("Failed to delete file " + path.toString());
+                    LOG.warn("Failed to delete file {}", path.toString());
                 }
                 return;
             }
@@ -182,10 +179,8 @@ public class ImportManager extends FileProcessor {
         // Is this file being ignored?
         if(ignoreFile(importFile.getFileInfo())) {
             // Delete the file from import.
-            LOG.info(path.toString() + " marked for ignore, deleting");
-            if(!path.toFile().delete()) {
-                LOG.warn("Failed to delete file " + path.toString());
-            }
+            LOG.info("{} marked for ignore, deleting", path.toString());
+            Files.delete(path);
             return;
         }
 
@@ -194,7 +189,7 @@ public class ImportManager extends FileProcessor {
         boolean closeMatch = false;
 
         for(FileInfo nextFile: existingFiles) {
-            LOG.info(nextFile.toString());
+            LOG.info("{}", nextFile);
 
             // Make sure this file is from the same source.
             if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
@@ -205,10 +200,8 @@ public class ImportManager extends FileProcessor {
             FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile.getFileInfo());
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
-                LOG.info("{} exists in source, deleting",path.toString());
-                if(!path.toFile().delete()) {
-                    LOG.warn("Failed to delete file: {}", path.toString());
-                }
+                LOG.info("{} exists in source, deleting",path);
+                Files.delete(path);
                 return;
             }
 
@@ -221,7 +214,7 @@ public class ImportManager extends FileProcessor {
         // Photos are in <source> / <year> / <month> / <event> / filename
 
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile.getFileInfo(),"IMPORT");
-        if(confirmedActions.size() > 0) {
+        if(!confirmedActions.isEmpty()) {
             boolean confirmed = false;
             String parameter = "";
             for(ActionConfirm nextConfirm: confirmedActions) {
@@ -267,12 +260,12 @@ public class ImportManager extends FileProcessor {
                 newFilename += "/" + path.getFileName();
 
                 try {
-                    LOG.info("Importing file " + path.toString() + " to " + newFilename);
+                    LOG.info("Importing file {} to {}", path, newFilename);
                     Files.move(path,
                             Paths.get(newFilename),
                             REPLACE_EXISTING);
                 } catch (IOException e) {
-                    LOG.error("Unable to import " + path);
+                    LOG.error("Unable to import {}", path);
                 }
             }
         } else {
@@ -330,10 +323,10 @@ public class ImportManager extends FileProcessor {
             File existingFile = new File(nextFile.getFileInfo().getFullFilename());
 
             if(!existingFile.exists()) {
-                LOG.info("Remove this import file - " + nextFile.getFileInfo().getFullFilename());
+                LOG.info("Remove this import file - {}", nextFile.getFileInfo().getFullFilename());
                 importFileRepository.delete(nextFile);
             } else {
-                LOG.info("Keeping " + nextFile.getFileInfo().getFullFilename());
+                LOG.info("Keeping {}", nextFile.getFileInfo().getFullFilename());
             }
         }
     }
@@ -356,7 +349,7 @@ public class ImportManager extends FileProcessor {
         if((importFile.getMD5() != null) && importFile.getMD5().length() > 0) {
             if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
                 // Source filename
-                String sourceFilename = fileInfo.getDirectoryInfo().getSource().getPath() + fileInfo.getDirectoryInfo().getPath() + "/" + fileInfo.getName();
+                String sourceFilename = fileInfo.getFullFilename();
 
                 // Need to get the MD5.
                 fileInfo.setMD5(getMD5(new File(sourceFilename).toPath(),fileInfo.getClassification()));
