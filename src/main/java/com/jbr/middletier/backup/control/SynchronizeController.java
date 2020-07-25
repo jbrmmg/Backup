@@ -3,6 +3,8 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
+import com.jbr.middletier.backup.exception.InvalidSynchronizeIdException;
+import com.jbr.middletier.backup.exception.SynchronizeAlreadyExistsException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -15,9 +17,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class SynchronizeController {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SynchronizeController.class);
 
-    final private SynchronizeRepository synchronizeRepository;
+    private final SynchronizeRepository synchronizeRepository;
 
     @Contract(pure = true)
     @Autowired
@@ -32,10 +34,10 @@ public class SynchronizeController {
     }
 
     @PostMapping(path="/synchronize")
-    public @ResponseBody Iterable<Synchronize> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(existing.isPresent()) {
-            throw new Exception(existing.get().getId() + " already exists");
+            throw new SynchronizeAlreadyExistsException(existing.get().getId());
         }
 
         synchronizeRepository.save(new Synchronize(synchronize));
@@ -44,10 +46,10 @@ public class SynchronizeController {
     }
 
     @PutMapping(path="/synchronize")
-    public @ResponseBody Iterable<Synchronize> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
-            throw new Exception(synchronize.getId() + " does not exist");
+            throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 
         existing.get().update(synchronize);
@@ -57,10 +59,10 @@ public class SynchronizeController {
     }
 
     @DeleteMapping(path="/synchronize")
-    public @ResponseBody Iterable<Synchronize> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws Exception {
+    public @ResponseBody Iterable<Synchronize> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
-            throw new Exception(synchronize.getId() + " does not exist");
+            throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 
         synchronizeRepository.deleteById(synchronize.getId());

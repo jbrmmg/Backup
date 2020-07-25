@@ -3,6 +3,8 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
+import com.jbr.middletier.backup.exception.ClassificationIdException;
+import com.jbr.middletier.backup.exception.InvalidClassificationIdException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -17,7 +19,7 @@ import java.util.Optional;
 public class ClassificationController {
     private static final Logger LOG = LoggerFactory.getLogger(ClassificationController.class);
 
-    final private ClassificationRepository classificationRepository;
+    private final ClassificationRepository classificationRepository;
 
     @Contract(pure = true)
     @Autowired
@@ -25,16 +27,16 @@ public class ClassificationController {
         this.classificationRepository = classificationRepository;
     }
 
-    @RequestMapping(path="/classification", method= RequestMethod.GET)
+    @GetMapping(path="/classification")
     public @ResponseBody Iterable<Classification> getClassification() {
         LOG.info("Get the classifications.");
         return classificationRepository.findAll();
     }
 
-    @RequestMapping(path="/classification", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Classification> createClassification(@NotNull @RequestBody ClassificationDTO classification) throws Exception {
+    @PostMapping(path="/classification")
+    public @ResponseBody Iterable<Classification> createClassification(@NotNull @RequestBody ClassificationDTO classification) throws ClassificationIdException {
         if(classification.getId() != null) {
-            throw new Exception("Classification id must not be specified when creating.");
+            throw new ClassificationIdException();
         }
 
         classificationRepository.save(new Classification(classification));
@@ -42,11 +44,11 @@ public class ClassificationController {
         return classificationRepository.findAll();
     }
 
-    @RequestMapping(path="/classification", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Classification> updateClassification(@NotNull @RequestBody ClassificationDTO classification) throws Exception {
+    @PutMapping(path="/classification")
+    public @ResponseBody Iterable<Classification> updateClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(!existing.isPresent()) {
-            throw new Exception(classification.getId() + " does not exist");
+            throw new InvalidClassificationIdException(classification.getId());
         }
 
         existing.get().update(classification);
@@ -56,11 +58,11 @@ public class ClassificationController {
         return classificationRepository.findAll();
     }
 
-    @RequestMapping(path="/classification", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Classification> deleteClassification(@NotNull @RequestBody ClassificationDTO classification) throws Exception {
+    @DeleteMapping(path="/classification")
+    public @ResponseBody Iterable<Classification> deleteClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(!existing.isPresent()) {
-            throw new Exception(classification.getId() + " does not exist");
+            throw new InvalidClassificationIdException(classification.getId());
         }
 
         classificationRepository.deleteById(classification.getId());

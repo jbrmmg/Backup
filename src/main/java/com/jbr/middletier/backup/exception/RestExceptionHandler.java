@@ -52,6 +52,36 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Cannot find source or import directory",ex));
     }
 
+    @ExceptionHandler({InvalidSynchronizeIdException.class})
+    public ResponseEntity<Object> handleAll(InvalidSynchronizeIdException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Invalid Synchronize ID",ex));
+    }
+
+    @ExceptionHandler({SynchronizeAlreadyExistsException.class})
+    public ResponseEntity<Object> handleAll(SynchronizeAlreadyExistsException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.CONFLICT,"Synchronize already exists",ex));
+    }
+
+    @ExceptionHandler({InvalidSourceIdException.class})
+    public ResponseEntity<Object> handleAll(InvalidSourceIdException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Source Synchronize ID",ex));
+    }
+
+    @ExceptionHandler({SourceAlreadyExistsException.class})
+    public ResponseEntity<Object> handleAll(SourceAlreadyExistsException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.CONFLICT,"Source already exists",ex));
+    }
+
+    @ExceptionHandler({InvalidClassificationIdException.class})
+    public ResponseEntity<Object> handleAll(InvalidClassificationIdException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Classification not found",ex));
+    }
+
+    @ExceptionHandler({ClassificationIdException.class})
+    public ResponseEntity<Object> handleAll(ClassificationIdException ex, WebRequest request) {
+        return buildResponseEntity(new ApiError(HttpStatus.CONFLICT,"Classification id must be null on create",ex));
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Unexpected Exception",ex));

@@ -146,8 +146,12 @@ public class TestBackups {
             if (testFile.exists()) {
                 assertTrue(testFile.delete());
             }
-            assertTrue(testFile.getParentFile().mkdirs());
-            assertTrue(testFile.createNewFile());
+            if(!testFile.getParentFile().exists()) {
+                assertTrue(testFile.getParentFile().mkdirs());
+            }
+            if(!testFile.exists()) {
+                assertTrue(testFile.createNewFile());
+            }
 
             Backup backup = new Backup(backupDTO);
 

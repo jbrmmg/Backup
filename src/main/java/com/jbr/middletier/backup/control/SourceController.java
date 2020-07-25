@@ -3,6 +3,8 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.exception.InvalidSourceIdException;
+import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -15,9 +17,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class SourceController {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SourceController.class);
 
-    final private SourceRepository sourceRepository;
+    private final SourceRepository sourceRepository;
 
     @Contract(pure = true)
     @Autowired
@@ -32,10 +34,10 @@ public class SourceController {
     }
 
     @PostMapping(path="/source")
-    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws Exception {
+    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws SourceAlreadyExistsException {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(existing.isPresent()) {
-            throw new Exception(existing.get().getId() + " already exists");
+            throw new SourceAlreadyExistsException(existing.get().getId());
         }
 
         sourceRepository.save(new Source(source));
@@ -44,10 +46,10 @@ public class SourceController {
     }
 
     @PutMapping(path="/source")
-    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody SourceDTO source) throws Exception {
+    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody SourceDTO source) throws InvalidSourceIdException {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
-            throw new Exception(source.getId() + " does not exist");
+            throw new InvalidSourceIdException(source.getId());
         }
 
         existing.get().update(source);
@@ -57,10 +59,10 @@ public class SourceController {
     }
 
     @DeleteMapping(path="/source")
-    public @ResponseBody Iterable<Source> deleteSource(@RequestBody SourceDTO source) throws Exception {
+    public @ResponseBody Iterable<Source> deleteSource(@RequestBody SourceDTO source) throws InvalidSourceIdException {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
-            throw new Exception(source.getId() + " does not exist");
+            throw new InvalidSourceIdException(source.getId());
         }
 
         sourceRepository.deleteById(source.getId());
