@@ -136,11 +136,7 @@ public class ImportManager extends FileProcessor {
         List<IgnoreFile> ignoreFiles = ignoreFileRepository.findByName(importFile.getName());
 
         for(IgnoreFile nextFile: ignoreFiles) {
-            if(!nextFile.getSize().equals(importFile.getSize())) {
-                continue;
-            }
-
-            if(!nextFile.getMD5().equals(importFile.getMD5())) {
+            if( !nextFile.getSize().equals(importFile.getSize()) || !nextFile.getMD5().equals(importFile.getMD5()) ) {
                 continue;
             }
 
@@ -150,7 +146,7 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    private void processImport(ImportFile importFile, Source source) throws IOException {
+    private void processImport(ImportFile importFile, Source source) {
         // If this file is completed then exit.
         if(importFile.getStatus().equalsIgnoreCase("complete")) {
             return;
@@ -162,9 +158,11 @@ public class ImportManager extends FileProcessor {
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(importFile.getFileInfo().getClassification() != null) {
             if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
-                LOG.info("{} not a backed up file, deleting", path.toString());
-                if(!path.toFile().delete()) {
-                    LOG.warn("Failed to delete file {}", path.toString());
+                LOG.info("{} not a backed up file, deleting", path);
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    LOG.warn("Failed to delete {}", path);
                 }
                 return;
             }
@@ -180,8 +178,12 @@ public class ImportManager extends FileProcessor {
         // Is this file being ignored?
         if(ignoreFile(importFile.getFileInfo())) {
             // Delete the file from import.
-            LOG.info("{} marked for ignore, deleting", path.toString());
-            Files.delete(path);
+            LOG.info("{} marked for ignore, deleting", path);
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                LOG.warn("Failed to delete {}", path);
+            }
             return;
         }
 
@@ -202,7 +204,11 @@ public class ImportManager extends FileProcessor {
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
-                Files.delete(path);
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    LOG.warn("Failed to delete {}", path);
+                }
                 return;
             }
 

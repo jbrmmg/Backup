@@ -16,7 +16,7 @@ backup:
   web-log-url: http://localhost:10001/jbr/int/log/data
   schedule: 0 0/1 * ? * *
   gather-schedule: 0 0 0 * * ?
-  gather-enabled: false
+  gather-enabled: true
   service-name: test-backup
   enabled: true
   directory:
