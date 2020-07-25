@@ -1,0 +1,37 @@
+logging:
+  level:
+    ROOT: INFO
+    com.jbr.middletier: DEBUG
+#    org.hibernate.type.descriptor.sql: TRACE
+
+spring:
+  liquibase:
+    default-schema:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    contexts: default
+
+backup:
+  db-backup-command: sleep $$server$$ | echo Done > $$todaydir$$/$$backupname$$/$$output$$.sql
+  db-backup-max-time: 8
+  web-log-url: http://localhost:10001/jbr/int/log/data
+  schedule: 0 0/1 * ? * *
+  gather-schedule: 0 0 0 * * ?
+  gather-enabled: false
+  service-name: test-backup
+  enabled: true
+  directory:
+    name: ./target/testfiles/Backup
+    days: 10
+    zip: ./target/testfiles/BackupDevZip
+    date-format: yyyy-MM-dd
+  zip-directory: ./target/testfiles/BackupDevZip
+  db-url: 20:test:20
+  email:
+    host: localhost
+    port: 3025
+    authenticate: false
+    user: backups@jbrmmg.me.uk
+    password: password
+    from: backups@jbrmmg.me.uk
+    to: jason@jbrmmg.me.uk
+    enabled: true

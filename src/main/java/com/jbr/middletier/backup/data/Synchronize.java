@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.SynchronizeDTO;
+import org.jetbrains.annotations.NotNull;
+
 import javax.persistence.*;
 
 @Entity
@@ -7,7 +10,6 @@ import javax.persistence.*;
 public class Synchronize {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @JoinColumn(name="source")
@@ -18,13 +20,29 @@ public class Synchronize {
     @ManyToOne(optional = false)
     private Source destination;
 
+    @SuppressWarnings("unused")
+    public Synchronize() {
+        setId(0);
+    }
+
+    public Synchronize(SynchronizeDTO source) {
+        setId(source.getId());
+        update(source);
+    }
+
+    public void update(SynchronizeDTO source) {
+        setSource(new Source(source.getSource()));
+        setDestination(new Source(source.getDestination()));
+    }
+
+    @NotNull
     public Integer getId() { return this.id; }
 
     public Source getSource() { return this.source; }
 
     public Source getDestination() { return this.destination; }
 
-    public void setId(Integer id) { this.id = id; }
+    public void setId(@NotNull Integer id) { this.id = id; }
 
     public void setSource(Source source) { this.source = source; }
 

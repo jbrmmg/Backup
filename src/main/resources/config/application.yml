@@ -24,6 +24,8 @@ spring:
     contexts: default
 
 backup:
+  db-backup-command: mysqldump -h ##server## -u ##user## -p##password## ##dbname## > ##todaydir##/##backupname##/##output##.sql
+  db-backup-max-time: 600
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false
   schedule: 0 20 0/1 * * ?
@@ -33,6 +35,15 @@ backup:
   directory:
     date-format: yyyy-MM-dd
   review-directory: /home/jason/Working/ImportReview
+  email:
+    host: smtp.ionos.co.uk
+    port: 25
+    authenticate: true
+    user: backups@jbrmmg.me.uk
+    password: ${email.pdn.backup.password}
+    from: backups@jbrmmg.me.uk
+    to: jason@jbrmmg.me.uk
+    enabled: false
 
 management:
   endpoint:

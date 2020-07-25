@@ -1,19 +1,19 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.SourceDTO;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings({"unused", "DefaultAnnotationParam"})
+@SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
 @Table(name="source")
 public class Source {
     @Id
     @Column(name="id")
-    @NotNull
     private Integer id;
 
     @Column(name="path")
-    @NotNull
     private String path;
 
     @JoinColumn(name="location")
@@ -32,13 +32,35 @@ public class Source {
     @Column(name="destination")
     private Integer destinationId;
 
-    public enum SourceTypeType { Standard, Import }
+    public enum SourceTypeType { STANDARD, IMPORT }
 
     public Source() {
-        setTypeEnum(SourceTypeType.Standard);
+        setId(0);
+        setPath("");
     }
 
-    public void setPath(String path) { this.path = path; }
+    public Source(int id, String path) {
+        setId(id);
+        setPath(path);
+        setTypeEnum(SourceTypeType.STANDARD);
+    }
+
+    public Source(SourceDTO source) {
+        setId(source.getId());
+        setPath(source.getPath());
+        update(source);
+    }
+
+    public void update(SourceDTO source) {
+        setPath(source.getPath());
+        setLocation(new Location(source.getLocation()));
+        setStatus(source.getStatus());
+        setFilter(source.getFilter());
+        setType(source.getType());
+        setDestinationId(source.getDestinationId());
+    }
+
+    public void setPath(@NotNull String path) { this.path = path; }
 
     public void setStatus(String status) { this.status = status; }
 
@@ -57,9 +79,9 @@ public class Source {
     public SourceTypeType getTypeEnum() throws Exception {
         switch(this.getType()) {
             case "STD":
-                return SourceTypeType.Standard;
+                return SourceTypeType.STANDARD;
             case "IMP":
-                return SourceTypeType.Import;
+                return SourceTypeType.IMPORT;
             default:
                 throw new Exception(this.getType() + " invalid type");
         }
@@ -67,10 +89,10 @@ public class Source {
 
     public void setTypeEnum(SourceTypeType type) {
         switch(type) {
-            case Standard:
+            case STANDARD:
                 this.type = "STD";
                 break;
-            case Import:
+            case IMPORT:
                 this.type = "IMP";
                 break;
         }
@@ -81,11 +103,11 @@ public class Source {
 
     public int getId() { return this.id; }
 
-    public void setId(int id) { this.id = id; }
+    public void setId(@NotNull Integer id) { this.id = id; }
 
     public Integer getDestinationId() { return this.destinationId; }
 
-    public void setDestinationId(int id) { this.destinationId = id; }
+    public void setDestinationId(Integer id) { this.destinationId = id; }
 
     public void setLocation(Location location) { this.location = location; }
 

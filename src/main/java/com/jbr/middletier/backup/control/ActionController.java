@@ -3,28 +3,33 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
+import com.jbr.middletier.backup.manager.ActionManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
 public class ActionController {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
     final private IgnoreFileRepository ignoreFileRepository;
     final private ActionConfirmRepository actionConfirmRepository;
+    final private ActionManager emailManager;
 
     @Contract(pure = true)
     @Autowired
     public ActionController(IgnoreFileRepository ignoreFileRepository,
-                            ActionConfirmRepository actionConfirmRepository ) {
+                            ActionConfirmRepository actionConfirmRepository,
+                            ActionManager emailManager) {
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionConfirmRepository = actionConfirmRepository;
+        this.emailManager = emailManager;
     }
 
     @RequestMapping(path="/actions",method=RequestMethod.GET)
@@ -71,5 +76,12 @@ public class ActionController {
         }
 
         return existingAction.get();
+    }
+
+    @RequestMapping(path="/actionemail",method=RequestMethod.POST)
+    public @ResponseBody  OkStatus emailActions() {
+        emailManager.sendActionEmail();
+
+        return OkStatus.getOkStatus();
     }
 }

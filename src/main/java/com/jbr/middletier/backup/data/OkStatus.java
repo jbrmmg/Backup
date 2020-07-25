@@ -3,7 +3,7 @@ package com.jbr.middletier.backup.data;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class OkStatus {
     private String status;
 

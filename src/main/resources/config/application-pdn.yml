@@ -37,6 +37,8 @@ backup:
     zip: /media/Shared/BackupZip
   schedule: 0 20 0/1 * * ?
   enabled: true
+  email:
+    enabled: true
 
   db-url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false
   db-username: ${db.pdn.backup.user}

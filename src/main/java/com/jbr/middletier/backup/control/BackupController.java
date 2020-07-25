@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
+import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
 import org.jetbrains.annotations.Contract;
@@ -21,7 +22,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class BackupController {
-    final static private Logger LOG = LoggerFactory.getLogger(BackupController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
 
     final private BackupRepository backupRepository;
@@ -32,7 +33,7 @@ public class BackupController {
         this.backupRepository = backupRepository;
     }
 
-    @RequestMapping(path="/byId",method=RequestMethod.GET)
+    @GetMapping(path="/byId")
     public @ResponseBody Backup specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         LOG.info("List hardware.");
         // Check that the item exists.
@@ -45,14 +46,14 @@ public class BackupController {
         return storedHardware.get();
     }
 
-    @RequestMapping(method=RequestMethod.GET)
+    @GetMapping()
     public @ResponseBody Iterable<Backup> backups() {
         LOG.info("List backups Backup.");
         return backupRepository.findAll();
     }
 
-    @RequestMapping(method=RequestMethod.PUT)
-    public @ResponseBody OkStatus update(@NotNull @RequestBody Backup backup) throws InvalidBackupIdException {
+    @PutMapping()
+    public @ResponseBody OkStatus update(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
         LOG.info("Update backup - " + backup.getId());
 
         // Check that the item exists.
@@ -62,20 +63,15 @@ public class BackupController {
             throw new InvalidBackupIdException(backup.getId());
         }
 
-        storedBackup.get().setArtifact(backup.getArtifact());
-        storedBackup.get().setBackupName(backup.getBackupName());
-        storedBackup.get().setDirectory(backup.getDirectory());
-        storedBackup.get().setTime(backup.getTime());
-        storedBackup.get().setType(backup.getType());
-        storedBackup.get().setFileName(backup.getFileName());
+        storedBackup.get().update(backup);
 
         backupRepository.save(storedBackup.get());
 
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(method=RequestMethod.POST)
-    public @ResponseBody OkStatus create(@NotNull @RequestBody Backup backup) throws BackupAlreadyExistsException {
+    @PostMapping()
+    public @ResponseBody OkStatus create(@NotNull @RequestBody BackupDTO backup) throws BackupAlreadyExistsException {
         LOG.info("Create backup - " + backup.getId());
 
         // Check that the item exists.
@@ -84,13 +80,13 @@ public class BackupController {
             throw new BackupAlreadyExistsException(backup.getId());
         }
 
-        backupRepository.save(backup);
+        backupRepository.save(new Backup(backup));
 
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(method=RequestMethod.DELETE)
-    public @ResponseBody OkStatus delete(@NotNull @RequestBody Backup backup) throws InvalidBackupIdException {
+    @DeleteMapping()
+    public @ResponseBody OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
         LOG.info("Delete backup - " + backup.getId());
 
         // Check that the item exists.

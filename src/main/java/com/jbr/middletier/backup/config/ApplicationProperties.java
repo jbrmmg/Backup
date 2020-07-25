@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationProperties {
     public class Directory {
         private String name;
-        private int days;
+        private long days;
         private String zip;
         private String dateFormat;
 
@@ -18,7 +18,7 @@ public class ApplicationProperties {
 
         public void setDays(int directoryDays) { this.days = directoryDays; }
 
-        public int getDays() { return this.days; }
+        public long getDays() { return this.days; }
 
         public void setZip(String directoryZip) { this.zip = directoryZip; }
 
@@ -29,7 +29,51 @@ public class ApplicationProperties {
         public String getDateFormat() { return this.dateFormat; }
     }
 
+    public class Email {
+        private String host;
+        private String user;
+        private String password;
+        private String from;
+        private String to;
+        private Boolean enabled;
+        private Integer port;
+        private Boolean authenticate;
+
+        public void setHost(String host) { this.host = host;}
+
+        public void setUser(String user) { this.user = user; }
+
+        public void setPassword(String password) { this.password = password; }
+
+        public void setFrom(String from) { this.from = from; }
+
+        public void setTo(String to) { this.to = to; }
+
+        public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+
+        public void setPort(Integer port) { this.port = port; }
+
+        public void setAuthenticate(Boolean authenticate) { this.authenticate = authenticate; }
+
+        public String getHost() { return this.host; }
+
+        public String getUser() { return this.user; }
+
+        public String getPassword() { return this.password; }
+
+        public String getFrom() { return this.from; }
+
+        public Boolean getEnabled() { return this.enabled; }
+
+        public String getTo() { return this.to; }
+
+        public Integer getPort() { return this.port; }
+
+        public Boolean getAuthenticate() { return this.authenticate; }
+    }
+
     private Directory directory = new Directory();
+    private Email email = new Email();
     private String serviceName;
     private String dbUrl;
     private String dbPassword;
@@ -41,8 +85,12 @@ public class ApplicationProperties {
     private String gatherSchedule;
     private boolean gatherEnabled;
     private String reviewDirectory;
+    private String dbBackupCommand;
+    private Long dbBackupMaxTime;
 
     public Directory getDirectory() { return this.directory; }
+
+    public Email getEmail() { return this.email; }
 
     public void setServiceName(String serviceName) { this.serviceName = serviceName; }
 
@@ -87,4 +135,12 @@ public class ApplicationProperties {
     public void setGatherEnabled(boolean enabled) { this.gatherEnabled = enabled; }
 
     public boolean getGatherEnabled() { return this.gatherEnabled; }
+
+    public void setDbBackupCommand(String dbBackupCommand) { this.dbBackupCommand = dbBackupCommand; }
+
+    public String getDbBackupCommand() { return this.dbBackupCommand; }
+
+    public void setDbBackupMaxTime(Long dbBackupMaxTime) { this.dbBackupMaxTime = dbBackupMaxTime; }
+
+    public Long getDbBackupMaxTime() { return this.dbBackupMaxTime; }
 }

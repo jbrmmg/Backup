@@ -25,7 +25,7 @@ import java.util.Calendar;
 
 @Component
 public class BackupManager {
-    final static private Logger LOG = LoggerFactory.getLogger(BackupManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
 
     private final ApplicationProperties applicationProperties;
     private final RestTemplateBuilder restTemplateBuilder;
@@ -72,6 +72,11 @@ public class BackupManager {
 
     public void postWebLog(webLogLevel level, String message) {
         try {
+            // Only perform if there is a web log URL.
+            if(applicationProperties.getWebLogUrl() == null || applicationProperties.getWebLogUrl().length() == 0) {
+                return;
+            }
+
             RestTemplate restTemplate = this.restTemplateBuilder.build();
 
             HttpHeaders headers = new HttpHeaders();
