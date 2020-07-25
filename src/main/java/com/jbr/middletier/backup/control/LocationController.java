@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.dto.LocationDTO;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class LocationController {
-    final static private Logger LOG = LoggerFactory.getLogger(LocationController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LocationController.class);
 
     final private LocationRepository locationRepository;
 
@@ -32,37 +33,38 @@ public class LocationController {
     }
 
     @RequestMapping(path="/location", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Location> createLocation(@NotNull @RequestBody Location location) throws Exception {
+    public @ResponseBody Iterable<Location> createLocation(@NotNull @RequestBody LocationDTO location) throws Exception {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
         }
 
-        locationRepository.save(location);
+        locationRepository.save(new Location(location));
 
         return locationRepository.findAll();
     }
 
     @RequestMapping(path="/location", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Location> updateLocation(@NotNull @RequestBody Location location) throws Exception {
+    public @ResponseBody Iterable<Location> updateLocation(@NotNull @RequestBody LocationDTO location) throws Exception {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(!existing.isPresent()) {
             throw new Exception(location.getId() + " does not exist");
         }
 
-        locationRepository.save(location);
+        existing.get().update(location);
+        locationRepository.save(existing.get());
 
         return locationRepository.findAll();
     }
 
     @RequestMapping(path="/location", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Location> deleteLocation(@NotNull @RequestBody Location location) throws Exception {
+    public @ResponseBody Iterable<Location> deleteLocation(@NotNull @RequestBody LocationDTO location) throws Exception {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(!existing.isPresent()) {
             throw new Exception(location.getId() + " does not exist");
         }
 
-        locationRepository.delete(location);
+        locationRepository.deleteById(location.getId());
 
         return locationRepository.findAll();
     }

@@ -6,7 +6,6 @@ import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,7 @@ import java.util.List;
 
 @Component
 public class ServiceHealthIndicator implements HealthIndicator {
-    final static private Logger LOG = LoggerFactory.getLogger(ServiceHealthIndicator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceHealthIndicator.class);
 
     private final ApplicationProperties applicationProperties;
 
@@ -37,7 +36,7 @@ public class ServiceHealthIndicator implements HealthIndicator {
     public Health health() {
         try {
             List<Backup> backupList = (List<Backup>) backupRepository.findAll();
-            LOG.debug(String.format("Check Database %s.", backupList.size()));
+            LOG.debug("Check Database {}.", backupList.size());
 
             return Health.up().withDetail("service", applicationProperties.getServiceName()).withDetail("Backup Types",backupList.size()).build();
         } catch (Exception e) {

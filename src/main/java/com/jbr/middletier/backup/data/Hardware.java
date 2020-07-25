@@ -1,22 +1,22 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.HardwareDTO;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 @Entity
 @Table(name="hardware")
 public class Hardware {
     @Id
     @Column(name="macaddress")
-    @NotNull
     private String macAddress;
 
     @Column(name="reservedip")
-    @NotNull
     private String reservedIP;
 
     @Column(name="ip")
@@ -24,6 +24,23 @@ public class Hardware {
 
     @Column(name="name")
     private String name;
+
+    public Hardware() {
+        macAddress = "";
+        reservedIP = "";
+    }
+
+    public Hardware(HardwareDTO source) {
+        setMacAddress(source.getMacAddress());
+        setReservedIP(source.getReservedIP());
+        update(source);
+    }
+
+    public void update(HardwareDTO source) {
+        setReservedIP(source.getReservedIP());
+        setIP(source.getIp());
+        setName(source.getName());
+    }
 
     public String getMacAddress() { return this.macAddress; }
 
@@ -33,9 +50,9 @@ public class Hardware {
 
     public String getName() { return this.name; }
 
-    public void setMacAddress(String macAddress) { this.macAddress = macAddress; }
+    public void setMacAddress(@NotNull String macAddress) { this.macAddress = macAddress; }
 
-    public void setReservedIP(String reservedIP) { this.reservedIP = reservedIP; }
+    public void setReservedIP(@NotNull String reservedIP) { this.reservedIP = reservedIP; }
 
     public void setIP(String ip) { this.ip = ip; }
 

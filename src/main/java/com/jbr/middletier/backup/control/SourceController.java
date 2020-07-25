@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
+import com.jbr.middletier.backup.dto.SourceDTO;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/jbr/ext/backup")
 public class SourceController {
-    final static private Logger LOG = LoggerFactory.getLogger(ActionController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
     final private SourceRepository sourceRepository;
 
@@ -24,44 +25,45 @@ public class SourceController {
         this.sourceRepository = sourceRepository;
     }
 
-    @RequestMapping(path="/source", method= RequestMethod.GET)
+    @GetMapping(path="/source")
     public @ResponseBody Iterable<Source> getSource() {
         LOG.info("Get the source");
         return sourceRepository.findAll();
     }
 
-    @RequestMapping(path="/source", method=RequestMethod.POST)
-    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody Source source) throws Exception {
+    @PostMapping(path="/source")
+    public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(existing.isPresent()) {
             throw new Exception(existing.get().getId() + " already exists");
         }
 
-        sourceRepository.save(source);
+        sourceRepository.save(new Source(source));
 
         return sourceRepository.findAll();
     }
 
-    @RequestMapping(path="/source", method=RequestMethod.PUT)
-    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody Source source) throws Exception {
+    @PutMapping(path="/source")
+    public @ResponseBody Iterable<Source> updateSource(@NotNull @RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
             throw new Exception(source.getId() + " does not exist");
         }
 
-        sourceRepository.save(source);
+        existing.get().update(source);
+        sourceRepository.save(existing.get());
 
         return sourceRepository.findAll();
     }
 
-    @RequestMapping(path="/source", method=RequestMethod.DELETE)
-    public @ResponseBody Iterable<Source> deleteSource(@RequestBody Source source) throws Exception {
+    @DeleteMapping(path="/source")
+    public @ResponseBody Iterable<Source> deleteSource(@RequestBody SourceDTO source) throws Exception {
         Optional<Source> existing = sourceRepository.findById(source.getId());
         if(!existing.isPresent()) {
             throw new Exception(source.getId() + " does not exist");
         }
 
-        sourceRepository.delete(source);
+        sourceRepository.deleteById(source.getId());
 
         return sourceRepository.findAll();
     }

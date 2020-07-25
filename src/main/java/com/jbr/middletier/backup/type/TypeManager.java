@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class TypeManager {
 
-    private final String FILE_TYPE = "file";
-    private final String DATABASE_TYPE = "database";
-    private final String GIT_TYPE = "git";
-    private final String CLEAN_TYPE = "clean";
-    private final String NAS_TYPE = "nas";
-    private final String ZIPUP_TYPE = "zipup";
+    private final static String file_type = "file";
+    private final static String database_type = "database";
+    private final static String git_type = "git";
+    private final static String clean_type = "clean";
+    private final static String nas_type = "nas";
+    private final static String zipup_type = "zipup";
 
     private final PerformBackup fileBackup;
 
@@ -52,27 +52,27 @@ public class TypeManager {
 
     public PerformBackup getBackup(String type) {
         // Return the required type of backup.
-        if(type.equalsIgnoreCase(FILE_TYPE)) {
+        if(type.equalsIgnoreCase(file_type)) {
             return fileBackup;
         }
 
-        if(type.equalsIgnoreCase(DATABASE_TYPE)) {
+        if(type.equalsIgnoreCase(database_type)) {
             return databaseBackup;
         }
 
-        if(type.equalsIgnoreCase(GIT_TYPE)) {
+        if(type.equalsIgnoreCase(git_type)) {
             return gitBackup;
         }
 
-        if(type.equalsIgnoreCase(CLEAN_TYPE)) {
+        if(type.equalsIgnoreCase(clean_type)) {
             return cleanBackup;
         }
 
-        if(type.equalsIgnoreCase(NAS_TYPE)) {
+        if(type.equalsIgnoreCase(nas_type)) {
             return nasBackup;
         }
 
-        if(type.equalsIgnoreCase(ZIPUP_TYPE)) {
+        if(type.equalsIgnoreCase(zipup_type)) {
             return zipupBackup;
         }
 

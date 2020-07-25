@@ -13,6 +13,6 @@ public class NasBackup implements PerformBackup {
 
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
-
+        // Do nothing at the moment, may not be required.
     }
 }

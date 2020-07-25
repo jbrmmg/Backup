@@ -4,7 +4,7 @@ import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
-import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.type.PerformBackup;
 import com.jbr.middletier.backup.type.TypeManager;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ import java.util.List;
 
 @Component
 public class BackupCtrl {
-    final static private Logger LOG = LoggerFactory.getLogger(BackupCtrl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackupCtrl.class);
 
     private final TypeManager typeManager;
     private final BackupManager backupManager;
@@ -49,7 +49,7 @@ public class BackupCtrl {
 
             // Process backups.
             for (Backup backup : backups) {
-                LOG.info(String.format("Perform backup %s.",backup.getId()));
+                LOG.info("Perform backup {}",backup.getId());
 
                 // Get the backup type.
                 PerformBackup performBackup = typeManager.getBackup(backup.getType());
@@ -62,7 +62,6 @@ public class BackupCtrl {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Scheduled(cron = "#{@applicationProperties.schedule}")
     public void scheduleBackup() {
         LOG.info("Backup");
@@ -76,7 +75,8 @@ public class BackupCtrl {
         int endTime = calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE);
         int startTime = endTime - 120;
 
-        List<Backup> backupList = (List<Backup>) backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(startTime,endTime)));
+        @SuppressWarnings("unchecked")
+        List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(startTime,endTime)));
 
         // Sort the list by the backup time.
         Collections.sort(backupList);

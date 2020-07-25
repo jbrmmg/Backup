@@ -15,6 +15,8 @@ public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, I
 
     List<ActionConfirm> findByConfirmed(Boolean confirmed);
 
+    List<ActionConfirm> findByConfirmedAndAction(Boolean confirmed, String action);
+
     // Mark everything as removed.
     @Transactional
     @Modifying

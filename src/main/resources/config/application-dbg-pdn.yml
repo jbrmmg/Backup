@@ -24,6 +24,8 @@ backup:
     zip: /home/jason/Working/BackupDevZip
   schedule: 0 0/1 * ? * *
   enabled: false
+  email:
+    enabled: true
 
   db-url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
   db-username: ${db.dev.backup.user}

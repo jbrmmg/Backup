@@ -24,7 +24,7 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
     // Mark everything as removed.
     @Transactional
     @Modifying
-    @Query("UPDATE FileInfo SET removed=true WHERE id IN (SELECT id FROM DirectoryInfo WHERE source.id = ?1)")
+    @Query("UPDATE FileInfo SET removed=true WHERE directoryInfo.id IN (SELECT id FROM DirectoryInfo WHERE source.id = ?1)")
     void markAllRemoved(int source);
 
     // Mark everything as removed.
@@ -66,7 +66,7 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
             "LEFT OUTER JOIN FileInfo AS f2 ON f2.directoryInfo.id = d2.id AND f.name = f2.name " +
             "LEFT OUTER JOIN Classification AS c ON f.classification.id = c.id " +
             "WHERE s.id = ?1 " +
-            "AND f2. name is null"
+            "AND f2.name is null"
     )
     List<SynchronizeStatus> findSynchronizeExtraFiles(int synchronize);
 

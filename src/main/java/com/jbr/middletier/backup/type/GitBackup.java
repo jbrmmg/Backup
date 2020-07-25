@@ -18,7 +18,7 @@ import org.apache.commons.io.FileUtils;
 
 @Component
 public class GitBackup extends FileBackup {
-    final static private Logger LOG = LoggerFactory.getLogger(GitBackup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GitBackup.class);
 
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
