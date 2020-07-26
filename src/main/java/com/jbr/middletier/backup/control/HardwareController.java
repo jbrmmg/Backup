@@ -20,7 +20,7 @@ import java.util.Optional;
 public class HardwareController {
     private static final Logger LOG = LoggerFactory.getLogger(HardwareController.class);
 
-    final private HardwareRepository hardwareRepository;
+    private final HardwareRepository hardwareRepository;
 
     @Contract(pure = true)
     @Autowired
@@ -41,15 +41,15 @@ public class HardwareController {
         return storedHardware.get();
     }
 
-    @RequestMapping(method=RequestMethod.GET)
+    @GetMapping()
     public @ResponseBody Iterable<Hardware> hardware() {
         LOG.info("List hardware.");
         return hardwareRepository.findAll();
     }
 
-    @RequestMapping(method=RequestMethod.PUT)
+    @PutMapping()
     public @ResponseBody OkStatus update(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
-        LOG.info("Update hardware - " + hardware.getMacAddress());
+        LOG.info("Update hardware - {}", hardware.getMacAddress());
 
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
@@ -65,9 +65,9 @@ public class HardwareController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(method=RequestMethod.POST)
+    @PostMapping()
     public @ResponseBody OkStatus create(@NotNull @RequestBody HardwareDTO hardware) throws HardwareAlreadyExistsException {
-        LOG.info("Create hardware - " + hardware.getMacAddress());
+        LOG.info("Create hardware - {}", hardware.getMacAddress());
 
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
@@ -80,9 +80,9 @@ public class HardwareController {
         return OkStatus.getOkStatus();
     }
 
-    @RequestMapping(method=RequestMethod.DELETE)
+    @DeleteMapping()
     public @ResponseBody OkStatus delete(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
-        LOG.info("Delete hardware - " + hardware.getMacAddress());
+        LOG.info("Delete hardware - {}", hardware.getMacAddress());
 
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());

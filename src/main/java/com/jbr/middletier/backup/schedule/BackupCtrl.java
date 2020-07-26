@@ -14,10 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by jason on 11/02/17.
@@ -83,11 +80,10 @@ public class BackupCtrl {
         int endTime = calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE);
         int startTime = endTime - 120;
 
-        @SuppressWarnings("unchecked")
         List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(startTime,endTime)));
 
         // Sort the list by the backup time.
-        Collections.sort(backupList);
+        backupList.sort(Comparator.comparingLong(Backup::getTime));
 
         // If any backups return, perform the backup.
         performBackups(backupList);

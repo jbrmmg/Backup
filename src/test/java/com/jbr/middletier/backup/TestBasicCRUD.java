@@ -20,8 +20,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -232,7 +231,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount + 1)))
-                    .andExpect(jsonPath("$[32].action",is("FRED2")));
+                    .andExpect(jsonPath("$..action",hasItems("FRED2")));
 
             getMockMvc().perform(get("/jbr/ext/backup/classification")
                     .content(this.json(classification))

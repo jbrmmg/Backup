@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
  * Created by jason on 11/02/17.
  */
 @Repository
-public interface BackupRepository extends CrudRepository<Backup, String>, JpaSpecificationExecutor {
+public interface BackupRepository extends CrudRepository<Backup, String>, JpaSpecificationExecutor<Backup> {
 }

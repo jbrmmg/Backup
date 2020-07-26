@@ -25,8 +25,8 @@ import java.util.Optional;
 public class BackupController {
     private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
-    final private BackupRepository backupRepository;
-    final private BackupCtrl backupCtrl;
+    private final BackupRepository backupRepository;
+    private final BackupCtrl backupCtrl;
 
     @Contract(pure = true)
     @Autowired
@@ -57,7 +57,7 @@ public class BackupController {
 
     @PutMapping()
     public @ResponseBody OkStatus update(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
-        LOG.info("Update backup - " + backup.getId());
+        LOG.info("Update backup - {}", backup.getId());
 
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
@@ -75,7 +75,7 @@ public class BackupController {
 
     @PostMapping()
     public @ResponseBody OkStatus create(@NotNull @RequestBody BackupDTO backup) throws BackupAlreadyExistsException {
-        LOG.info("Create backup - " + backup.getId());
+        LOG.info("Create backup - {}", backup.getId());
 
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
@@ -90,7 +90,7 @@ public class BackupController {
 
     @PostMapping(path="/run")
     public @ResponseBody OkStatus performBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
-        LOG.info("Perform backup - " + id);
+        LOG.info("Perform backup - {}", id);
 
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(id);
@@ -105,7 +105,7 @@ public class BackupController {
 
     @DeleteMapping()
     public @ResponseBody OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
-        LOG.info("Delete backup - " + backup.getId());
+        LOG.info("Delete backup - {}", backup.getId());
 
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());

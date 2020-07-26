@@ -24,7 +24,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@SuppressWarnings("unchecked")
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -185,6 +184,14 @@ public class TestBackups {
             if (!source2.exists()) {
                 assertTrue(source2.mkdirs());
             }
+            File source2_1 = new File("./target/testfiles/BackupGit/.fred");
+            if (!source2_1.exists()) {
+                assertTrue(source2_1.createNewFile());
+            }
+            File source2_2 = new File("./target/testfiles/BackupGit/cpy.txt");
+            if (!source2_2.exists()) {
+                assertTrue(source2_2.createNewFile());
+            }
             File source3 = new File("./target/testfiles/BackupGit/target");
             if (!source3.exists()) {
                 assertTrue(source3.mkdirs());
@@ -209,6 +216,14 @@ public class TestBackups {
             if (expected2.exists()) {
                 assertTrue(expected2.delete());
             }
+            File expected3 = new File(backupManager.todaysDirectory() + "/TestGit/cpy.txt");
+            if (expected3.exists()) {
+                assertTrue(expected3.delete());
+            }
+            File expected4 = new File(backupManager.todaysDirectory() + "/TestGit/.fred");
+            if (expected4.exists()) {
+                assertTrue(expected4.delete());
+            }
 
             BackupDTO backupDTO = new BackupDTO("Git","git");
             backupDTO.setDirectory("./target/testfiles/BackupGit");
@@ -224,6 +239,8 @@ public class TestBackups {
 
             assertTrue(expected1.exists());
             assertFalse(expected2.exists());
+            assertTrue(expected3.exists());
+            assertFalse(expected4.exists());
 
             backupRepository.deleteAll();
         } catch (Exception ex) {
@@ -328,7 +345,7 @@ public class TestBackups {
         backup = new Backup(backupDTO);
         backupRepository.save(backup);
 
-        List<Backup> backupList = (List<Backup>) backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(199,301)));
+        List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(199,301)));
         assertEquals(2,backupList.size());
 
         backupRepository.deleteAll();
