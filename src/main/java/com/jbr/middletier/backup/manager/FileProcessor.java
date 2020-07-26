@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 abstract class FileProcessor {
-    private final static Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
 
     final DirectoryRepository directoryRepository;
     final FileRepository fileRepository;
@@ -48,13 +48,7 @@ abstract class FileProcessor {
                 index++;
             }
 
-            if(filterFolder.length() > 0) {
-                // Does it meet the filter?
-                if(!filterFolder.matches(nextSource.getFilter())) {
-                    LOG.trace("here");
-                    return false;
-                }
-            }
+            return (filterFolder.length() <= 0) || (filterFolder.matches(nextSource.getFilter()));
         }
 
         return true;
@@ -73,7 +67,7 @@ abstract class FileProcessor {
     private boolean deleteFileIfRequired(FileInfo file, List<ActionConfirm> deletes) {
         for(ActionConfirm nextAction: deletes) {
             if(nextAction.getPath().getId().equals(file.getId())) {
-                LOG.info("Deleteing the file " + file.getFullFilename());
+                LOG.info("Deleteing the file {}", file.getFullFilename());
                 actionManager.deleteFileIfConfirmed(file);
                 return true;
             }
@@ -234,7 +228,7 @@ abstract class FileProcessor {
             updateFile(path,file.get(),fileDate,deletes,classifications,skipMD5);
         }
 
-        LOG.info(path.toString());
+        LOG.info("{}", path);
     }
 
     void createDirectory(String path) {

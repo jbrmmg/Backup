@@ -55,7 +55,7 @@ public class ImportManager extends FileProcessor {
     }
 
     @Transactional
-    public void importPhoto(ImportRequest importRequest) throws Exception {
+    public void importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
         actionConfirmRepository.clearImports();
 
         // Get the classifications
@@ -112,7 +112,7 @@ public class ImportManager extends FileProcessor {
     }
 
     @Transactional
-    public void clearImports() throws Exception {
+    public void clearImports() {
         // Remove the files associated with imports - first remove files, then directories then source.
         for(Source nextSource: sourceRepository.findAll()) {
             if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
@@ -146,50 +146,41 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    private void processImport(ImportFile importFile, Source source) {
-        // If this file is completed then exit.
-        if(importFile.getStatus().equalsIgnoreCase("complete")) {
-            return;
+    private boolean processClassification(ImportFile importFile, Path path) {
+        if(importFile.getFileInfo().getClassification() == null) {
+            return false;
         }
 
-        // Get the path to the import file.
-        Path path = new File(importFile.getFileInfo().getFullFilename()).toPath();
-
-        // What is the classification? if yes, unless this is a backup file just remove it.
-        if(importFile.getFileInfo().getClassification() != null) {
-            if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
-                LOG.info("{} not a backed up file, deleting", path);
-                try {
-                    Files.delete(path);
-                } catch (IOException e) {
-                    LOG.warn("Failed to delete {}", path);
-                }
-                return;
+        if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
+            LOG.info("{} not a backed up file, deleting", path);
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                LOG.warn("Failed to delete {}, not a backup classification.", path);
             }
+            return false;
         }
 
-        // Get details of the file to import.
-        if(importFile.getFileInfo().getMD5() == null || importFile.getFileInfo().getMD5().length() <= 0) {
-            importFile.getFileInfo().setMD5(getMD5(path, importFile.getFileInfo().getClassification()));
+        return true;
+    }
 
-            fileRepository.save(importFile.getFileInfo());
-        }
-
-        // Is this file being ignored?
+    private boolean processIgnored(ImportFile importFile, Path path) {
         if(ignoreFile(importFile.getFileInfo())) {
             // Delete the file from import.
             LOG.info("{} marked for ignore, deleting", path);
             try {
                 Files.delete(path);
             } catch (IOException e) {
-                LOG.warn("Failed to delete {}", path);
+                LOG.warn("Failed to delete {}, ignored file.", path);
             }
-            return;
+            return false;
         }
 
-        // Does this file already exist in the source?
+        return true;
+    }
+
+    private FileTestResultType processExisting(ImportFile importFile, Path path, Source source) {
         List<FileInfo> existingFiles = fileRepository.findByName(path.getFileName().toString());
-        boolean closeMatch = false;
 
         for(FileInfo nextFile: existingFiles) {
             LOG.info("{}", nextFile);
@@ -207,74 +198,113 @@ public class ImportManager extends FileProcessor {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    LOG.warn("Failed to delete {}", path);
+                    LOG.warn("Failed to delete {}, already imported", path);
                 }
-                return;
             }
 
-            if(testResult == FileTestResultType.CLOSE) {
-                closeMatch = true;
+            return testResult;
+        }
+
+        return FileTestResultType.DIFFERENT;
+    }
+
+    private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter) {
+        for(ActionConfirm nextConfirm: confirmedActions) {
+            actionConfirmRepository.delete(nextConfirm);
+        }
+
+        // If the parameter value is IGNORE then add this file to the ignore list.
+        if(parameter.equalsIgnoreCase("ignore")) {
+            IgnoreFile ignoreFile = new IgnoreFile();
+            ignoreFile.setDate(importFile.getFileInfo().getDate());
+            ignoreFile.setName(importFile.getFileInfo().getName());
+            ignoreFile.setSize(importFile.getFileInfo().getSize());
+            ignoreFile.setMD5(importFile.getFileInfo().getMD5());
+
+            ignoreFileRepository.save(ignoreFile);
+
+            return;
+        }
+
+        // The file can be copied.
+        String newFilename = source.getPath();
+
+        // Use the date of the file.
+        Date fileDate = new Date(path.toFile().lastModified());
+
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
+        SimpleDateFormat sdf2 = new SimpleDateFormat("MMMM");
+
+        newFilename += "/" + sdf1.format(fileDate);
+        newFilename += "/" + sdf2.format(fileDate);
+        newFilename += "/" + parameter;
+
+        createDirectory(newFilename);
+
+        newFilename += "/" + path.getFileName();
+
+        try {
+            LOG.info("Importing file {} to {}", path, newFilename);
+            Files.move(path,
+                    Paths.get(newFilename),
+                    REPLACE_EXISTING);
+        } catch (IOException e) {
+            LOG.error("Unable to import {}", path);
+        }
+    }
+
+    private void processImportActions(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source) {
+        boolean confirmed = false;
+        String parameter = "";
+        for(ActionConfirm nextConfirm: confirmedActions) {
+            if(nextConfirm.confirmed() && nextConfirm.getParameter() != null && nextConfirm.getParameter().length() > 0) {
+                parameter = nextConfirm.getParameter();
+                confirmed = true;
             }
+        }
+
+        if(confirmed && parameter.length() > 0) {
+            processConfirmedAction(importFile,path,confirmedActions,source,parameter);
+        }
+    }
+
+    private void processImport(ImportFile importFile, Source source) {
+        // If this file is completed then exit.
+        if(importFile.getStatus().equalsIgnoreCase("complete")) {
+            return;
+        }
+
+        // Get the path to the import file.
+        Path path = new File(importFile.getFileInfo().getFullFilename()).toPath();
+
+        // What is the classification? if yes, unless this is a backup file just remove it.
+        if(!processClassification(importFile,path)) {
+            return;
+        }
+
+        // Get details of the file to import.
+        if(importFile.getFileInfo().getMD5() == null || importFile.getFileInfo().getMD5().length() <= 0) {
+            importFile.getFileInfo().setMD5(getMD5(path, importFile.getFileInfo().getClassification()));
+
+            fileRepository.save(importFile.getFileInfo());
+        }
+
+        // Is this file being ignored?
+        if(!processIgnored(importFile,path)) {
+            return;
+        }
+
+        // Does this file already exist in the source?
+        FileTestResultType existingState = processExisting(importFile,path,source);
+        if(FileTestResultType.EXACT == existingState) {
+            return;
         }
 
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
-
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile.getFileInfo(),"IMPORT");
         if(!confirmedActions.isEmpty()) {
-            boolean confirmed = false;
-            String parameter = "";
-            for(ActionConfirm nextConfirm: confirmedActions) {
-                if(nextConfirm.confirmed() && nextConfirm.getParameter() != null && nextConfirm.getParameter().length() > 0) {
-                    parameter = nextConfirm.getParameter();
-                    confirmed = true;
-                }
-            }
-
-            if(confirmed && parameter.length() > 0) {
-                for(ActionConfirm nextConfirm: confirmedActions) {
-                    actionConfirmRepository.delete(nextConfirm);
-                }
-
-                // If the parameter value is IGNORE then add this file to the ignore list.
-                if(parameter.equalsIgnoreCase("ignore")) {
-                    IgnoreFile ignoreFile = new IgnoreFile();
-                    ignoreFile.setDate(importFile.getFileInfo().getDate());
-                    ignoreFile.setName(importFile.getFileInfo().getName());
-                    ignoreFile.setSize(importFile.getFileInfo().getSize());
-                    ignoreFile.setMD5(importFile.getFileInfo().getMD5());
-
-                    ignoreFileRepository.save(ignoreFile);
-
-                    return;
-                }
-
-                // The file can be copied.
-                String newFilename = source.getPath();
-
-                // Use the date of the file.
-                Date fileDate = new Date(path.toFile().lastModified());
-
-                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
-                SimpleDateFormat sdf2 = new SimpleDateFormat("MMMM");
-
-                newFilename += "/" + sdf1.format(fileDate);
-                newFilename += "/" + sdf2.format(fileDate);
-                newFilename += "/" + parameter;
-
-                createDirectory(newFilename);
-
-                newFilename += "/" + path.getFileName();
-
-                try {
-                    LOG.info("Importing file {} to {}", path, newFilename);
-                    Files.move(path,
-                            Paths.get(newFilename),
-                            REPLACE_EXISTING);
-                } catch (IOException e) {
-                    LOG.error("Unable to import {}", path);
-                }
-            }
+            processImportActions(importFile,path,confirmedActions,source);
         } else {
             // Create an action to be confirmed.
             ActionConfirm actionConfirm = new ActionConfirm();
@@ -282,16 +312,13 @@ public class ImportManager extends FileProcessor {
             actionConfirm.setAction("IMPORT");
             actionConfirm.setConfirmed(false);
             actionConfirm.setParameterRequired(true);
-            if(closeMatch) {
-                // Indicate it was a close match.
-                actionConfirm.setFlags("C");
-            }
+            actionConfirm.setFlags(FileTestResultType.CLOSE == existingState ? "C" : null);
 
             actionConfirmRepository.save(actionConfirm);
         }
     }
 
-    public void importPhotoProcess() throws Exception {
+    public void importPhotoProcess() throws ImportRequestException {
         LOG.info("Import Photo Process");
 
         // Get the source.

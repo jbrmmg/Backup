@@ -42,7 +42,7 @@ public class CleanBackup implements PerformBackup {
 
             if (directoryDate.toInstant().isBefore(maxDaysAgo.toInstant())) {
                 // Delete this directory.
-                LOG.info(String.format("Delete directory %s", directory));
+                LOG.info("Delete directory {}", directory);
                 return true;
             }
         } catch ( ParseException ex ) {
@@ -57,7 +57,7 @@ public class CleanBackup implements PerformBackup {
         try {
             File directoryToDelete = new File(directory);
             FileUtils.deleteDirectory(directoryToDelete);
-            LOG.info(String.format("Deleted %s",directory));
+            LOG.info("Deleted {}",directory);
             backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("Deleted %s",directory));
         } catch ( IOException ex ) {
             LOG.warn(String.format("Failed to deleted %s",directory));
@@ -79,10 +79,8 @@ public class CleanBackup implements PerformBackup {
         File[] listOfFiles = folder.listFiles();
         if(listOfFiles != null) {
             for (File listOfFile : listOfFiles) {
-                if (listOfFile.isDirectory()) {
-                    if (shouldDirectoryBeDeleted(backupManager, listOfFile.getName())) {
-                        deleleDirectory(backupManager, String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()));
-                    }
+                if (listOfFile.isDirectory() && shouldDirectoryBeDeleted(backupManager, listOfFile.getName())) {
+                    deleleDirectory(backupManager, String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()));
                 }
             }
         }

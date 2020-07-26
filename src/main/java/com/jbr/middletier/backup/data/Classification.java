@@ -57,9 +57,6 @@ public class Classification {
         this.isImage = source.getImage();
         this.isVideo = source.getVideo();
         this.order = source.getOrder();
-
-        // For future use.
-        String type = source.getType();
     }
 
     public Integer getId() { return this.id; }

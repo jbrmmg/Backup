@@ -33,10 +33,10 @@ public class ZipupBackup implements PerformBackup  {
             for (File file : files) {
                 fileList.add(file);
                 if (file.isDirectory()) {
-                    LOG.info(String.format("DirectoryInfo: %s", file.getCanonicalPath()));
+                    LOG.info("DirectoryInfo: {}", file.getCanonicalPath());
                     getAllFiles(file, fileList);
                 } else {
-                    LOG.info(String.format("     file: %s", file.getCanonicalPath()));
+                    LOG.info("     file: {}", file.getCanonicalPath());
                 }
             }
         }
@@ -64,7 +64,7 @@ public class ZipupBackup implements PerformBackup  {
             // we want the zipEntry's path to be a relative path that is relative
             // to the directory being zipped, so chop off the rest of the path
             String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1);
-            LOG.info(String.format("Writing %s to zip file", zipFilePath));
+            LOG.info("Writing {} to zip file", zipFilePath);
             ZipEntry zipEntry = new ZipEntry(zipFilePath);
             zos.putNextEntry(zipEntry);
 
@@ -94,7 +94,7 @@ public class ZipupBackup implements PerformBackup  {
             File directoryToZip = new File(backupManager.todaysDirectory());
             List<File> fileList = new ArrayList<>();
 
-            LOG.info(String.format("Getting references to all files in: %s",directoryToZip.getCanonicalPath()));
+            LOG.info("Getting references to all files in: {}",directoryToZip.getCanonicalPath());
 
             getAllFiles(directoryToZip, fileList);
 

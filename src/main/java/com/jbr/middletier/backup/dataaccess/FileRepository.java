@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSpecificationExecutor {
+public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSpecificationExecutor<FileInfo> {
     Optional<FileInfo> findByDirectoryInfoAndName(DirectoryInfo directoryInfo, String name);
 
     List<FileInfo> findByName(String name);

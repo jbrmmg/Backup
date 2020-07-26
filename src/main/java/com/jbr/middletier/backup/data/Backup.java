@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name="backup")
-public class Backup implements Comparable<Backup>{
+public class Backup {
     @Id
     @Column(name="id")
     private String id;
@@ -80,20 +80,11 @@ public class Backup implements Comparable<Backup>{
 
     public String getFileName() { return this.fileName; }
 
+    public long getTime() { return this.time; }
+
     public void setId(@NotNull String id) { this.id = id; }
 
     public void setType(@NotNull String type) { this.type = type; }
 
     public void setDirectory(String directory) { this.directory = directory; }
-
-    @SuppressWarnings("NullableProblems")
-    public int compareTo(Backup compareBackup) {
-        if(compareBackup == null){
-            throw new IllegalArgumentException("RHS cannot be null.");
-        }
-
-        //ascending order
-        long compare = this.time - compareBackup.time;
-        return (int)compare;
-    }
 }

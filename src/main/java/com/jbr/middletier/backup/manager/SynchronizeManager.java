@@ -136,7 +136,7 @@ public class SynchronizeManager {
 
             // Does the file need to be copied?
             if (copyFile(status.getSourceFile(), status.getDestinationFile())) {
-                LOG.info("Copy File - {}", status.getSourceFile().toString());
+                LOG.info("Copy File - {}", status.getSourceFile());
 
                 String sourceFilename = status.getSourceFile().getFullFilename();
                 String destinationFilename = String.format("%s/%s/%s",
@@ -166,83 +166,95 @@ public class SynchronizeManager {
         }
     }
 
+    private void processSynchronizeStatusAtSource(SynchronizeStatus nextStatus) {
+        if(nextStatus.getClassification() == null) {
+            LOG.warn("Unknown classification on file {}", nextStatus.getSourceFile().getId());
+            return;
+        }
+
+        // Perform the appropriate actions
+        switch(nextStatus.getClassification().getAction()) {
+            case "BACKUP":
+                backup(nextStatus);
+                break;
+
+            case "IGNORE":
+                removeIfBackedup(nextStatus);
+                break;
+
+            case "DELETE":
+                delete(nextStatus,true, true);
+                break;
+
+            case "WARN":
+                removeIfBackedup(nextStatus);
+                warn(nextStatus);
+                break;
+
+            case "FOLDER":
+                break;
+
+            default:
+                LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
+        }
+    }
+
+    private void processSynchronizeStatusAtDestination(SynchronizeStatus nextStatus) {
+        // These are files that should not exists.
+        if(nextStatus.getClassification() == null) {
+            delete(nextStatus,false, false);
+            return;
+        }
+
+        // Perform the appropriate actions
+        switch(nextStatus.getClassification().getAction()) {
+            case "BACKUP":
+            case "IGNORE":
+            case "DELETE":
+            case "WARN":
+                delete(nextStatus,false, true);
+                break;
+
+            case "FOLDER":
+                actionManager.deleteFileIfConfirmed(nextStatus.getSourceFile());
+                break;
+
+            default:
+                LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN,String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
+        }
+    }
+
+    private void processSynchronize(Synchronize nextSynchronize) {
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+
+        if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getSource().getStatus().equals("OK")) {
+            backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+            return;
+        }
+
+        if(nextSynchronize.getDestination().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
+            backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
+            return;
+        }
+
+        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
+            processSynchronizeStatusAtSource(nextStatus);
+        }
+
+        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
+            processSynchronizeStatusAtDestination(nextStatus);
+        }
+
+        LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
+    }
+
     public void synchronize() {
         Iterable<Synchronize> synchronizes = synchronizeRepository.findAll();
 
         for(Synchronize nextSynchronize : synchronizes) {
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
-
-            if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getSource().getStatus().equals("OK")) {
-                backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
-                continue;
-            }
-
-            if(nextSynchronize.getDestination().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
-                backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
-                continue;
-            }
-
-            for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
-                if(nextStatus.getClassification() == null) {
-                    LOG.warn("Unknown classification on file {}", nextStatus.getSourceFile().getId());
-                    continue;
-                }
-
-                // Perform the appropriate actions
-                switch(nextStatus.getClassification().getAction()) {
-                    case "BACKUP":
-                        backup(nextStatus);
-                        break;
-
-                    case "IGNORE":
-                        removeIfBackedup(nextStatus);
-                        break;
-
-                    case "DELETE":
-                        delete(nextStatus,true, true);
-                        break;
-
-                    case "WARN":
-                        removeIfBackedup(nextStatus);
-                        warn(nextStatus);
-                        break;
-
-                    case "FOLDER":
-                        break;
-
-                    default:
-                        LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
-                        backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
-                }
-            }
-
-            for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
-                // These are files that should not exists.
-                if(nextStatus.getClassification() == null) {
-                    delete(nextStatus,false, false);
-                    continue;
-                }
-
-                // Perform the appropriate actions
-                switch(nextStatus.getClassification().getAction()) {
-                    case "BACKUP":
-                    case "IGNORE":
-                    case "DELETE":
-                    case "WARN":
-                        delete(nextStatus,false, true);
-                        break;
-
-                    case "FOLDER":
-                        actionManager.deleteFileIfConfirmed(nextStatus.getSourceFile());
-                        break;
-
-                    default:
-                        LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
-                        backupManager.postWebLog(BackupManager.webLogLevel.WARN,String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
-                }
-            }
-
-            LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
+            processSynchronize(nextSynchronize);
         }
     }
 }
