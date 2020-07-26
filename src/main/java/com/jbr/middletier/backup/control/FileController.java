@@ -60,7 +60,7 @@ public class FileController {
     Iterable<FileInfo> getFiles() { return fileRepository.findAll(); }
 
     @PostMapping(path="/gather")
-    public @ResponseBody OkStatus gather(@RequestBody String reason) throws Exception {
+    public @ResponseBody OkStatus gather(@RequestBody String reason) throws IOException {
         LOG.info("Process drive - {}", reason);
 
         driveManager.gather();

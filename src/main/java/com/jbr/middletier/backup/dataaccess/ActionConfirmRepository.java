@@ -10,7 +10,7 @@ import org.springframework.data.repository.CrudRepository;
 import javax.transaction.Transactional;
 import java.util.List;
 
-public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, Integer>, JpaSpecificationExecutor {
+public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, Integer>, JpaSpecificationExecutor<ActionConfirm> {
     List<ActionConfirm> findByFileInfoAndAction(FileInfo fileInfo, String action);
 
     List<ActionConfirm> findByConfirmed(Boolean confirmed);

@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class TypeManager {
 
-    private final static String file_type = "file";
-    private final static String database_type = "database";
-    private final static String git_type = "git";
-    private final static String clean_type = "clean";
-    private final static String zipup_type = "zipup";
+    private static final String FILE_TYPE = "file";
+    private static final String DATABASE_TYPE = "database";
+    private static final String GIT_TYPE = "git";
+    private static final String CLEAN_TYPE = "clean";
+    private static final String ZIPUP_TYPE = "zipup";
 
     private final PerformBackup fileBackup;
 
@@ -47,23 +47,23 @@ public class TypeManager {
 
     public PerformBackup getBackup(String type) {
         // Return the required type of backup.
-        if(type.equalsIgnoreCase(file_type)) {
+        if(type.equalsIgnoreCase(FILE_TYPE)) {
             return fileBackup;
         }
 
-        if(type.equalsIgnoreCase(database_type)) {
+        if(type.equalsIgnoreCase(DATABASE_TYPE)) {
             return databaseBackup;
         }
 
-        if(type.equalsIgnoreCase(git_type)) {
+        if(type.equalsIgnoreCase(GIT_TYPE)) {
             return gitBackup;
         }
 
-        if(type.equalsIgnoreCase(clean_type)) {
+        if(type.equalsIgnoreCase(CLEAN_TYPE)) {
             return cleanBackup;
         }
 
-        if(type.equalsIgnoreCase(zipup_type)) {
+        if(type.equalsIgnoreCase(ZIPUP_TYPE)) {
             return zipupBackup;
         }
 

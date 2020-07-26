@@ -76,25 +76,25 @@ public class Source {
 
     public void setType(String type) { this.type = type; }
 
-    public SourceTypeType getTypeEnum() throws Exception {
+    public SourceTypeType getTypeEnum() {
         switch(this.getType()) {
             case "STD":
                 return SourceTypeType.STANDARD;
             case "IMP":
                 return SourceTypeType.IMPORT;
             default:
-                throw new Exception(this.getType() + " invalid type");
+                throw new IllegalArgumentException(this.getType() + " invalid type");
         }
     }
 
     public void setTypeEnum(SourceTypeType type) {
-        switch(type) {
-            case STANDARD:
-                this.type = "STD";
-                break;
-            case IMPORT:
-                this.type = "IMP";
-                break;
+        if(SourceTypeType.STANDARD == type) {
+            this.type = "STD";
+            return;
+        }
+
+        if(SourceTypeType.IMPORT == type) {
+            this.type = "IMP";
         }
     }
 

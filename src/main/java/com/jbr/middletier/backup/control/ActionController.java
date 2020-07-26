@@ -18,9 +18,9 @@ import java.util.Optional;
 public class ActionController {
     private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
-    final private IgnoreFileRepository ignoreFileRepository;
-    final private ActionConfirmRepository actionConfirmRepository;
-    final private ActionManager emailManager;
+    private final IgnoreFileRepository ignoreFileRepository;
+    private final ActionConfirmRepository actionConfirmRepository;
+    private final ActionManager emailManager;
 
     @Contract(pure = true)
     @Autowired
@@ -32,28 +32,28 @@ public class ActionController {
         this.emailManager = emailManager;
     }
 
-    @RequestMapping(path="/actions",method=RequestMethod.GET)
+    @GetMapping(path="/actions")
     public @ResponseBody Iterable<ActionConfirm> getActions() {
         LOG.info("Get actions");
 
         return actionConfirmRepository.findByConfirmed(false);
     }
 
-    @RequestMapping(path="/confirmed-actions",method=RequestMethod.GET)
+    @GetMapping(path="/confirmed-actions")
     public @ResponseBody Iterable<ActionConfirm> getConfirmedActions() {
         LOG.info("Get actions");
 
         return actionConfirmRepository.findByConfirmed(true);
     }
 
-    @RequestMapping(path="/ignore",method=RequestMethod.GET)
+    @GetMapping(path="/ignore")
     public @ResponseBody Iterable<IgnoreFile> getIgnoreFiles() {
         LOG.info("Get ignore files");
 
         return ignoreFileRepository.findAll();
     }
 
-    @RequestMapping(path="/actions",method=RequestMethod.POST)
+    @PostMapping(path="/actions")
     public @ResponseBody ActionConfirm confirm (@NotNull @RequestBody ConfirmActionRequest action) {
         LOG.info("Confirm action");
 
@@ -65,7 +65,7 @@ public class ActionController {
         }
 
         // What type is this?
-        if(existingAction.get().getAction().equals("IMPORT") || action.getConfirm()) {
+        if(existingAction.get().getAction().equals("IMPORT") || Boolean.TRUE.equals(action.getConfirm())) {
             // For import, always confirm the action.
             existingAction.get().setConfirmed(true);
             existingAction.get().setParameter(action.getParameter());
@@ -78,7 +78,7 @@ public class ActionController {
         return existingAction.get();
     }
 
-    @RequestMapping(path="/actionemail",method=RequestMethod.POST)
+    @PostMapping(path="/actionemail")
     public @ResponseBody  OkStatus emailActions() {
         emailManager.sendActionEmail();
 

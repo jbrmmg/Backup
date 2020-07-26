@@ -45,7 +45,39 @@ public class DriveManager extends FileProcessor {
         }
     }
 
-    public void gather() throws Exception {
+    private void processSource(Source nextSource, List<ActionConfirm> deleteActions, Iterable<Classification> classifications) throws IOException {
+        if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
+            return;
+        }
+
+        if(nextSource.getTypeEnum() != Source.SourceTypeType.STANDARD ) {
+            return;
+        }
+
+        fileRepository.markAllRemoved(nextSource.getId());
+        directoryRepository.markAllRemoved(nextSource.getId());
+
+        setSourceStatus(nextSource,"GATHERING");
+
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
+
+        // If the source does not exist, create it.
+        createDirectory(nextSource.getPath());
+
+        try(Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
+            // Read directory structure into the database.
+            paths
+                    .forEach(path -> processPath(path,deleteActions,nextSource,classifications,false));
+        } catch (IOException e) {
+            setSourceStatus(nextSource,"ERROR");
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());
+            throw e;
+        }
+
+        setSourceStatus(nextSource,"OK");
+    }
+
+    public void gather() throws IOException {
         Iterable<Source> sources = sourceRepository.findAll();
         Iterable<Classification> classifications = classificationRepository.findAll();
 
@@ -53,35 +85,7 @@ public class DriveManager extends FileProcessor {
         List<ActionConfirm> deleteActions = actionConfirmRepository.findByConfirmedAndAction(true,"DELETE");
 
         for(Source nextSource: sources) {
-            if(nextSource.getStatus() != null && nextSource.getStatus().equals("GATHERING")) {
-                continue;
-            }
-
-            if(nextSource.getTypeEnum() != Source.SourceTypeType.STANDARD ) {
-                continue;
-            }
-
-            fileRepository.markAllRemoved(nextSource.getId());
-            directoryRepository.markAllRemoved(nextSource.getId());
-
-            setSourceStatus(nextSource,"GATHERING");
-
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
-
-            // If the source does not exist, create it.
-            createDirectory(nextSource.getPath());
-
-            try(Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
-                // Read directory structure into the database.
-                paths
-                   .forEach(path -> processPath(path,deleteActions,nextSource,classifications,false));
-            } catch (IOException e) {
-                setSourceStatus(nextSource,"ERROR");
-                backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());
-                throw e;
-            }
-
-            setSourceStatus(nextSource,"OK");
+            processSource(nextSource,deleteActions,classifications);
         }
 
         fileRepository.deleteRemoved();

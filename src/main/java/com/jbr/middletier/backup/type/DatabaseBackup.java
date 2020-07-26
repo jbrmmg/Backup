@@ -70,7 +70,7 @@ public class DatabaseBackup implements PerformBackup {
     public void performBackup(BackupManager backupManager, Backup backup) {
         try {
             backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
-            LOG.info(String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
+            LOG.info("Database Backup {} {} {} {}", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory());
 
             // Perform a database backup.
 
@@ -83,7 +83,9 @@ public class DatabaseBackup implements PerformBackup {
             // Does the destination file exist?
             File destinationFile = new File(String.format("%s/%s/%s",backupManager.todaysDirectory(),backup.getBackupName(),backup.getArtifact()));
             if(destinationFile.exists()) {
-                LOG.info(String.format("File exists - %s/%s/%s",backupManager.todaysDirectory(),backup.getBackupName(),backup.getArtifact()));
+                if(LOG.isInfoEnabled()) {
+                    LOG.info("File exists - {}/{}/{}", backupManager.todaysDirectory(), backup.getBackupName(), backup.getArtifact());
+                }
 
                 // Is there a file
                 if (destinationFile.length() > 100) {
@@ -94,7 +96,7 @@ public class DatabaseBackup implements PerformBackup {
 
             // Perform the database backup using mysqldump.
             String backupCommand = getBackupCommand(backupManager, backup);
-            LOG.info(String.format("Command: %s", backupCommand));
+            LOG.info("Command: {}", backupCommand);
 
             String[] cmd = new String[]{"bash","-c",backupCommand};
             final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)

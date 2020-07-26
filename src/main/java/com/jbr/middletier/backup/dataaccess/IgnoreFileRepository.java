@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
-public interface IgnoreFileRepository extends CrudRepository<IgnoreFile, Integer>, JpaSpecificationExecutor {
+public interface IgnoreFileRepository extends CrudRepository<IgnoreFile, Integer>, JpaSpecificationExecutor<IgnoreFile> {
     List<IgnoreFile> findByName(String name);
 }
