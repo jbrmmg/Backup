@@ -109,7 +109,7 @@ public class TestBasicCRUD extends WebTester {
         try {
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
-            if (!backupDirectory.exists() && !backupDirectory.mkdir()) {
+            if (!backupDirectory.exists() && !backupDirectory.mkdirs()) {
                 LOG.warn("Cannot create the backup directory.");
             }
 
