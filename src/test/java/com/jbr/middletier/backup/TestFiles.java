@@ -23,6 +23,7 @@ import java.io.File;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -102,9 +103,7 @@ public class TestFiles extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(3)))
-                    .andExpect(jsonPath("$[0].name", is(".")))
-                    .andExpect(jsonPath("$[1].name", is("fileA.txt")))
-                    .andExpect(jsonPath("$[2].name", is("fileB.txt")));
+                    .andExpect(jsonPath("$..name", hasItems(".","fileA.txt", "fileB.txt")));
 
             // Remove the files
             assertTrue(testFileA.delete());
