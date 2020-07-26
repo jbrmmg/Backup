@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +61,13 @@ public class BackupCtrl {
         } catch (Exception ex) {
             LOG.error("Failed to perform backup",ex);
         }
+    }
+
+    public void performBackup(Backup backup) {
+        List<Backup> backupList = new ArrayList<>();
+        backupList.add(backup);
+
+        performBackups(backupList);
     }
 
     @Scheduled(cron = "#{@applicationProperties.schedule}")

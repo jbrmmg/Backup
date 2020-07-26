@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,15 +38,17 @@ public class DuplicateManager {
 
     private void processDuplicate(FileInfo potentialDuplicate) {
         if(this.actionManager.checkAction(potentialDuplicate,"DELETE_DUP")) {
-            LOG.info("Delete duplicate file - " + potentialDuplicate.toString());
+            LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
             String deleteFile = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getPath() + "/" + potentialDuplicate.getName();
 
             File fileToDelete = new File(deleteFile);
             if(fileToDelete.exists()) {
-                LOG.info("Deleted.");
-                if(!fileToDelete.delete()) {
-                    LOG.warn("Delete failed.");
+                LOG.info("Delete.");
+                try {
+                    Files.delete(fileToDelete.toPath());
+                } catch (IOException e) {
+                    LOG.warn("Failed to delete {}",fileToDelete);
                 }
             }
         }
@@ -68,7 +72,7 @@ public class DuplicateManager {
         for(FileInfo nextFile: checkFiles) {
             for(FileInfo nextFile2: checkFiles) {
                 if(nextFile.duplicate(nextFile2)) {
-                    LOG.info("Duplicate - " + nextFile.toString());
+                    LOG.info("Duplicate - {}", nextFile);
 
                     processDuplicate(nextFile);
                     processDuplicate(nextFile2);
@@ -84,14 +88,14 @@ public class DuplicateManager {
 
         // Check for duplicates in sources.
         for(Source nextSource: sources) {
-            if(nextSource.getLocation().getCheckDuplicates()) {
+            if(Boolean.TRUE.equals(nextSource.getLocation().getCheckDuplicates())) {
                 // Find files that have the same name and size.
                 List<String> files = fileRepository.findDuplicates(nextSource.getId());
 
                 // Are these files really duplicates.
                 for(String nextFile: files) {
                     List<FileInfo> duplicates = fileRepository.findByName(nextFile);
-                    LOG.info("Check: " + nextFile);
+                    LOG.info("Check: {}", nextFile);
                     checkDuplicateOfFile(duplicates, nextSource);
                 }
             }
