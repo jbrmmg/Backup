@@ -24,7 +24,7 @@ spring:
     contexts: default
 
 backup:
-  db-backup-command: mysqldump -h ##server## -u ##user## -p##password## ##dbname## > ##todaydir##/##backupname##/##output##.sql
+  db-backup-command: mysqldump -h $$server$$ -u $$user$$ -p$$password$$ $$dbname$$ > $$todaydir$$/$$backupname$$/$$output$$.sql
   db-backup-max-time: 600
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false

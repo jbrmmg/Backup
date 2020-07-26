@@ -20,15 +20,17 @@ import org.apache.commons.io.FileUtils;
 public class GitBackup extends FileBackup {
     private static final Logger LOG = LoggerFactory.getLogger(GitBackup.class);
 
+    private static final String PATH_FILE_FORMAT = "%s/%s";
+
     @Override
     public void performBackup(BackupManager backupManager, Backup backup) {
         try {
-            LOG.info(String.format("Git Backup %s %s %s", backup.getId(), backup.getBackupName(), backup.getDirectory()));
+            LOG.info("Git Backup {} {} {}", backup.getId(), backup.getBackupName(), backup.getDirectory());
 
             // Perform a git backup.
 
             // Create the backup directory if it doesn't exist.
-            Path destinationPath = Paths.get(String.format("%s/%s", backupManager.todaysDirectory(), backup.getBackupName()));
+            Path destinationPath = Paths.get(String.format(PATH_FILE_FORMAT, backupManager.todaysDirectory(), backup.getBackupName()));
             if (Files.notExists(destinationPath)) {
                 Files.createDirectory(destinationPath);
             }
@@ -49,23 +51,23 @@ public class GitBackup extends FileBackup {
                         }
 
                         // Copy file if not already created.
-                        LOG.info(String.format("File %s copy to %s", listOfFile.getName(), destinationPath.toString()));
+                        LOG.info("File {} copy to {}", listOfFile.getName(), destinationPath.toString());
                         performFileBackup(backupManager, backup.getDirectory(), destinationPath.toString(), listOfFile.getName(), false);
                     } else if (listOfFile.isDirectory()) {
                         if (listOfFile.getName().equalsIgnoreCase("target")) {
                             continue;
                         }
 
-                        LOG.info(String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
+                        LOG.info("DirectoryInfo {} copy to {}/{}", listOfFile.getName(), destinationPath.toString(), listOfFile.getName());
 
                         // If not existing, create the directory.
-                        Path newDirectoryPath = Paths.get(String.format("%s/%s", destinationPath.toString(), listOfFile.getName()));
+                        Path newDirectoryPath = Paths.get(String.format(PATH_FILE_FORMAT, destinationPath.toString(), listOfFile.getName()));
                         if (Files.notExists(newDirectoryPath)) {
                             Files.createDirectory(newDirectoryPath);
                         }
 
                         // Do the copy.
-                        File source = new File(String.format("%s/%s", backup.getDirectory(), listOfFile.getName()));
+                        File source = new File(String.format(PATH_FILE_FORMAT, backup.getDirectory(), listOfFile.getName()));
                         File destination = new File(newDirectoryPath.toString());
                         FileUtils.copyDirectory(source, destination, true);
 

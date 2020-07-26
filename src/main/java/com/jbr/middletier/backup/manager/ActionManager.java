@@ -17,10 +17,8 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -32,6 +30,8 @@ public class ActionManager {
     private final ApplicationProperties applicationProperties;
     private final ActionConfirmRepository actionConfirmRepository;
     private final ResourceLoader resourceLoader;
+
+    private static final String END_TD = "</td>";
 
     @Autowired
     public ActionManager(ApplicationProperties applicationProperties,
@@ -45,7 +45,7 @@ public class ActionManager {
     boolean checkAction(FileInfo fileInfo, String action) {
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action);
 
-        if(confirmedActions.size() > 0) {
+        if(!confirmedActions.isEmpty()) {
             boolean confirmed = false;
             for(ActionConfirm nextConfirm: confirmedActions) {
                 if(nextConfirm.confirmed()) {
@@ -77,14 +77,12 @@ public class ActionManager {
     void deleteFileIfConfirmed(FileInfo fileInfo) {
         File file = new File(fileInfo.getFullFilename());
 
-        if(file.exists()) {
-            // Has this action been confirmed?
-            if(checkAction(fileInfo, "DELETE")) {
-                LOG.info("Delete the file - " + file );
-
-                if(!file.delete()) {
-                    LOG.warn("Failed to delete the file " + fileInfo.getFullFilename());
-                }
+        if(file.exists() && checkAction(fileInfo, "DELETE")) {
+            LOG.info("Delete the file - {}", file );
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                LOG.warn("Failed to delete file {}", file);
             }
         }
     }
@@ -92,7 +90,7 @@ public class ActionManager {
     public void sendActionEmail() {
         try {
             // Only send the email if its enabled.
-            if (!applicationProperties.getEmail().getEnabled()) {
+            if (Boolean.FALSE.equals(applicationProperties.getEmail().getEnabled())) {
                 LOG.warn("Email disabled, not sending.");
                 return;
             }
@@ -100,7 +98,7 @@ public class ActionManager {
             // Get a list of unconfirmed actions.
             List<ActionConfirm> unconfirmedActions = actionConfirmRepository.findByConfirmed(false);
 
-            if (unconfirmedActions.size() == 0) {
+            if (unconfirmedActions.isEmpty()) {
                 LOG.info("No unconfirmed actions.");
                 return;
             }
@@ -111,13 +109,13 @@ public class ActionManager {
                 emailText.append("<tr>");
                 emailText.append("<td class=\"action\">");
                 emailText.append(nextAction.getAction());
-                emailText.append("</td>");
+                emailText.append(END_TD);
                 emailText.append("<td class=\"parameter\">");
                 emailText.append(nextAction.getParameter() == null ? "" : nextAction.getParameter());
-                emailText.append("</td>");
+                emailText.append(END_TD);
                 emailText.append("<td class=\"filename\">");
                 emailText.append(nextAction.getPath().getFullFilename());
-                emailText.append("</td>");
+                emailText.append(END_TD);
                 emailText.append("</tr>");
             }
 
@@ -140,6 +138,7 @@ public class ActionManager {
 
             Session session = Session.getInstance(properties,
                     new javax.mail.Authenticator() {
+                        @Override
                         protected PasswordAuthentication getPasswordAuthentication() {
                             return new PasswordAuthentication(applicationProperties.getEmail().getUser(), applicationProperties.getEmail().getPassword());
                         }
