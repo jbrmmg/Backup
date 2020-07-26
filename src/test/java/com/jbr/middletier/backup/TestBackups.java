@@ -7,8 +7,10 @@ import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import static org.junit.Assert.*;
 @SuppressWarnings("unchecked")
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBackups {
     private static final Logger LOG = LoggerFactory.getLogger(TestBackups.class);
 

@@ -7,8 +7,10 @@ import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBasicCRUD extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestBasicCRUD.class);
 
