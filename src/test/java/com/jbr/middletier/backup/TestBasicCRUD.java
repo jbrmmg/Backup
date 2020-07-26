@@ -1,18 +1,26 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.config.ApplicationProperties;
+import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.io.File;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,8 +30,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration
 public class TestBasicCRUD extends WebTester {
+    private static final Logger LOG = LoggerFactory.getLogger(TestBasicCRUD.class);
+
     @Autowired
     ClassificationRepository classificationRepository;
+
+    @Autowired
+    ApplicationProperties applicationProperties;
+
+    @Autowired
+    BackupRepository backupRepository;
 
     @Test
     public void backupCRUD() {
@@ -84,6 +100,39 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         } catch (Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void TestCleanBackupDirect() {
+        try {
+            // Setup the test
+            File backupDirectory = new File(applicationProperties.getDirectory().getName());
+            if (!backupDirectory.exists() && !backupDirectory.mkdir()) {
+                LOG.warn("Cannot create the backup directory.");
+            }
+
+            File testFile = new File(applicationProperties.getDirectory().getName() + "/2020-01-01");
+            if (!testFile.exists() && !testFile.mkdir()) {
+                fail();
+            }
+
+            BackupDTO backupDTO = new BackupDTO("CLN","clean");
+            backupDTO.setTime(100);
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+
+            getMockMvc().perform(post("/jbr/ext/backup/run?id=" + backup.getId())
+                    .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            assertFalse(testFile.exists());
+
+            backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
             fail();
         }
     }

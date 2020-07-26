@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
+import com.jbr.middletier.backup.schedule.BackupCtrl;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -24,13 +25,15 @@ import java.util.Optional;
 public class BackupController {
     private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
-
     final private BackupRepository backupRepository;
+    final private BackupCtrl backupCtrl;
 
     @Contract(pure = true)
     @Autowired
-    BackupController(BackupRepository backupRepository) {
+    BackupController(BackupRepository backupRepository,
+                     BackupCtrl backupCtrl) {
         this.backupRepository = backupRepository;
+        this.backupCtrl = backupCtrl;
     }
 
     @GetMapping(path="/byId")
@@ -81,6 +84,21 @@ public class BackupController {
         }
 
         backupRepository.save(new Backup(backup));
+
+        return OkStatus.getOkStatus();
+    }
+
+    @PostMapping(path="/run")
+    public @ResponseBody OkStatus performBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
+        LOG.info("Perform backup - " + id);
+
+        // Check that the item exists.
+        Optional<Backup> storedBackup = backupRepository.findById(id);
+        if(!storedBackup.isPresent()) {
+            throw new InvalidBackupIdException(id);
+        }
+
+        this.backupCtrl.performBackup(storedBackup.get());
 
         return OkStatus.getOkStatus();
     }
