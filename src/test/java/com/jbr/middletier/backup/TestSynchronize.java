@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
+import java.util.Calendar;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
@@ -43,6 +45,32 @@ public class TestSynchronize extends WebTester {
 
     @Autowired
     private ActionConfirmRepository actionConfirmRepository;
+
+    @Autowired
+    private ClassificationRepository classificationRepository;
+
+    @Before
+    public void setupFolderClassification() {
+        ClassificationDTO classification = new ClassificationDTO();
+        classification.setOrder(1);
+        classification.setRegex("^\\.$");
+        classification.setAction("FOLDER");
+        classification.setImage(false);
+        classification.setVideo(false);
+        classification.setUseMD5(false);
+
+        classificationRepository.save(new Classification(classification));
+
+        classification = new ClassificationDTO();
+        classification.setOrder(1);
+        classification.setRegex(".*\\.pdfx$");
+        classification.setAction("BACKUP");
+        classification.setImage(false);
+        classification.setVideo(false);
+        classification.setUseMD5(true);
+
+        classificationRepository.save(new Classification(classification));
+    }
 
     @Test
     public void TestSynchronization() {
@@ -77,8 +105,18 @@ public class TestSynchronize extends WebTester {
             File testFileC = new File("./target/testfiles/gather1/Sub/fileC.txt");
             assertTrue(testFileC.createNewFile());
 
+            File testFileUnk = new File("./target/testfiles/gather1/Sub/fileC.txtx");
+            assertTrue(testFileUnk.createNewFile());
+
             File testFileCbup = new File("./target/testfiles/gather1/Sub/fileC.txt~");
             assertTrue(testFileCbup.createNewFile());
+
+            File testFileMd5 = new File("./target/testfiles/gather1/Sub/useMD5.pdfx");
+            assertTrue(testFileMd5.createNewFile());
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(2020, Calendar.JANUARY, 1);
+            assertTrue(testFileMd5.setLastModified(calendar.getTimeInMillis()));
 
             File lockFile = new File("./target/testfiles/gather1/Sub/.~lock.File.ods#");
             assertTrue(lockFile.createNewFile());
@@ -106,14 +144,27 @@ public class TestSynchronize extends WebTester {
             File testFileC2 = new File("./target/testfiles/gather2/Sub/fileC.txt");
             assertFalse(testFileC2.exists());
 
+            File testFileUnkd = new File("./target/testfiles/gather2/Sub/fileC.txtx");
+            assertFalse(testFileUnkd.exists());
+
             File testFileC2bup = new File("./target/testfiles/gather2/Sub/fileC.txt~");
-            assertFalse(testFileC2bup.exists());
+            assertTrue(testFileC2bup.createNewFile());
+
+            File testFileMd52 = new File("./target/testfiles/gather2/Sub/useMD5.pdfx");
+            assertTrue(testFileMd52.createNewFile());
+            assertNotEquals(testFileMd52.lastModified(),testFileMd5.lastModified());
 
             File testFileD2 = new File("./target/testfiles/gather2/Sub/fileD.txt");
             assertTrue(testFileD2.createNewFile());
 
+            File testFileE2 = new File("./target/testfiles/gather2/Sub/fileE.txtx");
+            assertTrue(testFileE2.createNewFile());
+
             File lockFile2 = new File("./target/testfiles/gather2/Sub/.~lock.File.ods#");
             assertFalse(lockFile2.exists());
+
+            File testDirectory = new File("./target/testfiles/gather2/Sub2");
+            assertTrue(testDirectory.mkdir());
 
             // Setup a new source
             LocationDTO location = new LocationDTO();
@@ -160,7 +211,7 @@ public class TestSynchronize extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(13)));
+                    .andExpect(jsonPath("$", hasSize(19)));
 
             getMockMvc().perform(post("/jbr/int/backup/sync")
                     .content(this.json(temp))
@@ -176,10 +227,10 @@ public class TestSynchronize extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(14)));
+                    .andExpect(jsonPath("$", hasSize(20)));
             assertTrue(testFileC2.exists());
             assertFalse(lockFile2.exists());
-            assertFalse(testFileC2bup.exists());
+            assertFalse(testFileUnkd.exists());
 
             // Confirm the actions
             for(ActionConfirm next: actionConfirmRepository.findAll()) {
@@ -201,11 +252,15 @@ public class TestSynchronize extends WebTester {
                     .content(this.json(temp))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(12)));
+                    .andExpect(jsonPath("$", hasSize(15)));
             assertTrue(testFileC2.exists());
             assertFalse(lockFile2.exists());
             assertFalse(deleteFile.exists());
             assertFalse(testFileD2.exists());
+            assertFalse(testFileE2.exists());
+            assertFalse(testDirectory.exists());
+            assertFalse(testFileC2bup.exists());
+            assertEquals(testFileMd52.lastModified(),testFileMd5.lastModified());
 
             // Clear out the data.
             actionConfirmRepository.deleteAll();
