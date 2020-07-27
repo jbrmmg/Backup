@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.ActionConfirm;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,12 @@ public class ActionManager {
         if(file.exists() && checkAction(fileInfo, "DELETE")) {
             LOG.info("Delete the file - {}", file );
             try {
-                Files.delete(file.toPath());
+                // If the file is a folder, then delete the directory.
+                if(file.isDirectory()) {
+                    FileUtils.deleteDirectory(file.getParentFile());
+                } else {
+                    Files.deleteIfExists(file.toPath());
+                }
             } catch (IOException e) {
                 LOG.warn("Failed to delete file {}", file);
             }
