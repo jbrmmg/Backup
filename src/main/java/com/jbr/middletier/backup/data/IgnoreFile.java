@@ -26,8 +26,6 @@ public class IgnoreFile {
     @Column(name="md5")
     private String md5;
 
-    public void setId(Integer id) { this.id = id; }
-
     public Integer getId() { return this.id; }
 
     public void setName(String name) { this.name = name; }

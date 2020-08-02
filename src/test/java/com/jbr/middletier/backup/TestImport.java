@@ -500,6 +500,7 @@ public class TestImport extends WebTester {
 
             Classification newClassification = new Classification(classificationDTO);
             classificationRepository.save(newClassification);
+            LOG.info("Classification {}", newClassification);
 
             // get the current working directory.
             String cwd = System.getProperty("user.dir");

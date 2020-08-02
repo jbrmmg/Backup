@@ -240,10 +240,12 @@ public class SynchronizeManager {
         }
 
         for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
+            LOG.info("Synchronize Status {}", nextStatus);
             processSynchronizeStatusAtSource(nextStatus);
         }
 
         for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
+            LOG.info("Synchronize Status {}", nextStatus);
             processSynchronizeStatusAtDestination(nextStatus);
         }
 

@@ -10,6 +10,8 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestEmail extends WebTester  {
+    private static final Logger LOG = LoggerFactory.getLogger(TestEmail.class);
 
     @Autowired
     ActionConfirmRepository actionConfirmRepository;
@@ -58,17 +61,23 @@ public class TestEmail extends WebTester  {
             Optional<Location> location = locationRepository.findById(1);
             assertTrue(location.isPresent());
 
+            LOG.info("Location {}", location.get());
+
             Source source = new Source();
             source.setId(1);
             source.setPath("/");
             source.setLocation(location.get());
             sourceRepository.save(source);
 
+            LOG.info("Source {}", source);
+
             DirectoryInfo directory = new DirectoryInfo();
             directory.setSource(source);
             directory.setPath("/");
             directory.clearRemoved();
             directoryRepository.save(directory);
+
+            LOG.info("Directory Info {}", directory);
 
             FileInfo file = new FileInfo();
             file.setName("Test");

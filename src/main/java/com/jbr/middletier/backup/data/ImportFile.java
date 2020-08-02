@@ -17,8 +17,6 @@ public class ImportFile {
     @Column(name="status")
     private String status;
 
-    public void setId(Integer id) { this.id = id; }
-
     public Integer getId() { return this.id; }
 
     public void setStatus(String status) { this.status = status; }
