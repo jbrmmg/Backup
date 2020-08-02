@@ -19,7 +19,6 @@
 
         <project.build.sourceencoding>UTF-8</project.build.sourceencoding>
         <org.springframework.version>2.1.4.RELEASE</org.springframework.version>
-        <sonar.scm.provider>git</sonar.scm.provider>
     </properties>
 
 
