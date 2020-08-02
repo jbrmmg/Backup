@@ -7,6 +7,9 @@ import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
+import com.jbr.middletier.backup.type.DatabaseBackup;
+import com.jbr.middletier.backup.type.ZipupBackup;
+import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,8 +22,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -127,6 +135,134 @@ public class TestBackups {
     }
 
     @Test
+    public void TestZipBackupExists() {
+        try {
+            // Setup the test
+            File backupDirectory = new File(applicationProperties.getDirectory().getName());
+            if (!backupDirectory.mkdirs()) {
+                LOG.warn("Cannot create the backup directory.");
+            }
+            backupDirectory = new File(applicationProperties.getDirectory().getZip());
+            if (!backupDirectory.mkdirs()) {
+                LOG.warn("Cannot create the backup directory.");
+            }
+
+            File backupZip = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
+            if (!backupZip.exists()) {
+                assertTrue(backupZip.createNewFile());
+            }
+
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            File testDirectory = new File(backupManager.todaysDirectory());
+            if (!testDirectory.exists()) {
+                assertTrue(testDirectory.mkdirs());
+            }
+
+            File testDirectory2 = new File(backupManager.todaysDirectory() + "//Sub1");
+            if (!testDirectory2.exists()) {
+                assertTrue(testDirectory2.mkdirs());
+            }
+
+            File testFile = new File(backupManager.todaysDirectory() + "//Sub1//TestA.txt");
+            if(!testFile.exists()) {
+                assertTrue(testFile.createNewFile());
+            }
+
+            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            backupDTO.setTime(GetBackupTime());
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
+
+            assertTrue(backupZip.exists());
+
+            backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
+
+    public void cleanUpLockedDirectory() {
+        try {
+            File newDir = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
+            Set<PosixFilePermission> permissions = new HashSet<>();
+            permissions.add(PosixFilePermission.OWNER_READ);
+            permissions.add(PosixFilePermission.OWNER_WRITE);
+            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            Files.setPosixFilePermissions(newDir.toPath(), permissions);
+
+            FileUtils.deleteDirectory(newDir);
+        } catch(Exception ex) {
+            LOG.error("Failed to clean up.");
+        }
+    }
+
+
+    @Test
+    public void TestZipBackupFail() {
+        try {
+            // Setup the test
+            File backupDirectory = new File(applicationProperties.getDirectory().getName());
+            if (backupDirectory.exists()) {
+                FileUtils.deleteDirectory(backupDirectory);
+            }
+            backupDirectory = new File(applicationProperties.getDirectory().getZip());
+            if (!backupDirectory.mkdirs()) {
+                LOG.warn("Cannot create the backup directory.");
+            }
+
+            File backupFile = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
+            if(backupFile.exists()) {
+                assertTrue(backupFile.delete());
+            }
+
+            File backupFile2 = new File(applicationProperties.getDirectory().getZip() + "/backups_zip");
+            if(backupFile2.exists()) {
+                FileUtils.deleteDirectory(backupFile2);
+            }
+            assertTrue(backupFile2.mkdir());
+            File backupFile3 = new File(applicationProperties.getDirectory().getZip() + "/backups_zip/test.txt");
+            assertTrue(backupFile3.createNewFile());
+
+            File dir = new File(applicationProperties.getDirectory().getZip() + "/backups_zip");
+            File newDir  = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
+            assertTrue(dir.renameTo(newDir));
+
+            Set<PosixFilePermission> permissions = new HashSet<>();
+            permissions.add(PosixFilePermission.OWNER_READ);
+
+            Files.setPosixFilePermissions(newDir.toPath(),permissions);
+
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            backupDTO.setTime(GetBackupTime());
+            Backup backup = new Backup(backupDTO);
+
+            ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
+            zipupBackup.performBackup(backupManager,backup);
+
+            backupRepository.deleteAll();
+
+            permissions.add(PosixFilePermission.OWNER_WRITE);
+            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            Files.setPosixFilePermissions(newDir.toPath(),permissions);
+
+            FileUtils.deleteDirectory(newDir);
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        } finally {
+            cleanUpLockedDirectory();
+        }
+    }
+
+    @Test
     public void TestFileBackup() {
         try {
             // Perform the test.
@@ -168,6 +304,77 @@ public class TestBackups {
             fail();
         }
     }
+
+    @Test
+    public void TestFileBackupNoSource() {
+        try {
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
+            if (backedup.exists()) {
+                assertTrue(backedup.delete());
+            }
+            BackupDTO backupDTO = new BackupDTO("File", "file");
+            backupDTO.setDirectory("./target/testfiles/Backup");
+            backupDTO.setBackupName("Test");
+            backupDTO.setFileName("Fred");
+            backupDTO.setArtifact("testx.txt");
+            backupDTO.setTime(GetBackupTime());
+
+            File testFile = new File("./target/testfiles/Backup/test.txt");
+            if (testFile.exists()) {
+                assertTrue(testFile.delete());
+            }
+            if(!testFile.getParentFile().exists()) {
+                assertTrue(testFile.getParentFile().mkdirs());
+            }
+
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
+
+            assertFalse(backedup.exists());
+
+            backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
+
+    @Test
+    public void TestFileBackupNoSourceDir() {
+        try {
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
+            if (backedup.exists()) {
+                assertTrue(backedup.delete());
+            }
+            BackupDTO backupDTO = new BackupDTO("File", "file");
+            backupDTO.setDirectory("./target/testfiles/Backupx");
+            backupDTO.setBackupName("Test");
+            backupDTO.setFileName("Fred");
+            backupDTO.setArtifact("testx.txt");
+            backupDTO.setTime(GetBackupTime());
+
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
+
+            assertFalse(backedup.exists());
+
+            backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
+
 
     @Test
     public void TestGitBackup() {
@@ -368,5 +575,125 @@ public class TestBackups {
         }
 
         backupRepository.deleteAll();
+    }
+
+    @Test
+    public void TestDatabaseInvalidDb() {
+        try {
+            File backupDir = new File("./target/testfiles/Backup");
+            if (!backupDir.exists()) {
+                assertTrue(backupDir.mkdirs());
+            }
+
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
+            if (expected1.exists()) {
+                assertTrue(expected1.delete());
+            }
+
+            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            backupDTO.setDirectory("db:2");
+            backupDTO.setBackupName("TestDB");
+            backupDTO.setFileName("Fred");
+            backupDTO.setArtifact("test");
+            backupDTO.setTime(GetBackupTime());
+
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
+
+            assertFalse(expected1.exists());
+
+            backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
+
+    @Test
+    public void TestDatabaseAlreadyDone() {
+        try {
+            File backupDir = new File("./target/testfiles/Backup");
+            if (!backupDir.exists()) {
+                assertTrue(backupDir.mkdirs());
+            }
+
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
+            if (expected1.exists()) {
+                assertTrue(expected1.delete());
+            }
+
+            assertTrue(expected1.getParentFile().mkdir());
+            assertTrue(expected1.createNewFile());
+
+            RandomAccessFile raf = new RandomAccessFile(backupManager.todaysDirectory() + "/TestDB/test.sql","rw");
+            raf.setLength(102);
+            raf.close();
+
+            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            backupDTO.setDirectory("db:2:x:y");
+            backupDTO.setBackupName("TestDB");
+            backupDTO.setFileName("Fred");
+            backupDTO.setArtifact("test.sql");
+            backupDTO.setTime(GetBackupTime());
+
+            Backup backup = new Backup(backupDTO);
+
+            backupRepository.save(backup);
+            backupCtrl.scheduleBackup();
+
+            assertTrue(expected1.exists());
+
+            backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
+
+    @Test
+    public void TestDatabaseBadConfig() {
+        try {
+            File backupDir = new File("./target/testfiles/Backup");
+            if (!backupDir.exists()) {
+                assertTrue(backupDir.mkdirs());
+            }
+
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            DatabaseBackup databaseBackup = new DatabaseBackup(applicationProperties);
+            String backupDbUrl = applicationProperties.getDbUrl();
+            applicationProperties.setDbUrl("x:y");
+
+            File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
+            if (expected1.exists()) {
+                assertTrue(expected1.delete());
+            }
+
+            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            backupDTO.setDirectory("2:x:y");
+            backupDTO.setBackupName("TestDB");
+            backupDTO.setFileName("Fred");
+            backupDTO.setArtifact("test.sql");
+            backupDTO.setTime(GetBackupTime());
+
+            Backup backup = new Backup(backupDTO);
+
+            databaseBackup.performBackup(backupManager,backup);
+            applicationProperties.setDbUrl(backupDbUrl);
+
+            assertFalse(expected1.exists());
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
     }
 }

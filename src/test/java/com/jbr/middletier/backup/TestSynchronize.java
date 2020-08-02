@@ -3,6 +3,7 @@ package com.jbr.middletier.backup;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.ActionConfirm;
 import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.dto.LocationDTO;
@@ -194,6 +195,9 @@ public class TestSynchronize extends WebTester {
             SynchronizeDTO synchronize = new SynchronizeDTO(1);
             synchronize.setSource(source);
             synchronize.setDestination(source2);
+
+            Synchronize testToString = new Synchronize(synchronize);
+            LOG.info("Synchronize {}",testToString);
 
             getMockMvc().perform(post("/jbr/ext/backup/synchronize")
                     .content(this.json(synchronize))

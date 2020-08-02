@@ -37,6 +37,32 @@ public class SynchronizeStatus {
 
     @Override
     public String toString() {
-        return sourceFile.toString() + " " + classification.toString();
+        StringBuilder output = new StringBuilder();
+
+        if(this.sourceFile != null) {
+            output.append(getSourceFile().toString());
+            output.append(" ");
+        }
+
+        if(this.classification != null) {
+            output.append(getClassification().toString());
+            output.append(" ");
+        }
+
+        if(this.source != null) {
+            output.append(getSource().toString());
+            output.append(" ");
+        }
+
+        if(this.destinationDirectory != null) {
+            output.append(getDestinationDirectory().toString());
+            output.append(" ");
+        }
+
+        if(this.destination != null) {
+            output.append(getDestination().toString());
+        }
+
+        return output.toString();
     }
 }
