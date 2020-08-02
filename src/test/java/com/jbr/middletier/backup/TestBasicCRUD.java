@@ -226,6 +226,8 @@ public class TestBasicCRUD extends WebTester {
             classification.setAction("FRED2");
             classification.setUseMD5(false);
 
+            LOG.info("Classification {}", classification);
+
             getMockMvc().perform(put("/jbr/ext/backup/classification")
                     .content(this.json(classification))
                     .contentType(getContentType()))
