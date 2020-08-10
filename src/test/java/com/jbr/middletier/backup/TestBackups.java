@@ -22,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
@@ -114,8 +115,12 @@ public class TestBackups {
             }
 
             File testFile = new File(backupManager.todaysDirectory() + "//Sub1//TestA.txt");
+            Files.deleteIfExists(testFile.toPath());
             if(!testFile.exists()) {
                 assertTrue(testFile.createNewFile());
+                PrintWriter writer = new PrintWriter(testFile.toPath().toString(), "UTF-8");
+                writer.println("Test File");
+                writer.close();
             }
 
             BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
