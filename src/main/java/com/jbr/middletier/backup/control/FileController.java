@@ -92,8 +92,16 @@ public class FileController {
 
         // Get the options for directory and their ids.
         if(lastResponse.getId() == -1) {
+            List<Integer> sourceIds = new ArrayList<>();
+
             // Level 1 - get those sources that are the left hand side of synchronisation.
             for(Synchronize nextSynchronize: synchronizeRepository.findAll()) {
+                if(sourceIds.contains(nextSynchronize.getSource().getId())) {
+                    continue;
+                }
+
+                // Generate the response.
+                sourceIds.add(nextSynchronize.getSource().getId());
                 HierarchyResponse response = new HierarchyResponse(nextSynchronize.getSource().getId(),0,"/",-1);
 
                 String[] directories = nextSynchronize.getSource().getPath().split("/");
