@@ -521,10 +521,11 @@ public class TestFiles extends WebTester {
             fail();
         }
 
-        try {
-            Source testSource = new Source();
+        Source testSource = new Source();
 
-            testSource.setType("WRG");
+        testSource.setType("WRG");
+
+        try {
             testSource.getTypeEnum();
             fail();
         } catch (IllegalArgumentException e) {
