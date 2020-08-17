@@ -118,7 +118,7 @@ public class TestBackups {
             Files.deleteIfExists(testFile.toPath());
             if(!testFile.exists()) {
                 assertTrue(testFile.createNewFile());
-                PrintWriter writer = new PrintWriter(testFile.toPath().toString(), "UTF-8");
+                PrintWriter writer = new PrintWriter(testFile.toPath().toString());
                 writer.println("Test File");
                 writer.close();
             }
@@ -185,6 +185,44 @@ public class TestBackups {
             assertTrue(backupZip.exists());
 
             backupRepository.deleteAll();
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
+
+    @Test
+    public void TestZipDirectoryEmpty() {
+        try {
+            // Setup the test
+            File backupDirectory = new File(applicationProperties.getDirectory().getName());
+            if (!backupDirectory.mkdirs()) {
+                LOG.warn("Cannot create the backup directory.");
+            }
+            backupDirectory = new File(applicationProperties.getDirectory().getZip());
+            if (!backupDirectory.mkdirs()) {
+                LOG.warn("Cannot create the backup directory.");
+            }
+
+            File backupZip = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
+            if (!backupZip.exists()) {
+                assertTrue(backupZip.createNewFile());
+            }
+
+            // Perform the test.
+            BackupManager backupManager = new BackupManager(applicationProperties, null);
+
+            File testDirectory = new File(backupManager.todaysDirectory());
+            if (testDirectory.exists()) {
+                FileUtils.deleteDirectory(testDirectory);
+            }
+
+            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            backupDTO.setTime(GetBackupTime());
+            Backup backup = new Backup(backupDTO);
+
+            ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
+            zipupBackup.performBackup(backupManager,backup);
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
