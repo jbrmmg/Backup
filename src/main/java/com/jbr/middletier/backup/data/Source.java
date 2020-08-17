@@ -88,14 +88,13 @@ public class Source {
     }
 
     public void setTypeEnum(SourceTypeType type) {
-        if(SourceTypeType.STANDARD == type) {
-            this.type = "STD";
+        if(SourceTypeType.IMPORT == type) {
+            this.type = "IMP";
             return;
         }
 
-        if(SourceTypeType.IMPORT == type) {
-            this.type = "IMP";
-        }
+        // Must be standard.
+        this.type = "STD";
     }
 
 
