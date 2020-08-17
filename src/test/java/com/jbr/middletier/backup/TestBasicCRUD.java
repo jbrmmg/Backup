@@ -44,7 +44,7 @@ public class TestBasicCRUD extends WebTester {
     BackupRepository backupRepository;
 
     @Test
-    public void backupCRUD() {
+    public void BackupCRUD() {
         try {
             BackupDTO backup = new BackupDTO("TST","WhaT");
             backup.setTime(10);
@@ -140,7 +140,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void locationCRUD() {
+    public void LocationCRUD() {
         try {
             LocationDTO location = new LocationDTO(6,"Test", "1MB");
             location.setCheckDuplicates(false);
@@ -194,7 +194,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void classificationCRUD() {
+    public void ClassificationCRUD() {
         try {
             int classificationCount = (int)classificationRepository.count();
 
@@ -267,7 +267,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void hardwareCRUD() {
+    public void HardwareCRUD() {
         try {
             HardwareDTO hardware = new HardwareDTO("00:00:00:00:00:00","N");
             hardware.setName("Testing");
@@ -331,7 +331,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void sourceCRUD() {
+    public void SourceCRUD() {
         try {
             LocationDTO location = new LocationDTO(1,"Test", "1MB");
             SourceDTO source = new SourceDTO(1,"C:\\Testing");
@@ -400,7 +400,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void syncrhonizeCRUD() {
+    public void SyncrhonizeCRUD() {
         try {
             LocationDTO location = new LocationDTO(1, "Test", "1MB");
 
