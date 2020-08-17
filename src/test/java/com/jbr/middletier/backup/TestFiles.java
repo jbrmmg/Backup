@@ -55,7 +55,7 @@ public class TestFiles extends WebTester {
     private SourceRepository sourceRepository;
 
     @Test
-    public void testGather() {
+    public void TestGather() {
         try {
             LOG.info("Test Gather");
             // Setup a directory structure.
@@ -142,7 +142,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
-    public void testFileWeb() {
+    public void TestFileWeb() {
         try {
             LOG.info("Test File Web");
             for(Source next: sourceRepository.findAll()) {
@@ -287,7 +287,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
-    public void testDuplicate() {
+    public void TestDuplicate() {
         try {
             LOG.info("Test Duplicate");
 
@@ -388,7 +388,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
-    public void testHierarchy() {
+    public void TestHierarchy() {
         try {
             LOG.info("Test Hierarchy");
 
@@ -505,6 +505,42 @@ public class TestFiles extends WebTester {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
 
+        } catch(Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void TestSource() {
+        try {
+            Source testSource = new Source();
+
+            testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
+            assertEquals(Source.SourceTypeType.IMPORT,testSource.getTypeEnum());
+        } catch(Exception ex) {
+            fail();
+        }
+
+        Source testSource = new Source();
+
+        testSource.setType("WRG");
+
+        try {
+            testSource.getTypeEnum();
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(true);
+        } catch(Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void TestSyncrhonizeStatus() {
+        try {
+            SynchronizeStatus status = new SynchronizeStatus(null,null,null, null, null, null, null);
+
+            assertEquals("",status.toString());
         } catch(Exception ex) {
             fail();
         }

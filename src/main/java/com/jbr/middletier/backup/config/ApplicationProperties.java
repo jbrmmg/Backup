@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix="backup")
 public class ApplicationProperties {
-    public class Directory {
+    public static class Directory {
         private String name;
         private long days;
         private String zip;
@@ -29,7 +29,7 @@ public class ApplicationProperties {
         public String getDateFormat() { return this.dateFormat; }
     }
 
-    public class Email {
+    public static class Email {
         private String host;
         private String user;
         private String password;
@@ -72,8 +72,8 @@ public class ApplicationProperties {
         public Boolean getAuthenticate() { return this.authenticate; }
     }
 
-    private Directory directory = new Directory();
-    private Email email = new Email();
+    private final Directory directory = new Directory();
+    private final Email email = new Email();
     private String serviceName;
     private String dbUrl;
     private String dbPassword;
