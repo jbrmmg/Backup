@@ -56,7 +56,7 @@ public class TestEmail extends WebTester  {
     }
 
     @Test
-    public void testEmail() {
+    public void TestEmail() {
         try {
             Optional<Location> location = locationRepository.findById(1);
             assertTrue(location.isPresent());
