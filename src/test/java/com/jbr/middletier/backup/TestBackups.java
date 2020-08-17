@@ -739,4 +739,19 @@ public class TestBackups {
             fail();
         }
     }
+
+    @Test
+    public void testBackupCtrlDisabled() {
+        try {
+            ApplicationProperties applicationProperties = new ApplicationProperties();
+            applicationProperties.setEnabled(false);
+
+            BackupCtrl backupCtrl = new BackupCtrl(null,null,null, applicationProperties);
+            backupCtrl.scheduleBackup();
+
+        } catch (Exception ex) {
+            LOG.error("Test failed - ", ex);
+            fail();
+        }
+    }
 }

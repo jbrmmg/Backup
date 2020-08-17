@@ -515,16 +515,25 @@ public class TestFiles extends WebTester {
         try {
             Source testSource = new Source();
 
-            try {
                 testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
-                assertEquals(testSource.getTypeEnum(),Source.SourceTypeType.IMPORT);
+                assertEquals(Source.SourceTypeType.IMPORT,testSource.getTypeEnum());
 
                 testSource.setType("WRG");
                 testSource.getTypeEnum();
                 fail();
-            } catch (IllegalArgumentException e) {
-                assertTrue(true);
-            }
+        } catch (IllegalArgumentException e) {
+            assertTrue(true);
+        } catch(Exception ex) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testSyncrhonizeStatus() {
+        try {
+            SynchronizeStatus status = new SynchronizeStatus(null,null,null, null, null, null, null);
+
+            assertEquals(status.toString(),"");
         } catch(Exception ex) {
             fail();
         }
