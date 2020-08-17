@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @SuppressWarnings("unused")
 class ApiError {
     private HttpStatus status;
-    private LocalDateTime timestamp;
+    private final LocalDateTime timestamp;
     private String message;
     private String debugMessage;
 
