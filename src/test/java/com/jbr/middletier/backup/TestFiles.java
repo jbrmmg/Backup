@@ -509,4 +509,24 @@ public class TestFiles extends WebTester {
             fail();
         }
     }
+
+    @Test
+    public void testSource() {
+        try {
+            Source testSource = new Source();
+
+            try {
+                testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
+                assertEquals(testSource.getTypeEnum(),Source.SourceTypeType.IMPORT);
+
+                testSource.setType("WRG");
+                testSource.getTypeEnum();
+                fail();
+            } catch (IllegalArgumentException e) {
+                assertTrue(true);
+            }
+        } catch(Exception ex) {
+            fail();
+        }
+    }
 }
