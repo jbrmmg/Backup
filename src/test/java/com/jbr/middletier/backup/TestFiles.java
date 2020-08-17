@@ -515,12 +515,18 @@ public class TestFiles extends WebTester {
         try {
             Source testSource = new Source();
 
-                testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
-                assertEquals(Source.SourceTypeType.IMPORT,testSource.getTypeEnum());
+            testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
+            assertEquals(Source.SourceTypeType.IMPORT,testSource.getTypeEnum());
+        } catch(Exception ex) {
+            fail();
+        }
 
-                testSource.setType("WRG");
-                testSource.getTypeEnum();
-                fail();
+        try {
+            Source testSource = new Source();
+
+            testSource.setType("WRG");
+            testSource.getTypeEnum();
+            fail();
         } catch (IllegalArgumentException e) {
             assertTrue(true);
         } catch(Exception ex) {
@@ -533,7 +539,7 @@ public class TestFiles extends WebTester {
         try {
             SynchronizeStatus status = new SynchronizeStatus(null,null,null, null, null, null, null);
 
-            assertEquals(status.toString(),"");
+            assertEquals("",status.toString());
         } catch(Exception ex) {
             fail();
         }
