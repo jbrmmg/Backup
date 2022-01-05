@@ -3,10 +3,14 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
+import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
+import com.jbr.middletier.backup.dataaccess.FileRepository;
+import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
+import com.jbr.middletier.backup.summary.Summary;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -27,13 +31,18 @@ public class BackupController {
 
     private final BackupRepository backupRepository;
     private final BackupCtrl backupCtrl;
+    private final Summary summary;
 
     @Contract(pure = true)
     @Autowired
     BackupController(BackupRepository backupRepository,
-                     BackupCtrl backupCtrl) {
+                     BackupCtrl backupCtrl,
+                     SourceRepository sourceRepository,
+                     DirectoryRepository directoryRepository,
+                     FileRepository fileRepository) {
         this.backupRepository = backupRepository;
         this.backupCtrl = backupCtrl;
+        this.summary = Summary.getInstance(sourceRepository,directoryRepository,fileRepository);
     }
 
     @GetMapping(path="/byId")
@@ -117,5 +126,10 @@ public class BackupController {
         backupRepository.delete(storedBackup.get());
 
         return OkStatus.getOkStatus();
+    }
+
+    @GetMapping(path="/summary")
+    public @ResponseBody Summary summary() {
+        return this.summary;
     }
 }
