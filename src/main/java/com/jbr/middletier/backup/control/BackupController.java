@@ -31,18 +31,13 @@ public class BackupController {
 
     private final BackupRepository backupRepository;
     private final BackupCtrl backupCtrl;
-    private final Summary summary;
 
     @Contract(pure = true)
     @Autowired
     BackupController(BackupRepository backupRepository,
-                     BackupCtrl backupCtrl,
-                     SourceRepository sourceRepository,
-                     DirectoryRepository directoryRepository,
-                     FileRepository fileRepository) {
+                     BackupCtrl backupCtrl) {
         this.backupRepository = backupRepository;
         this.backupCtrl = backupCtrl;
-        this.summary = Summary.getInstance(sourceRepository,directoryRepository,fileRepository);
     }
 
     @GetMapping(path="/byId")
@@ -126,10 +121,5 @@ public class BackupController {
         backupRepository.delete(storedBackup.get());
 
         return OkStatus.getOkStatus();
-    }
-
-    @GetMapping(path="/summary")
-    public @ResponseBody Summary summary() {
-        return this.summary;
     }
 }

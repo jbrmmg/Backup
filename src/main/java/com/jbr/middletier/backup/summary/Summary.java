@@ -69,6 +69,10 @@ public class Summary {
     private static Summary instance = null;
 
     public static Summary getInstance(SourceRepository sourceRepository, DirectoryRepository directoryRepository, FileRepository fileRepository) {
+        if(instance != null) {
+            return instance;
+        }
+
         instance = new Summary();
 
         SummaryInitialiser initialiser = new SummaryInitialiser(instance, sourceRepository, directoryRepository, fileRepository);
