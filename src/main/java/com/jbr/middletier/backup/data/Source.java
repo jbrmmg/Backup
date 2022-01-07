@@ -60,6 +60,20 @@ public class Source {
         setDestinationId(source.getDestinationId());
     }
 
+    public SourceDTO getSourceDTO() {
+        SourceDTO result = new SourceDTO();
+
+        result.setId(getId());
+        result.setType(getType());
+        result.setDestinationId(getDestinationId());
+        result.setLocation(getLocation().getLocationDTO());
+        result.setFilter(getFilter());
+        result.setStatus(getStatus());
+        result.setPath(getPath());
+
+        return result;
+    }
+
     public void setPath(@NotNull String path) { this.path = path; }
 
     public void setStatus(String status) { this.status = status; }

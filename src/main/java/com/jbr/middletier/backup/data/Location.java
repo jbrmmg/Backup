@@ -44,6 +44,17 @@ public class Location {
         this.checkDuplicates = source.getCheckDuplicates();
     }
 
+    public LocationDTO getLocationDTO() {
+        LocationDTO result = new LocationDTO();
+
+        result.setId(getId());
+        result.setName(getName());
+        result.setSize(getSize());
+        result.setCheckDuplicates(getCheckDuplicates());
+
+        return result;
+    }
+
     public int getId() { return this.id; }
 
     public String getName() { return this.name; }
