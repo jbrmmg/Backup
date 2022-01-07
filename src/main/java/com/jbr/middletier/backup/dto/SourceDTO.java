@@ -11,15 +11,28 @@ public class SourceDTO {
     private String filter;
     private String type;
     private Integer destinationId;
+    private int directoryCount;
+    private int fileCount;
+    private long totalFileSize;
+    private long largestFile;
+
+    private void initialise() {
+        this.directoryCount = 0;
+        this.fileCount = 0;
+        this.totalFileSize = 0;
+        this.largestFile = 0;
+    }
 
     public SourceDTO() {
         setId(0);
         setPath("");
+        initialise();
     }
 
     public SourceDTO(int id, String path) {
         setId(id);
         setPath(path);
+        initialise();
     }
 
     public Integer getId() {
@@ -76,5 +89,37 @@ public class SourceDTO {
 
     public void setDestinationId(Integer destinationId) {
         this.destinationId = destinationId;
+    }
+
+    public int getDirectoryCount() {
+        return directoryCount;
+    }
+
+    public int getFileCount() {
+        return fileCount;
+    }
+
+    public long getTotalFileSize() {
+        return totalFileSize;
+    }
+
+    public long getLargestFile() {
+        return largestFile;
+    }
+
+    public void incrementDirectoryCount() {
+        this.directoryCount++;
+    }
+
+    public void incrementFileCount() {
+        this.fileCount++;
+    }
+
+    public void increaseFileSize(long fileSize) {
+        this.totalFileSize += fileSize;
+
+        if(fileSize > this.largestFile) {
+            this.largestFile = fileSize;
+        }
     }
 }

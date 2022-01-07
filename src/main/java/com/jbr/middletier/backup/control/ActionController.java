@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
 import com.jbr.middletier.backup.manager.ActionManager;
+import com.jbr.middletier.backup.summary.Summary;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -21,15 +22,20 @@ public class ActionController {
     private final IgnoreFileRepository ignoreFileRepository;
     private final ActionConfirmRepository actionConfirmRepository;
     private final ActionManager emailManager;
+    private final Summary summary;
 
     @Contract(pure = true)
     @Autowired
     public ActionController(IgnoreFileRepository ignoreFileRepository,
                             ActionConfirmRepository actionConfirmRepository,
-                            ActionManager emailManager) {
+                            ActionManager emailManager,
+                            SourceRepository sourceRepository,
+                            DirectoryRepository directoryRepository,
+                            FileRepository fileRepository) {
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionConfirmRepository = actionConfirmRepository;
         this.emailManager = emailManager;
+        this.summary = Summary.getInstance(sourceRepository,directoryRepository,fileRepository);
     }
 
     @GetMapping(path="/actions")
@@ -83,5 +89,11 @@ public class ActionController {
         emailManager.sendActionEmail();
 
         return OkStatus.getOkStatus();
+    }
+
+    @GetMapping(path="/summary")
+    public @ResponseBody
+    Summary summary() {
+        return this.summary;
     }
 }
