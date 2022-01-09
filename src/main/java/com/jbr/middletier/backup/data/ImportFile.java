@@ -7,7 +7,7 @@ import javax.persistence.*;
 public class ImportFile {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "import_file_seq")
     private Integer id;
 
     @JoinColumn(name="fileId")

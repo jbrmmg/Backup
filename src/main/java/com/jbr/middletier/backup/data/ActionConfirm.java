@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 public class ActionConfirm {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "action_confirm_seq")
     private Integer id;
 
     @JoinColumn(name="fileId")

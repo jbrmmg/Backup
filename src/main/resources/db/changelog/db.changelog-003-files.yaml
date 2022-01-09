@@ -63,13 +63,18 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+        - createSequence:
+            sequenceName: directory_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
         - createTable:
             tableName: directory
             columns:
               - column:
                   name: id
                   type: int
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -89,13 +94,18 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+        - createSequence:
+            sequenceName: classification_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
         - createTable:
             tableName: classification
             columns:
               - column:
                   name: id
                   type: int
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -121,13 +131,18 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+        - createSequence:
+            sequenceName: file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
         - createTable:
             tableName: file
             columns:
               - column:
                   name: id
                   type: int
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -161,13 +176,18 @@ databaseChangeLog:
                   name: md5
                   type: varchar(32)
 
+        - createSequence:
+            sequenceName: action_confirm_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
         - createTable:
             tableName: action_confirm
             columns:
               - column:
                   name: id
                   type: int
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false

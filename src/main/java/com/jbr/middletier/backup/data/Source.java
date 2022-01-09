@@ -23,7 +23,7 @@ public class Source {
     @Column(name="status")
     private String status;
 
-    @Column(name="filter")
+    @Column(name="filterx")
     private String filter;
 
     @Column(name="source_type")

@@ -7,7 +7,7 @@ databaseChangeLog:
             tableName: source
             columns:
               - column:
-                  name: filter
+                  name: filterx
                   type: varchar(60)
 
         - addColumn:

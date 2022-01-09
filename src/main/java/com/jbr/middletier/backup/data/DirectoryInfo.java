@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 public class DirectoryInfo {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "directory_seq")
     private Integer id;
 
     @Column(name="path")

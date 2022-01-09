@@ -3,13 +3,19 @@ databaseChangeLog:
       id: 10
       author: jason
       changes:
+
+        - createSequence:
+            sequenceName: ignore_file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
         - createTable:
             tableName: ignore_file
             columns:
               - column:
                   name: id
                   type: int
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false

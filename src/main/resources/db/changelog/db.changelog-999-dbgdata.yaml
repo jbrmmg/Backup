@@ -18,7 +18,7 @@ databaseChangeLog:
                   name: location
                   value: 1
               - column:
-                  name: filter
+                  name: filterx
                   value: \d{4}$
               - column:
                   name: source_type
@@ -66,6 +66,9 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
+                  name: id
+                  value: 35
+              - column:
                   name: regex
                   value: .*\.$
               - column:
@@ -87,6 +90,9 @@ databaseChangeLog:
         - insert:
             tableName: action_confirm
             columns:
+              - column:
+                  name: id
+                  value: 1
               - column:
                   name: action
                   value: TEST

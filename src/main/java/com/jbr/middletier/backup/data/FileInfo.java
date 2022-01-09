@@ -10,7 +10,7 @@ import java.util.Date;
 public class FileInfo {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "file_seq")
     private Integer id;
 
     @Column(name="name")
