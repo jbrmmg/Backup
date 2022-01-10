@@ -23,6 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -73,6 +74,30 @@ public class TestSynchronize extends WebTester {
         classificationRepository.save(new Classification(classification));
     }
 
+    private void DeleteFile(File file) {
+        if(!file.delete()) {
+            throw new IllegalStateException("Failed to delete " + file.getPath() + " " + file.getName());
+        }
+    }
+
+    private void MakeDirs(File file) {
+        if(!file.mkdirs()) {
+            throw new IllegalStateException("Failed to create directories " + file.getPath() + " " + file.getName());
+        }
+    }
+
+    private void MakeDir(File file) {
+        if(!file.mkdir()) {
+            throw new IllegalStateException("Failed to create directory " + file.getPath() + " " + file.getName());
+        }
+    }
+
+    private void CreateNewFile(File file) throws IOException {
+        if(!file.createNewFile()) {
+            throw new IllegalStateException("Failed to create new file " + file.getPath() + " " + file.getName());
+        }
+    }
+
     @Test
     public void TestSynchronization() {
         try {
@@ -89,62 +114,58 @@ public class TestSynchronize extends WebTester {
             File testPath = new File("./target/testfiles/gather1");
             if (testPath.exists()) {
                 FileUtils.cleanDirectory(testPath);
-                if(!testPath.delete()) {
-                    throw new IllegalStateException("Failed to clean up - delete test path.");
-                }
+                DeleteFile(testPath);
             }
 
-            if(!testPath.mkdirs()) {
-                throw new IllegalStateException("Failed to create the test paths.");
-            }
+            MakeDirs(testPath);
 
             File subPath = new File("./target/testfiles/gather1/Sub");
-            assertTrue(subPath.mkdir());
+            MakeDir(subPath);
 
             File testFileA = new File("./target/testfiles/gather1/Sub/fileA.txt");
-            assertTrue(testFileA.createNewFile());
+            CreateNewFile(testFileA);
 
             File testFileB = new File("./target/testfiles/gather1/Sub/fileB.txt");
-            assertTrue(testFileB.createNewFile());
+            CreateNewFile(testFileB);
 
             File testFileC = new File("./target/testfiles/gather1/Sub/fileC.txt");
-            assertTrue(testFileC.createNewFile());
+            CreateNewFile(testFileC);
 
             File testFileUnk = new File("./target/testfiles/gather1/Sub/fileC.txtx");
-            assertTrue(testFileUnk.createNewFile());
+            CreateNewFile(testFileUnk);
 
             File testFileCbup = new File("./target/testfiles/gather1/Sub/fileC.txt~");
-            assertTrue(testFileCbup.createNewFile());
+            CreateNewFile(testFileCbup);
 
             File testFileMd5 = new File("./target/testfiles/gather1/Sub/useMD5.pdfx");
-            assertTrue(testFileMd5.createNewFile());
+            CreateNewFile(testFileMd5);
 
             Calendar calendar = Calendar.getInstance();
             calendar.set(2020, Calendar.JANUARY, 1);
             assertTrue(testFileMd5.setLastModified(calendar.getTimeInMillis()));
 
             File lockFile = new File("./target/testfiles/gather1/Sub/.~lock.File.ods#");
-            assertTrue(lockFile.createNewFile());
+            CreateNewFile(lockFile);
 
             File deleteFile = new File("./target/testfiles/gather1/Sub/.ds_store");
-            assertTrue(deleteFile.createNewFile());
+            CreateNewFile(deleteFile);
 
             File testPath2 = new File("./target/testfiles/gather2");
             if (testPath2.exists()) {
                 FileUtils.cleanDirectory(testPath2);
-                assertTrue(testPath2.delete());
+                DeleteFile(testPath2);
             }
 
-            assertTrue(testPath2.mkdirs());
+            MakeDirs(testPath2);
 
             File subPath2 = new File("./target/testfiles/gather2/Sub");
-            assertTrue(subPath2.mkdir());
+            MakeDir(subPath2);
 
             File testFileA2 = new File("./target/testfiles/gather2/Sub/fileA.txt");
-            assertTrue(testFileA2.createNewFile());
+            CreateNewFile(testFileA2);
 
             File testFileB2 = new File("./target/testfiles/gather2/Sub/fileB.txt");
-            assertTrue(testFileB2.createNewFile());
+            CreateNewFile(testFileB2);
 
             File testFileC2 = new File("./target/testfiles/gather2/Sub/fileC.txt");
             assertFalse(testFileC2.exists());
@@ -153,17 +174,17 @@ public class TestSynchronize extends WebTester {
             assertFalse(testFileUnkd.exists());
 
             File testFileC2bup = new File("./target/testfiles/gather2/Sub/fileC.txt~");
-            assertTrue(testFileC2bup.createNewFile());
+            CreateNewFile(testFileC2bup);
 
             File testFileMd52 = new File("./target/testfiles/gather2/Sub/useMD5.pdfx");
-            assertTrue(testFileMd52.createNewFile());
+            CreateNewFile(testFileMd52);
             assertNotEquals(testFileMd52.lastModified(),testFileMd5.lastModified());
 
             File testFileD2 = new File("./target/testfiles/gather2/Sub/fileD.txt");
-            assertTrue(testFileD2.createNewFile());
+            CreateNewFile(testFileD2);
 
             File testFileE2 = new File("./target/testfiles/gather2/Sub/fileE.txtx");
-            assertTrue(testFileE2.createNewFile());
+            CreateNewFile(testFileE2);
 
             File lockFile2 = new File("./target/testfiles/gather2/Sub/.~lock.File.ods#");
             assertFalse(lockFile2.exists());
