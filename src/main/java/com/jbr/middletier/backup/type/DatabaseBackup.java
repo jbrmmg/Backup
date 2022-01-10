@@ -110,6 +110,7 @@ public class DatabaseBackup implements PerformBackup {
         } catch (Exception ex) {
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"db backup " + ex);
             LOG.error("Failed to perform database backup",ex);
+            Thread.currentThread().interrupt();
         }
     }
 }

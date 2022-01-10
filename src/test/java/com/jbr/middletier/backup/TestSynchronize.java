@@ -89,10 +89,14 @@ public class TestSynchronize extends WebTester {
             File testPath = new File("./target/testfiles/gather1");
             if (testPath.exists()) {
                 FileUtils.cleanDirectory(testPath);
-                assertTrue(testPath.delete());
+                if(!testPath.delete()) {
+                    throw new IllegalStateException("Failed to clean up - delete test path.");
+                }
             }
 
-            assertTrue(testPath.mkdirs());
+            if(!testPath.mkdirs()) {
+                throw new IllegalStateException("Failed to create the test paths.");
+            }
 
             File subPath = new File("./target/testfiles/gather1/Sub");
             assertTrue(subPath.mkdir());
@@ -292,6 +296,7 @@ public class TestSynchronize extends WebTester {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         } catch(Exception ex) {
+            LOG.error("Test failed",ex);
             fail();
         }
     }
@@ -531,6 +536,7 @@ public class TestSynchronize extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
         } catch(Exception ex) {
+            LOG.error("Test failed",ex);
             fail();
         }
     }
