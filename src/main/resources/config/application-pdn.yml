@@ -17,7 +17,7 @@ spring:
     console:
       enabled: false
 
-logging.file: /var/log/jbr/MiddleTier-Backup-PDN.log
+logging.file.name: /var/log/jbr/MiddleTier-Backup-PDN.log
 logging:
   file:
     max-history: 3
