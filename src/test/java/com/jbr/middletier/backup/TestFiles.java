@@ -187,8 +187,8 @@ public class TestFiles extends WebTester {
 
             // Modify the classifications.
             ClassificationDTO jpgClass = new ClassificationDTO();
-            jpgClass.setId(5);
-            jpgClass.setOrder(5);
+            jpgClass.setId(4);
+            jpgClass.setOrder(4);
             jpgClass.setRegex(".*\\.jpg$");
             jpgClass.setAction("BACKUP");
             jpgClass.setImage(true);
