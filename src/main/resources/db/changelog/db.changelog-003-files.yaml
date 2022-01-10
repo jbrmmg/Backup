@@ -133,7 +133,6 @@ databaseChangeLog:
                   name: name
                   type: varchar(200)
                   constraints:
-                    primaryKey: true
                     nullable: false
               - column:
                   name: directory_id
