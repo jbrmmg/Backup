@@ -30,8 +30,8 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
     // Mark everything as removed.
     @Transactional
     @Modifying
-    @Query("DELETE FROM FileInfo WHERE removed=true")
-    void deleteRemoved();
+    @Query("DELETE FROM FileInfo WHERE removed=?1")
+    void deleteRemoved(boolean removed);
 
     @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
             "f," +

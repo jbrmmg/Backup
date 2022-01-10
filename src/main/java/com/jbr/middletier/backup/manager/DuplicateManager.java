@@ -82,7 +82,7 @@ public class DuplicateManager {
     }
 
     public void duplicateCheck() {
-        actionConfirmRepository.clearDuplicateDelete();
+        actionConfirmRepository.clearDuplicateDelete(false);
 
         Iterable<Source> sources = sourceRepository.findAll();
 

@@ -54,10 +54,7 @@ public class ImportManager extends FileProcessor {
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
-    @Transactional
     public void importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
-        actionConfirmRepository.clearImports();
-
         // Get the classifications
         Iterable<Classification> classifications = classificationRepository.findAll();
 
@@ -113,6 +110,8 @@ public class ImportManager extends FileProcessor {
 
     @Transactional
     public void clearImports() {
+        actionConfirmRepository.clearImports(false);
+
         // Remove the files associated with imports - first remove files, then directories then source.
         for(Source nextSource: sourceRepository.findAll()) {
             if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {

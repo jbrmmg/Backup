@@ -28,8 +28,8 @@ public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integ
     // Mark everything as removed.
     @Transactional
     @Modifying
-    @Query("DELETE FROM DirectoryInfo WHERE removed=true")
-    void deleteRemoved();
+    @Query("DELETE FROM DirectoryInfo WHERE removed=?1")
+    void deleteRemoved(boolean removed);
 
     @Query("SELECT new com.jbr.middletier.backup.data.HierarchyResponse ( " +
            "d.source.id, " +

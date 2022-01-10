@@ -4,6 +4,8 @@ logging:
     com.jbr.middletier: DEBUG
     org.hibernate.type: TRACE
     org.hibernate.SQL: DEBUG
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG
 
 spring:
   liquibase:

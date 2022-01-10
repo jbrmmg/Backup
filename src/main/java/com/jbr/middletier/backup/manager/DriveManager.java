@@ -88,8 +88,8 @@ public class DriveManager extends FileProcessor {
             processSource(nextSource,deleteActions,classifications);
         }
 
-        fileRepository.deleteRemoved();
-        directoryRepository.deleteRemoved();
+        fileRepository.deleteRemoved(true);
+        directoryRepository.deleteRemoved(true);
     }
 
     @Override
