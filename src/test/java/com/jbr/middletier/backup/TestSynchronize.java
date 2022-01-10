@@ -98,6 +98,18 @@ public class TestSynchronize extends WebTester {
         }
     }
 
+    private void CheckFileExists(File file) {
+        if(!file.exists()) {
+            throw new IllegalStateException("Expected file does not exist " + file.getPath() + " " + file.getName());
+        }
+    }
+
+    private void CheckFileDoesNotExists(File file) {
+        if(file.exists()) {
+            throw new IllegalStateException("File unexpectedly exists " + file.getPath() + " " + file.getName());
+        }
+    }
+
     @Test
     public void TestSynchronization() {
         try {
@@ -171,7 +183,7 @@ public class TestSynchronize extends WebTester {
             assertFalse(testFileC2.exists());
 
             File testFileUnkd = new File("./target/testfiles/gather2/Sub/fileC.txtx");
-            assertFalse(testFileUnkd.exists());
+            CheckFileDoesNotExists(testFileUnkd);
 
             File testFileC2bup = new File("./target/testfiles/gather2/Sub/fileC.txt~");
             CreateNewFile(testFileC2bup);
@@ -187,10 +199,10 @@ public class TestSynchronize extends WebTester {
             CreateNewFile(testFileE2);
 
             File lockFile2 = new File("./target/testfiles/gather2/Sub/.~lock.File.ods#");
-            assertFalse(lockFile2.exists());
+            CheckFileDoesNotExists(lockFile2);
 
             File testDirectory = new File("./target/testfiles/gather2/Sub2");
-            assertTrue(testDirectory.mkdir());
+            MakeDir(testDirectory);
 
             // Setup a new source
             LocationDTO location = new LocationDTO();
@@ -257,9 +269,9 @@ public class TestSynchronize extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(20)));
-            assertTrue(testFileC2.exists());
-            assertFalse(lockFile2.exists());
-            assertFalse(testFileUnkd.exists());
+            CheckFileExists(testFileC2);
+            CheckFileDoesNotExists(lockFile2);
+            CheckFileDoesNotExists(testFileUnkd);
 
             // Confirm the actions
             for(ActionConfirm next: actionConfirmRepository.findAll()) {
@@ -282,13 +294,13 @@ public class TestSynchronize extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(15)));
-            assertTrue(testFileC2.exists());
-            assertFalse(lockFile2.exists());
-            assertFalse(deleteFile.exists());
-            assertFalse(testFileD2.exists());
-            assertFalse(testFileE2.exists());
-            assertFalse(testDirectory.exists());
-            assertFalse(testFileC2bup.exists());
+            CheckFileExists(testFileC2);
+            CheckFileDoesNotExists(lockFile2);
+            CheckFileDoesNotExists(deleteFile);
+            CheckFileDoesNotExists(testFileD2);
+            CheckFileDoesNotExists(testFileE2);
+            CheckFileDoesNotExists(testDirectory);
+            CheckFileDoesNotExists(testFileC2bup);
             assertEquals(testFileMd52.lastModified(),testFileMd5.lastModified());
 
             // Clear out the data.

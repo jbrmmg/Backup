@@ -4,12 +4,6 @@ databaseChangeLog:
       author: jason
       changes:
 
-        - createSequence:
-            sequenceName: ignore_file_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
         - createTable:
             tableName: ignore_file
             columns:

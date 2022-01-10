@@ -63,12 +63,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
-        - createSequence:
-            sequenceName: directory_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
         - createTable:
             tableName: directory
             columns:
@@ -93,12 +87,6 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
-
-        - createSequence:
-            sequenceName: classification_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
 
         - createTable:
             tableName: classification
@@ -130,12 +118,6 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
-
-        - createSequence:
-            sequenceName: file_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
 
         - createTable:
             tableName: file
@@ -175,12 +157,6 @@ databaseChangeLog:
               - column:
                   name: md5
                   type: varchar(32)
-
-        - createSequence:
-            sequenceName: action_confirm_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
 
         - createTable:
             tableName: action_confirm

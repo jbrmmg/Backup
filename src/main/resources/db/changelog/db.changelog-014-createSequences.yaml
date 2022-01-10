@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 13
+      author: jason
+      changes:
+
+        - createSequence:
+            sequenceName: import_file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: action_confirm_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: ignore_file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: classification_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: directory_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100

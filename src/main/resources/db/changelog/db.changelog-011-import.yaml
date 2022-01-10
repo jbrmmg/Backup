@@ -3,12 +3,6 @@ databaseChangeLog:
       id: 11
       author: jason
       changes:
-        - createSequence:
-            sequenceName: import_file_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
         - createTable:
             tableName: import_file
             columns:
