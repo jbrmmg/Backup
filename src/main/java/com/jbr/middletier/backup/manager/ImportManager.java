@@ -108,7 +108,6 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    @Transactional
     public void clearImports() {
         actionConfirmRepository.clearImports(false);
 
