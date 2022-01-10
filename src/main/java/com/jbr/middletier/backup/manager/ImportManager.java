@@ -112,6 +112,9 @@ public class ImportManager extends FileProcessor {
     public void clearImports() {
         actionConfirmRepository.clearImports(false);
 
+        // Clear out the imported file data.
+        importFileRepository.deleteAll();
+
         // Remove the files associated with imports - first remove files, then directories then source.
         for(Source nextSource: sourceRepository.findAll()) {
             if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
@@ -126,8 +129,6 @@ public class ImportManager extends FileProcessor {
                 sourceRepository.delete(nextSource);
             }
         }
-
-        importFileRepository.deleteAll();
     }
 
     private boolean ignoreFile(FileInfo importFile) {
