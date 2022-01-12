@@ -56,7 +56,7 @@ os.mkdir(os.path.join(os.getcwd(), 'working'))
 copy_tree(os.path.join(os.getcwd(), 'src', 'initial'), os.path.join(os.getcwd(), 'working'))
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Setup the test, create a sources
+# Setup the test, create sources
 response = requests.post(baseUrl + "ext/backup/source", json={
     "id": 1,
     "location": {"id": 1},
@@ -73,7 +73,7 @@ response = requests.post(baseUrl + "ext/backup/source", json={
     "status": "OK",
     "type": "STD"})
 if response.status_code != 200:
-    sys.exit("Failed to create source id = 1.")
+    sys.exit("Failed to create source id = 2.")
 
 response = requests.post(baseUrl + "ext/backup/source", json={
     "id": 3,
@@ -82,7 +82,38 @@ response = requests.post(baseUrl + "ext/backup/source", json={
     "status": "OK",
     "type": "STD"})
 if response.status_code != 200:
-    sys.exit("Failed to create source id = 1.")
+    sys.exit("Failed to create source id = 3.")
+
+response = requests.post(baseUrl + "ext/backup/synchronize", json={
+    "id": 1,
+    "source": {"id": 1, "location": {"id": 1}},
+    "destination": {"id": 2, "location": {"id": 1}}
+})
+if response.status_code != 200:
+    sys.exit("Failed to create synchronize id = 1.")
+
+response = requests.post(baseUrl + "ext/backup/synchronize", json={
+    "id": 2,
+    "source": {"id": 1, "location": {"id": 1}},
+    "destination": {"id": 3, "location": {"id": 1}}
+})
+if response.status_code != 200:
+    sys.exit("Failed to create synchronize id = 1.")
+
+print("Gather")
+response = requests.post(baseUrl + "int/backup/gather", data="temp")
+if response.status_code != 200:
+    sys.exit("Failed gather. " + str(response.status_code))
+
+print("Sync")
+response = requests.post(baseUrl + "int/backup/sync", data="temp")
+if response.status_code != 200:
+    sys.exit("Failed gather. " + str(response.status_code))
+
+print("Gather")
+response = requests.post(baseUrl + "int/backup/gather", data="temp")
+if response.status_code != 200:
+    sys.exit("Failed gather. " + str(response.status_code))
 
 print('----------------------------------------------------------------------------------------------------------------')
 print('Successfully run backup test.')
