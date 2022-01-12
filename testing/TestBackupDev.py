@@ -11,7 +11,6 @@ print('-------------------------------------------------------------------------
 print('Testing the development instance of the Backup service on URL (' + baseUrl + ')')
 print('----------------------------------------------------------------------------------------------------------------')
 
-
 #-----------------------------------------------------------------------------------------------------------------------
 # Check if the summary is valid - this is a dependency of the test.
 response = requests.get(baseUrl + "int/backup/summary")
