@@ -1,7 +1,7 @@
-exclude = list("FIRSTLUCKGON")
-pattern = list("____Y")
-include = list("B")
-exclude_patterns = [list("___B_"), list("B____")]
+exclude = list("HEHFLOXISRDCK")
+pattern = list("TA__Y")
+include = list("AT")
+exclude_patterns = [list("__AA_"), list("___TT")]
 
 
 def check_criteria(word):
@@ -16,7 +16,7 @@ def check_criteria(word):
             if next_exclude_letter == next_letter:
                 return False
 
-    # Does the work match the pattern
+    # Does the word match the pattern
     for pattern_index in range(0, 5):
         if pattern[pattern_index] != '_':
             if pattern[pattern_index] != word_letters[pattern_index]:
@@ -45,10 +45,10 @@ def check_criteria(word):
 
 with open("words.txt") as fp:
     line = fp.readline()
-    cnt = 1
+    cnt = 0
     while line:
         if check_criteria(line.strip().upper()):
             cnt += 1
-            print("Line {}: {}".format(line.strip(),cnt))
+            print("Line {}: {}".format(line.strip(), cnt))
 
         line = fp.readline()
