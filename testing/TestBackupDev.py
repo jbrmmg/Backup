@@ -7,11 +7,11 @@ import shutil
 # Set the base URL
 baseUrl = "http://localhost:10013/jbr/"
 
-print('----------------------------------------------------------------------------------------------------------------')
+print('---------------------------------------------------------------------------------------------------------------')
 print('Testing the development instance of the Backup service on URL (' + baseUrl + ')')
-print('----------------------------------------------------------------------------------------------------------------')
+print('---------------------------------------------------------------------------------------------------------------')
 
-#-----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Check if the summary is valid - this is a dependency of the test.
 response = requests.get(baseUrl + "int/backup/summary")
 data = response.json()
@@ -20,7 +20,7 @@ print("Summary: " + str(data["valid"]))
 if not data["valid"]:
     sys.exit("Summary is not valid, cannot run test.")
 
-#-----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Clean up the database.
 # Delete all the synchronize
 response = requests.get(baseUrl + "ext/backup/synchronize")
@@ -46,7 +46,7 @@ for nextSource in sources:
     if response.status_code != 200:
         sys.exit("Failed to delete source " + str(response.status_code) + " " + str(nextSource["id"]))
 
-#-----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Setup the files in preparation for the test
 if os.path.exists(os.path.join(os.getcwd(), 'working')):
     shutil.rmtree(os.path.join(os.getcwd(), 'working'))
@@ -54,7 +54,7 @@ if os.path.exists(os.path.join(os.getcwd(), 'working')):
 os.mkdir(os.path.join(os.getcwd(), 'working'))
 copy_tree(os.path.join(os.getcwd(), 'src', 'initial'), os.path.join(os.getcwd(), 'working'))
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 # Setup the test, create sources
 response = requests.post(baseUrl + "ext/backup/source", json={
     "id": 1,
@@ -114,6 +114,8 @@ response = requests.post(baseUrl + "int/backup/gather", data="temp")
 if response.status_code != 200:
     sys.exit("Failed gather. " + str(response.status_code))
 
-print('----------------------------------------------------------------------------------------------------------------')
+print(
+    '----------------------------------------------------------------------------------------------------------------')
 print('Successfully run backup test.')
-print('----------------------------------------------------------------------------------------------------------------')
+print(
+    '----------------------------------------------------------------------------------------------------------------')

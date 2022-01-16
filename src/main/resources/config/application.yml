@@ -31,7 +31,7 @@ backup:
   schedule: 0 20 0/1 * * ?
   enabled: false
   service-name: middletier-backup-dbg
-  web-log-url: http://localhost:10001/jbr/int/log/data
+  web-log-url:
   directory:
     date-format: yyyy-MM-dd
   review-directory: /home/jason/Working/ImportReview

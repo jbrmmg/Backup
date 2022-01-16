@@ -1,7 +1,7 @@
-exclude = list("HEHFLOXISRDCK")
-pattern = list("TA__Y")
-include = list("AT")
-exclude_patterns = [list("__AA_"), list("___TT")]
+exclude = list("FIEDWN")
+pattern = list("S____")
+include = list("RO")
+exclude_patterns = [list("__RR_"), list("__O__")]
 
 
 def check_criteria(word):
