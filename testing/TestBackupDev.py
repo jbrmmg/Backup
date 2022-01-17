@@ -114,8 +114,70 @@ response = requests.post(baseUrl + "int/backup/gather", data="temp")
 if response.status_code != 200:
     sys.exit("Failed gather. " + str(response.status_code))
 
-print(
-    '----------------------------------------------------------------------------------------------------------------')
+# Verify that everything is copied.
+print("Check files")
+response = requests.get(baseUrl + "int/backup/files")
+if response.status_code != 200:
+    sys.exit("Failed to get files." + str(response.status_code))
+
+expectedFiles = ["source1/.",
+                 "source1/dir2/.",
+                 "source1/dir2/example2.txt",
+                 "source1/dir1/.",
+                 "source1/dir1/example.txt",
+                 "source1/dir1/sample.jpg",
+                 "source2/.",
+                 "source2/dir2/.",
+                 "source2/dir2/example2.txt",
+                 "source2/dir1/.",
+                 "source2/dir1/example.txt",
+                 "source2/dir1/sample.jpg",
+                 "source3/.",
+                 "source3/dir2/.",
+                 "source3/dir2/example2.txt",
+                 "source3/dir1/.",
+                 "source3/dir1/example.txt",
+                 "source3/dir1/sample.jpg"]
+fileList = response.json()
+for nextFile in fileList:
+    fullfilename = nextFile["fullFilename"].replace(os.path.join(os.getcwd(), 'working') + "/", "")
+    expectedFiles.remove(fullfilename)
+
+if len(expectedFiles) != 0:
+    sys.exit("Some files are missing.")
+
+# Delete all the files.
+response = requests.get(baseUrl + "int/backup/files")
+if response.status_code != 200:
+    sys.exit("Failed to get files." + str(response.status_code))
+
+fileList = response.json()
+for nextFile in fileList:
+    fullfilename = nextFile["fullFilename"].replace(os.path.join(os.getcwd(), 'working') + "/", "")
+    fileId = nextFile["id"]
+
+    if not fullfilename.endswith("."):
+        response = requests.delete(baseUrl + "int/backup/file?id=" + str(fileId))
+        if response.status_code != 200:
+            sys.exit("Failed to delete file." + str(fileId))
+
+response = requests.get(baseUrl + "int/backup/actions")
+if response.status_code != 200:
+    sys.exit("Failed to get actions." + str(response.status_code))
+
+actionList = response.json()
+for nextAction in actionList:
+    response = requests.post(baseUrl + "int/backup/actions", json={
+        "id": nextAction["id"],
+        "confirm": True})
+    if response.status_code != 200:
+        sys.exit("Failed to confirm action" + str(nextAction["id"]))
+
+print("Gather after delete")
+response = requests.post(baseUrl + "int/backup/gather", data="temp")
+if response.status_code != 200:
+    sys.exit("Failed gather. " + str(response.status_code))
+
+print('---------------------------------------------------------------------------------------------------------------')
 print('Successfully run backup test.')
-print(
-    '----------------------------------------------------------------------------------------------------------------')
+print('---------------------------------------------------------------------------------------------------------------')
