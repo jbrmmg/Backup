@@ -3,17 +3,22 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
+import com.jbr.middletier.backup.filetree.FileTreeNode;
+import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 abstract class FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
@@ -77,6 +82,7 @@ abstract class FileProcessor {
     }
 
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+
     private static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
@@ -87,7 +93,7 @@ abstract class FileProcessor {
         return new String(hexChars);
     }
 
-    String getMD5(Path path, Classification classification) {
+    protected String getMD5(Path path, Classification classification) {
         if(classification == null || !classification.getUseMD5()) {
             return "";
         }
@@ -177,7 +183,73 @@ abstract class FileProcessor {
         fileRepository.save(file);
     }
 
-    void processPath(Path path, List<ActionConfirm> deletes, Source nextSource, Iterable<Classification> classifications, boolean skipMD5) {
+    private void performDatabaseRemove(FileTreeNode compare) {
+        //
+    }
+
+    private void performDatabaseAddOrUpdate(FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
+        //
+    }
+
+    private void performDatabaseUpdate(FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
+        // If they are equal then nothing more to do on this node.
+        if(compare.getCompareStatus() == FileTreeNode.CompareStatusType.EQUAL) {
+            return;
+        }
+
+        // If adding, then add now and then the children.
+        if(compare.adding() || (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE)) {
+            if(compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY) {
+                performDatabaseRemove(compare);
+            }
+
+            // Insert or update
+            performDatabaseAddOrUpdate(compare, classifications, skipMD5);
+        }
+
+        // Process the children.
+        for(FileTreeNode next: compare.getChildren()) {
+            // If the child compare status is unknown then copy from parent.
+            if(next.getCompareStatus() == FileTreeNode.CompareStatusType.UNKNOWN) {
+                next.setCompareStatus(compare.getCompareStatus());
+            }
+
+            performDatabaseUpdate(next, classifications, skipMD5);
+        }
+
+        // If removing, then remove after the children.
+        if(compare.removing()) {
+            performDatabaseRemove(compare);
+        }
+    }
+
+    private void updateDatabase(FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
+        performDatabaseUpdate(compare, classifications, skipMD5);
+
+        // Process the children
+        for(FileTreeNode next: compare.getChildren()) {
+            updateDatabase(next, classifications, skipMD5);
+        }
+    }
+
+    protected void updateDatabase(Source source, List<ActionConfirm> deletes, Iterable<Classification> classifications, boolean skipMD5) throws IOException {
+        // Read the files structure from the real world.
+        RootFileTreeNode realworld = getFileDetails(source);
+
+        // Process the deletes
+
+        // Read the same from the database.
+        RootFileTreeNode database = getDatabaseDetails(source);
+
+        // Compare the real world with the database.
+        RootFileTreeNode compare = realworld.compare(database);
+
+        // Update the database with the real world.
+        updateDatabase(compare,classifications,skipMD5);
+    }
+
+    /*
+    void processPathx(Path path, List<ActionConfirm> deletes, Source nextSource, Iterable<Classification> classifications, boolean skipMD5) {
         String directoryName = determineDirectoryName(path,nextSource);
 
         if(!passFilter(directoryName,nextSource)) {
@@ -230,8 +302,57 @@ abstract class FileProcessor {
 
         LOG.info("{}", path);
     }
+     */
 
-    void createDirectory(String path) {
+    private RootFileTreeNode getFileDetails(Source root) throws IOException {
+        Path rootDirectory = Paths.get(root.getPath());
+        RootFileTreeNode result = new RootFileTreeNode(rootDirectory);
+
+        try(Stream<Path> fileDetails = Files.walk(rootDirectory)) {
+            fileDetails.forEach(path -> {
+                if(path.getNameCount() > rootDirectory.getNameCount()) {
+                    FileTreeNode nextIterator = result;
+
+                    for(int directoryIdx = rootDirectory.getNameCount(); directoryIdx < path.getNameCount() - 1; directoryIdx++) {
+                        nextIterator = nextIterator.getNamedChild(path.getName(directoryIdx).toString());
+                    }
+
+                    nextIterator.addChild(path);
+                }
+            });
+        } catch (IOException e) {
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to read + " + rootDirectory.toString());
+            throw e;
+        }
+
+        return result;
+    }
+
+    private void getDatabaseDetails(FileTreeNode result, Source source, DirectoryInfo parent) {
+        List<DirectoryInfo> directories = directoryRepository.findByDirectoryAndParent(source, parent);
+        for(DirectoryInfo next: directories) {
+            FileTreeNode nextNode = result.addChild(next);
+
+            List<FileInfo> files = fileRepository.findByDirectoryInfo(next);
+
+            for(FileInfo nextFile: files) {
+                nextNode.addChild(nextFile);
+            }
+
+            // Process the next level.
+            getDatabaseDetails(nextNode, source, next);
+        }
+    }
+
+    private RootFileTreeNode getDatabaseDetails(Source source) {
+        RootFileTreeNode result = new RootFileTreeNode(source);
+
+        getDatabaseDetails(result, source, null);
+
+        return result;
+    }
+
+    protected void createDirectory(String path) {
         File directory = new File(path);
         if(!directory.exists()) {
             //noinspection ResultOfMethodCallIgnored

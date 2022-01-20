@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,10 +65,8 @@ public class DriveManager extends FileProcessor {
         // If the source does not exist, create it.
         createDirectory(nextSource.getPath());
 
-        try(Stream<Path> paths = Files.walk(Paths.get(nextSource.getPath()))) {
-            // Read directory structure into the database.
-            paths
-                    .forEach(path -> processPath(path,deleteActions,nextSource,classifications,false));
+        try {
+            updateDatabase(nextSource, deleteActions, classifications, true);
         } catch (IOException e) {
             setSourceStatus(nextSource,"ERROR");
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());

@@ -19,19 +19,7 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
 
     List<FileInfo> findByName(String name);
 
-    List<FileInfo> findByDirectoryInfoId(Integer id);
-
-    // Mark everything as removed.
-    @Transactional
-    @Modifying
-    @Query("UPDATE FileInfo SET removed=true WHERE directoryInfo.id IN (SELECT id FROM DirectoryInfo WHERE source.id = ?1)")
-    void markAllRemoved(int source);
-
-    // Mark everything as removed.
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM FileInfo WHERE removed=?1")
-    void deleteRemoved(boolean removed);
+    List<FileInfo> findByDirectoryInfo(DirectoryInfo directoryInfo);
 
     @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
             "f," +

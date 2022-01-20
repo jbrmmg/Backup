@@ -14,7 +14,7 @@ public class DirectoryInfo {
 
     @Column(name="path")
     @NotNull
-    private String path;
+    private String name;
 
     @JoinColumn(name="sourceId")
     @ManyToOne(optional = false)
@@ -24,7 +24,11 @@ public class DirectoryInfo {
     @NotNull
     private Boolean removed;
 
-    public String getPath() { return this.path; }
+    @JoinColumn(name="parent_id")
+    @ManyToOne
+    private DirectoryInfo parent;
+
+    public String getName() { return this.name; }
 
     public Source getSource() { return this.source; }
 
@@ -36,10 +40,18 @@ public class DirectoryInfo {
 
     public void clearRemoved() { this.removed = false; }
 
-    public void setPath(String path) { this.path = path; }
+    public void setName(String name) { this.name = name; }
+
+    public DirectoryInfo getParent() {
+        return parent;
+    }
+
+    public void setParent(DirectoryInfo parent) {
+        this.parent = parent;
+    }
 
     @Override
     public String toString() {
-        return "DirectoryInfo: " + id + "-" + path;
+        return "DirectoryInfo: " + id + "-" + name + "-" + parent.getId();
     }
 }

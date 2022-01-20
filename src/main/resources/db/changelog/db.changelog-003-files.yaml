@@ -217,7 +217,6 @@ databaseChangeLog:
             referencedTableName: source
             referencedColumnNames: id
 
-
         - addForeignKeyConstraint:
             constraintName: fk_location_source
             baseTableName: source

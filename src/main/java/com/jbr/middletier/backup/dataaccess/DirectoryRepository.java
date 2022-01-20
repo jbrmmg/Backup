@@ -15,21 +15,9 @@ import java.util.Optional;
 
 @Repository
 public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integer>, JpaSpecificationExecutor<DirectoryInfo> {
-    Optional<DirectoryInfo> findBySourceAndPath(Source source, String path);
+    List<DirectoryInfo> findByDirectoryAndParent(Source source, DirectoryInfo parent);
 
     List<DirectoryInfo> findBySource(Source source);
-
-    // Mark everything as removed.
-    @Transactional
-    @Modifying
-    @Query("UPDATE DirectoryInfo SET removed=true WHERE source.id = ?1")
-    void markAllRemoved(int source);
-
-    // Mark everything as removed.
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM DirectoryInfo WHERE removed=?1")
-    void deleteRemoved(boolean removed);
 
     @Query("SELECT new com.jbr.middletier.backup.data.HierarchyResponse ( " +
            "d.source.id, " +

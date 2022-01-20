@@ -101,10 +101,7 @@ public class ImportManager extends FileProcessor {
 
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
-        try (Stream<Path> paths = Files.walk(Paths.get(importRequest.getPath()))) {
-            paths
-                    .forEach(path -> processPath(path,new ArrayList<>(),importSource,classifications,true));
-        }
+        updateDatabase(importSource, new ArrayList<>(), classifications, true);
     }
 
     public void clearImports() {

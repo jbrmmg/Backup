@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 15
+      author: jason
+      changes:
+        - addColumn:
+            tableName: directory
+            columns:
+              - column:
+                  name: parent_id
+                  type: int
+
+        - addForeignKeyConstraint:
+            constraintName: fk_directory_parent
+            baseTableName: directory
+            baseColumnNames: parent_id
+            referencedTableName: directory
+            referencedColumnNames: id
