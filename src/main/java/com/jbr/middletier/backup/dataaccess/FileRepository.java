@@ -32,7 +32,7 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
             ") FROM Synchronize AS s " +
             "INNER JOIN DirectoryInfo AS d ON d.source = s.source " +
             "INNER JOIN FileInfo AS f ON f.directoryInfo.id = d.id " +
-            "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.path = d.path AND d2.source = s.destination " +
+            "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.name = d.name AND d2.source.id = s.destination.id " +
             "LEFT OUTER JOIN FileInfo AS f2 ON f2.directoryInfo.id = d2.id AND f.name = f2.name " +
             "LEFT OUTER JOIN Classification AS c ON f.classification.id = c.id " +
             "WHERE s.id = ?1"
@@ -50,7 +50,7 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
             ") FROM Synchronize AS s " +
             "INNER JOIN DirectoryInfo AS d ON d.source = s.destination " +
             "INNER JOIN FileInfo AS f ON f.directoryInfo.id = d.id " +
-            "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.path = d.path AND d2.source = s.source " +
+            "LEFT OUTER JOIN DirectoryInfo AS d2 ON d2.name = d.name AND d2.source.id = s.source.id " +
             "LEFT OUTER JOIN FileInfo AS f2 ON f2.directoryInfo.id = d2.id AND f.name = f2.name " +
             "LEFT OUTER JOIN Classification AS c ON f.classification.id = c.id " +
             "WHERE s.id = ?1 " +
