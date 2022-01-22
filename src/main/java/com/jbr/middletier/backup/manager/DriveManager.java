@@ -63,7 +63,7 @@ public class DriveManager extends FileProcessor {
         createDirectory(nextSource.getPath());
 
         try {
-            updateDatabase(nextSource, deleteActions, classifications, true);
+            updateDatabase(nextSource, deleteActions, classifications, false);
         } catch (IOException e) {
             setSourceStatus(nextSource,"ERROR");
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e.toString());

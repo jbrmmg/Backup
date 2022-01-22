@@ -4,6 +4,8 @@ import com.jbr.middletier.backup.data.Source;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RootFileTreeNode extends FileTreeNode {
     private final String rootDirectory;
@@ -94,5 +96,12 @@ public class RootFileTreeNode extends FileTreeNode {
         result.compareStatus = CompareStatusType.EQUAL;
         compare(result,rhs);
         return result;
+    }
+
+    public void removeFilteredChildren(Source filter) {
+        // Remove anything from realworld that does not meet the source filter.
+        if(source.getFilter() != null && source.getFilter().length() > 0) {
+            removeFilteredChildren(filter.getFilter());
+        }
     }
 }

@@ -5,10 +5,8 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +17,6 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 abstract class FileProcessor {
@@ -40,27 +37,6 @@ abstract class FileProcessor {
         this.actionManager = actionManager;
     }
 
-    private boolean passFilter(String directory, Source nextSource) {
-        // Is there a filter?
-        if(nextSource.getFilter() != null && nextSource.getFilter().length() > 0 ) {
-            // The filter is applied to the first directory after the source.
-            String pathToFilter = directory.replace(nextSource.getPath(),"");
-
-            String[] folders = pathToFilter.split("/");
-
-            int index = 0;
-            String filterFolder = "";
-            while( (filterFolder.length() == 0) && (index < folders.length) ) {
-                filterFolder = folders[index];
-                index++;
-            }
-
-            return (filterFolder.length() <= 0) || (filterFolder.matches(nextSource.getFilter()));
-        }
-
-        return true;
-    }
-
     private Classification classifyFile(FileInfo file, Iterable<Classification> classifications)  {
         for(Classification nextClassification : classifications) {
             if(nextClassification.fileMatches(file)) {
@@ -69,18 +45,6 @@ abstract class FileProcessor {
         }
 
         return null;
-    }
-
-    private boolean deleteFileIfRequired(FileInfo file, List<ActionConfirm> deletes) {
-        for(ActionConfirm nextAction: deletes) {
-            if(nextAction.getPath().getId().equals(file.getId())) {
-                LOG.info("Deleteing the file {}", file.getFullFilename());
-                actionManager.deleteFileIfConfirmed(file);
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
@@ -117,21 +81,6 @@ abstract class FileProcessor {
         }
 
         return "";
-    }
-
-    private String determineDirectoryName(Path path, Source nextSource) {
-        if(path.toFile().isDirectory()) {
-            if(path.toAbsolutePath().toString().equals(nextSource.getPath())) {
-                // This is the source
-                return "";
-            }
-
-            // Return the path
-            return path.toAbsolutePath().toString().replace(nextSource.getPath(), "");
-        }
-
-        // Directory name from file.
-        return path.toAbsolutePath().getParent().toString().replace(nextSource.getPath(),"");
     }
 
     abstract void newFileInserted(FileInfo newFile);
@@ -341,13 +290,14 @@ abstract class FileProcessor {
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, Iterable<Classification> classifications, boolean skipMD5) throws IOException {
         // Read the files structure from the real world.
-        RootFileTreeNode realworld = getFileDetails(source);
+        RootFileTreeNode realWorld = getFileDetails(source);
+        realWorld.removeFilteredChildren(source);
 
         // Read the same from the database.
         RootFileTreeNode database = getDatabaseDetails(source);
 
         // Compare the real world with the database.
-        RootFileTreeNode compare = realworld.compare(database);
+        RootFileTreeNode compare = realWorld.compare(database);
 
         // Process the deletes
         processDeletes(compare, deletes);
@@ -355,62 +305,6 @@ abstract class FileProcessor {
         // Update the database with the real world.
         updateDatabase(source,compare,classifications,skipMD5);
     }
-
-    /*
-    void processPathx(Path path, List<ActionConfirm> deletes, Source nextSource, Iterable<Classification> classifications, boolean skipMD5) {
-        String directoryName = determineDirectoryName(path,nextSource);
-
-        if(!passFilter(directoryName,nextSource)) {
-            return;
-        }
-
-        // Get the directory.
-        Optional<DirectoryInfo> directory = directoryRepository.findBySourceAndPath(nextSource,directoryName);
-
-        if(!directory.isPresent()) {
-            DirectoryInfo newDirectoryInfo = new DirectoryInfo();
-            newDirectoryInfo.setPath(directoryName);
-            newDirectoryInfo.setSource(nextSource);
-            newDirectoryInfo.clearRemoved();
-
-            directory = Optional.of(directoryRepository.save(newDirectoryInfo));
-        } else {
-            directory.get().clearRemoved();
-            directoryRepository.save(directory.get());
-        }
-
-        // Check the folder file.
-        Optional<FileInfo> directoryFile = fileRepository.findByDirectoryInfoAndName(directory.get(),".");
-        if(!directoryFile.isPresent()) {
-            // Create a file to represent the folder.
-            directoryFile = Optional.of(new FileInfo());
-            directoryFile.get().setName(".");
-            directoryFile.get().setDirectoryInfo(directory.get());
-            directoryFile.get().setClassification(classifyFile(directoryFile.get(),classifications));
-        }
-
-        directoryFile.get().clearRemoved();
-        fileRepository.save(directoryFile.get());
-
-        // If this is a directory, we are done.
-        if(path.toFile().isDirectory()) {
-            return;
-        }
-
-        Date fileDate = new Date(path.toFile().lastModified());
-
-        // Does the file exist?
-        Optional<FileInfo> file = fileRepository.findByDirectoryInfoAndName(directory.get(),path.getFileName().toString());
-
-        if(!file.isPresent()) {
-            createFile(path,directory.get(),classifications,fileDate,skipMD5);
-        } else {
-            updateFile(path,file.get(),fileDate,deletes,classifications,skipMD5);
-        }
-
-        LOG.info("{}", path);
-    }
-     */
 
     private RootFileTreeNode getFileDetails(Source root) throws IOException {
         Path rootDirectory = Paths.get(root.getPath());
@@ -429,7 +323,7 @@ abstract class FileProcessor {
                 }
             });
         } catch (IOException e) {
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to read + " + rootDirectory.toString());
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to read + " + rootDirectory);
             throw e;
         }
 
@@ -437,7 +331,7 @@ abstract class FileProcessor {
     }
 
     private void getDatabaseDetails(FileTreeNode result, Source source, DirectoryInfo parent) {
-        List<DirectoryInfo> directories = directoryRepository.findByDirectoryAndParent(source, parent);
+        List<DirectoryInfo> directories = directoryRepository.findBySourceAndParent(source, parent);
         for(DirectoryInfo next: directories) {
             FileTreeNode nextNode = result.addChild(next);
 

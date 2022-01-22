@@ -73,7 +73,7 @@ public class TestEmail extends WebTester  {
 
             DirectoryInfo directory = new DirectoryInfo();
             directory.setSource(source);
-            directory.setPath("/");
+            directory.setName("");
             directory.clearRemoved();
             directoryRepository.save(directory);
 

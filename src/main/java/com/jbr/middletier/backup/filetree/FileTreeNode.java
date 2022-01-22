@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -161,6 +162,17 @@ public class FileTreeNode {
 
     public void setCreatedDirectory(DirectoryInfo createdDirectory) {
         this.createdDirectory = createdDirectory;
+    }
+
+    protected void removeFilteredChildren(String filter) {
+        List<FileTreeNode> ignore = new ArrayList<>();
+        for(FileTreeNode next: getChildren()) {
+            if(!next.getName().matches(filter)) {
+                ignore.add(next);
+            }
+        }
+
+        this.children.removeAll(ignore);
     }
 
     @Override

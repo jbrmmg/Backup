@@ -5,23 +5,23 @@ public class HierarchyResponse {
     private int id;
     private int level;
     private String displayName;
-    private String path;
+    private String name;
     private boolean directory;
     private int underlyingId;
 
     public HierarchyResponse() {
         this.id = -1;
         this.level = 0;
-        this.path = "/";
+        this.name = "/";
         this.displayName = "";
         this.directory = true;
         this.underlyingId = -1;
     }
 
-    public HierarchyResponse (int id, int level, String path, int underlyingId) {
+    public HierarchyResponse (int id, int level, String name, int underlyingId) {
         this.id = id;
         this.level = level;
-        this.path = path;
+        this.name = name;
         this.displayName = "";
         this.directory = true;
         this.underlyingId = underlyingId;
@@ -39,9 +39,9 @@ public class HierarchyResponse {
 
     public String getDisplayName() { return this.displayName; }
 
-    public void setPath(String path) { this.path = path; }
+    public void setPath(String path) { this.name = path; }
 
-    public String getPath() { return this.path; }
+    public String getPath() { return this.name; }
 
     public void setDirectory(boolean directory) { this.directory = directory; }
 

@@ -15,19 +15,19 @@ import java.util.Optional;
 
 @Repository
 public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integer>, JpaSpecificationExecutor<DirectoryInfo> {
-    List<DirectoryInfo> findByDirectoryAndParent(Source source, DirectoryInfo parent);
+    List<DirectoryInfo> findBySourceAndParent(Source source, DirectoryInfo parent);
 
     List<DirectoryInfo> findBySource(Source source);
 
     @Query("SELECT new com.jbr.middletier.backup.data.HierarchyResponse ( " +
            "d.source.id, " +
-           "LENGTH(d.path) - LENGTH(REPLACE(d.path,'/','')), " +
-           "d.path, " +
+           "LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')), " +
+           "d.name, " +
            "d.id ) " +
            "FROM DirectoryInfo AS d " +
            "WHERE d.source.id = ?1 " +
-           "AND LENGTH(d.path) - LENGTH(REPLACE(d.path,'/','')) = ?2 " +
-           "AND path like ?3 " +
-           "ORDER BY d.path ")
+           "AND LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')) = ?2 " +
+           "AND name like ?3 " +
+           "ORDER BY d.name ")
     List<HierarchyResponse> findAtLevel(int source, int level, String path);
 }
