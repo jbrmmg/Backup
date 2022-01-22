@@ -40,7 +40,7 @@ public class DuplicateManager {
         if(this.actionManager.checkAction(potentialDuplicate,"DELETE_DUP")) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
-            String deleteFile = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getPath() + "/" + potentialDuplicate.getName();
+            String deleteFile = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getName() + "/" + potentialDuplicate.getName();
 
             File fileToDelete = new File(deleteFile);
             if(fileToDelete.exists()) {

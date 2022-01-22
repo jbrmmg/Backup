@@ -43,6 +43,10 @@ public class ActionManager {
         this.resourceLoader = resourceLoader;
     }
 
+    public void actionPerformed(ActionConfirm action) {
+        actionConfirmRepository.delete(action);
+    }
+
     boolean checkAction(FileInfo fileInfo, String action) {
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action);
 

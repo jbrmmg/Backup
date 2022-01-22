@@ -58,4 +58,23 @@ public class ActionConfirm {
     public void setFlags(String flags) { this.flags = flags; }
 
     public String getFlags() { return this.flags; }
+
+    @Override
+    public String toString() {
+        return "Action Confirmed [" +
+                this.id +
+                "] (" +
+                (this.fileInfo == null ? "No File" : this.fileInfo.getId().toString()) +
+                "," +
+                this.action +
+                "," +
+                this.confirmed.toString() +
+                "," +
+                this.parameterRequired.toString() +
+                "," +
+                this.parameter +
+                "," +
+                this.flags +
+                ")";
+    }
 }

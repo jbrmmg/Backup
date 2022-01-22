@@ -55,9 +55,6 @@ public class DriveManager extends FileProcessor {
             return;
         }
 
-        fileRepository.markAllRemoved(nextSource.getId());
-        directoryRepository.markAllRemoved(nextSource.getId());
-
         setSourceStatus(nextSource,"GATHERING");
 
         backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
@@ -86,9 +83,6 @@ public class DriveManager extends FileProcessor {
         for(Source nextSource: sources) {
             processSource(nextSource,deleteActions,classifications);
         }
-
-        fileRepository.deleteRemoved(true);
-        directoryRepository.deleteRemoved(true);
     }
 
     @Override

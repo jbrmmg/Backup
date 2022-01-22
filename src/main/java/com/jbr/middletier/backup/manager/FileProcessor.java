@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -134,7 +136,9 @@ abstract class FileProcessor {
 
     abstract void newFileInserted(FileInfo newFile);
 
-    private void createFile(Path path, DirectoryInfo directory, Iterable<Classification> classifications, Date fileDate, boolean skipMD5) {
+    private void createFile(Path path, DirectoryInfo directory, Iterable<Classification> classifications, boolean skipMD5) {
+        Date fileDate = new Date(path.toFile().lastModified());
+
         // Get the file
         FileInfo newFile = new FileInfo();
         newFile.setName(path.getFileName().toString());
@@ -152,12 +156,8 @@ abstract class FileProcessor {
         newFileInserted(newFile);
     }
 
-    private void updateFile(Path path, FileInfo file, Date fileDate, List<ActionConfirm> deletes, Iterable<Classification> classifications, boolean skipMD5) {
-        // Has this file been marked for delete?
-        if(deleteFileIfRequired(file,deletes)) {
-            fileRepository.delete(file);
-            return;
-        }
+    private void updateFile(Path path, FileInfo file, Iterable<Classification> classifications, boolean skipMD5) {
+        Date fileDate = new Date(path.toFile().lastModified());
 
         if(file.getClassification() == null) {
             Classification newClassification = classifyFile(file,classifications);
@@ -183,28 +183,72 @@ abstract class FileProcessor {
         fileRepository.save(file);
     }
 
-    private void performDatabaseRemove(FileTreeNode compare) {
-        //
+    private void performDatabaseRemove(FileTreeNode toBeRemoved) {
+        // Remove the item from the database (either a file or a directory)
+        if(toBeRemoved.getSourceDbDirectory() != null) {
+            directoryRepository.delete(toBeRemoved.getSourceDbDirectory());
+        } else if(toBeRemoved.getSourceDbFile() != null) {
+            fileRepository.delete(toBeRemoved.getSourceDbFile());
+        }
     }
 
-    private void performDatabaseAddOrUpdate(FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
-        //
+    private DirectoryInfo getParentDirectory(FileTreeNode node) {
+        if(node.getParent() == null) {
+            return null;
+        }
+
+        if(node.getParent().getCreatedDirectory() == null) {
+            return node.getParent().getSourceDbDirectory();
+        }
+
+        return node.getParent().getCreatedDirectory();
     }
 
-    private void performDatabaseUpdate(FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
+    private void performDbAddOrUpdDirectory(Source source, FileTreeNode toBeUpdated) {
+        if(toBeUpdated.getSourceDbDirectory() != null && toBeUpdated.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) {
+            directoryRepository.save(toBeUpdated.getSourceDbDirectory());
+            return;
+        }
+
+        // Insert a new directory.
+        DirectoryInfo newDirectoryInfo = new DirectoryInfo();
+        newDirectoryInfo.setName(toBeUpdated.getName());
+        newDirectoryInfo.setSource(source);
+        newDirectoryInfo.setParent(getParentDirectory(toBeUpdated));
+        newDirectoryInfo.clearRemoved();
+
+        directoryRepository.save(newDirectoryInfo);
+
+        toBeUpdated.setCreatedDirectory(newDirectoryInfo);
+    }
+
+    private void performDatabaseAddOrUpdate(Source source, FileTreeNode toBeUpdated, Iterable<Classification> classifications, boolean skipMD5) {
+        if(toBeUpdated.isDirectory()) {
+            performDbAddOrUpdDirectory(source, toBeUpdated);
+            return;
+        }
+
+        // Is this a create or update?
+        if(toBeUpdated.getSourceDbFile() != null) {
+            createFile(toBeUpdated.getSourcePath(),getParentDirectory(toBeUpdated),classifications,skipMD5);
+        } else {
+            updateFile(toBeUpdated.getSourcePath(),toBeUpdated.getSourceDbFile(),classifications,skipMD5);
+        }
+    }
+
+    private void performDatabaseUpdate(Source source, FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
         // If they are equal then nothing more to do on this node.
         if(compare.getCompareStatus() == FileTreeNode.CompareStatusType.EQUAL) {
             return;
         }
 
         // If adding, then add now and then the children.
-        if(compare.adding() || (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE)) {
-            if(compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY) {
-                performDatabaseRemove(compare);
-            }
-
+        if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.ADDED) ||
+                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) ||
+                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE) ||
+                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY)) {
             // Insert or update
-            performDatabaseAddOrUpdate(compare, classifications, skipMD5);
+            performDatabaseAddOrUpdate(source, compare, classifications, skipMD5);
         }
 
         // Process the children.
@@ -214,21 +258,84 @@ abstract class FileProcessor {
                 next.setCompareStatus(compare.getCompareStatus());
             }
 
-            performDatabaseUpdate(next, classifications, skipMD5);
+            performDatabaseUpdate(source, next, classifications, skipMD5);
         }
 
         // If removing, then remove after the children.
-        if(compare.removing()) {
+        if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.REMOVED) ||
+                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE) ||
+                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY)) {
             performDatabaseRemove(compare);
         }
     }
 
-    private void updateDatabase(FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
-        performDatabaseUpdate(compare, classifications, skipMD5);
+    private void updateDatabase(Source source, FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
+        performDatabaseUpdate(source, compare, classifications, skipMD5);
 
         // Process the children
         for(FileTreeNode next: compare.getChildren()) {
-            updateDatabase(next, classifications, skipMD5);
+            updateDatabase(source, next, classifications, skipMD5);
+        }
+    }
+
+    private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed) {
+        // Only nodes that are the same as the DB can be deleted
+        if(node.getCompareStatus() != FileTreeNode.CompareStatusType.EQUAL) {
+            return;
+        }
+
+        for(FileTreeNode next: node.getChildren()) {
+            processDeletesIteratively ( next, deletes, performed );
+        }
+
+        // Does this node have a source file?
+        FileInfo sourceFile = node.getSourceDbFile();
+        Path sourcePath = node.getSourcePath();
+        if(sourceFile == null || sourcePath == null) {
+            LOG.warn("CANNOT process the delete as the node does not have a db entry equal to real world.");
+            LOG.warn("> " + node);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"CANNOT process the delete as the node does not have a db entry equal to real world.");
+            return;
+        }
+
+        // Is this file marked for delete?
+        for(ActionConfirm next : deletes) {
+            if(next.confirmed() && next.getPath().getId().equals(sourceFile.getId())) {
+                LOG.info("Deleting the file {}", sourcePath);
+
+                try {
+                    Files.deleteIfExists(sourcePath);
+                    node.setCompareStatus(FileTreeNode.CompareStatusType.REMOVED);
+
+                    LOG.info("Deleted.");
+
+                    // Remove the action.
+                    actionManager.actionPerformed(next);
+                    performed.add(next);
+                } catch (IOException e) {
+                    LOG.warn("Failed to delete file {}", sourcePath);
+                }
+            }
+        }
+    }
+
+    private void processDeletes(RootFileTreeNode details, List<ActionConfirm> deletes) {
+        // If there are no deletes then there is nothing to do.
+        if(deletes == null || deletes.size() == 0) {
+            return;
+        }
+
+        List<ActionConfirm> performedActions = new ArrayList<>();
+
+        processDeletesIteratively ( details, deletes, performedActions );
+        deletes.removeAll(performedActions);
+
+        // If there are still confirmed deletes to perform then they are invalid, so delete them anyway.
+        for(ActionConfirm next: deletes) {
+            if(next.confirmed()) {
+                LOG.warn("Action cannot be performed: " + next);
+                actionManager.actionPerformed(next);
+            }
         }
     }
 
@@ -236,16 +343,17 @@ abstract class FileProcessor {
         // Read the files structure from the real world.
         RootFileTreeNode realworld = getFileDetails(source);
 
-        // Process the deletes
-
         // Read the same from the database.
         RootFileTreeNode database = getDatabaseDetails(source);
 
         // Compare the real world with the database.
         RootFileTreeNode compare = realworld.compare(database);
 
+        // Process the deletes
+        processDeletes(compare, deletes);
+
         // Update the database with the real world.
-        updateDatabase(compare,classifications,skipMD5);
+        updateDatabase(source,compare,classifications,skipMD5);
     }
 
     /*

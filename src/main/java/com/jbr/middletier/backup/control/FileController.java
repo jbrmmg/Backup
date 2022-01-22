@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.DriveManager;
 import com.jbr.middletier.backup.manager.DuplicateManager;
 import com.jbr.middletier.backup.manager.SynchronizeManager;
+import liquibase.repackaged.org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,7 +126,9 @@ public class FileController {
         }
 
         // Get any files that are in this directory.
-        Iterable<FileInfo> files = fileRepository.findByDirectoryInfoId(lastResponse.getUnderlyingId());
+        throw new NotImplementedException("Need to change this query!");
+        /* TODO - fix this
+        Iterable<FileInfo> files = fileRepository.findByDirectoryInfo(null);
 
         for(FileInfo nextFile: files) {
             if(nextFile.getName().equals(".")) {
@@ -135,7 +138,7 @@ public class FileController {
             HierarchyResponse response = new HierarchyResponse();
             response.setDirectory(false);
             response.setLevel(lastResponse.getLevel());
-            response.setPath(nextFile.getDirectoryInfo().getPath());
+            response.setPath(nextFile.getDirectoryInfo().getName());
             response.setDisplayName(nextFile.getName());
             response.setUnderlyingId(nextFile.getId());
 
@@ -143,6 +146,7 @@ public class FileController {
         }
 
         return result;
+         */
     }
 
     @GetMapping(path="/file")

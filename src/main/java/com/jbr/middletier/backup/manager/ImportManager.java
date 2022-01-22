@@ -114,7 +114,7 @@ public class ImportManager extends FileProcessor {
         for(Source nextSource: sourceRepository.findAll()) {
             if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
                 for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
-                    for(FileInfo nextFile: fileRepository.findByDirectoryInfoId(nextDirectory.getId())) {
+                    for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
                         fileRepository.delete(nextFile);
                     }
 

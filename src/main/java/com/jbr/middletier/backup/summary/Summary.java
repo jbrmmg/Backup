@@ -48,7 +48,7 @@ public class Summary {
                     for (DirectoryInfo nextDirectory : this.directoryRepository.findBySource(nextSource)) {
                         nextSourceDTO.incrementDirectoryCount();
 
-                        for (FileInfo nextFile : this.fileRepository.findByDirectoryInfoId(nextDirectory.getId())) {
+                        for (FileInfo nextFile : this.fileRepository.findByDirectoryInfo(nextDirectory)) {
                             nextSourceDTO.incrementFileCount();
                             if (nextFile.getSize() != null) {
                                 nextSourceDTO.increaseFileSize(nextFile.getSize());

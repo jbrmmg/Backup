@@ -6,23 +6,25 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class RootFileTreeNode extends FileTreeNode {
-    private String rootDirectory;
+    private final String rootDirectory;
+    private final Source source;
 
     public RootFileTreeNode(Path path) {
-        super(path);
+        super(path, null);
         this.rootDirectory = path.getParent().toString();
+        this.source = null;
     }
 
     public RootFileTreeNode(Source source) {
-        super(Paths.get(source.getPath()));
+        super(Paths.get(source.getPath()), null);
         this.rootDirectory = Paths.get(source.getPath()).getParent().toString();
-        this.id = source.getId();
+        this.source = source;
     }
 
     public RootFileTreeNode(RootFileTreeNode node) {
-        super(node, false);
+        super(node, null, false, null);
         this.rootDirectory = node.rootDirectory;
-        this.id = node.id;
+        this.source = node.source;
     }
 
     private long getCount(FileTreeNode node) {
@@ -47,10 +49,10 @@ public class RootFileTreeNode extends FileTreeNode {
 
             if(rhsChild == null) {
                 // Create an entry in the result (deep copy)
-                result.addChild(new FileTreeNode(next,true)).compareStatus = CompareStatusType.ADDED;
+                result.addChild(next).compareStatus = CompareStatusType.ADDED;
             } else {
                 // Create a copy in the result and then process the children.
-                FileTreeNode resultChild = result.addChild(new FileTreeNode(rhsChild, false));
+                FileTreeNode resultChild = result.addChild(rhsChild, next);
 
                 // Set the status
                 if (next.isDirectory() == rhs.isDirectory()) {
@@ -75,7 +77,7 @@ public class RootFileTreeNode extends FileTreeNode {
 
             if(lhsChild == null) {
                 // Create an entry on the result.
-                result.addChild(new FileTreeNode(next,true)).compareStatus = CompareStatusType.REMOVED;
+                result.addChild(next).compareStatus = CompareStatusType.REMOVED;
             }
         }
     }
