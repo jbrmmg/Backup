@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.filetree;
 import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,15 +13,14 @@ import java.util.List;
 public class FileTreeNode {
     public enum CompareStatusType { UNKNOWN, EQUAL, CHANGE_TO_DIRECTORY, CHANGE_TO_FILE, ADDED, REMOVED, UPDATED }
 
+    public static int INVALID_ID = -1;
+
     private final FileTreeNode parent;
     private final List<FileTreeNode> children;
     private final boolean directory;
-    private final Path sourcePath;
-    private final DirectoryInfo sourceDbDirectory;
-    private final FileInfo sourceDbFile;
+    private int id;
     protected String name;
     protected CompareStatusType compareStatus;
-    private DirectoryInfo createdDirectory;
 
     protected FileTreeNode(Path path, FileTreeNode parent) {
         this.children = new LinkedList<>();
@@ -28,10 +28,7 @@ public class FileTreeNode {
         this.directory = path.toFile().isDirectory();
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
-        this.sourcePath = path;
-        this.sourceDbDirectory = null;
-        this.sourceDbFile = null;
-        this.createdDirectory = null;
+        this.id = INVALID_ID;
     }
 
     protected FileTreeNode(DirectoryInfo directory, FileTreeNode parent) {
@@ -40,10 +37,7 @@ public class FileTreeNode {
         this.directory = true;
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
-        this.sourcePath = null;
-        this.sourceDbDirectory = directory;
-        this.sourceDbFile = null;
-        this.createdDirectory = null;
+        this.id = directory.getId();
     }
 
     protected FileTreeNode(FileInfo file, FileTreeNode parent) {
@@ -52,27 +46,25 @@ public class FileTreeNode {
         this.directory = false;
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
-        this.sourcePath = null;
-        this.sourceDbDirectory = null;
-        this.sourceDbFile = file;
-        this.createdDirectory = null;
+        this.id = file.getId();
     }
 
-    protected FileTreeNode(FileTreeNode node1, FileTreeNode node2, boolean deepCopy, FileTreeNode parent) {
-        if(deepCopy) {
-            this.children = node1.children;
-        } else {
-            this.children = new LinkedList<>();
-        }
-        this.name = node1.name;
-        this.directory = node1.directory;
+    protected FileTreeNode(FileTreeNode primarySource, FileTreeNode secondarySource, boolean deepCopy, FileTreeNode parent) {
+        this.children = deepCopy ? primarySource.children : new LinkedList<>();
+        this.name = primarySource.name;
+        this.directory = primarySource.directory;
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
+        this.id = primarySource.id != INVALID_ID ? primarySource.id : secondarySource.id;
+    }
 
-        this.sourcePath = (node1.sourcePath == null) ? node2.sourcePath : node1.sourcePath;
-        this.sourceDbDirectory = (node1.sourceDbDirectory == null) ? node2.sourceDbDirectory : node1.sourceDbDirectory;
-        this.sourceDbFile = (node1.sourceDbFile == null) ? node2.sourceDbFile : node1.sourceDbFile;
-        this.createdDirectory = null;
+    protected FileTreeNode(FileTreeNode sourceNode, boolean deepCopy, FileTreeNode parent) {
+        this.children = deepCopy ? sourceNode.children : new LinkedList<>();
+        this.name = sourceNode.name;
+        this.directory = sourceNode.directory;
+        this.compareStatus = CompareStatusType.UNKNOWN;
+        this.parent = parent;
+        this.id = sourceNode.id;
     }
 
     private FileTreeNode addChildInternal(FileTreeNode child) {
@@ -102,7 +94,7 @@ public class FileTreeNode {
 
     @SuppressWarnings("UnusedReturnValue")
     public FileTreeNode addChild(FileTreeNode source) {
-        return addChildInternal(new FileTreeNode(source, null, true, this));
+        return addChildInternal(new FileTreeNode(source, true, this));
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -132,6 +124,22 @@ public class FileTreeNode {
         return this.parent;
     }
 
+    public int getId() {
+        return this.id;
+    }
+
+    public boolean hasValidId() {
+        return this.id != INVALID_ID;
+    }
+
+    public void setId(DirectoryInfo createdDirectory) {
+        if(createdDirectory.getId() == null) {
+            throw new IllegalStateException("created directory id is null");
+        }
+
+        this.id = createdDirectory.getId();
+    }
+
     public CompareStatusType getCompareStatus() {
         return compareStatus;
     }
@@ -140,28 +148,20 @@ public class FileTreeNode {
         this.compareStatus = compareStatus;
     }
 
-    public Path getSourcePath() {
-        return sourcePath;
-    }
-
-    public DirectoryInfo getSourceDbDirectory() {
-        return sourceDbDirectory;
-    }
-
-    public FileInfo getSourceDbFile() {
-        return sourceDbFile;
-    }
-
     public String getName() {
         return this.name;
     }
 
-    public DirectoryInfo getCreatedDirectory() {
-        return createdDirectory;
+    private static String addToPath(FileTreeNode node, String path) {
+        if(node.parent != null) {
+            path = addToPath(node.parent,path);
+        }
+
+        return path + "/" + node.name;
     }
 
-    public void setCreatedDirectory(DirectoryInfo createdDirectory) {
-        this.createdDirectory = createdDirectory;
+    public Path getPath() {
+        return new File(addToPath(this, "")).toPath();
     }
 
     protected void removeFilteredChildren(String filter) {
@@ -182,11 +182,7 @@ public class FileTreeNode {
                 "] (" +
                 (this.parent == null ? "No Parent" : "Parent") +
                 "," +
-                (this.sourcePath == null ? "No Path" : this.sourcePath.toString()) +
-                "," +
-                (this.sourceDbFile == null ? "No DB File" : this.sourceDbFile.getId()) +
-                "," +
-                (this.sourceDbDirectory == null ? "No DB Directory" : this.sourceDbDirectory.getId()) +
+                this.id +
                 "," +
                 compareStatus.toString() +
                 ")";

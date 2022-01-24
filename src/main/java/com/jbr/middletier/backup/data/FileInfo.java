@@ -71,7 +71,7 @@ public class FileInfo {
 
     public Boolean getRemoved() { return this.removed; }
 
-    public boolean duplicate(FileInfo otherFile) {
+    public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
         if(this.id.equals(otherFile.id)) {
             return false;
         }

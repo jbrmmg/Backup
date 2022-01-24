@@ -17,6 +17,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 abstract class FileProcessor {
@@ -134,10 +135,14 @@ abstract class FileProcessor {
 
     private void performDatabaseRemove(FileTreeNode toBeRemoved) {
         // Remove the item from the database (either a file or a directory)
-        if(toBeRemoved.getSourceDbDirectory() != null) {
-            directoryRepository.delete(toBeRemoved.getSourceDbDirectory());
-        } else if(toBeRemoved.getSourceDbFile() != null) {
-            fileRepository.delete(toBeRemoved.getSourceDbFile());
+        if(toBeRemoved.isDirectory()) {
+            Optional<DirectoryInfo> existingDirectory = directoryRepository.findById(toBeRemoved.getId());
+
+            existingDirectory.ifPresent(directoryRepository::delete);
+        } else {
+            Optional<FileInfo> existingFile = fileRepository.findById(toBeRemoved.getId());
+
+            existingFile.ifPresent(fileRepository::delete);
         }
     }
 
@@ -146,17 +151,25 @@ abstract class FileProcessor {
             return null;
         }
 
-        if(node.getParent().getCreatedDirectory() == null) {
-            return node.getParent().getSourceDbDirectory();
+        if(node.isDirectory() && node.hasValidId()) {
+            Optional<DirectoryInfo> existing = directoryRepository.findById(node.getId());
+            if(existing.isPresent()) {
+                return existing.get();
+            }
         }
 
-        return node.getParent().getCreatedDirectory();
+        return null;
     }
 
     private void performDbAddOrUpdDirectory(Source source, FileTreeNode toBeUpdated) {
-        if(toBeUpdated.getSourceDbDirectory() != null && toBeUpdated.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) {
-            directoryRepository.save(toBeUpdated.getSourceDbDirectory());
-            return;
+        if(toBeUpdated.hasValidId() && toBeUpdated.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) {
+            Optional<DirectoryInfo> existingDirectory = directoryRepository.findById(toBeUpdated.getId());
+
+            if(existingDirectory.isPresent()) {
+                //TODO - perform the update.
+                directoryRepository.save(existingDirectory.get());
+                return;
+            }
         }
 
         // Insert a new directory.
@@ -168,7 +181,7 @@ abstract class FileProcessor {
 
         directoryRepository.save(newDirectoryInfo);
 
-        toBeUpdated.setCreatedDirectory(newDirectoryInfo);
+        toBeUpdated.setId(newDirectoryInfo);
     }
 
     private void performDatabaseAddOrUpdate(Source source, FileTreeNode toBeUpdated, Iterable<Classification> classifications, boolean skipMD5) {
@@ -178,10 +191,16 @@ abstract class FileProcessor {
         }
 
         // Is this a create or update?
-        if(toBeUpdated.getSourceDbFile() != null) {
-            createFile(toBeUpdated.getSourcePath(),getParentDirectory(toBeUpdated),classifications,skipMD5);
+        Optional<FileInfo> existingFile = Optional.empty();
+
+        if(toBeUpdated.hasValidId()) {
+            existingFile = fileRepository.findById(toBeUpdated.getId());
+        }
+
+        if(existingFile.isPresent()) {
+            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated),classifications,skipMD5);
         } else {
-            updateFile(toBeUpdated.getSourcePath(),toBeUpdated.getSourceDbFile(),classifications,skipMD5);
+            updateFile(toBeUpdated.getPath(),existingFile.get(),classifications,skipMD5);
         }
     }
 
@@ -238,9 +257,8 @@ abstract class FileProcessor {
         }
 
         // Does this node have a source file?
-        FileInfo sourceFile = node.getSourceDbFile();
-        Path sourcePath = node.getSourcePath();
-        if(sourceFile == null || sourcePath == null) {
+        Path sourcePath = node.getPath();
+        if(node.hasValidId() || sourcePath == null) {
             LOG.warn("CANNOT process the delete as the node does not have a db entry equal to real world.");
             LOG.warn("> " + node);
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"CANNOT process the delete as the node does not have a db entry equal to real world.");
@@ -249,7 +267,7 @@ abstract class FileProcessor {
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && next.getPath().getId().equals(sourceFile.getId())) {
+            if(next.confirmed() && next.getPath().getId().equals(node.getId())) {
                 LOG.info("Deleting the file {}", sourcePath);
 
                 try {
