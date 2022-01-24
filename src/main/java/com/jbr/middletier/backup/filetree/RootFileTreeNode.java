@@ -22,7 +22,7 @@ public class RootFileTreeNode extends FileTreeNode {
     }
 
     public RootFileTreeNode(RootFileTreeNode node) {
-        super(node, false, null);
+        super(node, false, CompareStatusType.EQUAL, null);
         this.rootDirectory = node.rootDirectory;
         this.source = node.source;
     }
@@ -49,7 +49,7 @@ public class RootFileTreeNode extends FileTreeNode {
 
             if(rhsChild == null) {
                 // Create an entry in the result (deep copy)
-                result.addChild(next).compareStatus = CompareStatusType.ADDED;
+                result.addChild(next,CompareStatusType.ADDED);
             } else {
                 // Create a copy in the result and then process the children.
                 FileTreeNode resultChild = result.addChild(rhsChild, next);
@@ -77,7 +77,7 @@ public class RootFileTreeNode extends FileTreeNode {
 
             if(lhsChild == null) {
                 // Create an entry on the result.
-                result.addChild(next).compareStatus = CompareStatusType.REMOVED;
+                result.addChild(next,CompareStatusType.REMOVED);
             }
         }
     }

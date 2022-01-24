@@ -52,6 +52,6 @@ public class DirectoryInfo {
 
     @Override
     public String toString() {
-        return "DirectoryInfo: " + id + "-" + name + "-" + parent.getId();
+        return "DirectoryInfo: " + id + "-" + name + "-" + (parent == null ? "no parent" : parent.getId());
     }
 }

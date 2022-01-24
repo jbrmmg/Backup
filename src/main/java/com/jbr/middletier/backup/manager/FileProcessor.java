@@ -151,8 +151,8 @@ abstract class FileProcessor {
             return null;
         }
 
-        if(node.isDirectory() && node.hasValidId()) {
-            Optional<DirectoryInfo> existing = directoryRepository.findById(node.getId());
+        if(node.getParent().isDirectory() && node.getParent().hasValidId()) {
+            Optional<DirectoryInfo> existing = directoryRepository.findById(node.getParent().getId());
             if(existing.isPresent()) {
                 return existing.get();
             }
@@ -198,9 +198,9 @@ abstract class FileProcessor {
         }
 
         if(existingFile.isPresent()) {
-            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated),classifications,skipMD5);
-        } else {
             updateFile(toBeUpdated.getPath(),existingFile.get(),classifications,skipMD5);
+        } else {
+            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated),classifications,skipMD5);
         }
     }
 

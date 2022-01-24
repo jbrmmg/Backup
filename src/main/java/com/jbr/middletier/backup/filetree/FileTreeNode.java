@@ -49,22 +49,36 @@ public class FileTreeNode {
         this.id = file.getId();
     }
 
+    private void deepCopy(List<FileTreeNode> sourceList, CompareStatusType compareStatus) {
+        for(FileTreeNode next: sourceList) {
+            this.children.add(new FileTreeNode(next,true, compareStatus, this));
+        }
+    }
+
     protected FileTreeNode(FileTreeNode primarySource, FileTreeNode secondarySource, boolean deepCopy, FileTreeNode parent) {
-        this.children = deepCopy ? primarySource.children : new LinkedList<>();
+        this.children = new LinkedList<>();
         this.name = primarySource.name;
         this.directory = primarySource.directory;
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
         this.id = primarySource.id != INVALID_ID ? primarySource.id : secondarySource.id;
+
+        if(deepCopy) {
+            deepCopy(primarySource.children, CompareStatusType.UNKNOWN);
+        }
     }
 
-    protected FileTreeNode(FileTreeNode sourceNode, boolean deepCopy, FileTreeNode parent) {
-        this.children = deepCopy ? sourceNode.children : new LinkedList<>();
+    protected FileTreeNode(FileTreeNode sourceNode, boolean deepCopy, CompareStatusType compareStatus, FileTreeNode parent) {
+        this.children = new LinkedList<>();
         this.name = sourceNode.name;
         this.directory = sourceNode.directory;
-        this.compareStatus = CompareStatusType.UNKNOWN;
+        this.compareStatus = compareStatus;
         this.parent = parent;
         this.id = sourceNode.id;
+
+        if(deepCopy) {
+            deepCopy(sourceNode.children, compareStatus);
+        }
     }
 
     private FileTreeNode addChildInternal(FileTreeNode child) {
@@ -93,8 +107,8 @@ public class FileTreeNode {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public FileTreeNode addChild(FileTreeNode source) {
-        return addChildInternal(new FileTreeNode(source, true, this));
+    public FileTreeNode addChild(FileTreeNode source, CompareStatusType compareStatus) {
+        return addChildInternal(new FileTreeNode(source, true, compareStatus, this));
     }
 
     @SuppressWarnings("UnusedReturnValue")
