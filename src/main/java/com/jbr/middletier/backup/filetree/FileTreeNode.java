@@ -174,8 +174,21 @@ public class FileTreeNode {
         return path + "/" + node.name;
     }
 
+    private String getRoot(FileTreeNode node) {
+        if (node instanceof  RootFileTreeNode) {
+            RootFileTreeNode rootNode = (RootFileTreeNode)node;
+            return rootNode.getRootDirectory();
+        }
+
+        if(node.parent == null) {
+            throw new IllegalStateException("File Tree Node should eventually have a root file tree.");
+        }
+
+        return getRoot(node.parent);
+    }
+
     public Path getPath() {
-        return new File(addToPath(this, "")).toPath();
+        return new File(getRoot(this) + "/" + addToPath(this, "")).toPath();
     }
 
     protected void removeFilteredChildren(String filter) {

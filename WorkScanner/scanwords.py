@@ -1,7 +1,7 @@
-exclude = list("EARTHISCU")
-pattern = list("_____")
-include = list("LNK")
-exclude_patterns = [list("L_NK_"),list("_L_NK")]
+exclude = list("")
+pattern = list("WR_NG")
+include = list("R")
+exclude_patterns = [list("__R__")]
 
 
 def check_criteria(word):

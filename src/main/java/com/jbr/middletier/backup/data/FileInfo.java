@@ -88,9 +88,8 @@ public class FileInfo {
     }
 
     public String getFullFilename() {
-        return directoryInfo.getSource().getPath() +
-                directoryInfo.getName() +
-                "/" +
+        return directoryInfo.getSource().getPath() + "/" +
+                directoryInfo.getName() + "/" +
                 getName();
     }
 

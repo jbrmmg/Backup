@@ -37,6 +37,10 @@ public class RootFileTreeNode extends FileTreeNode {
         return result;
     }
 
+    public String getRootDirectory() {
+        return this.rootDirectory;
+    }
+
     public long getFileCount() {
         return getCount(this);
     }

@@ -237,15 +237,6 @@ abstract class FileProcessor {
         }
     }
 
-    private void updateDatabase(Source source, FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
-        performDatabaseUpdate(source, compare, classifications, skipMD5);
-
-        // Process the children
-        for(FileTreeNode next: compare.getChildren()) {
-            updateDatabase(source, next, classifications, skipMD5);
-        }
-    }
-
     private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed) {
         // Only nodes that are the same as the DB can be deleted
         if(node.getCompareStatus() != FileTreeNode.CompareStatusType.EQUAL) {
@@ -321,7 +312,9 @@ abstract class FileProcessor {
         processDeletes(compare, deletes);
 
         // Update the database with the real world.
-        updateDatabase(source,compare,classifications,skipMD5);
+        for(FileTreeNode next: compare.getChildren()) {
+            performDatabaseUpdate(source, next, classifications, skipMD5);
+        }
     }
 
     private RootFileTreeNode getFileDetails(Source root) throws IOException {
