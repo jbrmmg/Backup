@@ -1,0 +1,124 @@
+@startuml
+skinparam titleBorderRoundCorner 15
+skinparam titleBorderThickness 2
+skinparam titleBorderColor red
+title Existing ERD
+skinparam linetype ortho
+scale 0.75
+
+entity action_confirm {
+   * **id** : int <<generated>>
+   ==
+   * action : varchar(20)
+   * confirmed : bit(1)
+   parameter_required : bit(1)
+   parameter : varchar(50)
+   file_id : int <<FK>>
+   flags : varchar(10)
+}
+
+entity file {
+   * **id** : int <<generated>>
+   * **name** : varchar(200)
+   ==
+   * directory_id : int <<FK>>
+   classification_id : int <<FK>>
+   size : int
+   date : datetime
+   * removed : bit(1)
+   md5 : varchar(32)
+   flags : varchar(5)
+}
+
+entity directory {
+  * *id* : int <<generated>>
+  ==
+  * source_id : int <<FK>>
+  * path : varchar(200)
+  * removed : bit(1)
+}
+
+entity classification {
+  * **id** : int <<generated>>
+  ==
+  * order int
+  regex : varchar(50)
+  icon : varchar(60)
+  * action : varchar(20)
+  * useMD5 : bit(1)
+  type : varchar(30)
+  is_image : bit(1)
+  is_video : bit(1)
+}
+
+entity backup {
+  * **id** : char(4)
+  ==
+  * type : varchar(50)
+  * directory : varchar(300)
+  * artifact : varchar(100)
+  * backupname : varchar(35)
+  * filename : varchar(100)
+  * time : int
+}
+
+entity hardware {
+  * **macAddress** : char(17)
+  ==
+  * reservedIP : char(1)
+  IP : varchar(15)
+  * name : varchar(200)
+}
+
+entity ignore_file {
+  * **id** : int <<generated>>
+  ==
+  * name : varchar(100)
+  * size : varchar(10)
+  * date : datetime
+  * md5 : varchar(32)
+}
+
+entity import_file {
+  * **id** : int <<generated>>
+  ==
+  * status : varchar(20)
+  file_id : int <<FK>>
+}
+
+entity location {
+  * **id** : int <<generated>>
+  ==
+  * name : varchar(100)
+  * size : varchar(10)
+  check_duplicates : bit(1)
+}
+
+entity source {
+  * **id** : int
+  ==
+  * path : varchar(200)
+  * location : int <<FK>>
+  status : varchar(15)
+  filter : varchar(60)
+  destination : int <<FK>>
+  source_type : varchar(3)
+}
+
+entity synchronize {
+ * **id** : int
+ ==
+ * source : int <<FK>>
+ * destination : int <<FK>>
+}
+
+action_confirm }o--|| file
+directory ||--|{ file
+classification ||--|{ file
+import_file }|--|| file
+synchronize }|--|| source
+synchronize }|--|| source
+source }o--o| source
+location }o--o| source
+source }o--o| directory
+@enduml
