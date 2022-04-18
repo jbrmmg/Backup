@@ -53,10 +53,10 @@ public class DatabaseIT {
 
     @Test
     public void myFirstItegrationTest() {
-        BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
-        Backup backup = new Backup(backupDTO);
+        //BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+        //Backup backup = new Backup(backupDTO);
 
-        backupRepository.save(backup);
+        //backupRepository.save(backup);
 
         LOG.info("Here");
     }
