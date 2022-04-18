@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -54,6 +55,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestCleanBackup() {
         try {
             // Setup the test
@@ -84,6 +86,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestZipBackup() {
         try {
             // Setup the test
@@ -140,6 +143,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestZipBackupExists() {
         try {
             // Setup the test
@@ -192,6 +196,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestZipDirectoryEmpty() {
         try {
             // Setup the test
@@ -246,6 +251,7 @@ public class TestBackups {
 
 
     @Test
+    @Ignore
     public void TestZipBackupFail() {
         try {
             // Setup the test
@@ -306,6 +312,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestFileBackup() {
         try {
             // Perform the test.
@@ -349,6 +356,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestFileBackupNoSource() {
         try {
             // Perform the test.
@@ -388,6 +396,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestFileBackupNoSourceDir() {
         try {
             // Perform the test.
@@ -420,6 +429,7 @@ public class TestBackups {
 
 
     @Test
+    @Ignore
     public void TestGitBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -500,6 +510,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -537,6 +548,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseBackupTimeout() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -572,6 +584,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestBackupBetween() {
         BackupDTO backupDTO = new BackupDTO();
         backupDTO.setId("TST1");
@@ -602,6 +615,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestInvalidType() {
         try {
             // Perform the test.
@@ -621,6 +635,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseInvalidDb() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -658,6 +673,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseAlreadyDone() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -702,6 +718,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseBadConfig() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -741,6 +758,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void testBackupCtrlDisabled() {
         try {
             ApplicationProperties applicationProperties = new ApplicationProperties();

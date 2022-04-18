@@ -1,0 +1,138 @@
+@startuml
+skinparam titleBorderRoundCorner 15
+skinparam titleBorderThickness 2
+skinparam titleBorderColor red
+title Refactored ERD
+skinparam linetype ortho
+scale 0.75
+
+entity file_system_object {
+* **id** : int <<generated>>
+==
+* type : char(4)
+* name : varchar(200)
+  parent : int <<FK>>
+}
+
+entity file {
+   * **id** : int <<FK>>
+   ==
+   classification_id : int <<FK>>
+   size : int
+   date : datetime
+   * removed : bit(1)
+   md5 : varchar(32)
+   flags : varchar(5)
+   ==
+   type = FILE
+}
+
+entity image_file {
+   * **id** : int <<FK>>
+   ==
+   ==
+   type = IMGE
+}
+
+entity video_file {
+   * **id** : int <<FK>>
+   ==
+   ==
+   type = VIDO
+}
+
+entity directory {
+  * *id* : int <<FK>>
+  ==
+  * removed : bit(1)
+  ==
+  type = DIRY
+}
+
+entity source {
+  * **id** : int <<FK>>
+  ==
+  * location : int <<FK>>
+  status : varchar(15)
+  filter : varchar(60)
+  source_type : varchar(3)
+  ==
+  type = SRCE
+}
+
+
+entity imp_source {
+  * **id** : int <<FK>>
+  ==
+  destination : int <<FK>>
+  ==
+  type = IMPS
+}
+
+entity classification {
+  * **id** : int <<generated>>
+  ==
+  * order int
+  regex : varchar(50)
+  icon : varchar(60)
+  * action : varchar(20)
+  * useMD5 : bit(1)
+  type : varchar(30)
+  is_image : bit(1)
+  is_video : bit(1)
+}
+
+entity backup {
+  * **id** : char(4)
+  ==
+  * type : varchar(50)
+  * directory : varchar(300)
+  * artifact : varchar(100)
+  * backupname : varchar(35)
+  * filename : varchar(100)
+  * time : int
+}
+
+entity hardware {
+  * **macAddress** : char(17)
+  ==
+  * reservedIP : char(1)
+  IP : varchar(15)
+  * name : varchar(200)
+}
+
+entity location {
+  * **id** : int <<generated>>
+  ==
+  * name : varchar(100)
+  * size : varchar(10)
+  check_duplicates : bit(1)
+}
+
+entity ignore_file {
+  * **id** : int <<FK>>
+  ==
+  ==
+  type = IGNO
+}
+
+entity import_file {
+  * **id** : int <<FK>>
+  ==
+  * status : varchar(20)
+  ==
+  type = IMPO
+}
+
+file_system_object |o--|| file_system_object
+file_system_object |o--|| file
+file_system_object |o--|| directory
+file_system_object |o--|| source
+file |o--|| image_file
+file |o--|| video_file
+file |o--|| ignore_file
+file |o--|| import_file
+source |o--|| imp_source
+classification ||--|{ file
+location }o--o| source
+@enduml

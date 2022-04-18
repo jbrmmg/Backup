@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -8,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 public class TestProperties {
     @Test
+    @Ignore
     public void TestPropertyClass() {
         ApplicationProperties test = new ApplicationProperties();
         test.setDbBackupCommand("DBCmd");

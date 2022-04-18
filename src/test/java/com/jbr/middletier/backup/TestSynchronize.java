@@ -12,6 +12,7 @@ import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -111,6 +112,7 @@ public class TestSynchronize extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestSynchronization() {
         try {
             LOG.info("Test Synch");
@@ -335,6 +337,7 @@ public class TestSynchronize extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestSourceStatusNull() {
         try {
             LOG.info("Test Synch");
@@ -448,6 +451,7 @@ public class TestSynchronize extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestSynchronizeUnknownAction() {
         try {
             LOG.info("Test Synch");

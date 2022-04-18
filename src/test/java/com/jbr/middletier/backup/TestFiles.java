@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -55,6 +56,7 @@ public class TestFiles extends WebTester {
     private SourceRepository sourceRepository;
 
     @Test
+    @Ignore
     public void TestGather() {
         try {
             LOG.info("Test Gather");
@@ -142,6 +144,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestFileWeb() {
         try {
             LOG.info("Test File Web");
@@ -287,6 +290,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestDuplicate() {
         try {
             LOG.info("Test Duplicate");
@@ -388,6 +392,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestHierarchy() {
         try {
             LOG.info("Test Hierarchy");
@@ -511,6 +516,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestSource() {
         try {
             Source testSource = new Source();
@@ -536,6 +542,7 @@ public class TestFiles extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestSyncrhonizeStatus() {
         try {
             SynchronizeStatus status = new SynchronizeStatus(null,null,null, null, null, null, null);

@@ -2,7 +2,7 @@
 skinparam titleBorderRoundCorner 15
 skinparam titleBorderThickness 2
 skinparam titleBorderColor red
-title Existing ERD
+title Original ERD
 skinparam linetype ortho
 scale 0.75
 

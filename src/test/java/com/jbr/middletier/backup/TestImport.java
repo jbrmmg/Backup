@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -54,6 +55,7 @@ public class TestImport extends WebTester {
     private ClassificationRepository classificationRepository;
 
     @Test
+    @Ignore
     public void TestImportBasic() {
         try {
             LOG.info("Test Import");
@@ -200,6 +202,7 @@ public class TestImport extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestImportIngore() {
         try {
             LOG.info("Test Import ignore");
@@ -359,6 +362,7 @@ public class TestImport extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestImportDoesNotExist() {
         try {
             // get the current working directory.
@@ -403,6 +407,7 @@ public class TestImport extends WebTester {
 
 
     @Test
+    @Ignore
     public void TestClearImport() {
         try {
             // get the current working directory.
@@ -488,6 +493,7 @@ public class TestImport extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestAlreadyExists() {
         try {
             ClassificationDTO classificationDTO = new ClassificationDTO();
@@ -592,6 +598,7 @@ public class TestImport extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestImportFileRemoved() {
         try {
             // get the current working directory.

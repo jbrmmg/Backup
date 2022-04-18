@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -107,6 +108,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
+    @Ignore
     public void TestCleanBackupDirect() {
         try {
             // Setup the test
@@ -140,6 +142,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
+    @Ignore
     public void LocationCRUD() {
         try {
             LocationDTO location = new LocationDTO(6,"Test", "1MB");
@@ -194,6 +197,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
+    @Ignore
     public void ClassificationCRUD() {
         try {
             int classificationCount = (int)classificationRepository.count();
@@ -267,6 +271,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
+    @Ignore
     public void HardwareCRUD() {
         try {
             HardwareDTO hardware = new HardwareDTO("00:00:00:00:00:00","N");
@@ -331,6 +336,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
+    @Ignore
     public void SourceCRUD() {
         try {
             LocationDTO location = new LocationDTO(1,"Test", "1MB");
@@ -400,6 +406,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
+    @Ignore
     public void SyncrhonizeCRUD() {
         try {
             LocationDTO location = new LocationDTO(1, "Test", "1MB");

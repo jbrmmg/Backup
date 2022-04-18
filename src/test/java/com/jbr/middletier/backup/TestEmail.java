@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -56,6 +57,7 @@ public class TestEmail extends WebTester  {
     }
 
     @Test
+    @Ignore
     public void TestEmail() {
         try {
             Optional<Location> location = locationRepository.findById(1);
