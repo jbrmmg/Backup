@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import font
 
 
+# noinspection PyTypeChecker,PyArgumentList
 class PlaceFlags(tk.Frame):
     def __init__(self, parent, include):
         tk.Frame.__init__(self, parent)
@@ -11,8 +12,8 @@ class PlaceFlags(tk.Frame):
             self.colour = "#99ffbb"
 
         self.enabled = tk.IntVar(value=1)
-        self.flags = [0 for x in range(5)]
-        self.values = [0 for x in range(5)]
+        self.flags = [tk.Checkbutton] * 5
+        self.values = [tk.IntVar] * 5
         for x in range(5):
             self.values[x] = tk.IntVar(value=0)
             self.flags[x] = tk.Checkbutton(self, variable=self.values[x], selectcolor=self.colour)
@@ -22,7 +23,7 @@ class PlaceFlags(tk.Frame):
         for x in range(5):
             if self.enabled.get() == 1:
                 self.flags[x].config(state=tk.DISABLED)
-                self.values[x].set(0)
+                self.values[x].set(value=0)
             else:
                 self.flags[x].config(state=tk.NORMAL)
         if self.enabled.get() == 1:
@@ -72,10 +73,10 @@ class LetterWidget(tk.Frame):
         self.cb = tk.Checkbutton(self, variable=self.CheckVar, command=self.enable)
         self.cb.grid(row=1, column=0, columnspan=2)
 
-        self.includeFlags = PlaceFlags(self,1)
+        self.includeFlags = PlaceFlags(self, 1)
         self.includeFlags.grid(row=2, column=0)
 
-        self.excludeFlags = PlaceFlags(self,0)
+        self.excludeFlags = PlaceFlags(self, 0)
         self.excludeFlags.grid(row=2, column=1)
 
     def enable(self):
@@ -103,11 +104,12 @@ class LetterWidget(tk.Frame):
         return self.includeFlags.include(self.label.cget("text"), index)
 
 
+# noinspection PyTypeChecker,PyArgumentList
 class MainFrame(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
 
-        self.letter = [0 for x in range(26)]
+        self.letter = [LetterWidget] * 26
         for x in range(26):
             self.letter[x] = LetterWidget(self, x)
             self.letter[x].grid(row=0, column=x)
@@ -122,11 +124,11 @@ class MainFrame(tk.Frame):
         self.list = tk.Listbox(self, font=list_font)
         self.list.grid(row=2, column=0, columnspan=26, sticky="nsew", padx=5, pady=5)
 
-        self.columnconfigure(0,weight=1)
-        self.rowconfigure(2,weight=1)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(2, weight=1)
 
         self.scroll = tk.Scrollbar(self.list, orient=tk.VERTICAL)
-        self.scroll.pack(side=tk.RIGHT,fill="y")
+        self.scroll.pack(side=tk.RIGHT, fill="y")
         self.list.config(yscrollcommand=self.scroll.set)
         self.scroll.config(command=self.list.yview)
 
@@ -202,7 +204,7 @@ class MainFrame(tk.Frame):
             include = ""
             for y in range(26):
                 include = self.letter[y].include(x)
-                if(include != ""):
+                if include != "":
                     break
 
             if include != "":
