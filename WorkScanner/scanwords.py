@@ -223,7 +223,7 @@ class MainFrame(tk.Frame):
                     cnt += 1
                     next_line = next_line + line.strip() + " "
                     next_line_count = next_line_count + 1
-                    if next_line_count == 30:
+                    if next_line_count == 28:
                         self.list.insert(tk.END, next_line)
                         next_line = ""
                         next_line_count = 0
@@ -236,6 +236,6 @@ class MainFrame(tk.Frame):
 
 if __name__ == "__main__":
     window = tk.Tk()
-    window.geometry("1460x800")
+    window.geometry("1400x800")
     MainFrame(window).place(x=0, y=0, relwidth=1, relheight=1)
     window.mainloop()
