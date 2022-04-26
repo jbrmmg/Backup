@@ -126,14 +126,14 @@ class LetterWidget(tk.Frame):
     def memorychange(self, newmemory):
         if newmemory != self.memory:
             self.memoryvalues[self.memory] = self.checkvar.get()
+            self.includeFlags.memorychange(newmemory)
+            self.excludeFlags.memorychange(newmemory)
 
             self.memory = newmemory
             self.checkvar.set(value=self.memoryvalues[self.memory])
 
             self.includeFlags.enable(self.checkvar.get())
-            self.includeFlags.memorychange(newmemory)
             self.excludeFlags.enable(self.checkvar.get())
-            self.excludeFlags.memorychange(newmemory)
 
 
 # noinspection PyTypeChecker,PyArgumentList
