@@ -118,8 +118,8 @@ class MainFrame(tk.Frame):
         self.reset = tk.Button(self, text="Reset", command=self.reset)
         self.reset.grid(row=1, column=4, columnspan=4)
 
-        listfont = font.Font(family="Courier", size=10)
-        self.list = tk.Listbox(self, font=listfont)
+        list_font = font.Font(family="Courier", size=10)
+        self.list = tk.Listbox(self, font=list_font)
         self.list.grid(row=2, column=0, columnspan=26, sticky="nsew", padx=5, pady=5)
 
         self.columnconfigure(0,weight=1)
@@ -188,16 +188,16 @@ class MainFrame(tk.Frame):
             used = used + self.letter[x].isused()
         self.list.insert(tk.END, used)
 
-        fullExcludePattern = ""
+        full_exclude_pattern = ""
         excludes = []
         for x in range(26):
-            excludePattern = self.letter[x].excludepattern()
-            if excludePattern != "_____":
-                fullExcludePattern = fullExcludePattern + excludePattern + " "
-                excludes.append(list(excludePattern))
-        self.list.insert(tk.END, fullExcludePattern)
+            exclude_pattern = self.letter[x].excludepattern()
+            if exclude_pattern != "_____":
+                full_exclude_pattern = full_exclude_pattern + exclude_pattern + " "
+                excludes.append(list(exclude_pattern))
+        self.list.insert(tk.END, full_exclude_pattern)
 
-        includePattern = ""
+        include_pattern = ""
         for x in range(5):
             include = ""
             for y in range(26):
@@ -205,30 +205,30 @@ class MainFrame(tk.Frame):
                 if(include != ""):
                     break
 
-            if(include != ""):
-                includePattern = includePattern + include
+            if include != "":
+                include_pattern = include_pattern + include
             else:
-                includePattern = includePattern + "_"
-        self.list.insert(tk.END, includePattern)
+                include_pattern = include_pattern + "_"
+        self.list.insert(tk.END, include_pattern)
 
-        nextLine = ""
-        nextLineCount = 0
+        next_line = ""
+        next_line_count = 0
         with open("words.txt") as fp:
             line = fp.readline()
             cnt = 0
             while line:
-                if self.checkcriteria(line.strip().upper(), list(unused), list(includePattern), list(used), excludes):
+                if self.checkcriteria(line.strip().upper(), list(unused), list(include_pattern), list(used), excludes):
                     cnt += 1
-                    nextLine = nextLine + line.strip() + " "
-                    nextLineCount = nextLineCount + 1
-                    if nextLineCount == 30:
-                        self.list.insert(tk.END, nextLine)
-                        nextLine = ""
-                        nextLineCount = 0
+                    next_line = next_line + line.strip() + " "
+                    next_line_count = next_line_count + 1
+                    if next_line_count == 30:
+                        self.list.insert(tk.END, next_line)
+                        next_line = ""
+                        next_line_count = 0
 
                 line = fp.readline()
 
-            self.list.insert(tk.END, nextLine)
+            self.list.insert(tk.END, next_line)
             self.list.insert(tk.END, str(cnt))
 
 
