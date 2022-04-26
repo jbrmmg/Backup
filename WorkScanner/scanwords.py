@@ -67,8 +67,7 @@ class PlaceFlags(tk.Frame):
     def reset(self):
         for x in range(5):
             self.values[x].set(0)
-        self.enabled.set(0)
-        self.enable()
+        self.enable(1)
 
     def include(self, letter, index):
         if self.values[index].get() == 1:
