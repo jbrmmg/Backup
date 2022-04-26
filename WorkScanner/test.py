@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import font
 
+
 class PlaceFlags(tk.Frame):
     def __init__(self, parent, include):
         tk.Frame.__init__(self, parent)
 
         self.colour = "#ffcc80"
-        if(include == 1):
+        if include == 1:
             self.colour = "#99ffbb"
 
         self.enabled = tk.IntVar(value=1)
@@ -17,42 +18,44 @@ class PlaceFlags(tk.Frame):
             self.flags[x] = tk.Checkbutton(self, variable=self.values[x], selectcolor=self.colour)
             self.flags[x].grid(row=x, column=0)
 
-    def Enable(self):
+    def enable(self):
         for x in range(5):
-            if(self.enabled.get() == 1):
+            if self.enabled.get() == 1:
                 self.flags[x].config(state=tk.DISABLED)
                 self.values[x].set(0)
             else:
-                self.flags[0].config(state=tk.NORMAL)
-        if(self.enabled.get() == 1):
+                self.flags[x].config(state=tk.NORMAL)
+        if self.enabled.get() == 1:
             self.enabled.set(0)
         else:
             self.enabled.set(1)
 
-    def Pattern(self, letter):
+    def pattern(self, letter):
         result = ""
 
         for x in range(5):
-            if(self.values[x].get() == 1):
+            if self.values[x].get() == 1:
                 result = result + letter
             else:
                 result = result + "_"
 
         return result
 
-    def IsUsed(self, letter):
+    def isused(self, letter):
         for x in range(5):
-            if(self.values[x].get() == 1):
+            if self.values[x].get() == 1:
                 return letter
 
         return ""
 
-    def Reset(self):
+    def reset(self):
         for x in range(5):
             self.values[x].set(0)
+        self.enabled.set(0)
+        self.enable()
 
-    def Include(self, letter, index):
-        if(self.values[index].get() == 1):
+    def include(self, letter, index):
+        if self.values[index].get() == 1:
             return letter
 
         return ""
@@ -66,7 +69,7 @@ class LetterWidget(tk.Frame):
         self.label.grid(row=0, column=0, columnspan=2)
 
         self.CheckVar = tk.IntVar(value=1)
-        self.cb = tk.Checkbutton(self, variable=self.CheckVar, command=self.Enable)
+        self.cb = tk.Checkbutton(self, variable=self.CheckVar, command=self.enable)
         self.cb.grid(row=1, column=0, columnspan=2)
 
         self.includeFlags = PlaceFlags(self,1)
@@ -75,29 +78,29 @@ class LetterWidget(tk.Frame):
         self.excludeFlags = PlaceFlags(self,0)
         self.excludeFlags.grid(row=2, column=1)
 
-    def Enable(self):
-        self.includeFlags.Enable()
-        self.excludeFlags.Enable()
+    def enable(self):
+        self.includeFlags.enable()
+        self.excludeFlags.enable()
 
-    def IsEnabled(self):
-        if(self.CheckVar.get() == 0):
+    def isenabled(self):
+        if self.CheckVar.get() == 0:
             return self.label.cget("text")
 
         return ""
 
-    def Reset(self):
+    def reset(self):
         self.CheckVar.set(1)
-        self.includeFlags.Reset()
-        self.excludeFlags.Reset()
+        self.includeFlags.reset()
+        self.excludeFlags.reset()
 
-    def IsUsed(self):
-        return self.excludeFlags.IsUsed(self.label.cget("text"))
+    def isused(self):
+        return self.excludeFlags.isused(self.label.cget("text"))
 
-    def ExcludePattern(self):
-        return self.excludeFlags.Pattern(self.label.cget("text"))
+    def excludepattern(self):
+        return self.excludeFlags.pattern(self.label.cget("text"))
 
-    def Include(self,index):
-        return self.includeFlags.Include(self.label.cget("text"), index)
+    def include(self, index):
+        return self.includeFlags.include(self.label.cget("text"), index)
 
 
 class MainFrame(tk.Frame):
@@ -109,14 +112,14 @@ class MainFrame(tk.Frame):
             self.letter[x] = LetterWidget(self, x)
             self.letter[x].grid(row=0, column=x)
 
-        self.trigger = tk.Button(self, text="Evaluate", command=self.Evaluate)
+        self.trigger = tk.Button(self, text="Evaluate", command=self.evaluate)
         self.trigger.grid(row=1, column=0, columnspan=4)
 
-        self.reset = tk.Button(self, text="Reset", command=self.Reset)
+        self.reset = tk.Button(self, text="Reset", command=self.reset)
         self.reset.grid(row=1, column=4, columnspan=4)
 
-        listFont = font.Font(family="Courier", size=10)
-        self.list = tk.Listbox(self, font=listFont)
+        listfont = font.Font(family="Courier", size=10)
+        self.list = tk.Listbox(self, font=listfont)
         self.list.grid(row=2, column=0, columnspan=26, sticky="nsew", padx=5, pady=5)
 
         self.columnconfigure(0,weight=1)
@@ -127,48 +130,106 @@ class MainFrame(tk.Frame):
         self.list.config(yscrollcommand=self.scroll.set)
         self.scroll.config(command=self.list.yview)
 
-    def Reset(self):
+    def reset(self):
         self.list.delete(0, tk.END)
 
         for x in range(26):
-            self.letter[x].Reset()
+            self.letter[x].reset()
 
-    def Evaluate(self):
+    @staticmethod
+    def checkcriteria(word, exclude, pattern, include, exclude_patterns):
+        word_letters = list(word)
+
+        if len(word_letters) != 5:
+            return False
+
+        # Does the word contain a letter that it should not?
+        for next_exclude_letter in exclude:
+            for next_letter in word_letters:
+                if next_exclude_letter == next_letter:
+                    return False
+
+        # Does the word match the pattern
+        for pattern_index in range(0, 5):
+            if pattern[pattern_index] != '_':
+                if pattern[pattern_index] != word_letters[pattern_index]:
+                    return False
+
+        # Does the word contain a must include letter?
+        for next_include_letter in include:
+            includes = False
+
+            for next_letter in word_letters:
+                if next_letter == next_include_letter:
+                    includes = True
+
+            if not includes:
+                return False
+
+        # Does this word match the excluded pattern
+        for next_exclude_pattern in exclude_patterns:
+            for pattern_index in range(0, 5):
+                if next_exclude_pattern[pattern_index] != '_':
+                    if next_exclude_pattern[pattern_index] == word_letters[pattern_index]:
+                        return False
+
+        return True
+
+    def evaluate(self):
         self.list.delete(0, tk.END)
 
-        unsed = ""
+        unused = ""
         for x in range(26):
-            unused = unsed + self.letter[x].IsEnabled()
+            unused = unused + self.letter[x].isenabled()
         self.list.insert(tk.END, unused)
 
         used = ""
         for x in range(26):
-            used = used + self.letter[x].IsUsed()
+            used = used + self.letter[x].isused()
         self.list.insert(tk.END, used)
 
         fullExcludePattern = ""
+        excludes = []
         for x in range(26):
-            excludePattern = self.letter[x].ExcludePattern()
-            if(excludePattern != "_____"):
+            excludePattern = self.letter[x].excludepattern()
+            if excludePattern != "_____":
                 fullExcludePattern = fullExcludePattern + excludePattern + " "
+                excludes.append(list(excludePattern))
         self.list.insert(tk.END, fullExcludePattern)
 
         includePattern = ""
         for x in range(5):
             include = ""
             for y in range(26):
-                include = self.letter[y].Include(x)
+                include = self.letter[y].include(x)
                 if(include != ""):
                     break
 
-                if(include != ""):
-                    includePattern = includePattern + include
-                else:
-                    includePattern = includePattern + "_"
+            if(include != ""):
+                includePattern = includePattern + include
+            else:
+                includePattern = includePattern + "_"
         self.list.insert(tk.END, includePattern)
 
-        for x in range(40):
-            self.list.insert(tk.END, "EARTH EMOJI WITCH FRAME CHAUX PLANE")
+        nextLine = ""
+        nextLineCount = 0
+        with open("words.txt") as fp:
+            line = fp.readline()
+            cnt = 0
+            while line:
+                if self.checkcriteria(line.strip().upper(), list(unused), list(includePattern), list(used), excludes):
+                    cnt += 1
+                    nextLine = nextLine + line.strip() + " "
+                    nextLineCount = nextLineCount + 1
+                    if nextLineCount == 30:
+                        self.list.insert(tk.END, nextLine)
+                        nextLine = ""
+                        nextLineCount = 0
+
+                line = fp.readline()
+
+            self.list.insert(tk.END, nextLine)
+            self.list.insert(tk.END, str(cnt))
 
 
 if __name__ == "__main__":
