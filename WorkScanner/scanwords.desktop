@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=ScanWords
+Icon=~/Source/GitHub/Working/Backup/WorkScanner/image.svn
+Exec=~/Source/GitHub/Working/Backup/WorkScanner/scanwords.sh
