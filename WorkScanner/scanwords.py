@@ -7,6 +7,12 @@ class PlaceFlags(tk.Frame):
     def __init__(self, parent, include):
         tk.Frame.__init__(self, parent)
 
+        self.memory = 0
+        self.memoryvalues = [[0 for x in range(5)] for y in range(4)]
+        for x in range(4):
+            for y in range(5):
+                self.memoryvalues[x][y] = 0
+
         self.colour = "#ffcc80"
         if include == 1:
             self.colour = "#99ffbb"
@@ -19,17 +25,26 @@ class PlaceFlags(tk.Frame):
             self.flags[x] = tk.Checkbutton(self, variable=self.values[x], selectcolor=self.colour)
             self.flags[x].grid(row=x, column=0)
 
-    def enable(self):
+    def memorychange(self, newmemory):
+        if newmemory != self.memory:
+            for x in range(5):
+                self.memoryvalues[self.memory][x] = self.values[x].get()
+
+            self.memory = newmemory
+            for x in range(5):
+                self.values[x].set(value=self.memoryvalues[self.memory][x])
+
+    def enable(self, selected):
+        if selected == 1:
+            self.enabled.set(1)
+        else:
+            self.enabled.set(0)
         for x in range(5):
             if self.enabled.get() == 1:
+                self.flags[x].config(state=tk.NORMAL)
+            else:
                 self.flags[x].config(state=tk.DISABLED)
                 self.values[x].set(value=0)
-            else:
-                self.flags[x].config(state=tk.NORMAL)
-        if self.enabled.get() == 1:
-            self.enabled.set(0)
-        else:
-            self.enabled.set(1)
 
     def pattern(self, letter):
         result = ""
@@ -66,11 +81,16 @@ class LetterWidget(tk.Frame):
     def __init__(self, parent, index):
         tk.Frame.__init__(self, parent)
 
+        self.memory = 0
+        self.memoryvalues = [0 for x in range(4)]
+        for x in range(4):
+            self.memoryvalues[x] = 1
+
         self.label = tk.Label(self, text=chr(65+index), font=("Ariel", 32))
         self.label.grid(row=0, column=0, columnspan=2)
 
-        self.CheckVar = tk.IntVar(value=1)
-        self.cb = tk.Checkbutton(self, variable=self.CheckVar, command=self.enable)
+        self.checkvar = tk.IntVar(value=1)
+        self.cb = tk.Checkbutton(self, variable=self.checkvar, command=self.enable)
         self.cb.grid(row=1, column=0, columnspan=2)
 
         self.includeFlags = PlaceFlags(self, 1)
@@ -80,17 +100,17 @@ class LetterWidget(tk.Frame):
         self.excludeFlags.grid(row=2, column=1)
 
     def enable(self):
-        self.includeFlags.enable()
-        self.excludeFlags.enable()
+        self.includeFlags.enable(self.checkvar.get())
+        self.excludeFlags.enable(self.checkvar.get())
 
     def isenabled(self):
-        if self.CheckVar.get() == 0:
+        if self.checkvar.get() == 0:
             return self.label.cget("text")
 
         return ""
 
     def reset(self):
-        self.CheckVar.set(1)
+        self.checkvar.set(1)
         self.includeFlags.reset()
         self.excludeFlags.reset()
 
@@ -102,6 +122,18 @@ class LetterWidget(tk.Frame):
 
     def include(self, index):
         return self.includeFlags.include(self.label.cget("text"), index)
+
+    def memorychange(self, newmemory):
+        if newmemory != self.memory:
+            self.memoryvalues[self.memory] = self.checkvar.get()
+
+            self.memory = newmemory
+            self.checkvar.set(value=self.memoryvalues[self.memory])
+
+            self.includeFlags.enable(self.checkvar.get())
+            self.includeFlags.memorychange(newmemory)
+            self.excludeFlags.enable(self.checkvar.get())
+            self.excludeFlags.memorychange(newmemory)
 
 
 # noinspection PyTypeChecker,PyArgumentList
@@ -120,6 +152,19 @@ class MainFrame(tk.Frame):
         self.reset = tk.Button(self, text="Reset", command=self.reset)
         self.reset.grid(row=1, column=4, columnspan=4)
 
+        self.mvalue = tk.IntVar(value=0)
+        self.m1btn = tk.Radiobutton(self, variable=self.mvalue, value=0, command=self.selectionchange)
+        self.m1btn.grid(row=1, column=20)
+
+        self.m2btn = tk.Radiobutton(self, variable=self.mvalue, value=1, command=self.selectionchange)
+        self.m2btn.grid(row=1, column=21)
+
+        self.m3btn = tk.Radiobutton(self, variable=self.mvalue, value=2, command=self.selectionchange)
+        self.m3btn.grid(row=1, column=22)
+
+        self.m4btn = tk.Radiobutton(self, variable=self.mvalue, value=3, command=self.selectionchange)
+        self.m4btn.grid(row=1, column=23)
+
         list_font = font.Font(family="Courier", size=10)
         self.list = tk.Listbox(self, font=list_font)
         self.list.grid(row=2, column=0, columnspan=26, sticky="nsew", padx=5, pady=5)
@@ -131,6 +176,10 @@ class MainFrame(tk.Frame):
         self.scroll.pack(side=tk.RIGHT, fill="y")
         self.list.config(yscrollcommand=self.scroll.set)
         self.scroll.config(command=self.list.yview)
+
+    def selectionchange(self):
+        for x in range(26):
+            self.letter[x].memorychange(self.mvalue.get())
 
     def reset(self):
         self.list.delete(0, tk.END)
