@@ -77,7 +77,7 @@ class PlaceFlags(tk.Frame):
 
 
 class LetterWidget(tk.Frame):
-    def __init__(self, parent, index):
+    def __init__(self, parent, letter):
         tk.Frame.__init__(self, parent)
 
         self.memory = 0
@@ -85,20 +85,30 @@ class LetterWidget(tk.Frame):
         for x in range(4):
             self.memoryvalues[x] = 1
 
-        self.label = tk.Label(self, text=chr(65+index), font=("Ariel", 32))
+        self.label = tk.Label(self, text=letter, font=("Ariel", 32))
         self.label.grid(row=0, column=0, columnspan=2)
 
         self.checkvar = tk.IntVar(value=1)
         self.cb = tk.Checkbutton(self, variable=self.checkvar, command=self.enable)
         self.cb.grid(row=1, column=0, columnspan=2)
 
+        self.checkvar2 = tk.IntVar(value=0)
+        self.cb2 = tk.Checkbutton(self, variable=self.checkvar2, command=self.enable)
+        self.cb2.grid(row=2, column=0, columnspan=2)
+
         self.includeFlags = PlaceFlags(self, 1)
-        self.includeFlags.grid(row=2, column=0)
+        self.includeFlags.grid(row=3, column=0)
 
         self.excludeFlags = PlaceFlags(self, 0)
-        self.excludeFlags.grid(row=2, column=1)
+        self.excludeFlags.grid(row=3, column=1)
 
     def enable(self):
+        if self.checkvar.get() == 1:
+            self.cb2.config(state=tk.NORMAL)
+        else:
+            self.checkvar2.set(0)
+            self.cb2.config(state=tk.DISABLED)
+
         self.includeFlags.enable(self.checkvar.get())
         self.excludeFlags.enable(self.checkvar.get())
 
@@ -110,10 +120,15 @@ class LetterWidget(tk.Frame):
 
     def reset(self):
         self.checkvar.set(1)
+        self.checkvar2.set(0)
+        self.cb2.config(state=tk.NORMAL)
         self.includeFlags.reset()
         self.excludeFlags.reset()
 
     def isused(self):
+        if self.checkvar2.get() == 1:
+            return self.label.cget("text")
+
         return self.excludeFlags.isused(self.label.cget("text"))
 
     def excludepattern(self):
@@ -135,14 +150,43 @@ class LetterWidget(tk.Frame):
             self.excludeFlags.enable(self.checkvar.get())
 
 
+class LetterCount:
+    def __init__(self, index):
+        self.letterindex = chr(65+index)
+        self.count = 0
+
+    def increment(self):
+        self.count = self.count + 1
+
+    def __lt__(self,other):
+        return self.count > other.count
+
+
 # noinspection PyTypeChecker,PyArgumentList
 class MainFrame(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
 
+        self.letterByPosn = [LetterCount] * 26
+        for x in range(26):
+            self.letterByPosn[x] = LetterCount(x)
+
+        with open("words.txt") as fp:
+            line = fp.readline()
+            while line:
+                letterlist = list(line)
+                for x in letterlist:
+                    intx = ord(x)
+                    intx = intx - 65
+                    if 0 <= intx <= 25:
+                        self.letterByPosn[intx].increment()
+
+                line = fp.readline()
+
+        self.letterByPosn = sorted(self.letterByPosn)
         self.letter = [LetterWidget] * 26
         for x in range(26):
-            self.letter[x] = LetterWidget(self, x)
+            self.letter[x] = LetterWidget(self, self.letterByPosn[x].letterindex)
             self.letter[x].grid(row=0, column=x)
 
         self.trigger = tk.Button(self, text="Evaluate", command=self.evaluate)
@@ -284,6 +328,7 @@ class MainFrame(tk.Frame):
 
 if __name__ == "__main__":
     window = tk.Tk()
+    window.title("Word Scanner")
     window.geometry("1400x800")
     MainFrame(window).place(x=0, y=0, relwidth=1, relheight=1)
     window.mainloop()
