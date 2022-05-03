@@ -1,6 +1,16 @@
 import tkinter as tk
 from tkinter import font
 
+MEMORIES = 4
+LETTERS_IN_THE_ALPHABET = 26
+ASCII_OF_A = 65
+WORD_LENGTH = 5
+F1_KEYCODE = 67
+SHIFT_L_KEYCODE = 50
+SHIFT_R_KEYCODE = 62
+ALT_KEYCODE = 64
+ESCAPE_KEYCODE = 9
+
 
 # noinspection PyTypeChecker,PyArgumentList
 class PlaceFlags(tk.Frame):
@@ -8,10 +18,10 @@ class PlaceFlags(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.memory = 0
-        self.memory_values = [[0 for _ in range(5)] for _ in range(4)]
+        self.memory_values = [[0 for _ in range(WORD_LENGTH)] for _ in range(MEMORIES)]
         self._observers = []
-        for x in range(4):
-            for y in range(5):
+        for x in range(MEMORIES):
+            for y in range(WORD_LENGTH):
                 self.memory_values[x][y] = 0
 
         self.colour = "#ffcc80"
@@ -19,9 +29,9 @@ class PlaceFlags(tk.Frame):
             self.colour = "#99ffbb"
 
         self.enabled = tk.IntVar(value=1)
-        self.flags = [tk.Checkbutton] * 5
-        self.values = [tk.IntVar] * 5
-        for x in range(5):
+        self.flags = [tk.Checkbutton] * WORD_LENGTH
+        self.values = [tk.IntVar] * WORD_LENGTH
+        for x in range(WORD_LENGTH):
             self.values[x] = tk.IntVar(value=0)
             self.flags[x] = tk.Checkbutton(self, variable=self.values[x], selectcolor=self.colour, command=self.change)
             self.flags[x].grid(row=x, column=0)
@@ -35,11 +45,11 @@ class PlaceFlags(tk.Frame):
 
     def memorychange(self, newmemory):
         if newmemory != self.memory:
-            for x in range(5):
+            for x in range(WORD_LENGTH):
                 self.memory_values[self.memory][x] = self.values[x].get()
 
             self.memory = newmemory
-            for x in range(5):
+            for x in range(WORD_LENGTH):
                 self.values[x].set(value=self.memory_values[self.memory][x])
 
     def enable(self, selected):
@@ -47,7 +57,7 @@ class PlaceFlags(tk.Frame):
             self.enabled.set(1)
         else:
             self.enabled.set(0)
-        for x in range(5):
+        for x in range(WORD_LENGTH):
             if self.enabled.get() == 1:
                 self.flags[x].config(state=tk.NORMAL)
             else:
@@ -57,7 +67,7 @@ class PlaceFlags(tk.Frame):
     def pattern(self, letter):
         result = ""
 
-        for x in range(5):
+        for x in range(WORD_LENGTH):
             if self.values[x].get() == 1:
                 result = result + letter
             else:
@@ -66,14 +76,14 @@ class PlaceFlags(tk.Frame):
         return result
 
     def isused(self, letter):
-        for x in range(5):
+        for x in range(WORD_LENGTH):
             if self.values[x].get() == 1:
                 return letter
 
         return ""
 
     def reset(self):
-        for x in range(5):
+        for x in range(WORD_LENGTH):
             self.values[x].set(0)
         self.enable(1)
 
@@ -86,6 +96,15 @@ class PlaceFlags(tk.Frame):
     def change(self):
         self.inform()
 
+    def letter_press(self, index):
+        if index in range(WORD_LENGTH):
+            if self.values[index].get() == 1:
+                self.values[index].set(0)
+            else:
+                self.values[index].set(1)
+
+            self.inform()
+
 
 class LetterWidget(tk.Frame):
     def __init__(self, parent, letter):
@@ -94,8 +113,8 @@ class LetterWidget(tk.Frame):
         self._observers = []
         self.memory = 0
         self.letter = letter
-        self.memory_values = [0 for _ in range(4)]
-        for x in range(4):
+        self.memory_values = [0 for _ in range(MEMORIES)]
+        for x in range(MEMORIES):
             self.memory_values[x] = 1
 
         self.label = tk.Label(self, text=letter, font=("Ariel", 32))
@@ -172,18 +191,25 @@ class LetterWidget(tk.Frame):
             self.includeFlags.enable(self.checkvar.get())
             self.excludeFlags.enable(self.checkvar.get())
 
-    def is_this_letter(self, key: str):
+    def letter_press(self, key: str, shift, function):
         if key.upper() == self.letter.upper():
-            if self.checkvar.get() == 1:
-                self.checkvar.set(0)
+            if shift is False and function == -1:
+                if self.checkvar.get() == 1:
+                    self.checkvar.set(0)
+                else:
+                    self.checkvar.set(1)
+                self.enable()
             else:
-                self.checkvar.set(1)
-            self.enable()
+                if function != -1:
+                    if not shift:
+                        self.excludeFlags.letter_press(function)
+                    else:
+                        self.includeFlags.letter_press(function)
 
 
 class LetterCount:
     def __init__(self, index):
-        self.letter_index = chr(65+index)
+        self.letter_index = chr(ASCII_OF_A + index)
         self.count = 0
 
     def increment(self):
@@ -201,8 +227,8 @@ class MainFrame(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
 
-        self.letterByPosn = [LetterCount] * 26
-        for x in range(26):
+        self.letterByPosn = [LetterCount] * LETTERS_IN_THE_ALPHABET
+        for x in range(LETTERS_IN_THE_ALPHABET):
             self.letterByPosn[x] = LetterCount(x)
 
         with open("words.txt") as fp:
@@ -211,15 +237,18 @@ class MainFrame(tk.Frame):
                 letterlist = list(line)
                 for x in letterlist:
                     intx = ord(x)
-                    intx = intx - 65
-                    if 0 <= intx <= 25:
+                    intx = intx - ASCII_OF_A
+                    if intx in range(LETTERS_IN_THE_ALPHABET):
                         self.letterByPosn[intx].increment()
 
                 line = fp.readline()
 
+        self.fn_key = -1
+        self.shift = False
+        self.alt = False
         self.letterByPosn = sorted(self.letterByPosn)
-        self.letter = [LetterWidget] * 26
-        for x in range(26):
+        self.letter = [LetterWidget] * LETTERS_IN_THE_ALPHABET
+        for x in range(LETTERS_IN_THE_ALPHABET):
             self.letter[x] = LetterWidget(self, self.letterByPosn[x].get_letter_index())
             self.letter[x].grid(row=0, column=x)
             self.letter[x].bind_to(self.evaluate)
@@ -227,7 +256,7 @@ class MainFrame(tk.Frame):
         self.trigger = tk.Button(self, text="Evaluate", command=self.evaluate)
         self.trigger.grid(row=1, column=0, columnspan=4)
 
-        self.reset = tk.Button(self, text="Reset", command=self.reset)
+        self.reset = tk.Button(self, text="Reset", command=self.reset_screen)
         self.reset.grid(row=1, column=4, columnspan=4)
 
         self.mvalue = tk.IntVar(value=0)
@@ -245,7 +274,7 @@ class MainFrame(tk.Frame):
 
         list_font = font.Font(family="Courier", size=10)
         self.list = tk.Listbox(self, font=list_font)
-        self.list.grid(row=2, column=0, columnspan=26, sticky="nsew", padx=5, pady=5)
+        self.list.grid(row=2, column=0, columnspan=LETTERS_IN_THE_ALPHABET, sticky="nsew", padx=5, pady=5)
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(2, weight=1)
@@ -256,26 +285,68 @@ class MainFrame(tk.Frame):
         self.scroll.config(command=self.list.yview)
 
     def selectionchange(self):
-        for x in range(26):
+        for x in range(LETTERS_IN_THE_ALPHABET):
             self.letter[x].memorychange(self.mvalue.get())
 
         self.evaluate()
 
-    def reset(self):
+    def reset_screen(self):
         self.list.delete(0, tk.END)
 
-        for x in range(26):
+        for x in range(LETTERS_IN_THE_ALPHABET):
             self.letter[x].reset()
 
+    def reset_keys(self):
+        self.shift = False
+        self.alt = False
+        self.fn_key = -1
+
     def key_pressed(self, e):
-        for x in range(26):
-            self.letter[x].is_this_letter(e.char)
+        print(str(e.keycode) + " " + str(self.alt) + " " + str(self.shift) + " " + str(self.fn_key))
+
+        if e.keycode == ESCAPE_KEYCODE:
+            if self.alt:
+                self.reset_keys()
+                self.reset_screen()
+                return
+
+            self.reset_keys()
+            return
+
+        if len(e.char) > 0:
+            if ord(e.char.upper()) - ASCII_OF_A in range(LETTERS_IN_THE_ALPHABET):
+                for x in range(LETTERS_IN_THE_ALPHABET):
+                    self.letter[x].letter_press(e.char, self.shift, self.fn_key)
+
+                self.reset_keys()
+                return
+
+        if e.keycode == SHIFT_L_KEYCODE or e.keycode == SHIFT_R_KEYCODE:
+            self.shift = True
+            return
+
+        if self.alt:
+            if e.keycode - F1_KEYCODE in range(MEMORIES):
+                self.reset_keys()
+                self.mvalue.set(e.keycode - F1_KEYCODE)
+                self.selectionchange()
+                return
+
+        if e.keycode - F1_KEYCODE in range(WORD_LENGTH):
+            self.fn_key = e.keycode - F1_KEYCODE
+            return
+
+        if e.keycode == ALT_KEYCODE:
+            self.alt = True
+            return
+
+        self.reset_keys()
 
     @staticmethod
     def checkcriteria(word, exclude, pattern, include, exclude_patterns):
         word_letters = list(word)
 
-        if len(word_letters) != 5:
+        if len(word_letters) != WORD_LENGTH:
             return False
 
         # Does the word contain a letter that it should not?
@@ -285,7 +356,7 @@ class MainFrame(tk.Frame):
                     return False
 
         # Does the word match the pattern
-        for pattern_index in range(0, 5):
+        for pattern_index in range(WORD_LENGTH):
             if pattern[pattern_index] != '_':
                 if pattern[pattern_index] != word_letters[pattern_index]:
                     return False
@@ -303,7 +374,7 @@ class MainFrame(tk.Frame):
 
         # Does this word match the excluded pattern
         for next_exclude_pattern in exclude_patterns:
-            for pattern_index in range(0, 5):
+            for pattern_index in range(WORD_LENGTH):
                 if next_exclude_pattern[pattern_index] != '_':
                     if next_exclude_pattern[pattern_index] == word_letters[pattern_index]:
                         return False
@@ -314,18 +385,18 @@ class MainFrame(tk.Frame):
         self.list.delete(0, tk.END)
 
         unused = ""
-        for x in range(26):
+        for x in range(LETTERS_IN_THE_ALPHABET):
             unused = unused + self.letter[x].isenabled()
         self.list.insert(tk.END, unused)
 
         used = ""
-        for x in range(26):
+        for x in range(LETTERS_IN_THE_ALPHABET):
             used = used + self.letter[x].isused()
         self.list.insert(tk.END, used)
 
         full_exclude_pattern = ""
         excludes = []
-        for x in range(26):
+        for x in range(LETTERS_IN_THE_ALPHABET):
             exclude_pattern = self.letter[x].excludepattern()
             if exclude_pattern != "_____":
                 full_exclude_pattern = full_exclude_pattern + exclude_pattern + " "
@@ -333,9 +404,9 @@ class MainFrame(tk.Frame):
         self.list.insert(tk.END, full_exclude_pattern)
 
         include_pattern = ""
-        for x in range(5):
+        for x in range(WORD_LENGTH):
             include = ""
-            for y in range(26):
+            for y in range(LETTERS_IN_THE_ALPHABET):
                 include = self.letter[y].include(x)
                 if include != "":
                     break
