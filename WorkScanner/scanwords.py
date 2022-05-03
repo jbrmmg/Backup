@@ -8,10 +8,11 @@ class PlaceFlags(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.memory = 0
-        self.memoryvalues = [[0 for x in range(5)] for y in range(4)]
+        self.memory_values = [[0 for _ in range(5)] for _ in range(4)]
+        self._observers = []
         for x in range(4):
             for y in range(5):
-                self.memoryvalues[x][y] = 0
+                self.memory_values[x][y] = 0
 
         self.colour = "#ffcc80"
         if include == 1:
@@ -22,17 +23,24 @@ class PlaceFlags(tk.Frame):
         self.values = [tk.IntVar] * 5
         for x in range(5):
             self.values[x] = tk.IntVar(value=0)
-            self.flags[x] = tk.Checkbutton(self, variable=self.values[x], selectcolor=self.colour)
+            self.flags[x] = tk.Checkbutton(self, variable=self.values[x], selectcolor=self.colour, command=self.change)
             self.flags[x].grid(row=x, column=0)
+
+    def inform(self):
+        for callback in self._observers:
+            callback()
+
+    def bind_to(self, callback):
+        self._observers.append(callback)
 
     def memorychange(self, newmemory):
         if newmemory != self.memory:
             for x in range(5):
-                self.memoryvalues[self.memory][x] = self.values[x].get()
+                self.memory_values[self.memory][x] = self.values[x].get()
 
             self.memory = newmemory
             for x in range(5):
-                self.values[x].set(value=self.memoryvalues[self.memory][x])
+                self.values[x].set(value=self.memory_values[self.memory][x])
 
     def enable(self, selected):
         if selected == 1:
@@ -75,15 +83,19 @@ class PlaceFlags(tk.Frame):
 
         return ""
 
+    def change(self):
+        self.inform()
+
 
 class LetterWidget(tk.Frame):
     def __init__(self, parent, letter):
         tk.Frame.__init__(self, parent)
 
+        self._observers = []
         self.memory = 0
-        self.memoryvalues = [0 for x in range(4)]
+        self.memory_values = [0 for _ in range(4)]
         for x in range(4):
-            self.memoryvalues[x] = 1
+            self.memory_values[x] = 1
 
         self.label = tk.Label(self, text=letter, font=("Ariel", 32))
         self.label.grid(row=0, column=0, columnspan=2)
@@ -98,9 +110,18 @@ class LetterWidget(tk.Frame):
 
         self.includeFlags = PlaceFlags(self, 1)
         self.includeFlags.grid(row=3, column=0)
+        self.includeFlags.bind_to(self.inform)
 
         self.excludeFlags = PlaceFlags(self, 0)
         self.excludeFlags.grid(row=3, column=1)
+        self.excludeFlags.bind_to(self.inform)
+
+    def inform(self):
+        for callback in self._observers:
+            callback()
+
+    def bind_to(self, callback):
+        self._observers.append(callback)
 
     def enable(self):
         if self.checkvar.get() == 1:
@@ -111,6 +132,7 @@ class LetterWidget(tk.Frame):
 
         self.includeFlags.enable(self.checkvar.get())
         self.excludeFlags.enable(self.checkvar.get())
+        self.inform()
 
     def isenabled(self):
         if self.checkvar.get() == 0:
@@ -139,12 +161,12 @@ class LetterWidget(tk.Frame):
 
     def memorychange(self, newmemory):
         if newmemory != self.memory:
-            self.memoryvalues[self.memory] = self.checkvar.get()
+            self.memory_values[self.memory] = self.checkvar.get()
             self.includeFlags.memorychange(newmemory)
             self.excludeFlags.memorychange(newmemory)
 
             self.memory = newmemory
-            self.checkvar.set(value=self.memoryvalues[self.memory])
+            self.checkvar.set(value=self.memory_values[self.memory])
 
             self.includeFlags.enable(self.checkvar.get())
             self.excludeFlags.enable(self.checkvar.get())
@@ -152,14 +174,17 @@ class LetterWidget(tk.Frame):
 
 class LetterCount:
     def __init__(self, index):
-        self.letterindex = chr(65+index)
+        self.letter_index = chr(65+index)
         self.count = 0
 
     def increment(self):
         self.count = self.count + 1
 
-    def __lt__(self,other):
+    def __lt__(self, other):
         return self.count > other.count
+
+    def get_letter_index(self):
+        return self.letter_index
 
 
 # noinspection PyTypeChecker,PyArgumentList
@@ -186,8 +211,9 @@ class MainFrame(tk.Frame):
         self.letterByPosn = sorted(self.letterByPosn)
         self.letter = [LetterWidget] * 26
         for x in range(26):
-            self.letter[x] = LetterWidget(self, self.letterByPosn[x].letterindex)
+            self.letter[x] = LetterWidget(self, self.letterByPosn[x].get_letter_index())
             self.letter[x].grid(row=0, column=x)
+            self.letter[x].bind_to(self.evaluate)
 
         self.trigger = tk.Button(self, text="Evaluate", command=self.evaluate)
         self.trigger.grid(row=1, column=0, columnspan=4)
@@ -223,6 +249,8 @@ class MainFrame(tk.Frame):
     def selectionchange(self):
         for x in range(26):
             self.letter[x].memorychange(self.mvalue.get())
+
+        self.evaluate()
 
     def reset(self):
         self.list.delete(0, tk.END)
