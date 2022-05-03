@@ -93,6 +93,7 @@ class LetterWidget(tk.Frame):
 
         self._observers = []
         self.memory = 0
+        self.letter = letter
         self.memory_values = [0 for _ in range(4)]
         for x in range(4):
             self.memory_values[x] = 1
@@ -170,6 +171,14 @@ class LetterWidget(tk.Frame):
 
             self.includeFlags.enable(self.checkvar.get())
             self.excludeFlags.enable(self.checkvar.get())
+
+    def is_this_letter(self, key: str):
+        if key.upper() == self.letter.upper():
+            if self.checkvar.get() == 1:
+                self.checkvar.set(0)
+            else:
+                self.checkvar.set(1)
+            self.enable()
 
 
 class LetterCount:
@@ -257,6 +266,10 @@ class MainFrame(tk.Frame):
 
         for x in range(26):
             self.letter[x].reset()
+
+    def key_pressed(self, e):
+        for x in range(26):
+            self.letter[x].is_this_letter(e.char)
 
     @staticmethod
     def checkcriteria(word, exclude, pattern, include, exclude_patterns):
@@ -358,5 +371,7 @@ if __name__ == "__main__":
     window = tk.Tk()
     window.title("Word Scanner")
     window.geometry("1400x800")
-    MainFrame(window).place(x=0, y=0, relwidth=1, relheight=1)
+    frame = MainFrame(window)
+    frame.place(x=0, y=0, relwidth=1, relheight=1)
+    window.bind("<KeyPress>", frame.key_pressed)
     window.mainloop()
