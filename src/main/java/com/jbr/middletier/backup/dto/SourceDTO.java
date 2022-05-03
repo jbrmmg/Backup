@@ -24,7 +24,7 @@ public class SourceDTO {
     }
 
     public SourceDTO() {
-        setId(0);
+        setId(null);
         setPath("");
         initialise();
     }

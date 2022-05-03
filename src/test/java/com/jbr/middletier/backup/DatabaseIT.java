@@ -64,7 +64,7 @@ public class DatabaseIT extends WebTester {
         location.setId(1);
 
         SourceDTO source = new SourceDTO();
-        source.setId(1);
+        //source.setId(1);
         source.setType("STD");
         source.setPath("/target/testfiles/gather1");
         source.setLocation(location);

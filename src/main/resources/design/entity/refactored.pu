@@ -102,7 +102,7 @@ entity hardware {
 }
 
 entity location {
-  * **id** : int <<generated>>
+  * **id** : int
   ==
   * name : varchar(100)
   * size : varchar(10)
