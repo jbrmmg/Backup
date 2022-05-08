@@ -61,7 +61,7 @@ entity source {
 }
 
 
-entity imp_source {
+entity import_source {
   * **id** : int <<FK>>
   ==
   destination : int <<FK>>
@@ -132,7 +132,7 @@ file |o--|| image_file
 file |o--|| video_file
 file |o--|| ignore_file
 file |o--|| import_file
-source |o--|| imp_source
+source |o--|| import_source
 classification ||--|{ file
 location }o--o| source
 @enduml

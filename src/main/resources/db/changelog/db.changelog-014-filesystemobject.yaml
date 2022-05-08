@@ -1,35 +1,35 @@
 databaseChangeLog:
   - changeSet:
-      id: 10
+      id: 14
       author: jason
       changes:
+
         - createTable:
-            tableName: ignore_file
+            tableName: file_system_object
             columns:
               - column:
                   name: id
                   type: int
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
+                  name: type
+                  type: char(4)
+                  constraints:
+                    nullable: false
+              - column:
                   name: name
-                  type: varchar(100)
+                  type: varchar(200)
                   constraints:
                     nullable: false
               - column:
-                  name: size
-                  type: varchar(10)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: date
-                  type: datetime
-                  constraints:
-                    nullable: false
-              - column:
-                  name: md5
-                  type: varchar(32)
-                  constraints:
-                    nullable: false
+                  name: parent
+                  type: int
+
+        - addForeignKeyConstraint:
+            constraintName: fk_fso_parent
+            baseTableName: file_system_object
+            baseColumnNames: parent
+            referencedTableName: file_system_object
+            referencedColumnNames: id

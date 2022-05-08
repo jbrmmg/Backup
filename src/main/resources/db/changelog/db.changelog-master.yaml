@@ -40,10 +40,13 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-013-imagetypes.yaml
 
   - include:
-      file: /db/changelog/db.changelog-014-createSequences.yaml
+      file: /db/changelog/db.changelog-014-filesystemobject.yaml
 
   - include:
-      file: /db/changelog/db.changelog-015-directory-restructure1.yaml
+      file: /db/changelog/db.changelog-015-refactorfile.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-016-directory-restructure1.yaml
 
   - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

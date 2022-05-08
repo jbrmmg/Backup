@@ -69,6 +69,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -94,6 +95,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -125,14 +127,15 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
-                    unique: true
               - column:
                   name: name
                   type: varchar(200)
                   constraints:
+                    primaryKey: true
                     nullable: false
               - column:
                   name: directory_id
@@ -163,6 +166,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -216,6 +220,7 @@ databaseChangeLog:
             baseColumnNames: destination
             referencedTableName: source
             referencedColumnNames: id
+
 
         - addForeignKeyConstraint:
             constraintName: fk_location_source

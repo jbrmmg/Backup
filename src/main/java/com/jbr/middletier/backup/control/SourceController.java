@@ -35,9 +35,8 @@ public class SourceController {
 
     @PostMapping(path="/source")
     public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws SourceAlreadyExistsException {
-        Optional<Source> existing = sourceRepository.findById(source.getId());
-        if(existing.isPresent()) {
-            throw new SourceAlreadyExistsException(existing.get().getId());
+        if(source.getId() != null) {
+            throw new SourceAlreadyExistsException(source.getId());
         }
 
         sourceRepository.save(new Source(source));

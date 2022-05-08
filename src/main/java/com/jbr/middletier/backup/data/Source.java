@@ -8,11 +8,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
 @Table(name="source")
-public class Source {
-    @Id
-    @Column(name="id")
-    private Integer id;
-
+public class Source extends FileSystemObject {
     @Column(name="path")
     private String path;
 
@@ -23,7 +19,7 @@ public class Source {
     @Column(name="status")
     private String status;
 
-    @Column(name="filterx")
+    @Column(name="filter")
     private String filter;
 
     @Column(name="source_type")
@@ -35,17 +31,18 @@ public class Source {
     public enum SourceTypeType { STANDARD, IMPORT }
 
     public Source() {
-        setId(0);
+        setType("SRCE");
         setPath("");
     }
 
     public Source(int id, String path) {
-        setId(id);
+        setType("SRCE");
         setPath(path);
         setTypeEnum(SourceTypeType.STANDARD);
     }
 
     public Source(SourceDTO source) {
+        setType("SRCE");
         setId(source.getId());
         setPath(source.getPath());
         update(source);
@@ -86,9 +83,9 @@ public class Source {
 
     public String getFilter() { return this.filter; }
 
-    public String getType() { return this.type; }
+    public String getsType() { return this.type; }
 
-    public void setType(String type) { this.type = type; }
+    public void setsType(String type) { this.type = type; }
 
     public SourceTypeType getTypeEnum() {
         switch(this.getType()) {
@@ -113,10 +110,6 @@ public class Source {
 
 
     public Location getLocation() { return this.location; }
-
-    public int getId() { return this.id; }
-
-    public void setId(@NotNull Integer id) { this.id = id; }
 
     public Integer getDestinationId() { return this.destinationId; }
 

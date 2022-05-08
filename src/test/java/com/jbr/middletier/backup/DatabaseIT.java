@@ -59,6 +59,8 @@ public class DatabaseIT extends WebTester {
 
     @Test
     public void myFirstItegrationTest() throws Exception {
+        LOG.info("Starting my first integration test.");
+
         // Setup a new source
         LocationDTO location = new LocationDTO();
         location.setId(1);
@@ -69,6 +71,7 @@ public class DatabaseIT extends WebTester {
         source.setPath("/target/testfiles/gather1");
         source.setLocation(location);
 
+        LOG.info("Create a source.");
         getMockMvc().perform(post("/jbr/ext/backup/source")
                         .content(this.json(source))
                         .contentType(getContentType()))

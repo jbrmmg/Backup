@@ -1,0 +1,104 @@
+databaseChangeLog:
+  - changeSet:
+      id: 15
+      author: jason
+      changes:
+
+        - modifyDataType:
+            tableName: backup
+            columnName: time
+            newDataType: int
+
+        - dropForeignKeyConstraint:
+            constraintName: fk_action_file
+            baseTableName: action_confirm
+            baseColumnNames: file_id
+
+        - dropForeignKeyConstraint:
+            constraintName: fk_import_file
+            baseTableName: import_file
+            baseColumnNames: file_id
+
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: file
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: file
+
+        - sql:
+            sql: |
+              update file set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: file
+
+        - addNotNullConstraint:
+            columnDataType: int
+            columnName: id
+            tableName: file
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName:
+            tableName: file
+
+        - dropColumn:
+            columnName: oldId
+            tableName: file
+
+        - addForeignKeyConstraint:
+            constraintName: fk_action_file
+            baseTableName: action_confirm
+            baseColumnNames: file_id
+            referencedTableName: file
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_import_file
+            baseTableName: import_file
+            baseColumnNames: file_id
+            referencedTableName: file
+            referencedColumnNames: id
+
+        - createSequence:
+            sequenceName: import_file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: action_confirm_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: ignore_file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: file_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: classification_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
+
+        - createSequence:
+            sequenceName: directory_seq
+            dataType: int
+            incrementBy: 50
+            startValue: 100
