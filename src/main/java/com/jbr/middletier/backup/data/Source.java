@@ -9,8 +9,8 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name="source")
 public class Source extends FileSystemObject {
-    @Column(name="path")
-    private String path;
+//    @Column(name="path")
+//    private String path;
 
     @JoinColumn(name="location")
     @ManyToOne(optional = true)
@@ -43,7 +43,7 @@ public class Source extends FileSystemObject {
 
     public Source(SourceDTO source) {
         setType("SRCE");
-        setId(source.getId());
+//        setId(source.getId());
         setPath(source.getPath());
         update(source);
     }
@@ -71,7 +71,7 @@ public class Source extends FileSystemObject {
         return result;
     }
 
-    public void setPath(@NotNull String path) { this.path = path; }
+    public void setPath(@NotNull String path) { this.name = path; }
 
     public void setStatus(String status) { this.status = status; }
 
@@ -79,7 +79,7 @@ public class Source extends FileSystemObject {
 
     public String getStatus() { return this.status; }
 
-    public String getPath() { return this.path; }
+    public String getPath() { return this.name; }
 
     public String getFilter() { return this.filter; }
 
@@ -119,6 +119,6 @@ public class Source extends FileSystemObject {
 
     @Override
     public String toString() {
-        return path;
+        return name;
     }
 }

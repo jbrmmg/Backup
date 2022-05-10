@@ -6,3 +6,6 @@ logging:
   file:
     max-history: 3
     max-size: 100MB
+
+backup:
+  enabled: false

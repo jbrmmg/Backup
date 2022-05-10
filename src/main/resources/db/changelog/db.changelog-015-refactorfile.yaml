@@ -4,10 +4,16 @@ databaseChangeLog:
       author: jason
       changes:
 
+        # This is just to bring the database into line
         - modifyDataType:
             tableName: backup
             columnName: time
             newDataType: int
+
+        # This is to update the file table to remove the auto increment on the id,
+        # the id will now be generated from
+
+        # NEED a way to ensure that id starting
 
         - dropForeignKeyConstraint:
             constraintName: fk_action_file

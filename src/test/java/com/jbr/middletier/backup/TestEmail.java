@@ -66,7 +66,8 @@ public class TestEmail extends WebTester  {
             LOG.info("Location {}", location.get());
 
             Source source = new Source();
-            source.setId(1);
+            //TODO fix this
+//            source.setId(1);
             source.setPath("/");
             source.setLocation(location.get());
             sourceRepository.save(source);
