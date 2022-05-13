@@ -86,7 +86,7 @@ public class TestImport extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath("./target/testfiles/gather");
             source.setLocation(location);
 
@@ -234,7 +234,7 @@ public class TestImport extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath("./target/testfiles/gather");
             source.setLocation(location);
 
@@ -432,7 +432,7 @@ public class TestImport extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath("./target/testfiles/gather");
             source.setLocation(location);
 
@@ -530,7 +530,7 @@ public class TestImport extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath("./target/testfiles/gather");
             source.setLocation(location);
 
@@ -623,7 +623,7 @@ public class TestImport extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath("./target/testfiles/gather");
             source.setLocation(location);
 

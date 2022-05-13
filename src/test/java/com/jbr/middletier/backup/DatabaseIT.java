@@ -58,16 +58,14 @@ public class DatabaseIT extends WebTester {
     }
 
     @Test
-    public void myFirstItegrationTest() throws Exception {
-        LOG.info("Starting my first integration test.");
+    public void basicCRUD() throws Exception {
+        LOG.info("Basic CRUD testing");
 
-        // Setup a new source
+        // Setup a new location.
         LocationDTO location = new LocationDTO();
         location.setId(1);
 
         SourceDTO source = new SourceDTO();
-        //source.setId(1);
-        source.setType("STD");
         source.setPath("/target/testfiles/gather1");
         source.setLocation(location);
 

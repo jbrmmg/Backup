@@ -22,20 +22,20 @@ public class Source extends FileSystemObject {
     @Column(name="source_type")
     private String sourceType;
 
-    @Column(name="destination")
-    private Integer destinationId;
-
-    public enum SourceTypeType { STANDARD, IMPORT }
+    protected Source(boolean unused, String sourceType) {
+        super("SRCE");
+        this.sourceType = sourceType;
+    }
 
     public Source() {
         super("SRCE");
+        this.sourceType = "STD";
         setPath("");
     }
 
     public Source(String path) {
         this();
         setPath(path);
-        setTypeEnum(SourceTypeType.STANDARD);
     }
 
     public Source(SourceDTO source) {
@@ -48,16 +48,12 @@ public class Source extends FileSystemObject {
         setLocation(new Location(source.getLocation()));
         setStatus(source.getStatus());
         setFilter(source.getFilter());
-        setSourceType(source.getType());
-        setDestinationId(source.getDestinationId());
     }
 
     public SourceDTO getSourceDTO() {
         SourceDTO result = new SourceDTO();
 
         result.setId(getId());
-        result.setType(getSourceType());
-        result.setDestinationId(getDestinationId());
         result.setLocation(getLocation().getLocationDTO());
         result.setFilter(getFilter());
         result.setStatus(getStatus());
@@ -78,37 +74,7 @@ public class Source extends FileSystemObject {
 
     public String getFilter() { return this.filter; }
 
-    public String getSourceType() { return this.sourceType; }
-
-    public void setSourceType(String sourceType) { this.sourceType = sourceType; }
-
-    public SourceTypeType getTypeEnum() {
-        switch(this.getSourceType()) {
-            case "STD":
-                return SourceTypeType.STANDARD;
-            case "IMP":
-                return SourceTypeType.IMPORT;
-            default:
-                throw new IllegalArgumentException(this.getSourceType() + " invalid type");
-        }
-    }
-
-    public void setTypeEnum(SourceTypeType type) {
-        if(SourceTypeType.IMPORT == type) {
-            this.sourceType = "IMP";
-            return;
-        }
-
-        // Must be standard.
-        this.sourceType = "STD";
-    }
-
-
     public Location getLocation() { return this.location; }
-
-    public Integer getDestinationId() { return this.destinationId; }
-
-    public void setDestinationId(Integer id) { this.destinationId = id; }
 
     public void setLocation(Location location) { this.location = location; }
 

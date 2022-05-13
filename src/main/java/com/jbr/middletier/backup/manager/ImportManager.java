@@ -28,6 +28,7 @@ public class ImportManager extends FileProcessor {
 
     private final ImportFileRepository importFileRepository;
     private final SourceRepository sourceRepository;
+    private final ImportSourceRepository importSourceRepository;
     private final ActionConfirmRepository actionConfirmRepository;
     private final ClassificationRepository classificationRepository;
     private final LocationRepository locationRepository;
@@ -36,6 +37,7 @@ public class ImportManager extends FileProcessor {
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
                          SourceRepository sourceRepository,
+                         ImportSourceRepository importSourceRepository,
                          ActionConfirmRepository actionConfirmRepository,
                          ClassificationRepository classificationRepository,
                          LocationRepository locationRepository,
@@ -47,6 +49,7 @@ public class ImportManager extends FileProcessor {
         super(directoryRepository,fileRepository,backupManager,actionManager);
         this.importFileRepository = importFileRepository;
         this.sourceRepository = sourceRepository;
+        this.importSourceRepository = importSourceRepository;
         this.actionConfirmRepository = actionConfirmRepository;
         this.classificationRepository = classificationRepository;
         this.locationRepository = locationRepository;
@@ -72,13 +75,6 @@ public class ImportManager extends FileProcessor {
             throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
-//        int nextId = 0;
-//        for(Source nextSource: sourceRepository.findAll()) {
-//            if(nextSource.getId() >= nextId) {
-//                nextId = nextSource.getId() + 1;
-//            }
-//        }
-
         // Find the location.
         Optional<Location> importLocation = Optional.empty();
         for(Location nextLocation: locationRepository.findAll()) {
@@ -92,8 +88,7 @@ public class ImportManager extends FileProcessor {
         }
 
         // Create a source to match this import
-        Source importSource = new Source(importRequest.getPath());
-        importSource.setTypeEnum(Source.SourceTypeType.IMPORT);
+        ImportSource importSource = new ImportSource(importRequest.getPath());
         importSource.setDestinationId(source.get().getId());
         importSource.setLocation(importLocation.get());
 
@@ -111,18 +106,16 @@ public class ImportManager extends FileProcessor {
         importFileRepository.deleteAll();
 
         // Remove the files associated with imports - first remove files, then directories then source.
-        for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
-                for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
-                    for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
-                        fileRepository.delete(nextFile);
-                    }
-
-                    directoryRepository.delete(nextDirectory);
+        for(ImportSource nextSource: importSourceRepository.findAll()) {
+            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
+                for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
+                    fileRepository.delete(nextFile);
                 }
 
-                sourceRepository.delete(nextSource);
+                directoryRepository.delete(nextDirectory);
             }
+
+            sourceRepository.delete(nextSource);
         }
     }
 
@@ -317,12 +310,10 @@ public class ImportManager extends FileProcessor {
         LOG.info("Import Photo Process");
 
         // Get the source.
-        Optional<Source> source = Optional.empty();
+        Optional<ImportSource> source = Optional.empty();
 
-        for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
-                source = Optional.of(nextSource);
-            }
+        for(ImportSource nextSource: importSourceRepository.findAll()) {
+            source = Optional.of(nextSource);
         }
 
         if(!source.isPresent()) {

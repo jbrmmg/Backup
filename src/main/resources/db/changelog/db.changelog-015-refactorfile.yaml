@@ -63,6 +63,23 @@ databaseChangeLog:
             columnName: path
             tableName: source
 
+        - dropColumn:
+            columnName: destination
+            tableName: source
+
+        - createTable:
+            tableName: imp_source
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: destination
+                  type: int
+
         - addForeignKeyConstraint:
             constraintName: fk_action_file
             baseTableName: action_confirm
@@ -75,4 +92,11 @@ databaseChangeLog:
             baseTableName: import_file
             baseColumnNames: file_id
             referencedTableName: file
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_imp_source
+            baseTableName: imp_source
+            baseColumnNames: id
+            referencedTableName: source
             referencedColumnNames: id

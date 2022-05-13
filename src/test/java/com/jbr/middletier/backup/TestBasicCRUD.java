@@ -341,7 +341,7 @@ public class TestBasicCRUD extends WebTester {
         try {
             LocationDTO location = new LocationDTO(1,"Test", "1MB");
             SourceDTO source = new SourceDTO(1,"C:\\Testing");
-            source.setType("STD");
+//            source.setType("STD");
             source.setLocation(location);
 
             getMockMvc().perform(get("/jbr/ext/backup/source")
@@ -413,11 +413,11 @@ public class TestBasicCRUD extends WebTester {
 
             SourceDTO source = new SourceDTO(1, "C:\\TestSource1");
             source.setLocation(location);
-            source.setType("STD");
+//            source.setType("STD");
 
             SourceDTO destination = new SourceDTO(2,"C:\\TestSource2");
             destination.setLocation(location);
-            destination.setType("STD");
+//            destination.setType("STD");
 
             SynchronizeDTO syncrhonize = new SynchronizeDTO(1);
             syncrhonize.setSource(source);

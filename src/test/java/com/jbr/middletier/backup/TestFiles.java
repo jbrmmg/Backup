@@ -84,7 +84,7 @@ public class TestFiles extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath("./target/testfiles/gather");
             source.setLocation(location);
 
@@ -179,7 +179,7 @@ public class TestFiles extends WebTester {
             location.setId(1);
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath(cwd + "/target/testfiles/gather");
             source.setLocation(location);
 
@@ -335,7 +335,7 @@ public class TestFiles extends WebTester {
 
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath(cwd + "/target/testfiles/duplicate");
             source.setLocation(location);
 
@@ -440,7 +440,7 @@ public class TestFiles extends WebTester {
 
             SourceDTO source = new SourceDTO();
             source.setId(1);
-            source.setType("STD");
+//            source.setType("STD");
             source.setPath(cwd + "/target/testfiles/duplicate");
             source.setLocation(location);
 
@@ -521,18 +521,18 @@ public class TestFiles extends WebTester {
         try {
             Source testSource = new Source();
 
-            testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
-            assertEquals(Source.SourceTypeType.IMPORT,testSource.getTypeEnum());
+//            testSource.setTypeEnum(Source.SourceTypeType.IMPORT);
+//            assertEquals(Source.SourceTypeType.IMPORT,testSource.getTypeEnum());
         } catch(Exception ex) {
             fail();
         }
 
         Source testSource = new Source();
 
-        testSource.setSourceType("WRG");
+//        testSource.setSourceType("WRG");
 
         try {
-            testSource.getTypeEnum();
+//            testSource.getTypeEnum();
             fail();
         } catch (IllegalArgumentException e) {
             assertTrue(true);
