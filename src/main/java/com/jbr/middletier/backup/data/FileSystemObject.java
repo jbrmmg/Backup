@@ -23,13 +23,15 @@ public class FileSystemObject {
     @JoinColumn(name="parent", nullable = true)
     private FileSystemObject parent;
 
-    public int getId() { return this.id; }
+    protected FileSystemObject(@NotNull String type) {
+        this.type = type;
+    }
+
+    public Integer getId() {
+        return this.id;
+    }
 
     protected void setId(int id) { this.id = id; }
-
-    protected String getType() { return this.type; }
-
-    protected String setType(@NotNull String type) { return this.type; }
 
     public FileSystemObject getParent() {
         return parent;

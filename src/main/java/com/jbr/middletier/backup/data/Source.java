@@ -9,9 +9,6 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name="source")
 public class Source extends FileSystemObject {
-//    @Column(name="path")
-//    private String path;
-
     @JoinColumn(name="location")
     @ManyToOne(optional = true)
     private Location location;
@@ -23,7 +20,7 @@ public class Source extends FileSystemObject {
     private String filter;
 
     @Column(name="source_type")
-    private String type;
+    private String sourceType;
 
     @Column(name="destination")
     private Integer destinationId;
@@ -31,20 +28,18 @@ public class Source extends FileSystemObject {
     public enum SourceTypeType { STANDARD, IMPORT }
 
     public Source() {
-        setType("SRCE");
+        super("SRCE");
         setPath("");
     }
 
-    public Source(int id, String path) {
-        setType("SRCE");
+    public Source(String path) {
+        this();
         setPath(path);
         setTypeEnum(SourceTypeType.STANDARD);
     }
 
     public Source(SourceDTO source) {
-        setType("SRCE");
-//        setId(source.getId());
-        setPath(source.getPath());
+        this();
         update(source);
     }
 
@@ -53,7 +48,7 @@ public class Source extends FileSystemObject {
         setLocation(new Location(source.getLocation()));
         setStatus(source.getStatus());
         setFilter(source.getFilter());
-        setType(source.getType());
+        setSourceType(source.getType());
         setDestinationId(source.getDestinationId());
     }
 
@@ -61,7 +56,7 @@ public class Source extends FileSystemObject {
         SourceDTO result = new SourceDTO();
 
         result.setId(getId());
-        result.setType(getType());
+        result.setType(getSourceType());
         result.setDestinationId(getDestinationId());
         result.setLocation(getLocation().getLocationDTO());
         result.setFilter(getFilter());
@@ -83,29 +78,29 @@ public class Source extends FileSystemObject {
 
     public String getFilter() { return this.filter; }
 
-    public String getsType() { return this.type; }
+    public String getSourceType() { return this.sourceType; }
 
-    public void setsType(String type) { this.type = type; }
+    public void setSourceType(String sourceType) { this.sourceType = sourceType; }
 
     public SourceTypeType getTypeEnum() {
-        switch(this.getType()) {
+        switch(this.getSourceType()) {
             case "STD":
                 return SourceTypeType.STANDARD;
             case "IMP":
                 return SourceTypeType.IMPORT;
             default:
-                throw new IllegalArgumentException(this.getType() + " invalid type");
+                throw new IllegalArgumentException(this.getSourceType() + " invalid type");
         }
     }
 
     public void setTypeEnum(SourceTypeType type) {
         if(SourceTypeType.IMPORT == type) {
-            this.type = "IMP";
+            this.sourceType = "IMP";
             return;
         }
 
         // Must be standard.
-        this.type = "STD";
+        this.sourceType = "STD";
     }
 
 

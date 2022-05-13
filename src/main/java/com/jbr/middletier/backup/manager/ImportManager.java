@@ -72,12 +72,12 @@ public class ImportManager extends FileProcessor {
             throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
-        int nextId = 0;
-        for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getId() >= nextId) {
-                nextId = nextSource.getId() + 1;
-            }
-        }
+//        int nextId = 0;
+//        for(Source nextSource: sourceRepository.findAll()) {
+//            if(nextSource.getId() >= nextId) {
+//                nextId = nextSource.getId() + 1;
+//            }
+//        }
 
         // Find the location.
         Optional<Location> importLocation = Optional.empty();
@@ -92,7 +92,7 @@ public class ImportManager extends FileProcessor {
         }
 
         // Create a source to match this import
-        Source importSource = new Source(nextId,importRequest.getPath());
+        Source importSource = new Source(importRequest.getPath());
         importSource.setTypeEnum(Source.SourceTypeType.IMPORT);
         importSource.setDestinationId(source.get().getId());
         importSource.setLocation(importLocation.get());

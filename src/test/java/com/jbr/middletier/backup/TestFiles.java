@@ -529,7 +529,7 @@ public class TestFiles extends WebTester {
 
         Source testSource = new Source();
 
-        testSource.setsType("WRG");
+        testSource.setSourceType("WRG");
 
         try {
             testSource.getTypeEnum();

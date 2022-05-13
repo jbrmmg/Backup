@@ -59,6 +59,10 @@ databaseChangeLog:
             columnName: oldId
             tableName: file
 
+        - dropColumn:
+            columnName: path
+            tableName: source
+
         - addForeignKeyConstraint:
             constraintName: fk_action_file
             baseTableName: action_confirm
@@ -72,39 +76,3 @@ databaseChangeLog:
             baseColumnNames: file_id
             referencedTableName: file
             referencedColumnNames: id
-
-        - createSequence:
-            sequenceName: import_file_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
-        - createSequence:
-            sequenceName: action_confirm_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
-        - createSequence:
-            sequenceName: ignore_file_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
-        - createSequence:
-            sequenceName: file_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
-        - createSequence:
-            sequenceName: classification_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
-
-        - createSequence:
-            sequenceName: directory_seq
-            dataType: int
-            incrementBy: 50
-            startValue: 100
