@@ -23,6 +23,10 @@ public class FileSystemObject {
     @JoinColumn(name="parent", nullable = true)
     private FileSystemObject parent;
 
+    protected FileSystemObject() {
+        this.type = "UNK";
+    }
+
     protected FileSystemObject(@NotNull String type) {
         this.type = type;
     }
