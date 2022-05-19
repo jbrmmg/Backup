@@ -23,6 +23,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -84,11 +91,11 @@ public class IntegrationTestIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id",is(1000000)))
-                .andExpect(jsonPath("$[0].path",is("/target/testfiles/gather1")))
-                .andExpect(jsonPath("$[0].filter",is("filter")))
-                .andExpect(jsonPath("$[0].status",is("OK")))
-                .andExpect(jsonPath("$[0].location.id",is(1)));
+                .andExpect(jsonPath("$[0].id", is(1000000)))
+                .andExpect(jsonPath("$[0].path", is("/target/testfiles/gather1")))
+                .andExpect(jsonPath("$[0].filter", is("filter")))
+                .andExpect(jsonPath("$[0].status", is("OK")))
+                .andExpect(jsonPath("$[0].location.id", is(1)));
 
         // Perform an update.
         LocationDTO location2 = new LocationDTO();
@@ -111,11 +118,11 @@ public class IntegrationTestIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id",is(1000000)))
-                .andExpect(jsonPath("$[0].path",is("/target/testfiles/gather2")))
-                .andExpect(jsonPath("$[0].filter",is("filter2")))
-                .andExpect(jsonPath("$[0].status",is("ERROR")))
-                .andExpect(jsonPath("$[0].location.id",is(2)));
+                .andExpect(jsonPath("$[0].id", is(1000000)))
+                .andExpect(jsonPath("$[0].path", is("/target/testfiles/gather2")))
+                .andExpect(jsonPath("$[0].filter", is("filter2")))
+                .andExpect(jsonPath("$[0].status", is("ERROR")))
+                .andExpect(jsonPath("$[0].location.id", is(2)));
 
         // Create a second source.
         LOG.info("Create another source.");
@@ -149,7 +156,48 @@ public class IntegrationTestIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id",is(1000001)));
+                .andExpect(jsonPath("$[0].id", is(1000001)));
 
+        LOG.info("Delete the remaining source.");
+        source = new SourceDTO();
+        source.setId(1000001);
+
+        getMockMvc().perform(delete("/jbr/ext/backup/source")
+                        .content(this.json(source))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+    }
+
+    private void deleteDirectoryContents(Path path) throws IOException {
+        if(!Files.exists(path))
+            return;
+
+        Files.walk(path)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
+    }
+
+    @Test
+    @Order(2)
+    public void synchronise() throws Exception {
+        LOG.info("Synchronize Testing");
+
+        // During this test create files in the following directories
+        // ...\target\source\
+        //                  \dir\file1.txt
+        // ...\target\destination\
+        String sourceDirectory = ".//target//ittest//source";
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+
+        Files.createDirectories(new File(sourceDirectory + "//dir").toPath());
+        Files.write(new File(sourceDirectory + "//dir//file1.txt").toPath(), "Basic".getBytes(StandardCharsets.UTF_8));
+
+        String destinationDirectory = ".//target//ittest//source";
+        deleteDirectoryContents(new File(destinationDirectory).toPath());
+
+        // Setup some files that are using in the synchronising testing.
+
+        // Setup two sources and a synchronisation required to perform the test.
     }
 }

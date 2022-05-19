@@ -124,6 +124,13 @@ entity import_file {
   type = IMPO
 }
 
+entity synchronize {
+ * **id** : int
+ ==
+ * source : int <<FK>>
+ * destination : int <<FK>>
+}
+
 file_system_object |o--|| file_system_object
 file_system_object |o--|| file
 file_system_object |o--|| directory
@@ -135,4 +142,6 @@ file |o--|| import_file
 source |o--|| import_source
 classification ||--|{ file
 location }o--o| source
+synchronize }|--|| source
+synchronize }|--|| source
 @enduml
