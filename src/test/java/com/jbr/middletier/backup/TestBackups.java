@@ -530,7 +530,7 @@ public class TestBackups {
             backupDTO.setDirectory("db:2:usr:pwd");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
@@ -568,7 +568,7 @@ public class TestBackups {
             backupDTO.setDirectory("TestDB");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
@@ -655,7 +655,7 @@ public class TestBackups {
             backupDTO.setDirectory("db:2");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
