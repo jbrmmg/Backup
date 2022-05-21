@@ -23,12 +23,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -178,23 +184,74 @@ public class IntegrationTestIT extends WebTester {
             .forEach(File::delete);
     }
 
+    private class StructureDescription {
+        public final String filename;
+        public final String directory;
+        public final String destinationName;
+        public final Date dateTime;
+
+        public StructureDescription(String description) throws ParseException {
+            String[] structureItems = description.split("\\s+");
+
+            this.filename = structureItems[0];
+            this.directory = structureItems[1];
+            this.destinationName = structureItems[2];
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
+            this.dateTime = sdf.parse(structureItems[3]);
+        }
+    }
+
+    private List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
+        List<StructureDescription> result = new ArrayList<>();
+
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + testName + ".structure.txt");
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+
+        String resource;
+        while((resource = br.readLine()) != null) {
+            result.add(new StructureDescription(resource));
+            LOG.info(resource);
+        }
+
+        return result;
+    }
+
+    private void copyFiles(List<StructureDescription> description, String destination) throws IOException {
+        for(StructureDescription nextFile: description) {
+            Files.createDirectories(new File(destination + "/" + nextFile.directory).toPath());
+
+            InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + nextFile.filename);
+
+            if(stream != null) {
+                Path destinationFile = new File(destination + "/" + nextFile.directory + "/" + nextFile.destinationName).toPath();
+                Files.copy(stream,
+                        destinationFile,
+                        StandardCopyOption.REPLACE_EXISTING);
+
+                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(nextFile.dateTime.getTime()));
+            }
+        }
+    }
+
     @Test
     @Order(2)
     public void synchronise() throws Exception {
         LOG.info("Synchronize Testing");
 
         // During this test create files in the following directories
-        // ...\target\source\
-        //                  \dir\file1.txt
-        // ...\target\destination\
-        String sourceDirectory = ".//target//ittest//source";
+        String sourceDirectory = ".//target//it_test//source";
         deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
 
-        Files.createDirectories(new File(sourceDirectory + "//dir").toPath());
-        Files.write(new File(sourceDirectory + "//dir//file1.txt").toPath(), "Basic".getBytes(StandardCharsets.UTF_8));
-
-        String destinationDirectory = ".//target//ittest//source";
+        String destinationDirectory = ".//target//it_test//destination";
         deleteDirectoryContents(new File(destinationDirectory).toPath());
+        Files.createDirectories(new File(destinationDirectory).toPath());
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+        LOG.info("here");
 
         // Setup some files that are using in the synchronising testing.
 
