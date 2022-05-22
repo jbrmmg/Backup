@@ -116,7 +116,9 @@ public class FileController {
         }
 
         // Get the next level
-        result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
+        if(true)
+            throw new IllegalStateException("fix this");
+//        result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
 
         // Update the display name.
         for(HierarchyResponse nextResponse: result) {

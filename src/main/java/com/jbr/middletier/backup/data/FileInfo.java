@@ -2,7 +2,10 @@ package com.jbr.middletier.backup.data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
@@ -88,9 +91,19 @@ public class FileInfo {
     }
 
     public String getFullFilename() {
-        return directoryInfo.getSource().getPath() + "/" +
-                directoryInfo.getName() + "/" +
-                getName();
+        List<String> result = new ArrayList<>();
+
+        result.add(getName());
+
+        FileSystemObject parent = getDirectoryInfo().getParent();
+        while(parent != null) {
+            result.add(parent.name);
+            parent = parent.getParent();
+        }
+
+        Collections.reverse(result);
+
+        return String.join("/", result);
     }
 
     @Override

@@ -175,7 +175,9 @@ abstract class FileProcessor {
         // Insert a new directory.
         DirectoryInfo newDirectoryInfo = new DirectoryInfo();
         newDirectoryInfo.setName(toBeUpdated.getName());
-        newDirectoryInfo.setSource(source);
+        if(true)
+            throw new IllegalStateException("fix this");
+//        newDirectoryInfo.setSource(source);
         newDirectoryInfo.setParent(getParentDirectory(toBeUpdated));
         newDirectoryInfo.clearRemoved();
 
@@ -342,7 +344,9 @@ abstract class FileProcessor {
     }
 
     private void getDatabaseDetails(FileTreeNode result, Source source, DirectoryInfo parent) {
-        List<DirectoryInfo> directories = directoryRepository.findBySourceAndParent(source, parent);
+        if(true)
+            throw new IllegalStateException("Fix this");
+        List<DirectoryInfo> directories = new ArrayList<>();//directoryRepository.findBySourceAndParent(source, parent);
         for(DirectoryInfo next: directories) {
             FileTreeNode nextNode = result.addChild(next);
 

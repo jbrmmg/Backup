@@ -107,13 +107,15 @@ public class ImportManager extends FileProcessor {
 
         // Remove the files associated with imports - first remove files, then directories then source.
         for(ImportSource nextSource: importSourceRepository.findAll()) {
-            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
-                for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
-                    fileRepository.delete(nextFile);
-                }
+            if(true)
+                throw new IllegalStateException("Fix this");
+//            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
+//                for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
+//                    fileRepository.delete(nextFile);
+//                }
 
-                directoryRepository.delete(nextDirectory);
-            }
+//                directoryRepository.delete(nextDirectory);
+//            }
 
             sourceRepository.delete(nextSource);
         }
@@ -174,9 +176,11 @@ public class ImportManager extends FileProcessor {
             LOG.info("{}", nextFile);
 
             // Make sure this file is from the same source.
-            if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
-                continue;
-            }
+            if(true)
+                throw new IllegalStateException("fix this");
+//            if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
+//                continue;
+//            }
 
             // Get the details of the file - size & md5.
             FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile.getFileInfo());

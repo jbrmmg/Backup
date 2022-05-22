@@ -1,10 +1,13 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -13,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
@@ -24,20 +28,17 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,8 +72,103 @@ public class IntegrationTestIT extends WebTester {
         }
     }
 
+    @Autowired
+    SourceRepository sourceRepository;
+
+    @Autowired
+    SynchronizeRepository synchronizeRepository;
+
+    @Autowired
+    LocationRepository locationRepository;
+
+    @Autowired
+    FileRepository fileRepository;
+
+    @Autowired
+    DirectoryRepository directoryRepository;
+
+    private void deleteDirectoryContents(Path path) throws IOException {
+        if(!Files.exists(path))
+            return;
+
+        Files.walk(path)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
+    }
+
+    private static class StructureDescription {
+        public final String filename;
+        public final String directory;
+        public final String destinationName;
+        public final Date dateTime;
+
+        public StructureDescription(String description) throws ParseException {
+            String[] structureItems = description.split("\\s+");
+
+            this.filename = structureItems[0];
+            this.directory = structureItems[1];
+            this.destinationName = structureItems[2];
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
+            this.dateTime = sdf.parse(structureItems[3]);
+        }
+    }
+
+    private List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
+        List<StructureDescription> result = new ArrayList<>();
+
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + testName + ".structure.txt");
+        assert stream != null;
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+
+        String resource;
+        while((resource = br.readLine()) != null) {
+            result.add(new StructureDescription(resource));
+            LOG.info(resource);
+        }
+
+        return result;
+    }
+
+    private void copyFiles(List<StructureDescription> description, String destination) throws IOException {
+        for(StructureDescription nextFile: description) {
+            Files.createDirectories(new File(destination + "/" + nextFile.directory).toPath());
+
+            InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + nextFile.filename);
+
+            if(stream != null) {
+                Path destinationFile = new File(destination + "/" + nextFile.directory + "/" + nextFile.destinationName).toPath();
+                Files.copy(stream,
+                        destinationFile,
+                        StandardCopyOption.REPLACE_EXISTING);
+
+                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(nextFile.dateTime.getTime()));
+            }
+        }
+    }
+
+    private Location getLocation(Integer id) {
+        Optional<Location> location = locationRepository.findById(id);
+        if(!location.isPresent())
+            fail();
+
+        return location.get();
+    }
+
+    private Source createSource(String path, Integer locationId) {
+        Source newSource = new Source();
+        newSource.setLocation(getLocation(locationId));
+        newSource.setPath(path);
+
+        sourceRepository.save(newSource);
+
+        return newSource;
+    }
+
     @Test
     @Order(1)
+    // TODO - add basic testing for source / synchronize
     public void source() throws Exception {
         LOG.info("Source Testing");
 
@@ -174,87 +270,50 @@ public class IntegrationTestIT extends WebTester {
                 .andExpect(status().isOk());
     }
 
-    private void deleteDirectoryContents(Path path) throws IOException {
-        if(!Files.exists(path))
-            return;
+    @Test
+    @Order(2)
+    public void directory() {
+        LOG.info("Test the basic file object");
+        Source testSource = createSource("./target/it_test/testing",1);
+        DirectoryInfo directoryInfo = new DirectoryInfo();
+        directoryInfo.setParent(testSource);
+        directoryInfo.setName("test directory");
+        directoryInfo.clearRemoved();
 
-        Files.walk(path)
-            .sorted(Comparator.reverseOrder())
-            .map(Path::toFile)
-            .forEach(File::delete);
-    }
-
-    private class StructureDescription {
-        public final String filename;
-        public final String directory;
-        public final String destinationName;
-        public final Date dateTime;
-
-        public StructureDescription(String description) throws ParseException {
-            String[] structureItems = description.split("\\s+");
-
-            this.filename = structureItems[0];
-            this.directory = structureItems[1];
-            this.destinationName = structureItems[2];
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-            this.dateTime = sdf.parse(structureItems[3]);
-        }
-    }
-
-    private List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
-        List<StructureDescription> result = new ArrayList<>();
-
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + testName + ".structure.txt");
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-
-        String resource;
-        while((resource = br.readLine()) != null) {
-            result.add(new StructureDescription(resource));
-            LOG.info(resource);
-        }
-
-        return result;
-    }
-
-    private void copyFiles(List<StructureDescription> description, String destination) throws IOException {
-        for(StructureDescription nextFile: description) {
-            Files.createDirectories(new File(destination + "/" + nextFile.directory).toPath());
-
-            InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + nextFile.filename);
-
-            if(stream != null) {
-                Path destinationFile = new File(destination + "/" + nextFile.directory + "/" + nextFile.destinationName).toPath();
-                Files.copy(stream,
-                        destinationFile,
-                        StandardCopyOption.REPLACE_EXISTING);
-
-                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(nextFile.dateTime.getTime()));
-            }
-        }
+        directoryRepository.save(directoryInfo);
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     public void synchronise() throws Exception {
         LOG.info("Synchronize Testing");
 
         // During this test create files in the following directories
-        String sourceDirectory = ".//target//it_test//source";
+        String sourceDirectory = "./target/it_test/source";
         deleteDirectoryContents(new File(sourceDirectory).toPath());
         Files.createDirectories(new File(sourceDirectory).toPath());
 
-        String destinationDirectory = ".//target//it_test//destination";
+        String destinationDirectory = "./target/it_test/destination";
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
-        LOG.info("here");
 
-        // Setup some files that are using in the synchronising testing.
+        // Create the source and synchronise entries
+        Synchronize synchronize = new Synchronize();
+        synchronize.setId(1);
+        synchronize.setSource(createSource("./target/it_test/source",1));
+        synchronize.setDestination(createSource("./target/it_test/destination",1));
 
-        // Setup two sources and a synchronisation required to perform the test.
+        synchronizeRepository.save(synchronize);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
     }
 }

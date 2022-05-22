@@ -13,8 +13,6 @@ databaseChangeLog:
         # This is to update the file table to remove the auto increment on the id,
         # the id will now be generated from
 
-        # NEED a way to ensure that id starting
-
         - dropForeignKeyConstraint:
             constraintName: fk_action_file
             baseTableName: action_confirm

@@ -239,15 +239,19 @@ public class SynchronizeManager {
             return;
         }
 
-        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
-            LOG.info("Synchronize Status {}", nextStatus);
-            processSynchronizeStatusAtSource(nextStatus);
-        }
+        if(true)
+            throw new IllegalStateException("Fix this");
+//        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
+//            LOG.info("Synchronize Status {}", nextStatus);
+//            processSynchronizeStatusAtSource(nextStatus);
+//        }
 
-        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
-            LOG.info("Synchronize Status {}", nextStatus);
-            processSynchronizeStatusAtDestination(nextStatus);
-        }
+        if(true)
+            throw new IllegalStateException("Fix this");
+//        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
+//            LOG.info("Synchronize Status {}", nextStatus);
+//            processSynchronizeStatusAtDestination(nextStatus);
+//        }
 
         LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
     }

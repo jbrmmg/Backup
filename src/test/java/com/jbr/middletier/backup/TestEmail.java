@@ -75,7 +75,9 @@ public class TestEmail extends WebTester  {
             LOG.info("Source {}", source);
 
             DirectoryInfo directory = new DirectoryInfo();
-            directory.setSource(source);
+            if(true)
+                throw new IllegalStateException("fix this");
+//            directory.setSource(source);
             directory.setName("");
             directory.clearRemoved();
             directoryRepository.save(directory);

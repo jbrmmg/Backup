@@ -46,7 +46,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-015-refactorfile.yaml
 
   - include:
-      file: /db/changelog/db.changelog-016-directory-restructure1.yaml
+      file: /db/changelog/db.changelog-016-refactordirectory.yaml
 
   - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
