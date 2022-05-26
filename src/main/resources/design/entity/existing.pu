@@ -21,8 +21,8 @@ entity file {
    * **id** : int <<generated>> **PK**
    * **name** : varchar(200) **PK**
    ==
-   * directory_id : int fk
-   classification_id : int fk
+   * directory_id : int **FK**
+   classification_id : int **FK**
    size : int
    date : datetime
    * removed : bit(1)

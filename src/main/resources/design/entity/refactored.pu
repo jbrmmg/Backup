@@ -131,6 +131,17 @@ entity synchronize {
  * destination : int **FK**
 }
 
+entity action_confirm {
+   * **id** : int <<generated>> **PK**
+   ==
+   * action : varchar(20)
+   * confirmed : bit(1)
+   parameter_required : bit(1)
+   parameter : varchar(50)
+   file_id : int **FK**
+   flags : varchar(10)
+}
+
 file_system_object |o--|| file_system_object : fk_fso_parent
 file |o--|| file_system_object : fk_fso_file
 directory |o--|| file_system_object : fk_fso_directory
@@ -144,4 +155,5 @@ file }|--|| classification : fk_classification_file
 source }|--|| location : fk_location_source
 synchronize }|--|| source : fk_source_sync_src
 synchronize }|--|| source : fk_source_sync_dst
+action_confirm }o--|| file : fk_action_file
 @enduml
