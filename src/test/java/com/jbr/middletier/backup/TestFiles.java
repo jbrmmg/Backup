@@ -149,7 +149,7 @@ public class TestFiles extends WebTester {
         try {
             LOG.info("Test File Web");
             for(Source next: sourceRepository.findAll()) {
-                LOG.info("Source {}",next.getId());
+                LOG.info("Source {}",next.getIdAndType());
             }
 
             // get the current working directory.
@@ -476,11 +476,11 @@ public class TestFiles extends WebTester {
 
             hierarchy.setId(1);
             for(FileInfo next: fileRepository.findAll()) {
-                LOG.info("{} {} {}", next.getId(), next.getDirectoryInfo().getId(), next.getFullFilename());
+                LOG.info("{} {} {}", next.getId(), next.getDirectoryInfo().getIdAndType(), next.getFullFilename());
 
                 if(next.getFullFilename().contains("Sub/fileA.txt")) {
-                    LOG.info("Use this as underlying {}", next.getDirectoryInfo().getId());
-                    hierarchy.setUnderlyingId(next.getDirectoryInfo().getId());
+                    LOG.info("Use this as underlying {}", next.getDirectoryInfo().getIdAndType());
+                    hierarchy.setUnderlyingId(next.getDirectoryInfo().getIdAndType().getId());
                 }
             }
 

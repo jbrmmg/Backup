@@ -7,20 +7,21 @@ skinparam linetype ortho
 scale 0.75
 
 entity file_system_object {
-* **id** : int <<generated>>
-==
-* type : char(4)
-* name : varchar(200)
+  * **id** : int <<generated>>
+  ==
+  type : char(4)
+  name : varchar(200)
   parent : int **FK**
+  parent_type : char(4)
 }
 
 entity file {
-   * **id** : int **FK** **PK**
+   * **id** : int **FK**
    ==
    classification_id : int **FK**
    size : int
    date : datetime
-   * removed : bit(1)
+   removed : bit(1)
    md5 : varchar(32)
    flags : varchar(5)
    ==
@@ -28,21 +29,21 @@ entity file {
 }
 
 entity image_file {
-   * **id** : int **FK** **PK**
+   * **id** : int **FK**
    ==
    ==
    type = IMGE
 }
 
 entity video_file {
-   * **id** : int **FK** **PK**
+   * **id** : int **FK**
    ==
    ==
    type = VIDO
 }
 
 entity directory {
-  * **id** : int **FK** **PK**
+  * **id** : int **FK**
   ==
   * removed : bit(1)
   ==
@@ -50,9 +51,9 @@ entity directory {
 }
 
 entity source {
-  * **id** : int **FK** **PK**
+  * **id** : int **FK**
   ==
-  * location : int **FK**
+  location : int **FK**
   status : varchar(15)
   filter : varchar(60)
   source_type : varchar(3)
@@ -62,7 +63,7 @@ entity source {
 
 
 entity import_source {
-  * **id** : int **FK** **PK**
+  * **id** : int **FK**
   ==
   destination : int **FK**
   ==
@@ -70,56 +71,56 @@ entity import_source {
 }
 
 entity classification {
-  * **id** : int <<generated>> **PK**
+  * **id** : int <<generated>>
   ==
-  * order int
+  order int
   regex : varchar(50)
   icon : varchar(60)
-  * action : varchar(20)
-  * useMD5 : bit(1)
+  action : varchar(20)
+  useMD5 : bit(1)
   type : varchar(30)
   is_image : bit(1)
   is_video : bit(1)
 }
 
 entity backup {
-  * **id** : char(4) **PK**
+  * **id** : char(4)
   ==
-  * type : varchar(50)
-  * directory : varchar(300)
-  * artifact : varchar(100)
-  * backup_name : varchar(35)
-  * filename : varchar(100)
-  * time : int
+  type : varchar(50)
+  directory : varchar(300)
+  artifact : varchar(100)
+  backup_name : varchar(35)
+  filename : varchar(100)
+  time : int
 }
 
 entity hardware {
-  * **macAddress** : char(17) **PK**
+  * **macAddress** : char(17)
   ==
-  * reservedIP : char(1)
+  reservedIP : char(1)
   IP : varchar(15)
-  * name : varchar(200)
+  name : varchar(200)
 }
 
 entity location {
-  * **id** : int **PK**
+  * **id** : int
   ==
-  * name : varchar(100)
-  * size : varchar(10)
+  name : varchar(100)
+  size : varchar(10)
   check_duplicates : bit(1)
 }
 
 entity ignore_file {
-  * **id** : int **FK** **PK**
+  * **id** : int **FK**
   ==
   ==
   type = IGNO
 }
 
 entity import_file {
-  * **id** : int **FK** **PK**
+  * **id** : int **FK**
   ==
-  * status : varchar(20)
+  status : varchar(20)
   ==
   type = IMPO
 }
@@ -127,15 +128,15 @@ entity import_file {
 entity synchronize {
  * **id** : int **PK**
  ==
- * source : int **FK**
- * destination : int **FK**
+ source : int **FK**
+ destination : int **FK**
 }
 
 entity action_confirm {
    * **id** : int <<generated>> **PK**
    ==
-   * action : varchar(20)
-   * confirmed : bit(1)
+   action : varchar(20)
+   confirmed : bit(1)
    parameter_required : bit(1)
    parameter : varchar(50)
    file_id : int **FK**

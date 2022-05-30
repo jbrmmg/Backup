@@ -23,12 +23,12 @@ public class Source extends FileSystemObject {
     private String sourceType;
 
     protected Source(boolean unused, String sourceType) {
-        super("SRCE");
+        super(FileSystemObjectType.FSO_SOURCE);
         this.sourceType = sourceType;
     }
 
     public Source() {
-        super("SRCE");
+        super(FileSystemObjectType.FSO_SOURCE);
         this.sourceType = "STD";
         setPath("");
     }
@@ -53,7 +53,7 @@ public class Source extends FileSystemObject {
     public SourceDTO getSourceDTO() {
         SourceDTO result = new SourceDTO();
 
-        result.setId(getId());
+        result.setId(getIdAndType().getId());
         result.setLocation(getLocation().getLocationDTO());
         result.setFilter(getFilter());
         result.setStatus(getStatus());

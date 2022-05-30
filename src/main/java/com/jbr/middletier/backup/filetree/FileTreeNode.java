@@ -37,7 +37,7 @@ public class FileTreeNode {
         this.directory = true;
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
-        this.id = directory.getId();
+        this.id = directory.getIdAndType().getId();
     }
 
     protected FileTreeNode(FileInfo file, FileTreeNode parent) {
@@ -147,11 +147,11 @@ public class FileTreeNode {
     }
 
     public void setId(DirectoryInfo createdDirectory) {
-        if(createdDirectory.getId() == null) {
+        if(createdDirectory.getIdAndType() == null) {
             throw new IllegalStateException("created directory id is null");
         }
 
-        this.id = createdDirectory.getId();
+        this.id = createdDirectory.getIdAndType().getId();
     }
 
     public CompareStatusType getCompareStatus() {

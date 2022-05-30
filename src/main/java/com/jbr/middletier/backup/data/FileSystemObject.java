@@ -19,29 +19,48 @@ public class FileSystemObject {
     @Column(name="name")
     protected String name;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="parent", nullable = true)
-    private FileSystemObject parent;
+    @Column(name="parent")
+    private Integer parentId;
+
+    @Column(name="parent_type")
+    private String parentType;
+
+    @Transient
+    private final FileSystemObjectType fileSystemObjectType;
 
     protected FileSystemObject() {
+        this.fileSystemObjectType = null;
         this.type = "UNK";
     }
 
-    protected FileSystemObject(@NotNull String type) {
-        this.type = type;
+    protected FileSystemObject(@NotNull FileSystemObjectType type) {
+        this.fileSystemObjectType = type;
+        this.type = type.getTypeName();
     }
 
-    public Integer getId() {
-        return this.id;
+    public FileSystemObjectId getIdAndType() {
+        return new FileSystemObjectId(this.id, FileSystemObjectType.getFileSystemObjectType(this.type));
     }
 
     protected void setId(int id) { this.id = id; }
 
-    public FileSystemObject getParent() {
-        return parent;
+    public FileSystemObjectId getParentId() {
+        if(this.parentId == null) {
+            return null;
+        }
+
+        return new FileSystemObjectId(this.parentId, FileSystemObjectType.getFileSystemObjectType(this.parentType));
     }
 
-    public void setParent(FileSystemObject parent) {
-        this.parent = parent;
+    public void setParentId(FileSystemObject parent) {
+        if(parent == null) {
+            this.id = null;
+            this.type = null;
+        }
+
+        assert parent != null;
+        FileSystemObjectId parentId = parent.getIdAndType();
+        this.parentId = parentId.getId();
+        this.parentType = parentId.getType().getTypeName();
     }
 }

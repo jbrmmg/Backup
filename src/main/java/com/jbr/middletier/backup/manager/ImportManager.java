@@ -89,7 +89,7 @@ public class ImportManager extends FileProcessor {
 
         // Create a source to match this import
         ImportSource importSource = new ImportSource(importRequest.getPath());
-        importSource.setDestinationId(source.get().getId());
+        importSource.setDestinationId(source.get().getIdAndType().getId());
         importSource.setLocation(importLocation.get());
 
         sourceRepository.save(importSource);

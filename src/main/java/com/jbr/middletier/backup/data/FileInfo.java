@@ -95,11 +95,12 @@ public class FileInfo {
 
         result.add(getName());
 
-        FileSystemObject parent = getDirectoryInfo().getParent();
-        while(parent != null) {
-            result.add(parent.name);
-            parent = parent.getParent();
-        }
+        // TODO fix this
+//        FileSystemObject parent = getDirectoryInfo().getParent();
+//        while(parent != null) {
+//            result.add(parent.name);
+//            parent = parent.getParent();
+//        }
 
         Collections.reverse(result);
 

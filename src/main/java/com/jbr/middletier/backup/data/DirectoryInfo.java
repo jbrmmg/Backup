@@ -11,11 +11,17 @@ public class DirectoryInfo extends FileSystemObject {
     @NotNull
     private Boolean removed;
 
+    public DirectoryInfo() {
+        super(FileSystemObjectType.FSO_DIRECTORY);
+    }
+
     public String getName() { return this.name; }
 
     public Boolean getRemoved() { return this.removed; }
 
     public void clearRemoved() { this.removed = false; }
+
+    public void setRemoved() { this.removed = true; }
 
     public void setName(String name) { this.name = name; }
 

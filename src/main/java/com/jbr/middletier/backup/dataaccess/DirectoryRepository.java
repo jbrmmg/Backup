@@ -15,6 +15,8 @@ import java.util.Optional;
 
 @Repository
 public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integer>, JpaSpecificationExecutor<DirectoryInfo> {
+    List<DirectoryInfo> findAllByOrderByIdAsc();
+
 //    List<DirectoryInfo> findBySourceAndParent(Source source, DirectoryInfo parent);
 
 //    List<DirectoryInfo> findBySource(Source source);

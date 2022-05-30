@@ -31,6 +31,9 @@ databaseChangeLog:
               - column:
                   name: parent
                   type: int
+              - column:
+                  name: parent_type
+                  type: char(4)
 
         - addForeignKeyConstraint:
             constraintName: fk_fso_parent

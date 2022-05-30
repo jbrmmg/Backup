@@ -5,10 +5,8 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -21,12 +19,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
+import javax.validation.constraints.AssertTrue;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -86,6 +86,9 @@ public class IntegrationTestIT extends WebTester {
 
     @Autowired
     DirectoryRepository directoryRepository;
+
+    @Autowired
+    FileSystemObjectManager fileSystemObjectManager;
 
     private void deleteDirectoryContents(Path path) throws IOException {
         if(!Files.exists(path))
@@ -276,11 +279,46 @@ public class IntegrationTestIT extends WebTester {
         LOG.info("Test the basic file object");
         Source testSource = createSource("./target/it_test/testing",1);
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParent(testSource);
+        directoryInfo.setParentId(testSource);
         directoryInfo.setName("test directory");
         directoryInfo.clearRemoved();
 
         directoryRepository.save(directoryInfo);
+
+        DirectoryInfo directoryInfo1 = new DirectoryInfo();
+        directoryInfo1.setParentId(directoryInfo);
+        directoryInfo1.setName("test 2");
+        directoryInfo1.clearRemoved();
+
+        directoryRepository.save(directoryInfo1);
+
+        directoryInfo1.setRemoved();
+        directoryRepository.save(directoryInfo1);
+
+        List<DirectoryInfo> directoryInfoList = directoryRepository.findAllByOrderByIdAsc();
+
+        Assert.assertEquals(2, directoryInfoList.size());
+        Assert.assertEquals("test directory", directoryInfoList.get(0).getName());
+        Assert.assertEquals("test 2", directoryInfoList.get(1).getName());
+
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId());
+        Assert.assertTrue(parent.isPresent());
+        Assert.assertTrue(parent.get() instanceof DirectoryInfo);
+
+        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId());
+        Assert.assertTrue(parent.isPresent());
+        Assert.assertTrue(parent.get() instanceof Source);
+
+        try {
+            directoryRepository.delete(directoryInfo);
+            Assert.fail();
+        } catch(DataIntegrityViolationException ex) {
+            Assert.assertTrue(true);
+        } catch(Exception ex) {
+            Assert.fail();
+        }
+        directoryRepository.delete(directoryInfo1);
+        directoryRepository.delete(directoryInfo);
     }
 
     @Test
