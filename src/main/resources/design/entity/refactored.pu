@@ -2,23 +2,25 @@
 skinparam titleBorderRoundCorner 15
 skinparam titleBorderThickness 2
 skinparam titleBorderColor red
+skinparam entityFontSize 12
+skinparam arrowFontSize 9
 title Refactored ERD
 skinparam linetype ortho
-scale 0.75
+scale 1
 
 entity file_system_object {
-  * **id** : int <<generated>>
+  * **id** : int <<generated>> **//(PK)//**
   ==
   type : char(4)
   name : varchar(200)
-  parent : int **FK**
+  parent : int **//(FK1)//**
   parent_type : char(4)
 }
 
 entity file {
-   * **id** : int **FK**
+   * **id** : int **//(PK)(FK1)//**
    ==
-   classification_id : int **FK**
+   classification_id : int **//(FK2)//**
    size : int
    date : datetime
    removed : bit(1)
@@ -29,49 +31,64 @@ entity file {
 }
 
 entity image_file {
-   * **id** : int **FK**
+   * **id** : int **//(PK)(FK1)//**
    ==
-   ==
-   type = IMGE
+   --type indicator--
+   //IMGE//
 }
 
 entity video_file {
-   * **id** : int **FK**
+   * **id** : int **//(PK)(FK1)//**
    ==
-   ==
-   type = VIDO
+   --type indicator--
+   //VIDO//
+}
+
+entity ignore_file {
+  * **id** : int **//(PK)(FK1)//**
+  ==
+  --type indicator--
+  //IGNO//
+}
+
+entity import_file {
+  * **id** : int **//(PK)(FK1)//**
+  ==
+  status : varchar(20)
+  --type indicator--
+  //IMPO//
 }
 
 entity directory {
-  * **id** : int **FK**
+  * **id** : int **//(PK)(FK1)//**
   ==
-  * removed : bit(1)
-  ==
-  type = DIRY
+  removed : bit(1)
+  flat : bit(1)
+  --type indicator--
+  //DIRY//
 }
 
 entity source {
-  * **id** : int **FK**
+  * **id** : int **//(PK)(FK1)//**
   ==
-  location : int **FK**
+  location : int **//(FK2)//**
   status : varchar(15)
   filter : varchar(60)
   source_type : varchar(3)
-  ==
-  type = SRCE
+  --type indicator--
+  //SRCE//
 }
 
-
 entity import_source {
-  * **id** : int **FK**
+  * **id** : int **//(PK)(FK1)//**
   ==
   destination : int **FK**
-  ==
-  type = IMPS
+  --type indicator--
+  //IMPS//
 }
 
 entity classification {
-  * **id** : int <<generated>>
+  * **id** : int <<generated>> **//(PK)//**
   ==
   order int
   regex : varchar(50)
@@ -84,7 +101,7 @@ entity classification {
 }
 
 entity backup {
-  * **id** : char(4)
+  * **id** : char(4) **//(PK)//**
   ==
   type : varchar(50)
   directory : varchar(300)
@@ -95,7 +112,7 @@ entity backup {
 }
 
 entity hardware {
-  * **macAddress** : char(17)
+  * **macAddress** : char(17) **//(PK)//**
   ==
   reservedIP : char(1)
   IP : varchar(15)
@@ -103,58 +120,51 @@ entity hardware {
 }
 
 entity location {
-  * **id** : int
+  * **id** : int **//(PK)//**
   ==
   name : varchar(100)
   size : varchar(10)
   check_duplicates : bit(1)
 }
 
-entity ignore_file {
-  * **id** : int **FK**
-  ==
-  ==
-  type = IGNO
-}
-
-entity import_file {
-  * **id** : int **FK**
-  ==
-  status : varchar(20)
-  ==
-  type = IMPO
-}
-
 entity synchronize {
- * **id** : int **PK**
+ * **id** : int **//(PK)//**
  ==
- source : int **FK**
- destination : int **FK**
+ source : int **//(FK1)//**
+ destination : int **//(FK2)//**
 }
 
 entity action_confirm {
-   * **id** : int <<generated>> **PK**
+   * **id** : int <<generated>> **//(PK)//**
    ==
    action : varchar(20)
    confirmed : bit(1)
    parameter_required : bit(1)
    parameter : varchar(50)
-   file_id : int **FK**
+   file_id : int **//(FK1)//**
    flags : varchar(10)
 }
 
-file_system_object |o--|| file_system_object : fk_fso_parent
-file |o--|| file_system_object : fk_fso_file
-directory |o--|| file_system_object : fk_fso_directory
-source |o--|| file_system_object : fk_fso_source
-image_file |o--|| file : fk_file_image
-video_file |o--|| file : fk_file_video
-ignore_file |o--|| file : fk_file_ignore
-import_file |o--|| file : fk_file_import
-import_source ||--o| source : fk_source_import
-file }|--|| classification : fk_classification_file
-source }|--|| location : fk_location_source
-synchronize }|--|| source : fk_source_sync_src
-synchronize }|--|| source : fk_source_sync_dst
-action_confirm }o--|| file : fk_action_file
+file_system_object   |o-d-|| file_system_object : FK1:fk_fso_parent
+file                 |o-r-|| file_system_object : FK1:fk_fso_file
+directory            |o-r-|| file_system_object : FK1:fk_fso_directory
+source               |o-r-|| file_system_object : FK1:fk_fso_source
+image_file           |o-r-|| file               : FK1:fk_file_image
+video_file           |o-r-|| file               : FK1:fk_file_video
+ignore_file          |o-r-|| file               : FK1:fk_file_ignore
+import_file          |o-r-|| file               : FK1:fk_file_import
+import_source        ||-u-o| source             : FK1:fk_source_import
+file                 }|-r-|| classification     : FK2:fk_classification_file
+source               }|-l-|| location           : FK2:fk_location_source
+synchronize          }|-d-|| source             : FK1:fk_source_sync_src
+synchronize          }|-d-|| source             : FK2:fk_source_sync_dst
+action_confirm       }o-d-|| file               : FK1:fk_action_file
+
+image_file           ||-[hidden]d-|| video_file
+video_file           ||-[hidden]d-|| ignore_file
+ignore_file          ||-[hidden]d-|| import_file
+file                 ||-[hidden]d-|| directory
+directory            ||-[hidden]d-|| source
+image_file           ||-[hidden]l-|| backup
+backup               ||-[hidden]l-|| hardware
 @enduml
