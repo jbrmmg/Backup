@@ -14,6 +14,29 @@ public class FileSystemObjectId {
         return this.type + ">" + this.id;
     }
 
+    @Override
+    public int hashCode() {
+        return this.type.hashCode() * this.id;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if(this == obj)
+            return true;
+
+        if(obj == null)
+            return false;
+
+        if(getClass() != obj.getClass())
+            return false;
+
+        final FileSystemObjectId id = (FileSystemObjectId)obj;
+        if(!this.type.getTypeName().equals(id.type.getTypeName()))
+            return false;
+
+        return this.id == id.id;
+    }
+
     public int getId() {
         return this.id;
     }

@@ -1,15 +1,12 @@
 @startuml
-skinparam titleBorderRoundCorner 15
-skinparam titleBorderThickness 2
-skinparam titleBorderColor red
 skinparam entityFontSize 12
 skinparam arrowFontSize 9
-title Refactored ERD
 skinparam linetype ortho
-scale 1
+title Refactored ERD
+top to bottom direction
 
 entity file_system_object {
-  * **id** : int <<generated>> **//(PK)//**
+  * **id : int <<generated>>**
   ==
   type : char(4)
   name : varchar(200)
@@ -18,7 +15,7 @@ entity file_system_object {
 }
 
 entity file {
-   * **id** : int **//(PK)(FK1)//**
+   * **id : int //(FK1)//**
    ==
    classification_id : int **//(FK2)//**
    size : int
@@ -31,28 +28,28 @@ entity file {
 }
 
 entity image_file {
-   * **id** : int **//(PK)(FK1)//**
+   * **id : int //(FK1)//**
    ==
    --type indicator--
    //IMGE//
 }
 
 entity video_file {
-   * **id** : int **//(PK)(FK1)//**
+   * **id : int //(PK)(FK1)//**
    ==
    --type indicator--
    //VIDO//
 }
 
 entity ignore_file {
-  * **id** : int **//(PK)(FK1)//**
+  * **id : int //(FK1)//**
   ==
   --type indicator--
   //IGNO//
 }
 
 entity import_file {
-  * **id** : int **//(PK)(FK1)//**
+  * **id : int //(FK1)//**
   ==
   status : varchar(20)
   --type indicator--
@@ -60,7 +57,7 @@ entity import_file {
 }
 
 entity directory {
-  * **id** : int **//(PK)(FK1)//**
+  * **id : int //(FK1)//**
   ==
   removed : bit(1)
   flat : bit(1)
@@ -69,7 +66,7 @@ entity directory {
 }
 
 entity source {
-  * **id** : int **//(PK)(FK1)//**
+  * **id : int //(FK1)//**
   ==
   location : int **//(FK2)//**
   status : varchar(15)
@@ -80,7 +77,7 @@ entity source {
 }
 
 entity import_source {
-  * **id** : int **//(PK)(FK1)//**
+  * **id : int //(FK1)//**
   ==
   destination : int **FK**
   --type indicator--
@@ -88,7 +85,7 @@ entity import_source {
 }
 
 entity classification {
-  * **id** : int <<generated>> **//(PK)//**
+  * **id : int <<generated>>**
   ==
   order int
   regex : varchar(50)
@@ -101,7 +98,7 @@ entity classification {
 }
 
 entity backup {
-  * **id** : char(4) **//(PK)//**
+  * **id : char(4)**
   ==
   type : varchar(50)
   directory : varchar(300)
@@ -112,7 +109,7 @@ entity backup {
 }
 
 entity hardware {
-  * **macAddress** : char(17) **//(PK)//**
+  * **macAddress : char(17)**
   ==
   reservedIP : char(1)
   IP : varchar(15)
@@ -120,7 +117,7 @@ entity hardware {
 }
 
 entity location {
-  * **id** : int **//(PK)//**
+  * **id : int**
   ==
   name : varchar(100)
   size : varchar(10)
@@ -128,14 +125,14 @@ entity location {
 }
 
 entity synchronize {
- * **id** : int **//(PK)//**
+ * **id : int**
  ==
  source : int **//(FK1)//**
  destination : int **//(FK2)//**
 }
 
 entity action_confirm {
-   * **id** : int <<generated>> **//(PK)//**
+   * **id : int <<generated>>**
    ==
    action : varchar(20)
    confirmed : bit(1)
@@ -150,12 +147,12 @@ file                 |o-r-|| file_system_object : FK1:fk_fso_file
 directory            |o-r-|| file_system_object : FK1:fk_fso_directory
 source               |o-r-|| file_system_object : FK1:fk_fso_source
 image_file           |o-r-|| file               : FK1:fk_file_image
-video_file           |o-r-|| file               : FK1:fk_file_video
+video_file           |o-l-|| file               : FK1:fk_file_video
 ignore_file          |o-r-|| file               : FK1:fk_file_ignore
-import_file          |o-r-|| file               : FK1:fk_file_import
+import_file          |o-l-|| file               : FK1:fk_file_import
 import_source        ||-u-o| source             : FK1:fk_source_import
-file                 }|-r-|| classification     : FK2:fk_classification_file
-source               }|-l-|| location           : FK2:fk_location_source
+file                 }|-l-|| classification     : FK2:fk_classification_file
+source               }|-d-|| location           : FK2:fk_location_source
 synchronize          }|-d-|| source             : FK1:fk_source_sync_src
 synchronize          }|-d-|| source             : FK2:fk_source_sync_dst
 action_confirm       }o-d-|| file               : FK1:fk_action_file

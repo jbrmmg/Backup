@@ -61,6 +61,19 @@ databaseChangeLog:
             columnName: path
             tableName: source
 
+        - dropForeignKeyConstraint:
+            constraintName: fk_directory_file
+            baseTableName: file
+            baseColumnNames: directory_id
+
+        - dropColumn:
+            columnName: directory_id
+            tableName: file
+
+        - dropColumn:
+            columnName: name
+            tableName: file
+
         - dropColumn:
             columnName: destination
             tableName: source

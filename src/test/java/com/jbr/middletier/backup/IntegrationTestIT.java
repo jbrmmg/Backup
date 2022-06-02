@@ -276,7 +276,7 @@ public class IntegrationTestIT extends WebTester {
     @Test
     @Order(2)
     public void directory() {
-        LOG.info("Test the basic file object");
+        LOG.info("Test the basic directory object");
         Source testSource = createSource("./target/it_test/testing",1);
         DirectoryInfo directoryInfo = new DirectoryInfo();
         directoryInfo.setParentId(testSource);
@@ -319,6 +319,7 @@ public class IntegrationTestIT extends WebTester {
         }
         directoryRepository.delete(directoryInfo1);
         directoryRepository.delete(directoryInfo);
+        sourceRepository.delete(testSource);
     }
 
     @Test
@@ -353,5 +354,25 @@ public class IntegrationTestIT extends WebTester {
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(4)
+    public void file() throws Exception {
+        LOG.info("Test the basic file object");
+        Source testSource = createSource("./target/it_test/testing",1);
+        DirectoryInfo directoryInfo = new DirectoryInfo();
+        directoryInfo.setParentId(testSource);
+        directoryInfo.setName("test directory");
+        directoryInfo.clearRemoved();
+
+        directoryRepository.save(directoryInfo);
+
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setParentId(directoryInfo);
+        fileInfo.setName("Blah");
+        fileInfo.clearRemoved();
+
+        fileRepository.save(fileInfo);
     }
 }

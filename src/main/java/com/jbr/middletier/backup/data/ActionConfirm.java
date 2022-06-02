@@ -64,7 +64,7 @@ public class ActionConfirm {
         return "Action Confirmed [" +
                 this.id +
                 "] (" +
-                (this.fileInfo == null ? "No File" : this.fileInfo.getId().toString()) +
+                (this.fileInfo == null ? "No File" : this.fileInfo.getIdAndType().toString()) +
                 "," +
                 this.action +
                 "," +

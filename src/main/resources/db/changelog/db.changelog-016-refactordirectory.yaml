@@ -11,11 +11,6 @@ databaseChangeLog:
             baseTableName: directory
             baseColumnNames: source_id
 
-        - dropForeignKeyConstraint:
-            constraintName: fk_directory_file
-            baseTableName: file
-            baseColumnNames: directory_id
-
         - renameColumn:
             oldColumnName: id
             newColumnName: oldId

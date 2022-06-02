@@ -15,13 +15,13 @@ import java.util.Optional;
 
 @Repository
 public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSpecificationExecutor<FileInfo> {
-    Optional<FileInfo> findByDirectoryInfoAndName(DirectoryInfo directoryInfo, String name);
+//    Optional<FileInfo> findByDirectoryInfoAndName(DirectoryInfo directoryInfo, String name);
 
     List<FileInfo> findByName(String name);
 
+    /*
     List<FileInfo> findByDirectoryInfo(DirectoryInfo directoryInfo);
 
-    /*
     @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
             "f," +
             "d," +

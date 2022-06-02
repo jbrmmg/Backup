@@ -170,7 +170,7 @@ public class FileController {
         String fileMD5 = file.get().getMD5() != null ? file.get().getMD5() : "";
 
         for(FileInfo nextSameName: sameName) {
-            if(nextSameName.getId().equals(file.get().getId())) {
+            if(nextSameName.getIdAndType().equals(file.get().getIdAndType())) {
                 continue;
             }
 

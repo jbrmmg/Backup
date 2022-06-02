@@ -92,7 +92,7 @@ abstract class FileProcessor {
         // Get the file
         FileInfo newFile = new FileInfo();
         newFile.setName(path.getFileName().toString());
-        newFile.setDirectoryInfo(directory);
+        newFile.setParentId(directory);
         newFile.setClassification(classifyFile(newFile,classifications));
         newFile.setDate(fileDate);
         newFile.setSize(path.toFile().length());
@@ -178,7 +178,7 @@ abstract class FileProcessor {
         if(true)
             throw new IllegalStateException("fix this");
 //        newDirectoryInfo.setSource(source);
-        newDirectoryInfo.setParent(getParentDirectory(toBeUpdated));
+        newDirectoryInfo.setParentId(getParentDirectory(toBeUpdated));
         newDirectoryInfo.clearRemoved();
 
         directoryRepository.save(newDirectoryInfo);
@@ -260,7 +260,7 @@ abstract class FileProcessor {
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && next.getPath().getId().equals(node.getId())) {
+            if(next.confirmed() && next.getPath().getIdAndType().equals(node.getId())) {
                 LOG.info("Deleting the file {}", sourcePath);
 
                 try {

@@ -215,10 +215,10 @@ public class TestFiles extends WebTester {
             int id2 = -1;
             for (FileInfo next : fileRepository.findAll()) {
                 if (next.getName().equals("fileA.jpg")) {
-                    id1 = next.getId();
+                    id1 = next.getIdAndType().getId();
                 }
                 if (next.getName().equals("fileB.mov")) {
-                    id2 = next.getId();
+                    id2 = next.getIdAndType().getId();
                 }
             }
 
@@ -476,11 +476,12 @@ public class TestFiles extends WebTester {
 
             hierarchy.setId(1);
             for(FileInfo next: fileRepository.findAll()) {
-                LOG.info("{} {} {}", next.getId(), next.getDirectoryInfo().getIdAndType(), next.getFullFilename());
+                LOG.info("{} {} {}", next.getIdAndType().getId(), next.getParentId(), next.getFullFilename());
 
+                // TODO fix this
                 if(next.getFullFilename().contains("Sub/fileA.txt")) {
-                    LOG.info("Use this as underlying {}", next.getDirectoryInfo().getIdAndType());
-                    hierarchy.setUnderlyingId(next.getDirectoryInfo().getIdAndType().getId());
+                    LOG.info("Use this as underlying {}", next.getParentId().getId());
+                    hierarchy.setUnderlyingId(next.getParentId().getId());
                 }
             }
 
