@@ -49,4 +49,10 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-016-refactordirectory.yaml
 
   - include:
+      file: /db/changelog/db.changelog-017-refactorignore.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-018-refactorimport.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

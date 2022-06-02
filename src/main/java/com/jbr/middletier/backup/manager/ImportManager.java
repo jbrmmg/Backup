@@ -137,11 +137,11 @@ public class ImportManager extends FileProcessor {
     }
 
     private boolean processClassification(ImportFile importFile, Path path) {
-        if(importFile.getFileInfo().getClassification() == null) {
+        if(importFile.getClassification() == null) {
             return false;
         }
 
-        if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
+        if(!importFile.getClassification().getAction().equalsIgnoreCase("backup")) {
             LOG.info("{} not a backed up file, deleting", path);
             try {
                 Files.delete(path);
@@ -155,7 +155,7 @@ public class ImportManager extends FileProcessor {
     }
 
     private boolean processIgnored(ImportFile importFile, Path path) {
-        if(ignoreFile(importFile.getFileInfo())) {
+        if(ignoreFile(importFile)) {
             // Delete the file from import.
             LOG.info("{} marked for ignore, deleting", path);
             try {
@@ -183,7 +183,7 @@ public class ImportManager extends FileProcessor {
 //            }
 
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile.getFileInfo());
+            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
@@ -208,10 +208,10 @@ public class ImportManager extends FileProcessor {
         // If the parameter value is IGNORE then add this file to the ignore list.
         if(parameter.equalsIgnoreCase("ignore")) {
             IgnoreFile ignoreFile = new IgnoreFile();
-            ignoreFile.setDate(importFile.getFileInfo().getDate());
-            ignoreFile.setName(importFile.getFileInfo().getName());
-            ignoreFile.setSize(importFile.getFileInfo().getSize());
-            ignoreFile.setMD5(importFile.getFileInfo().getMD5());
+            ignoreFile.setDate(importFile.getDate());
+            ignoreFile.setName(importFile.getName());
+            ignoreFile.setSize(importFile.getSize());
+            ignoreFile.setMD5(importFile.getMD5());
 
             ignoreFileRepository.save(ignoreFile);
 
@@ -267,7 +267,7 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get the path to the import file.
-        Path path = new File(importFile.getFileInfo().getFullFilename()).toPath();
+        Path path = new File(importFile.getFullFilename()).toPath();
 
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(!processClassification(importFile,path)) {
@@ -275,10 +275,11 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get details of the file to import.
-        if(importFile.getFileInfo().getMD5() == null || importFile.getFileInfo().getMD5().length() <= 0) {
-            importFile.getFileInfo().setMD5(getMD5(path, importFile.getFileInfo().getClassification()));
+        if(importFile.getMD5() == null || importFile.getMD5().length() <= 0) {
+            importFile.setMD5(getMD5(path, importFile.getClassification()));
 
-            fileRepository.save(importFile.getFileInfo());
+            // TODO - fix this
+            fileRepository.save(importFile);
         }
 
         // Is this file being ignored?
@@ -294,13 +295,13 @@ public class ImportManager extends FileProcessor {
 
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile.getFileInfo(),"IMPORT");
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile,"IMPORT");
         if(!confirmedActions.isEmpty()) {
             processImportActions(importFile,path,confirmedActions,source);
         } else {
             // Create an action to be confirmed.
             ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setFileInfo(importFile.getFileInfo());
+            actionConfirm.setFileInfo(importFile);
             actionConfirm.setAction("IMPORT");
             actionConfirm.setConfirmed(false);
             actionConfirm.setParameterRequired(true);
@@ -331,7 +332,7 @@ public class ImportManager extends FileProcessor {
         }
 
         for(ImportFile nextFile: importFileRepository.findAll()) {
-            LOG.info(nextFile.getFileInfo().getFullFilename());
+            LOG.info(nextFile.getFullFilename());
 
             processImport(nextFile,destination.get());
 
@@ -344,13 +345,13 @@ public class ImportManager extends FileProcessor {
         // Remove entries from import table if they are no longer present.
         for (ImportFile nextFile : importFileRepository.findAll()) {
             // Does this file still exist?
-            File existingFile = new File(nextFile.getFileInfo().getFullFilename());
+            File existingFile = new File(nextFile.getFullFilename());
 
             if(!existingFile.exists()) {
-                LOG.info("Remove this import file - {}", nextFile.getFileInfo().getFullFilename());
+                LOG.info("Remove this import file - {}", nextFile.getFullFilename());
                 importFileRepository.delete(nextFile);
             } else {
-                LOG.info("Keeping {}", nextFile.getFileInfo().getFullFilename());
+                LOG.info("Keeping {}", nextFile.getFullFilename());
             }
         }
     }
@@ -399,7 +400,8 @@ public class ImportManager extends FileProcessor {
     void newFileInserted(FileInfo newFile) {
         ImportFile newImportFile = new ImportFile();
         newImportFile.setStatus("READ");
-        newImportFile.setFileInfo(newFile);
+        //TODO - fix this
+//        newImportFile.setFileInfo(newFile);
 
         importFileRepository.save(newImportFile);
     }

@@ -86,7 +86,7 @@ public class TestEmail extends WebTester  {
 
             FileInfo file = new FileInfo();
             file.setName("Test");
-            file.setDirectoryInfo(directory);
+//            file.setDirectoryInfo(directory);
             file.clearRemoved();
             fileRepository.save(file);
 

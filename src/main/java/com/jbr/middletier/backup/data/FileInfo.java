@@ -10,6 +10,7 @@ import java.util.List;
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
 @Table(name="file")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class FileInfo extends FileSystemObject {
     @JoinColumn(name="classificationId")
     @ManyToOne(optional = true)
@@ -33,6 +34,10 @@ public class FileInfo extends FileSystemObject {
 
     public FileInfo() {
         super(FileSystemObjectType.FSO_FILE);
+    }
+
+    protected FileInfo(@NotNull FileSystemObjectType type) {
+        super(type);
     }
 
     public void setName(String name) { this.name = name; }
