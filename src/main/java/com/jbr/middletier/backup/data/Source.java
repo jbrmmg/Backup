@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
 @Table(name="source")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Source extends FileSystemObject {
     @JoinColumn(name="location")
     @ManyToOne(optional = true)
@@ -22,9 +23,8 @@ public class Source extends FileSystemObject {
     @Column(name="source_type")
     private String sourceType;
 
-    protected Source(boolean unused, String sourceType) {
-        super(FileSystemObjectType.FSO_SOURCE);
-        this.sourceType = sourceType;
+    protected Source(FileSystemObjectType sourceType) {
+        super(sourceType);
     }
 
     public Source() {

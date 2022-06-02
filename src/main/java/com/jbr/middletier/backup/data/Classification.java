@@ -11,7 +11,7 @@ import javax.persistence.*;
 public class Classification {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "classification_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name="\"order\"")

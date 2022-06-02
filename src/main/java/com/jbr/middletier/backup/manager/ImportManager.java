@@ -89,7 +89,7 @@ public class ImportManager extends FileProcessor {
 
         // Create a source to match this import
         ImportSource importSource = new ImportSource(importRequest.getPath());
-        importSource.setDestinationId(source.get().getIdAndType().getId());
+        importSource.setDestination(source.get());
         importSource.setLocation(importLocation.get());
 
         sourceRepository.save(importSource);
@@ -326,7 +326,8 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get the place they are to be imported to.
-        Optional<Source> destination = sourceRepository.findById(source.get().getDestinationId());
+        //TODO - this can use the object already loaded.
+        Optional<Source> destination = sourceRepository.findById(source.get().getDestination().getIdAndType().getId());
         if(!destination.isPresent()) {
             throw new ImportRequestException("Destination for import is not found.");
         }

@@ -3,39 +3,40 @@ package com.jbr.middletier.backup.data;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
-@Table(name="imp_source")
+@Table(name="import_source")
 public class ImportSource extends Source {
-    @Column(name="destination")
-    private Integer destinationId;
+    @JoinColumn(name="destination")
+    @ManyToOne
+    private Source destination;
 
     public ImportSource() {
-        super(true, "IMP");
+        super(FileSystemObjectType.FSO_IMPORT_SOURCE);
     }
 
     public ImportSource(String path) {
-        super(true, "IMP");
+        super(FileSystemObjectType.FSO_IMPORT_SOURCE);
         setPath(path);
     }
 
     public ImportSource(ImportSourceDTO source) {
         this();
         update(source);
-        this.destinationId = source.getDestinationId();
+        // TODO - fix this
+//        this.destinationId = source.getDestinationId();
     }
 
     public ImportSourceDTO getImportSourceDTO() {
         ImportSourceDTO result = new ImportSourceDTO(getSourceDTO());
-        result.setDestinationId(getDestinationId());
+        // TODO - fix this
+//        result.setDestinationId(getDestinationId());
 
         return result;
     }
 
-    public Integer getDestinationId() { return this.destinationId; }
+    public Source getDestination() { return this.destination; }
 
-    public void setDestinationId(Integer id) { this.destinationId = id; }
+    public void setDestination(Source destination) { this.destination = destination; }
 }

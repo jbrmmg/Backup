@@ -79,7 +79,7 @@ databaseChangeLog:
             tableName: source
 
         - createTable:
-            tableName: imp_source
+            tableName: import_source
             columns:
               - column:
                   name: id
@@ -107,7 +107,7 @@ databaseChangeLog:
 
         - addForeignKeyConstraint:
             constraintName: fk_imp_source
-            baseTableName: imp_source
+            baseTableName: import_source
             baseColumnNames: id
             referencedTableName: source
             referencedColumnNames: id
