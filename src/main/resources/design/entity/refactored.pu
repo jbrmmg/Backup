@@ -79,7 +79,7 @@ entity source {
 entity import_source {
   * **id : int //(FK1)//**
   ==
-  destination : int **FK**
+  destination : int **//(FK2)//**
   --type indicator--
   //IMPS//
 }
@@ -151,6 +151,7 @@ video_file           |o-r-|| file               : FK1:fk_file_video
 ignore_file          |o-r-|| file               : FK1:fk_file_ignore
 import_file          |o-l-|| file               : FK1:fk_file_import
 import_source        ||-u-o| source             : FK1:fk_source_import
+import_source        ||-u-o| source             : FK2:fk_destination_import
 file                 }|-l-|| classification     : FK2:fk_classification_file
 source               }|-d-|| location           : FK2:fk_location_source
 synchronize          }|-d-|| source             : FK1:fk_source_sync_src

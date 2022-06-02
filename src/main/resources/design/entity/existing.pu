@@ -10,7 +10,7 @@ entity action_confirm {
    confirmed : bit(1)
    parameter_required : bit(1)
    parameter : varchar(50)
-   file_id : int **FK1**
+   file_id : int **//(FK1)//**
    flags : varchar(10)
 }
 
@@ -18,8 +18,8 @@ entity file {
    * **id : int <<generated>>**
    * **name : varchar(200)**
    ==
-   directory_id : int **FK1**
-   classification_id : int **FK2**
+   directory_id : int **//(FK1)//**
+   classification_id : int **//(FK2)//**
    size : int
    date : datetime
    removed : bit(1)
@@ -30,7 +30,7 @@ entity file {
 entity directory {
   * **id : int <<generated>>**
   ==
-  source_id : int **FK1**
+  source_id : int **//(FK1)//**
   path : varchar(200)
   removed : bit(1)
 }
@@ -80,7 +80,7 @@ entity import_file {
   * **id : int <<generated>>**
   ==
   status : varchar(20)
-  file_id : int **FK1**
+  file_id : int **//(FK1)//**
 }
 
 entity location {
@@ -95,7 +95,7 @@ entity source {
   * **id : int**
   ==
   path : varchar(200)
-  location : int **FK1**
+  location : int **//(FK1)//**
   status : varchar(15)
   filter : varchar(60)
   destination : int
@@ -105,8 +105,8 @@ entity source {
 entity synchronize {
  * **id : int**
  ==
- source : int **FK2**
- destination : int **FK1**
+ source : int **//(FK2)//**
+ destination : int **//(FK1)//**
 }
 
 action_confirm }o--|| file           : FK1:fk_action_file
