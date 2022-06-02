@@ -147,7 +147,7 @@ file                 |o-r-|| file_system_object : FK1:fk_fso_file
 directory            |o-r-|| file_system_object : FK1:fk_fso_directory
 source               |o-r-|| file_system_object : FK1:fk_fso_source
 image_file           |o-r-|| file               : FK1:fk_file_image
-video_file           |o-l-|| file               : FK1:fk_file_video
+video_file           |o-r-|| file               : FK1:fk_file_video
 ignore_file          |o-r-|| file               : FK1:fk_file_ignore
 import_file          |o-l-|| file               : FK1:fk_file_import
 import_source        ||-u-o| source             : FK1:fk_source_import
