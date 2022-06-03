@@ -85,7 +85,7 @@ public class FsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(1000000)))
+                .andExpect(jsonPath("$[0].idAndType.id", is(1000000)))
                 .andExpect(jsonPath("$[0].path", is("/target/testfiles/gather1")))
                 .andExpect(jsonPath("$[0].filter", is("filter")))
                 .andExpect(jsonPath("$[0].status", is("OK")))
@@ -112,7 +112,7 @@ public class FsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(1000000)))
+                .andExpect(jsonPath("$[0].idAndType.id", is(1000000)))
                 .andExpect(jsonPath("$[0].path", is("/target/testfiles/gather2")))
                 .andExpect(jsonPath("$[0].filter", is("filter2")))
                 .andExpect(jsonPath("$[0].status", is("ERROR")))
@@ -150,7 +150,7 @@ public class FsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(1000001)));
+                .andExpect(jsonPath("$[0].idAndType.id", is(1000001)));
 
         LOG.info("Delete the remaining source.");
         source = new SourceDTO();

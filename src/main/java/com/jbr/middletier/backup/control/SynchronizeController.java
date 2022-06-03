@@ -1,6 +1,8 @@
 package com.jbr.middletier.backup.control;
 
+import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.data.Synchronize;
+import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import com.jbr.middletier.backup.exception.InvalidSynchronizeIdException;
@@ -21,10 +23,13 @@ public class SynchronizeController {
 
     private final SynchronizeRepository synchronizeRepository;
 
+    private final SourceRepository sourceRepository;
+
     @Contract(pure = true)
     @Autowired
-    public SynchronizeController(SynchronizeRepository synchronizeRepository) {
+    public SynchronizeController(SynchronizeRepository synchronizeRepository, SourceRepository sourceRepository) {
         this.synchronizeRepository = synchronizeRepository;
+        this.sourceRepository = sourceRepository;
     }
 
     @GetMapping(path="/synchronize")
@@ -40,7 +45,21 @@ public class SynchronizeController {
             throw new SynchronizeAlreadyExistsException(existing.get().getId());
         }
 
-        synchronizeRepository.save(new Synchronize(synchronize));
+        // Create a new Synchronize object.
+        Synchronize newSync = new Synchronize(synchronize);
+
+        // The source and destination need to be existing.
+        Optional<Source> source = sourceRepository.findById(synchronize.getSource().getId());
+        Optional<Source> destination = sourceRepository.findById(synchronize.getDestination().getId());
+
+        if(!source.isPresent() || !destination.isPresent()) {
+            //TODO - fail properly.
+            return synchronizeRepository.findAll();
+        }
+
+        newSync.setSource(source.get());
+        newSync.setDestination(destination.get());
+        synchronizeRepository.save(newSync);
 
         return synchronizeRepository.findAll();
     }
@@ -53,6 +72,19 @@ public class SynchronizeController {
         }
 
         existing.get().update(synchronize);
+
+        // The source and destination need to be existing.
+        Optional<Source> source = sourceRepository.findById(synchronize.getSource().getId());
+        Optional<Source> destination = sourceRepository.findById(synchronize.getDestination().getId());
+
+        if(!source.isPresent() || !destination.isPresent()) {
+            //TODO - fail properly.
+            return synchronizeRepository.findAll();
+        }
+
+        existing.get().setSource(source.get());
+        existing.get().setDestination(destination.get());
+
         synchronizeRepository.save(existing.get());
 
         return synchronizeRepository.findAll();
