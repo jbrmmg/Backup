@@ -62,7 +62,7 @@ public class ImportController {
     public @ResponseBody Iterable<ImportFile> getImportFiles() {
         LOG.info("Get the import files.");
 
-        return importFileRepository.findAll();
+        return importFileRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping(path="/importfiles")
@@ -76,6 +76,6 @@ public class ImportController {
             importFileRepository.save(nextImport);
         }
 
-        return importFileRepository.findAll();
+        return importFileRepository.findAllByOrderByIdAsc();
     }
 }

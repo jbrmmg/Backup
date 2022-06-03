@@ -30,7 +30,7 @@ public class ClassificationController {
     @GetMapping(path="/classification")
     public @ResponseBody Iterable<Classification> getClassification() {
         LOG.info("Get the classifications.");
-        return classificationRepository.findAll();
+        return classificationRepository.findAllByOrderByIdAsc();
     }
 
     @PostMapping(path="/classification")
@@ -41,7 +41,7 @@ public class ClassificationController {
 
         classificationRepository.save(new Classification(classification));
 
-        return classificationRepository.findAll();
+        return classificationRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping(path="/classification")
@@ -55,7 +55,7 @@ public class ClassificationController {
 
         classificationRepository.save(existing.get());
 
-        return classificationRepository.findAll();
+        return classificationRepository.findAllByOrderByIdAsc();
     }
 
     @DeleteMapping(path="/classification")
@@ -67,6 +67,6 @@ public class ClassificationController {
 
         classificationRepository.deleteById(classification.getId());
 
-        return classificationRepository.findAll();
+        return classificationRepository.findAllByOrderByIdAsc();
     }
 }

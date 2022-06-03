@@ -150,5 +150,52 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
+
+        sourceRepository.delete(newSource1);
+        sourceRepository.delete(newSource2);
+        locationRepository.delete(newLocation);
+    }
+
+    @Test
+    @Order(2)
+    public void locationApi() throws Exception {
+        LocationDTO location = new LocationDTO();
+        location.setId(10);
+        location.setName("Test");
+        location.setSize("1GB");
+
+        LOG.info("Create a location.");
+        getMockMvc().perform(post("/jbr/ext/backup/location")
+                        .content(this.json(location))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        LOG.info("Get the location that was created");
+        getMockMvc().perform(get("/jbr/ext/backup/location")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$[4].id", is(location.getId())))
+                .andExpect(jsonPath("$[4].name", is(location.getName())))
+                .andExpect(jsonPath("$[4].size", is(location.getSize())));
+
+        LOG.info("Modify the location.");
+        location.setSize("2GB");
+        getMockMvc().perform(put("/jbr/ext/backup/location")
+                        .content(this.json(location))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/ext/backup/location")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[4].size", is(location.getSize())));
+
+        LOG.info("Delete the location.");
+        getMockMvc().perform(delete("/jbr/ext/backup/location")
+                        .content(this.json(location))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)));
     }
 }

@@ -35,7 +35,7 @@ public class SynchronizeController {
     @GetMapping(path="/synchronize")
     public @ResponseBody Iterable<Synchronize> getSynchronize() {
         LOG.info("Get the synchronize");
-        return synchronizeRepository.findAll();
+        return synchronizeRepository.findAllByOrderByIdAsc();
     }
 
     @PostMapping(path="/synchronize")
@@ -54,14 +54,14 @@ public class SynchronizeController {
 
         if(!source.isPresent() || !destination.isPresent()) {
             //TODO - fail properly.
-            return synchronizeRepository.findAll();
+            return synchronizeRepository.findAllByOrderByIdAsc();
         }
 
         newSync.setSource(source.get());
         newSync.setDestination(destination.get());
         synchronizeRepository.save(newSync);
 
-        return synchronizeRepository.findAll();
+        return synchronizeRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping(path="/synchronize")
@@ -79,7 +79,7 @@ public class SynchronizeController {
 
         if(!source.isPresent() || !destination.isPresent()) {
             //TODO - fail properly.
-            return synchronizeRepository.findAll();
+            return synchronizeRepository.findAllByOrderByIdAsc();
         }
 
         existing.get().setSource(source.get());
@@ -87,7 +87,7 @@ public class SynchronizeController {
 
         synchronizeRepository.save(existing.get());
 
-        return synchronizeRepository.findAll();
+        return synchronizeRepository.findAllByOrderByIdAsc();
     }
 
     @DeleteMapping(path="/synchronize")
@@ -99,6 +99,6 @@ public class SynchronizeController {
 
         synchronizeRepository.deleteById(synchronize.getId());
 
-        return synchronizeRepository.findAll();
+        return synchronizeRepository.findAllByOrderByIdAsc();
     }
 }

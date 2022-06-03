@@ -58,7 +58,7 @@ public class FileController {
 
     @GetMapping(path="/files")
     public @ResponseBody
-    Iterable<FileInfo> getFiles() { return fileRepository.findAll(); }
+    Iterable<FileInfo> getFiles() { return fileRepository.findAllByOrderByIdAsc(); }
 
     @PostMapping(path="/gather")
     public @ResponseBody OkStatus gather(@RequestBody String reason) throws IOException {

@@ -44,7 +44,7 @@ public class HardwareController {
     @GetMapping()
     public @ResponseBody Iterable<Hardware> hardware() {
         LOG.info("List hardware.");
-        return hardwareRepository.findAll();
+        return hardwareRepository.findAllByOrderByMacAddressAsc();
     }
 
     @PutMapping()

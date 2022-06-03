@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dataaccess;
 
 import com.jbr.middletier.backup.data.Backup;
+import com.jbr.middletier.backup.data.Location;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -10,4 +11,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface BackupRepository extends CrudRepository<Backup, String>, JpaSpecificationExecutor<Backup> {
+    Iterable<Backup> findAllByOrderByIdAsc();
 }

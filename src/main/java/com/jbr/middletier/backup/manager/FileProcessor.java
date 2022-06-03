@@ -350,7 +350,7 @@ abstract class FileProcessor {
         for(DirectoryInfo next: directories) {
             FileTreeNode nextNode = result.addChild(next);
 
-            List<FileInfo> files = fileRepository.findByDirectoryInfo(next);
+            List<FileInfo> files = fileRepository.findByParentId(next.getIdAndType().getId());
 
             for(FileInfo nextFile: files) {
                 nextNode.addChild(nextFile);

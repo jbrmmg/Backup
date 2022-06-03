@@ -30,7 +30,7 @@ public class SourceController {
     @GetMapping(path="/source")
     public @ResponseBody Iterable<Source> getSource() {
         LOG.info("Get the source");
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 
     @PostMapping(path="/source")
@@ -41,7 +41,7 @@ public class SourceController {
 
         sourceRepository.save(new Source(source));
 
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping(path="/source")
@@ -54,7 +54,7 @@ public class SourceController {
         existing.get().update(source);
         sourceRepository.save(existing.get());
 
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 
     @DeleteMapping(path="/source")
@@ -66,6 +66,6 @@ public class SourceController {
 
         sourceRepository.deleteById(source.getId());
 
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 }

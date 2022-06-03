@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.dataaccess;
 
 import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.SynchronizeStatus;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,9 +20,11 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
 
     List<FileInfo> findByName(String name);
 
-    /*
-    List<FileInfo> findByDirectoryInfo(DirectoryInfo directoryInfo);
+    Iterable<FileInfo> findAllByOrderByIdAsc();
 
+    List<FileInfo> findByParentId(Integer parentId);
+
+    /*
     @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +
             "f," +
             "d," +

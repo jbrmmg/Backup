@@ -56,7 +56,7 @@ public class ActionController {
     public @ResponseBody Iterable<IgnoreFile> getIgnoreFiles() {
         LOG.info("Get ignore files");
 
-        return ignoreFileRepository.findAll();
+        return ignoreFileRepository.findAllByOrderByIdAsc();
     }
 
     @PostMapping(path="/actions")
