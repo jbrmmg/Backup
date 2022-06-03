@@ -4,6 +4,7 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.dto.ClassificationDTO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
@@ -82,6 +83,9 @@ public class SyncApiIT extends WebTester  {
 
     @Autowired
     FileRepository fileRepository;
+
+    @Autowired
+    ClassificationRepository classificationRepository;
 
     private void deleteDirectoryContents(Path path) throws IOException {
         if(!Files.exists(path))
@@ -226,6 +230,22 @@ public class SyncApiIT extends WebTester  {
     @Order(1)
     public void synchronise() throws Exception {
         LOG.info("Synchronize Testing");
+
+        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
+            if(nextClassification.getRegex().contains("jpg")) {
+                ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setIcon(nextClassification.getIcon());
+                updateClassification.setRegex(nextClassification.getRegex());
+                updateClassification.setAction(nextClassification.getAction());
+                updateClassification.setVideo(nextClassification.getIsVideo());
+                updateClassification.setOrder(1);
+                updateClassification.setId(nextClassification.getId());
+                updateClassification.setUseMD5(true);
+
+                nextClassification.update(updateClassification);
+                classificationRepository.save(nextClassification);
+            }
+        }
 
         // During this test create files in the following directories
         String sourceDirectory = "./target/it_test/source";
