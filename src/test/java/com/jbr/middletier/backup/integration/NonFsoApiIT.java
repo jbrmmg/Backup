@@ -225,6 +225,15 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$[0].ip", is(hardwareDTO.getIp())))
                 .andExpect(jsonPath("$[0].reservedIP", is(hardwareDTO.getReservedIP())));
 
+        LOG.info("Get the hardware that was created");
+        getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=" + hardwareDTO.getMacAddress())
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("macAddress", is(hardwareDTO.getMacAddress())))
+                .andExpect(jsonPath("name", is(hardwareDTO.getName())))
+                .andExpect(jsonPath("ip", is(hardwareDTO.getIp())))
+                .andExpect(jsonPath("reservedIP", is(hardwareDTO.getReservedIP())));
+
         LOG.info("Modify the hardware.");
         hardwareDTO.setIp("12.231.9.22");
         getMockMvc().perform(put("/jbr/ext/hardware")
