@@ -6,10 +6,7 @@ import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
-import com.jbr.middletier.backup.dto.HardwareDTO;
-import com.jbr.middletier.backup.dto.LocationDTO;
-import com.jbr.middletier.backup.dto.SourceDTO;
-import com.jbr.middletier.backup.dto.SynchronizeDTO;
+import com.jbr.middletier.backup.dto.*;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -249,6 +246,120 @@ public class NonFsoApiIT extends WebTester {
         LOG.info("Delete the hardware.");
         getMockMvc().perform(delete("/jbr/ext/hardware")
                         .content(this.json(hardwareDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(4)
+    public void backupApi() throws Exception {
+        BackupDTO backupDTO = new BackupDTO();
+        backupDTO.setId("TXST");
+        backupDTO.setTime(100);
+        backupDTO.setBackupName("Test");
+        backupDTO.setArtifact("Alpha");
+        backupDTO.setDirectory("/test");
+        backupDTO.setFileName("fred.txt");
+        backupDTO.setType("XXXX");
+
+        LOG.info("Create a backup.");
+        getMockMvc().perform(post("/jbr/ext/backup")
+                        .content(this.json(backupDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        LOG.info("Get the hardware that was created");
+        getMockMvc().perform(get("/jbr/ext/backup")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(backupDTO.getId())))
+                .andExpect(jsonPath("$[0].time", is((int)backupDTO.getTime())))
+                .andExpect(jsonPath("$[0].backupName", is(backupDTO.getBackupName())))
+                .andExpect(jsonPath("$[0].artifact", is(backupDTO.getArtifact())))
+                .andExpect(jsonPath("$[0].directory", is(backupDTO.getDirectory())))
+                .andExpect(jsonPath("$[0].fileName", is(backupDTO.getFileName())))
+                .andExpect(jsonPath("$[0].type", is(backupDTO.getType())));
+
+        LOG.info("Get the hardware that was created");
+        getMockMvc().perform(get("/jbr/ext/backup/byId?id=" + backupDTO.getId())
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id", is(backupDTO.getId())))
+                .andExpect(jsonPath("time", is((int)backupDTO.getTime())))
+                .andExpect(jsonPath("backupName", is(backupDTO.getBackupName())))
+                .andExpect(jsonPath("artifact", is(backupDTO.getArtifact())))
+                .andExpect(jsonPath("directory", is(backupDTO.getDirectory())))
+                .andExpect(jsonPath("fileName", is(backupDTO.getFileName())))
+                .andExpect(jsonPath("type", is(backupDTO.getType())));
+
+        LOG.info("Modify the hardware.");
+        backupDTO.setFileName("fred.prep.txt");
+        getMockMvc().perform(put("/jbr/ext/backup")
+                        .content(this.json(backupDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/ext/backup")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].fileName", is(backupDTO.getFileName())));
+
+        LOG.info("Delete the hardware.");
+        getMockMvc().perform(delete("/jbr/ext/backup")
+                        .content(this.json(backupDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(5)
+    public void classificationApi() throws Exception {
+        ClassificationDTO classificationDTO = new ClassificationDTO();
+        classificationDTO.setVideo(false);
+        classificationDTO.setOrder(1);
+        classificationDTO.setUseMD5(true);
+        classificationDTO.setAction("Help");
+        classificationDTO.setRegex("*/sdaf");
+        classificationDTO.setIcon("Flahr");
+        classificationDTO.setType("Test");
+        classificationDTO.setImage(true);
+
+        LOG.info("Create a classification.");
+        getMockMvc().perform(post("/jbr/ext/backup/classification")
+                        .content(this.json(classificationDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        LOG.info("Get the classification that was created");
+        getMockMvc().perform(get("/jbr/ext/backup/classification")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(33)))
+                .andExpect(jsonPath("$[32].id", is(33)))
+                .andExpect(jsonPath("$[32].isVideo", is(classificationDTO.getVideo())))
+                .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction())))
+                .andExpect(jsonPath("$[32].useMD5", is(classificationDTO.getUseMD5())))
+                .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
+                .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())))
+                .andExpect(jsonPath("$[32].isImage", is(classificationDTO.getImage())));
+
+        LOG.info("Modify the classification.");
+        classificationDTO.setId(33);
+        classificationDTO.setIcon("FlahrXX");
+        getMockMvc().perform(put("/jbr/ext/backup/classification")
+                        .content(this.json(classificationDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/ext/backup/classification")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())));
+
+        LOG.info("Delete the hardware.");
+        getMockMvc().perform(delete("/jbr/ext/backup/classification")
+                        .content(this.json(classificationDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
     }
