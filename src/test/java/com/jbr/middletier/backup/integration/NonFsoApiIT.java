@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
+import com.jbr.middletier.backup.dto.HardwareDTO;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
@@ -197,5 +198,49 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(4)));
+    }
+
+    @Test
+    @Order(3)
+    public void hardwareApi() throws Exception {
+        HardwareDTO hardwareDTO = new HardwareDTO();
+        hardwareDTO.setMacAddress("01:02:04:06:A2:49");
+        hardwareDTO.setName("Test");
+        hardwareDTO.setIp("12.231.9.2");
+        hardwareDTO.setReservedIP("Y");
+
+        LOG.info("Create a hardware.");
+        getMockMvc().perform(post("/jbr/ext/hardware")
+                        .content(this.json(hardwareDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        LOG.info("Get the hardware that was created");
+        getMockMvc().perform(get("/jbr/ext/hardware")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].macAddress", is(hardwareDTO.getMacAddress())))
+                .andExpect(jsonPath("$[0].name", is(hardwareDTO.getName())))
+                .andExpect(jsonPath("$[0].ip", is(hardwareDTO.getIp())))
+                .andExpect(jsonPath("$[0].reservedIP", is(hardwareDTO.getReservedIP())));
+
+        LOG.info("Modify the hardware.");
+        hardwareDTO.setIp("12.231.9.22");
+        getMockMvc().perform(put("/jbr/ext/hardware")
+                        .content(this.json(hardwareDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/ext/hardware")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].ip", is(hardwareDTO.getIp())));
+
+        LOG.info("Delete the hardware.");
+        getMockMvc().perform(delete("/jbr/ext/hardware")
+                        .content(this.json(hardwareDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
     }
 }
