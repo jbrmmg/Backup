@@ -85,7 +85,7 @@ public class FileInfo extends FileSystemObject {
 
         result.add(getName());
 
-        // TODO fix this
+        // TODO fix this (remove the need for it)
 //        FileSystemObject parent = getDirectoryInfo().getParent();
 //        while(parent != null) {
 //            result.add(parent.name);

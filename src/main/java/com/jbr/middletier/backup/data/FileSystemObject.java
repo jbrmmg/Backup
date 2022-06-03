@@ -54,11 +54,11 @@ public class FileSystemObject {
 
     public void setParentId(FileSystemObject parent) {
         if(parent == null) {
-            this.id = null;
-            this.type = null;
+            this.parentId = null;
+            this.parentType = null;
+            return;
         }
 
-        assert parent != null;
         FileSystemObjectId parentId = parent.getIdAndType();
         this.parentId = parentId.getId();
         this.parentType = parentId.getType().getTypeName();

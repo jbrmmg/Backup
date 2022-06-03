@@ -2,12 +2,9 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
-import com.jbr.middletier.backup.data.Location;
-import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.data.Synchronize;
-import com.jbr.middletier.backup.dataaccess.LocationRepository;
-import com.jbr.middletier.backup.dataaccess.SourceRepository;
-import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.*;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -80,6 +77,12 @@ public class SyncApiIT extends WebTester  {
     @Autowired
     LocationRepository locationRepository;
 
+    @Autowired
+    DirectoryRepository directoryRepository;
+
+    @Autowired
+    FileRepository fileRepository;
+
     private void deleteDirectoryContents(Path path) throws IOException {
         if(!Files.exists(path))
             return;
@@ -95,6 +98,7 @@ public class SyncApiIT extends WebTester  {
         public final String directory;
         public final String destinationName;
         public final Date dateTime;
+        public boolean checked;
 
         public StructureDescription(String description) throws ParseException {
             String[] structureItems = description.split("\\s+");
@@ -105,6 +109,8 @@ public class SyncApiIT extends WebTester  {
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
             this.dateTime = sdf.parse(structureItems[3]);
+
+            checked = false;
         }
     }
 
@@ -159,6 +165,63 @@ public class SyncApiIT extends WebTester  {
         }
     }
 
+    private void validateSource(Source source, List<StructureDescription> structure) {
+        // TODO - check what was gathered was expected.
+        // Get the directories and files that were found.
+        Iterable<DirectoryInfo> directories = directoryRepository.findAllByOrderByIdAsc();
+        Iterable<FileInfo> files = fileRepository.findAllByOrderByIdAsc();
+
+        // How many directories are expected?
+        List<String> expectedDirectories = new ArrayList<>();
+        for(StructureDescription nextFile : structure) {
+            String[] elements = nextFile.directory.split("/");
+            String fullPath = elements[0];
+            boolean skippedFirst = false;
+            for(String nextElement: elements) {
+                if(skippedFirst) {
+                    fullPath = fullPath + "/" + nextElement;
+                }
+
+                if(!expectedDirectories.contains(fullPath)) {
+                    expectedDirectories.add(fullPath);
+                }
+
+                skippedFirst = true;
+            }
+        }
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>();
+        directories.forEach(dbDirectories::add);
+
+        Assert.assertEquals(expectedDirectories.size(), dbDirectories.size());
+
+        DirectoryTree structureTree = new DirectoryTree(expectedDirectories);
+        DirectoryTree dbTree = new DirectoryTree(source, directoryRepository);
+
+        dbTree.AssertExpected(structureTree);
+
+        // Check each file that is in the database.
+        int fileCount = 0;
+        for(FileInfo nextFile : files) {
+            fileCount++;
+
+            // Find this file in the structure.
+            boolean found = false;
+            for(StructureDescription nextExpectedFile : structure) {
+                int expectedParentId = dbTree.FindDirectory(nextExpectedFile.directory);
+
+                if(nextFile.getName().equals(nextExpectedFile.destinationName) && nextFile.getParentId().getId() == expectedParentId) {
+                    found = true;
+                    Assert.assertEquals(nextExpectedFile.dateTime,nextFile.getDate());
+                    nextExpectedFile.checked = true;
+                }
+            }
+            Assert.assertTrue(found);
+        }
+
+        Assert.assertEquals(structure.size(), fileCount);
+    }
+
     @Test
     @Order(1)
     public void synchronise() throws Exception {
@@ -192,6 +255,18 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        // TODO - check what was gathered was expected.
+        validateSource(synchronize.getSource(),sourceDescription);
+
+        // Update the directory structure
+        sourceDescription = getTestStructure("test2");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(synchronize.getSource(),sourceDescription);
     }
 }
