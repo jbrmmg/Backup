@@ -206,11 +206,6 @@ abstract class FileProcessor {
     }
 
     private void performDatabaseUpdate(Source source, FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
-        // If they are equal then nothing more to do on this node.
-        if(compare.getCompareStatus() == FileTreeNode.CompareStatusType.EQUAL) {
-            return;
-        }
-
         // If adding, then add now and then the children.
         if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.ADDED) ||
                 (compare.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) ||

@@ -45,9 +45,9 @@ public class RootFileTreeNode extends FileTreeNode {
         return getCount(this);
     }
 
-    public void compare(FileTreeNode result, FileTreeNode rhs) {
+    public static void compare(FileTreeNode result, FileTreeNode lhs, FileTreeNode rhs) {
         // Compare the children.
-        for(FileTreeNode next: getChildren()) {
+        for(FileTreeNode next: lhs.getChildren()) {
             // Does the rhs have this child?
             FileTreeNode rhsChild = rhs.getNamedChild(next.name);
 
@@ -59,8 +59,8 @@ public class RootFileTreeNode extends FileTreeNode {
                 FileTreeNode resultChild = result.addChild(rhsChild, next);
 
                 // Set the status
-                if (next.isDirectory() == rhs.isDirectory()) {
-                    // Both are the same.
+                if (next.isDirectory() == rhsChild.isDirectory()) {
+                    // Both are the same
                     resultChild.compareStatus = CompareStatusType.EQUAL;
                 } else if(next.isDirectory()) {
                     // Gone from file to directory
@@ -71,13 +71,13 @@ public class RootFileTreeNode extends FileTreeNode {
                 }
 
                 // Process the children
-                compare(resultChild, rhsChild);
+                compare(resultChild, next, rhsChild);
             }
         }
 
         // Check for children not on the rhs
         for(FileTreeNode next: rhs.getChildren()) {
-            FileTreeNode lhsChild = this.getNamedChild(next.name);
+            FileTreeNode lhsChild = lhs.getNamedChild(next.name);
 
             if(lhsChild == null) {
                 // Create an entry on the result.
@@ -96,7 +96,7 @@ public class RootFileTreeNode extends FileTreeNode {
 
         RootFileTreeNode result = new RootFileTreeNode(this);
         result.compareStatus = CompareStatusType.EQUAL;
-        compare(result,rhs);
+        compare(result,this,rhs);
         return result;
     }
 
