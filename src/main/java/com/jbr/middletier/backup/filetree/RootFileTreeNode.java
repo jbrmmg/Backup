@@ -88,9 +88,9 @@ public class RootFileTreeNode extends FileTreeNode {
 
     public RootFileTreeNode compare(RootFileTreeNode rhs) {
         // Firstly the two roots must be for the same location.
-        if(!this.rootDirectory.equals(rhs.rootDirectory)) {
+        if (!this.rootDirectory.equals(rhs.rootDirectory)) {
             throw new IllegalStateException("Compare RootFileTreeNode must be for the same root.");
-        } else if(!this.name.equals(rhs.name)) {
+        } else if (!this.name.equals(rhs.name)) {
             throw new IllegalStateException("Compare RootFileTreeNode must be for the same root and name.");
         }
 

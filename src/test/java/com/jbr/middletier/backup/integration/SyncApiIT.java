@@ -174,7 +174,7 @@ public class SyncApiIT extends WebTester  {
         }
     }
 
-    private void validateSource(Source source, List<StructureDescription> structure) {
+    private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
         // Get the directories and files that were found.
         Iterable<DirectoryInfo> directories = directoryRepository.findAllByOrderByIdAsc();
         Iterable<FileInfo> files = fileRepository.findAllByOrderByIdAsc();
@@ -221,11 +221,13 @@ public class SyncApiIT extends WebTester  {
                 if(nextFile.getName().equals(nextExpectedFile.destinationName) && nextFile.getParentId().getId() == expectedParentId) {
                     found = true;
                     Assert.assertEquals(nextExpectedFile.dateTime,nextFile.getDate());
-                    if(nextExpectedFile.md5 != null) {
-                        Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5());
-                    }
-                    if(nextExpectedFile.fileSize != null) {
-                        Assert.assertEquals(nextExpectedFile.fileSize,nextFile.getSize());
+                    if(checkSizeAndMD5) {
+                        if(nextExpectedFile.md5 != null) {
+                            Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5());
+                        }
+                        if(nextExpectedFile.fileSize != null) {
+                            Assert.assertEquals(nextExpectedFile.fileSize,nextFile.getSize());
+                        }
                     }
                     nextExpectedFile.checked = true;
                 }
@@ -286,7 +288,7 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription);
+        validateSource(synchronize.getSource(),sourceDescription,true);
 
         // Update the directory structure
         sourceDescription = getTestStructure("test2");
@@ -300,7 +302,7 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription);
+        validateSource(synchronize.getSource(),sourceDescription, true);
 
         // Update the directory structure again.
         sourceDescription = getTestStructure("test3");
@@ -314,7 +316,7 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription);
+        validateSource(synchronize.getSource(),sourceDescription, true);
 
         synchronizeRepository.delete(synchronize);
         fileRepository.deleteAll();
@@ -346,7 +348,7 @@ public class SyncApiIT extends WebTester  {
         Files.createDirectories(new File(destinationDirectory).toPath());
 
         // Copy the resource files into the source directory
-        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        List<StructureDescription> sourceDescription = getTestStructure("test2");
         copyFiles(sourceDescription, sourceDirectory);
 
         // Create the source and synchronise entries
@@ -364,7 +366,7 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription);
+        validateSource(synchronize.getSource(),sourceDescription, false);
 
         LOG.info("Synchronize the data.");
         getMockMvc().perform(post("/jbr/int/backup/sync")
@@ -372,6 +374,6 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getDestination(),sourceDescription);
+        validateSource(synchronize.getDestination(),sourceDescription, false);
     }
 }

@@ -3,8 +3,12 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.data.SynchronizeStatus;
+import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.dto.SyncDataDTO;
+import com.jbr.middletier.backup.filetree.FileTreeNode;
+import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,8 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -227,41 +233,38 @@ public class SynchronizeManager {
         }
     }
 
-    private void processSynchronize(Synchronize nextSynchronize) {
+    private SyncDataDTO processSynchronize(Synchronize nextSynchronize) {
+        SyncDataDTO result = new SyncDataDTO();
+        result.setSyncId(nextSynchronize.getId());
+
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
 
         if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getSource().getStatus().equals("OK")) {
             backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
-            return;
+            result.setFailed();
+            return result;
         }
 
         if(nextSynchronize.getDestination().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
             backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
-            return;
+            result.setFailed();
+            return result;
         }
 
-        if(true)
-            throw new IllegalStateException("Fix this");
-//        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
-//            LOG.info("Synchronize Status {}", nextStatus);
-//            processSynchronizeStatusAtSource(nextStatus);
-//        }
-
-        if(true)
-            throw new IllegalStateException("Fix this");
-//        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
-//            LOG.info("Synchronize Status {}", nextStatus);
-//            processSynchronizeStatusAtDestination(nextStatus);
-//        }
-
         LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
+
+        return result;
     }
 
-    public void synchronize() {
+    public List<SyncDataDTO> synchronize() {
+        List<SyncDataDTO> result = new ArrayList<>();
+
         Iterable<Synchronize> synchronizes = synchronizeRepository.findAll();
 
         for(Synchronize nextSynchronize : synchronizes) {
-            processSynchronize(nextSynchronize);
+            result.add(processSynchronize(nextSynchronize));
         }
+
+        return result;
     }
 }

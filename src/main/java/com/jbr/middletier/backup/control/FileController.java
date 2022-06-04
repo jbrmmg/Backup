@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.DriveManager;
@@ -79,12 +80,10 @@ public class FileController {
     }
 
     @PostMapping(path="/sync")
-    public @ResponseBody OkStatus synchronize(@RequestBody String temp) {
+    public @ResponseBody List<SyncDataDTO> synchronize(@RequestBody String temp) {
         LOG.info("Syncronize drives - {}", temp);
 
-        synchronizeManager.synchronize();
-
-        return OkStatus.getOkStatus();
+        return synchronizeManager.synchronize();
     }
 
     @PostMapping(path="/hierarchy")
