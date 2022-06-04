@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 14
+      author: jason
+      changes:
+
+        # This is the new parent object for anything that used to be a file system object,
+        # as a consequence the auto increment id will be removed from the child tables.
+
+        - createTable:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  startWith: 1000000
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: char(4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: parent
+                  type: int
+              - column:
+                  name: parent_type
+                  type: char(4)
+
+        - addForeignKeyConstraint:
+            constraintName: fk_fso_parent
+            baseTableName: file_system_object
+            baseColumnNames: parent
+            referencedTableName: file_system_object
+            referencedColumnNames: id

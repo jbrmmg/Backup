@@ -40,7 +40,9 @@ public class DuplicateManager {
         if(this.actionManager.checkAction(potentialDuplicate,"DELETE_DUP")) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
-            String deleteFile = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getName() + "/" + potentialDuplicate.getName();
+            if(true)
+                throw new IllegalStateException("Fix this");
+            String deleteFile = "";// = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getName() + "/" + potentialDuplicate.getName();
 
             File fileToDelete = new File(deleteFile);
             if(fileToDelete.exists()) {
@@ -59,9 +61,11 @@ public class DuplicateManager {
         List<FileInfo> checkFiles = new ArrayList<>();
 
         for(FileInfo nextFile: files) {
-            if(nextFile.getDirectoryInfo().getSource().getId() == source.getId()) {
+            if(true)
+                throw new IllegalStateException("Fix this");
+//            if(nextFile.getDirectoryInfo().getSource().getId() == source.getId()) {
                 checkFiles.add(nextFile);
-            }
+//            }
         }
 
         if(checkFiles.size() <= 1) {
@@ -90,7 +94,9 @@ public class DuplicateManager {
         for(Source nextSource: sources) {
             if(Boolean.TRUE.equals(nextSource.getLocation().getCheckDuplicates())) {
                 // Find files that have the same name and size.
-                List<String> files = fileRepository.findDuplicates(nextSource.getId());
+                if(true)
+                    throw new IllegalStateException("fix this");
+                List<String> files = new ArrayList<>();//fileRepository.findDuplicates(nextSource.getId());
 
                 // Are these files really duplicates.
                 for(String nextFile: files) {

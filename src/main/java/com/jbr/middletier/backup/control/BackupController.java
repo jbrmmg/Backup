@@ -52,7 +52,7 @@ public class BackupController {
     @GetMapping()
     public @ResponseBody Iterable<Backup> backups() {
         LOG.info("List backups Backup.");
-        return backupRepository.findAll();
+        return backupRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping()

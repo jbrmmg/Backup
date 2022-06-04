@@ -3,13 +3,13 @@ databaseChangeLog:
       id: 10
       author: jason
       changes:
-
         - createTable:
             tableName: ignore_file
             columns:
               - column:
                   name: id
                   type: int
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false

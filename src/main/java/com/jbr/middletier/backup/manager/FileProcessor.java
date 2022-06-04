@@ -86,13 +86,13 @@ abstract class FileProcessor {
 
     abstract void newFileInserted(FileInfo newFile);
 
-    private void createFile(Path path, DirectoryInfo directory, Iterable<Classification> classifications, boolean skipMD5) {
+    private void createFile(Path path, FileSystemObject parent, Iterable<Classification> classifications, boolean skipMD5) {
         Date fileDate = new Date(path.toFile().lastModified());
 
         // Get the file
         FileInfo newFile = new FileInfo();
         newFile.setName(path.getFileName().toString());
-        newFile.setDirectoryInfo(directory);
+        newFile.setParentId(parent);
         newFile.setClassification(classifyFile(newFile,classifications));
         newFile.setDate(fileDate);
         newFile.setSize(path.toFile().length());
@@ -146,9 +146,10 @@ abstract class FileProcessor {
         }
     }
 
-    private DirectoryInfo getParentDirectory(FileTreeNode node) {
+    private FileSystemObject getParentDirectory(FileTreeNode node, Source source) {
+        // If there is no parent, then return the source.
         if(node.getParent() == null) {
-            return null;
+            return source;
         }
 
         if(node.getParent().isDirectory() && node.getParent().hasValidId()) {
@@ -158,7 +159,8 @@ abstract class FileProcessor {
             }
         }
 
-        return null;
+        // If no parent then return the source.
+        return source;
     }
 
     private void performDbAddOrUpdDirectory(Source source, FileTreeNode toBeUpdated) {
@@ -175,8 +177,7 @@ abstract class FileProcessor {
         // Insert a new directory.
         DirectoryInfo newDirectoryInfo = new DirectoryInfo();
         newDirectoryInfo.setName(toBeUpdated.getName());
-        newDirectoryInfo.setSource(source);
-        newDirectoryInfo.setParent(getParentDirectory(toBeUpdated));
+        newDirectoryInfo.setParentId(getParentDirectory(toBeUpdated,source));
         newDirectoryInfo.clearRemoved();
 
         directoryRepository.save(newDirectoryInfo);
@@ -200,16 +201,11 @@ abstract class FileProcessor {
         if(existingFile.isPresent()) {
             updateFile(toBeUpdated.getPath(),existingFile.get(),classifications,skipMD5);
         } else {
-            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated),classifications,skipMD5);
+            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated, source),classifications,skipMD5);
         }
     }
 
     private void performDatabaseUpdate(Source source, FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
-        // If they are equal then nothing more to do on this node.
-        if(compare.getCompareStatus() == FileTreeNode.CompareStatusType.EQUAL) {
-            return;
-        }
-
         // If adding, then add now and then the children.
         if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.ADDED) ||
                 (compare.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) ||
@@ -258,7 +254,7 @@ abstract class FileProcessor {
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && next.getPath().getId().equals(node.getId())) {
+            if(next.confirmed() && next.getPath().getIdAndType().equals(node.getId())) {
                 LOG.info("Deleting the file {}", sourcePath);
 
                 try {
@@ -341,26 +337,26 @@ abstract class FileProcessor {
         return result;
     }
 
-    private void getDatabaseDetails(FileTreeNode result, Source source, DirectoryInfo parent) {
-        List<DirectoryInfo> directories = directoryRepository.findBySourceAndParent(source, parent);
+    private void getDatabaseDetails(FileTreeNode result, FileSystemObject parent) {
+        List<DirectoryInfo> directories = directoryRepository.findByParentId(parent.getIdAndType().getId());
         for(DirectoryInfo next: directories) {
             FileTreeNode nextNode = result.addChild(next);
 
-            List<FileInfo> files = fileRepository.findByDirectoryInfo(next);
+            List<FileInfo> files = fileRepository.findByParentId(next.getIdAndType().getId());
 
             for(FileInfo nextFile: files) {
                 nextNode.addChild(nextFile);
             }
 
             // Process the next level.
-            getDatabaseDetails(nextNode, source, next);
+            getDatabaseDetails(nextNode, next);
         }
     }
 
     private RootFileTreeNode getDatabaseDetails(Source source) {
         RootFileTreeNode result = new RootFileTreeNode(source);
 
-        getDatabaseDetails(result, source, null);
+        getDatabaseDetails(result, source);
 
         return result;
     }

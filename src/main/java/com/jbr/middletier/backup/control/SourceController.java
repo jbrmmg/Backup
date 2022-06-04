@@ -30,19 +30,18 @@ public class SourceController {
     @GetMapping(path="/source")
     public @ResponseBody Iterable<Source> getSource() {
         LOG.info("Get the source");
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 
     @PostMapping(path="/source")
     public @ResponseBody Iterable<Source> createSource(@NotNull @RequestBody SourceDTO source) throws SourceAlreadyExistsException {
-        Optional<Source> existing = sourceRepository.findById(source.getId());
-        if(existing.isPresent()) {
-            throw new SourceAlreadyExistsException(existing.get().getId());
+        if(source.getId() != null) {
+            throw new SourceAlreadyExistsException(source.getId());
         }
 
         sourceRepository.save(new Source(source));
 
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping(path="/source")
@@ -55,7 +54,7 @@ public class SourceController {
         existing.get().update(source);
         sourceRepository.save(existing.get());
 
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 
     @DeleteMapping(path="/source")
@@ -67,6 +66,6 @@ public class SourceController {
 
         sourceRepository.deleteById(source.getId());
 
-        return sourceRepository.findAll();
+        return sourceRepository.findAllByOrderByIdAsc();
     }
 }

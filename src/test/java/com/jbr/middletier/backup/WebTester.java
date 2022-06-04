@@ -17,7 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
-class WebTester {
+public class WebTester {
     private MockMvc mockMvc;
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
@@ -41,7 +41,7 @@ class WebTester {
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
-    String json(Object o) throws IOException {
+    public String json(Object o) throws IOException {
         MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
         //noinspection unchecked
         this.mappingJackson2HttpMessageConverter.write(
@@ -49,13 +49,13 @@ class WebTester {
         return mockHttpOutputMessage.getBodyAsString();
     }
 
-    MediaType getContentType() {
+    public MediaType getContentType() {
         return new MediaType(MediaType.APPLICATION_JSON.getType(),
                 MediaType.APPLICATION_JSON.getSubtype(),
                 Charset.forName("utf8"));
     }
 
-    MockMvc getMockMvc() {
+    public MockMvc getMockMvc() {
         return this.mockMvc;
     }
 }

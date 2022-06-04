@@ -2,25 +2,16 @@ package com.jbr.middletier.backup.data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
 @Table(name="file")
-public class FileInfo {
-    @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "file_seq")
-    private Integer id;
-
-    @Column(name="name")
-    @NotNull
-    private String name;
-
-    @JoinColumn(name="directoryId")
-    @ManyToOne(optional = false)
-    private DirectoryInfo directoryInfo;
-
+@Inheritance(strategy = InheritanceType.JOINED)
+public class FileInfo extends FileSystemObject {
     @JoinColumn(name="classificationId")
     @ManyToOne(optional = true)
     private Classification classification;
@@ -41,9 +32,15 @@ public class FileInfo {
     @Column(name="flags")
     private String flags;
 
-    public void setName(String name) { this.name = name; }
+    public FileInfo() {
+        super(FileSystemObjectType.FSO_FILE);
+    }
 
-    public void setDirectoryInfo(DirectoryInfo directoryInfo) { this.directoryInfo = directoryInfo; }
+    protected FileInfo(@NotNull FileSystemObjectType type) {
+        super(type);
+    }
+
+    public void setName(String name) { this.name = name; }
 
     public void setClassification(Classification classification) { this.classification = classification; }
 
@@ -55,8 +52,6 @@ public class FileInfo {
 
     public void clearRemoved() { this.removed = false; }
 
-    public Integer getId() { return this.id; }
-
     public String getName() { return this.name; }
 
     public Long getSize() { return this.size; }
@@ -65,14 +60,12 @@ public class FileInfo {
 
     public String getMD5() { return this.md5; }
 
-    public DirectoryInfo getDirectoryInfo() { return this.directoryInfo; }
-
     public Classification getClassification() { return this.classification; }
 
     public Boolean getRemoved() { return this.removed; }
 
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
-        if(this.id.equals(otherFile.id)) {
+        if(this.getIdAndType().equals(otherFile.getIdAndType())) {
             return false;
         }
 
@@ -88,13 +81,24 @@ public class FileInfo {
     }
 
     public String getFullFilename() {
-        return directoryInfo.getSource().getPath() + "/" +
-                directoryInfo.getName() + "/" +
-                getName();
+        List<String> result = new ArrayList<>();
+
+        result.add(getName());
+
+        // TODO fix this (remove the need for it)
+//        FileSystemObject parent = getDirectoryInfo().getParent();
+//        while(parent != null) {
+//            result.add(parent.name);
+//            parent = parent.getParent();
+//        }
+
+        Collections.reverse(result);
+
+        return String.join("/", result);
     }
 
     @Override
     public String toString() {
-        return "FileInfo: " + id + getFullFilename() + " " + md5;
+        return "FileInfo: " + getIdAndType().toString() + " " + getFullFilename() + " " + md5;
     }
 }

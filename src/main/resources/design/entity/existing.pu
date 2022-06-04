@@ -1,124 +1,124 @@
 @startuml
-skinparam titleBorderRoundCorner 15
-skinparam titleBorderThickness 2
-skinparam titleBorderColor red
-title Existing ERD
+title Original ERD
 skinparam linetype ortho
 scale 0.75
 
 entity action_confirm {
-   * **id** : int <<generated>>
+   * **id : int <<generated>>**
    ==
-   * action : varchar(20)
-   * confirmed : bit(1)
+   action : varchar(20)
+   confirmed : bit(1)
    parameter_required : bit(1)
    parameter : varchar(50)
-   file_id : int <<FK>>
+   file_id : int **//(FK1)//**
    flags : varchar(10)
 }
 
 entity file {
-   * **id** : int <<generated>>
-   * **name** : varchar(200)
+   * **id : int <<generated>>**
+   * **name : varchar(200)**
    ==
-   * directory_id : int <<FK>>
-   classification_id : int <<FK>>
+   directory_id : int **//(FK1)//**
+   classification_id : int **//(FK2)//**
    size : int
    date : datetime
-   * removed : bit(1)
+   removed : bit(1)
    md5 : varchar(32)
    flags : varchar(5)
 }
 
 entity directory {
-  * *id* : int <<generated>>
+  * **id : int <<generated>>**
   ==
-  * source_id : int <<FK>>
-  * path : varchar(200)
-  * removed : bit(1)
+  source_id : int **//(FK1)//**
+  path : varchar(200)
+  removed : bit(1)
 }
 
 entity classification {
-  * **id** : int <<generated>>
+  * **id : int <<generated>>**
   ==
-  * order int
+  order int
   regex : varchar(50)
   icon : varchar(60)
-  * action : varchar(20)
-  * useMD5 : bit(1)
+  action : varchar(20)
+  useMD5 : bit(1)
   type : varchar(30)
   is_image : bit(1)
   is_video : bit(1)
 }
 
 entity backup {
-  * **id** : char(4)
+  * **id : char(4)**
   ==
-  * type : varchar(50)
-  * directory : varchar(300)
-  * artifact : varchar(100)
-  * backupname : varchar(35)
-  * filename : varchar(100)
-  * time : int
+  type : varchar(50)
+  directory : varchar(300)
+  artifact : varchar(100)
+  backupname : varchar(35)
+  filename : varchar(100)
+  time : int
 }
 
 entity hardware {
-  * **macAddress** : char(17)
+  * **macAddress : char(17)**
   ==
-  * reservedIP : char(1)
+  reservedIP : char(1)
   IP : varchar(15)
-  * name : varchar(200)
+  name : varchar(200)
 }
 
 entity ignore_file {
-  * **id** : int <<generated>>
+  * **id : int <<generated>>**
   ==
-  * name : varchar(100)
-  * size : varchar(10)
-  * date : datetime
-  * md5 : varchar(32)
+  name : varchar(100)
+  size : varchar(10)
+  date : datetime
+  md5 : varchar(32)
 }
 
 entity import_file {
-  * **id** : int <<generated>>
+  * **id : int <<generated>>**
   ==
-  * status : varchar(20)
-  file_id : int <<FK>>
+  status : varchar(20)
+  file_id : int **//(FK1)//**
 }
 
 entity location {
-  * **id** : int <<generated>>
+  * **id : int**
   ==
-  * name : varchar(100)
-  * size : varchar(10)
+  name : varchar(100)
+  size : varchar(10)
   check_duplicates : bit(1)
 }
 
 entity source {
-  * **id** : int
+  * **id : int**
   ==
-  * path : varchar(200)
-  * location : int <<FK>>
+  path : varchar(200)
+  location : int **//(FK1)//**
   status : varchar(15)
   filter : varchar(60)
-  destination : int <<FK>>
+  destination : int
   source_type : varchar(3)
 }
 
 entity synchronize {
- * **id** : int
+ * **id : int**
  ==
- * source : int <<FK>>
- * destination : int <<FK>>
+ source : int **//(FK2)//**
+ destination : int **//(FK1)//**
 }
 
-action_confirm }o--|| file
-directory ||--|{ file
-classification ||--|{ file
-import_file }|--|| file
-synchronize }|--|| source
-synchronize }|--|| source
-source }o--o| source
-location }o--o| source
-source }o--o| directory
+action_confirm }o--|| file           : FK1:fk_action_file
+file           }|--|| directory      : FK1:fk_directory_file
+file           }|--|| classification : FK2:fk_classification_file
+import_file    }|--|| file           : FK1:fk_import_file
+synchronize    }|--|| source         : FK1:fk_destination_synchronize
+synchronize    }|--|| source         : FK2:fk_source_synchronize
+source         |o--o{ location       : FK1:fk_location_source
+directory      |o--o{ source         : FK1:fk_source_directory
+
+backup      |o-[hidden]d-o| hardware
+hardware    |o-[hidden]d-o| ignore_file
+synchronize |o-[hidden]r-o| classification
 @enduml

@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 16
+      author: jason
+      changes:
+        # This is to update the directory table to remove the auto increment on the id,
+        # the id will now be generated from the file_system_object table
+
+        - dropForeignKeyConstraint:
+            constraintName: fk_source_directory
+            baseTableName: directory
+            baseColumnNames: source_id
+
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: directory
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: directory
+
+        - sql:
+            sql: |
+              update directory set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: directory
+
+        - addNotNullConstraint:
+            columnDataType: int
+            columnName: id
+            tableName: directory
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName:
+            tableName: directory
+
+        - dropColumn:
+            columnName: oldId
+            tableName: directory
+
+        - dropColumn:
+            columnName: path
+            tableName: directory
+
+        - dropColumn:
+            columnName: source_id
+            tableName: directory

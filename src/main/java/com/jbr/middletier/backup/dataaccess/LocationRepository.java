@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LocationRepository extends CrudRepository<Location, Integer>, JpaSpecificationExecutor<Location> {
+    Iterable<Location> findAllByOrderByIdAsc();
 }

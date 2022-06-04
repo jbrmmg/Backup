@@ -58,7 +58,7 @@ public class FileController {
 
     @GetMapping(path="/files")
     public @ResponseBody
-    Iterable<FileInfo> getFiles() { return fileRepository.findAll(); }
+    Iterable<FileInfo> getFiles() { return fileRepository.findAllByOrderByIdAsc(); }
 
     @PostMapping(path="/gather")
     public @ResponseBody OkStatus gather(@RequestBody String reason) throws IOException {
@@ -97,13 +97,13 @@ public class FileController {
 
             // Level 1 - get those sources that are the left hand side of synchronisation.
             for(Synchronize nextSynchronize: synchronizeRepository.findAll()) {
-                if(sourceIds.contains(nextSynchronize.getSource().getId())) {
+                if(sourceIds.contains(nextSynchronize.getSource().getIdAndType())) {
                     continue;
                 }
 
                 // Generate the response.
-                sourceIds.add(nextSynchronize.getSource().getId());
-                HierarchyResponse response = new HierarchyResponse(nextSynchronize.getSource().getId(),0,"/",-1);
+                sourceIds.add(nextSynchronize.getSource().getIdAndType().getId());
+                HierarchyResponse response = new HierarchyResponse(nextSynchronize.getSource().getIdAndType().getId(),0,"/",-1);
 
                 String[] directories = nextSynchronize.getSource().getPath().split("/");
 
@@ -116,7 +116,9 @@ public class FileController {
         }
 
         // Get the next level
-        result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
+        if(true)
+            throw new IllegalStateException("fix this");
+//        result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
 
         // Update the display name.
         for(HierarchyResponse nextResponse: result) {
@@ -168,7 +170,7 @@ public class FileController {
         String fileMD5 = file.get().getMD5() != null ? file.get().getMD5() : "";
 
         for(FileInfo nextSameName: sameName) {
-            if(nextSameName.getId().equals(file.get().getId())) {
+            if(nextSameName.getIdAndType().equals(file.get().getIdAndType())) {
                 continue;
             }
 

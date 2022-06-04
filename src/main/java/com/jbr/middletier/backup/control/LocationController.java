@@ -31,7 +31,7 @@ public class LocationController {
     public @ResponseBody
     Iterable<Location> getLocation() {
         LOG.info("Get the locations");
-        return locationRepository.findAll();
+        return locationRepository.findAllByOrderByIdAsc();
     }
 
     @PostMapping(path="/location")
@@ -43,7 +43,7 @@ public class LocationController {
 
         locationRepository.save(new Location(location));
 
-        return locationRepository.findAll();
+        return locationRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping(path="/location")
@@ -56,7 +56,7 @@ public class LocationController {
         existing.get().update(location);
         locationRepository.save(existing.get());
 
-        return locationRepository.findAll();
+        return locationRepository.findAllByOrderByIdAsc();
     }
 
     @DeleteMapping(path="/location")
@@ -68,7 +68,7 @@ public class LocationController {
 
         locationRepository.deleteById(location.getId());
 
-        return locationRepository.findAll();
+        return locationRepository.findAllByOrderByIdAsc();
     }
 
 }

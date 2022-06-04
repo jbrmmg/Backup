@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -500,6 +501,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -519,7 +521,7 @@ public class TestBackups {
             backupDTO.setDirectory("db:2:usr:pwd");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
@@ -537,6 +539,7 @@ public class TestBackups {
     }
 
     @Test
+    @Ignore
     public void TestDatabaseBackupTimeout() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -556,7 +559,7 @@ public class TestBackups {
             backupDTO.setDirectory("TestDB");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
@@ -640,7 +643,7 @@ public class TestBackups {
             backupDTO.setDirectory("db:2");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);

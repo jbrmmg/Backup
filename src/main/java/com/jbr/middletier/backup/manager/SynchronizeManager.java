@@ -139,12 +139,13 @@ public class SynchronizeManager {
                 LOG.info("Copy File - {}", status.getSourceFile());
 
                 String sourceFilename = status.getSourceFile().getFullFilename();
+                //TODO fix this
                 String destinationFilename = String.format("%s/%s/%s",
                         status.getDestination().getPath(),
-                        status.getSourceFile().getDirectoryInfo().getName(),
+                        status.getSourceFile().getParentId().getId(),
                         status.getSourceFile().getName() );
 
-                File directory = new File(String.format("%s/%s", status.getDestination().getPath(), status.getSourceFile().getDirectoryInfo().getName()));
+                File directory = new File(String.format("%s/%s", status.getDestination().getPath(), status.getSourceFile().getParentId().getId()));
                 if(!directory.exists() && !directory.mkdirs() ) {
                     LOG.warn("Make directories failed.");
                 }
@@ -168,7 +169,7 @@ public class SynchronizeManager {
 
     private void processSynchronizeStatusAtSource(SynchronizeStatus nextStatus) {
         if(nextStatus.getClassification() == null) {
-            LOG.warn("Unknown classification on file {}", nextStatus.getSourceFile().getId());
+            LOG.warn("Unknown classification on file {}", nextStatus.getSourceFile().getIdAndType());
             return;
         }
 
@@ -239,15 +240,19 @@ public class SynchronizeManager {
             return;
         }
 
-        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
-            LOG.info("Synchronize Status {}", nextStatus);
-            processSynchronizeStatusAtSource(nextStatus);
-        }
+        if(true)
+            throw new IllegalStateException("Fix this");
+//        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
+//            LOG.info("Synchronize Status {}", nextStatus);
+//            processSynchronizeStatusAtSource(nextStatus);
+//        }
 
-        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
-            LOG.info("Synchronize Status {}", nextStatus);
-            processSynchronizeStatusAtDestination(nextStatus);
-        }
+        if(true)
+            throw new IllegalStateException("Fix this");
+//        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
+//            LOG.info("Synchronize Status {}", nextStatus);
+//            processSynchronizeStatusAtDestination(nextStatus);
+//        }
 
         LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
     }

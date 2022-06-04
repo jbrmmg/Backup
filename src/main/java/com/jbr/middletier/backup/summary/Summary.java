@@ -45,17 +45,19 @@ public class Summary {
                     SourceDTO nextSourceDTO = nextSource.getSourceDTO();
                     instance.sources.add(nextSourceDTO);
 
-                    for (DirectoryInfo nextDirectory : this.directoryRepository.findBySource(nextSource)) {
+                    if(true)
+                        throw new IllegalStateException("Fix this");
+//                    for (DirectoryInfo nextDirectory : this.directoryRepository.findBySource(nextSource)) {
                         nextSourceDTO.incrementDirectoryCount();
 
-                        for (FileInfo nextFile : this.fileRepository.findByDirectoryInfo(nextDirectory)) {
+//                        for (FileInfo nextFile : this.fileRepository.findByDirectoryInfo(nextDirectory)) {
                             nextSourceDTO.incrementFileCount();
-                            if (nextFile.getSize() != null) {
-                                nextSourceDTO.increaseFileSize(nextFile.getSize());
-                            }
+  //                          if (nextFile.getSize() != null) {
+    //                            nextSourceDTO.increaseFileSize(nextFile.getSize());
+      //                      }
                         }
-                    }
-                }
+        //            }
+          //      }
 
                 // Set the object to valid.
                 instance.validAt = new Date();

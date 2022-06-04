@@ -28,6 +28,7 @@ public class ImportManager extends FileProcessor {
 
     private final ImportFileRepository importFileRepository;
     private final SourceRepository sourceRepository;
+    private final ImportSourceRepository importSourceRepository;
     private final ActionConfirmRepository actionConfirmRepository;
     private final ClassificationRepository classificationRepository;
     private final LocationRepository locationRepository;
@@ -36,6 +37,7 @@ public class ImportManager extends FileProcessor {
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
                          SourceRepository sourceRepository,
+                         ImportSourceRepository importSourceRepository,
                          ActionConfirmRepository actionConfirmRepository,
                          ClassificationRepository classificationRepository,
                          LocationRepository locationRepository,
@@ -47,6 +49,7 @@ public class ImportManager extends FileProcessor {
         super(directoryRepository,fileRepository,backupManager,actionManager);
         this.importFileRepository = importFileRepository;
         this.sourceRepository = sourceRepository;
+        this.importSourceRepository = importSourceRepository;
         this.actionConfirmRepository = actionConfirmRepository;
         this.classificationRepository = classificationRepository;
         this.locationRepository = locationRepository;
@@ -72,13 +75,6 @@ public class ImportManager extends FileProcessor {
             throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
-        int nextId = 0;
-        for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getId() >= nextId) {
-                nextId = nextSource.getId() + 1;
-            }
-        }
-
         // Find the location.
         Optional<Location> importLocation = Optional.empty();
         for(Location nextLocation: locationRepository.findAll()) {
@@ -92,9 +88,8 @@ public class ImportManager extends FileProcessor {
         }
 
         // Create a source to match this import
-        Source importSource = new Source(nextId,importRequest.getPath());
-        importSource.setTypeEnum(Source.SourceTypeType.IMPORT);
-        importSource.setDestinationId(source.get().getId());
+        ImportSource importSource = new ImportSource(importRequest.getPath());
+        importSource.setDestination(source.get());
         importSource.setLocation(importLocation.get());
 
         sourceRepository.save(importSource);
@@ -111,18 +106,18 @@ public class ImportManager extends FileProcessor {
         importFileRepository.deleteAll();
 
         // Remove the files associated with imports - first remove files, then directories then source.
-        for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
-                for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
-                    for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
-                        fileRepository.delete(nextFile);
-                    }
+        for(ImportSource nextSource: importSourceRepository.findAll()) {
+            if(true)
+                throw new IllegalStateException("Fix this");
+//            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
+//                for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
+//                    fileRepository.delete(nextFile);
+//                }
 
-                    directoryRepository.delete(nextDirectory);
-                }
+//                directoryRepository.delete(nextDirectory);
+//            }
 
-                sourceRepository.delete(nextSource);
-            }
+            sourceRepository.delete(nextSource);
         }
     }
 
@@ -142,11 +137,11 @@ public class ImportManager extends FileProcessor {
     }
 
     private boolean processClassification(ImportFile importFile, Path path) {
-        if(importFile.getFileInfo().getClassification() == null) {
+        if(importFile.getClassification() == null) {
             return false;
         }
 
-        if(!importFile.getFileInfo().getClassification().getAction().equalsIgnoreCase("backup")) {
+        if(!importFile.getClassification().getAction().equalsIgnoreCase("backup")) {
             LOG.info("{} not a backed up file, deleting", path);
             try {
                 Files.delete(path);
@@ -160,7 +155,7 @@ public class ImportManager extends FileProcessor {
     }
 
     private boolean processIgnored(ImportFile importFile, Path path) {
-        if(ignoreFile(importFile.getFileInfo())) {
+        if(ignoreFile(importFile)) {
             // Delete the file from import.
             LOG.info("{} marked for ignore, deleting", path);
             try {
@@ -181,12 +176,14 @@ public class ImportManager extends FileProcessor {
             LOG.info("{}", nextFile);
 
             // Make sure this file is from the same source.
-            if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
-                continue;
-            }
+            if(true)
+                throw new IllegalStateException("fix this");
+//            if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
+//                continue;
+//            }
 
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile.getFileInfo());
+            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
@@ -211,10 +208,10 @@ public class ImportManager extends FileProcessor {
         // If the parameter value is IGNORE then add this file to the ignore list.
         if(parameter.equalsIgnoreCase("ignore")) {
             IgnoreFile ignoreFile = new IgnoreFile();
-            ignoreFile.setDate(importFile.getFileInfo().getDate());
-            ignoreFile.setName(importFile.getFileInfo().getName());
-            ignoreFile.setSize(importFile.getFileInfo().getSize());
-            ignoreFile.setMD5(importFile.getFileInfo().getMD5());
+            ignoreFile.setDate(importFile.getDate());
+            ignoreFile.setName(importFile.getName());
+            ignoreFile.setSize(importFile.getSize());
+            ignoreFile.setMD5(importFile.getMD5());
 
             ignoreFileRepository.save(ignoreFile);
 
@@ -270,7 +267,7 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get the path to the import file.
-        Path path = new File(importFile.getFileInfo().getFullFilename()).toPath();
+        Path path = new File(importFile.getFullFilename()).toPath();
 
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(!processClassification(importFile,path)) {
@@ -278,10 +275,11 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get details of the file to import.
-        if(importFile.getFileInfo().getMD5() == null || importFile.getFileInfo().getMD5().length() <= 0) {
-            importFile.getFileInfo().setMD5(getMD5(path, importFile.getFileInfo().getClassification()));
+        if(importFile.getMD5() == null || importFile.getMD5().length() <= 0) {
+            importFile.setMD5(getMD5(path, importFile.getClassification()));
 
-            fileRepository.save(importFile.getFileInfo());
+            // TODO - fix this
+            fileRepository.save(importFile);
         }
 
         // Is this file being ignored?
@@ -297,13 +295,13 @@ public class ImportManager extends FileProcessor {
 
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile.getFileInfo(),"IMPORT");
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile,"IMPORT");
         if(!confirmedActions.isEmpty()) {
             processImportActions(importFile,path,confirmedActions,source);
         } else {
             // Create an action to be confirmed.
             ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setFileInfo(importFile.getFileInfo());
+            actionConfirm.setFileInfo(importFile);
             actionConfirm.setAction("IMPORT");
             actionConfirm.setConfirmed(false);
             actionConfirm.setParameterRequired(true);
@@ -317,12 +315,10 @@ public class ImportManager extends FileProcessor {
         LOG.info("Import Photo Process");
 
         // Get the source.
-        Optional<Source> source = Optional.empty();
+        Optional<ImportSource> source = Optional.empty();
 
-        for(Source nextSource: sourceRepository.findAll()) {
-            if(nextSource.getTypeEnum() == Source.SourceTypeType.IMPORT) {
-                source = Optional.of(nextSource);
-            }
+        for(ImportSource nextSource: importSourceRepository.findAll()) {
+            source = Optional.of(nextSource);
         }
 
         if(!source.isPresent()) {
@@ -330,13 +326,14 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get the place they are to be imported to.
-        Optional<Source> destination = sourceRepository.findById(source.get().getDestinationId());
+        //TODO - this can use the object already loaded.
+        Optional<Source> destination = sourceRepository.findById(source.get().getDestination().getIdAndType().getId());
         if(!destination.isPresent()) {
             throw new ImportRequestException("Destination for import is not found.");
         }
 
         for(ImportFile nextFile: importFileRepository.findAll()) {
-            LOG.info(nextFile.getFileInfo().getFullFilename());
+            LOG.info(nextFile.getFullFilename());
 
             processImport(nextFile,destination.get());
 
@@ -349,13 +346,13 @@ public class ImportManager extends FileProcessor {
         // Remove entries from import table if they are no longer present.
         for (ImportFile nextFile : importFileRepository.findAll()) {
             // Does this file still exist?
-            File existingFile = new File(nextFile.getFileInfo().getFullFilename());
+            File existingFile = new File(nextFile.getFullFilename());
 
             if(!existingFile.exists()) {
-                LOG.info("Remove this import file - {}", nextFile.getFileInfo().getFullFilename());
+                LOG.info("Remove this import file - {}", nextFile.getFullFilename());
                 importFileRepository.delete(nextFile);
             } else {
-                LOG.info("Keeping {}", nextFile.getFileInfo().getFullFilename());
+                LOG.info("Keeping {}", nextFile.getFullFilename());
             }
         }
     }
@@ -404,7 +401,8 @@ public class ImportManager extends FileProcessor {
     void newFileInserted(FileInfo newFile) {
         ImportFile newImportFile = new ImportFile();
         newImportFile.setStatus("READ");
-        newImportFile.setFileInfo(newFile);
+        //TODO - fix this
+//        newImportFile.setFileInfo(newFile);
 
         importFileRepository.save(newImportFile);
     }

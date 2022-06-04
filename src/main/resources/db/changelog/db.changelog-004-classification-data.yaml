@@ -8,9 +8,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 33
-              - column:
                   name: regex
                   value: ^\.ds_store$
               - column:
@@ -26,9 +23,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 1
               - column:
                   name: regex
                   value: ^\._\.ds_store$
@@ -46,9 +40,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 2
-              - column:
                   name: regex
                   value: .*\.dxf~$
               - column:
@@ -64,9 +55,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 3
               - column:
                   name: regex
                   value: .*\.pdf$
@@ -84,9 +72,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 4
-              - column:
                   name: regex
                   value: .*\.jpg$
               - column:
@@ -102,9 +87,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 5
               - column:
                   name: regex
                   value: .*\.dxf$
@@ -122,9 +104,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 6
-              - column:
                   name: regex
                   value: .*\.svg$
               - column:
@@ -140,9 +119,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 7
               - column:
                   name: regex
                   value: .*\.odg$
@@ -160,9 +136,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 8
-              - column:
                   name: regex
                   value: .*\.png$
               - column:
@@ -178,9 +151,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 9
               - column:
                   name: regex
                   value: .*\.txt$
@@ -198,9 +168,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 10
-              - column:
                   name: regex
                   value: .*\.html$
               - column:
@@ -216,9 +183,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 11
               - column:
                   name: regex
                   value: .*\.success$
@@ -236,9 +200,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 12
-              - column:
                   name: regex
                   value: .*\.mp3$
               - column:
@@ -254,9 +215,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 13
               - column:
                   name: regex
                   value: .*\.odt$
@@ -274,9 +232,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 14
-              - column:
                   name: regex
                   value: .*\.doc$
               - column:
@@ -292,9 +247,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 15
               - column:
                   name: regex
                   value: .*\.rtf$
@@ -312,9 +264,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 16
-              - column:
                   name: regex
                   value: .*\.ods$
               - column:
@@ -330,9 +279,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 17
               - column:
                   name: regex
                   value: .*\.kdbx$
@@ -350,9 +296,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 18
-              - column:
                   name: regex
                   value: .*\.jpeg$
               - column:
@@ -368,9 +311,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 19
               - column:
                   name: regex
                   value: .*\.gpx$
@@ -388,9 +328,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 20
-              - column:
                   name: regex
                   value: .*\.gif$
               - column:
@@ -406,9 +343,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 21
               - column:
                   name: regex
                   value: .*\.txt~$
@@ -426,9 +360,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 22
-              - column:
                   name: regex
                   value: .*\.conf$
               - column:
@@ -444,9 +375,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 23
               - column:
                   name: regex
                   value: .*\.eml$
@@ -464,9 +392,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 24
-              - column:
                   name: regex
                   value: .*\.planner$
               - column:
@@ -482,9 +407,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 25
               - column:
                   name: regex
                   value: .*\.zargo$
@@ -502,9 +424,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 26
-              - column:
                   name: regex
                   value: ^hosts$
               - column:
@@ -520,9 +439,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 27
               - column:
                   name: regex
                   value: .*\.odp$
@@ -540,9 +456,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 28
-              - column:
                   name: regex
                   value: ^jbrcert.cert$
               - column:
@@ -558,9 +471,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 29
               - column:
                   name: regex
                   value: ^jbrcert.key$
@@ -578,9 +488,6 @@ databaseChangeLog:
             tableName: classification
             columns:
               - column:
-                  name: id
-                  value: 30
-              - column:
                   name: regex
                   value: .*\.kdbx.lock$
               - column:
@@ -596,9 +503,6 @@ databaseChangeLog:
         - insert:
             tableName: classification
             columns:
-              - column:
-                  name: id
-                  value: 31
               - column:
                   name: regex
                   value: ^\.~lock\..*\.od.*#$

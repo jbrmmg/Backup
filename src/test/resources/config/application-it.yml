@@ -1,0 +1,13 @@
+spring:
+  jpa.properties.hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+logging.file.name: ./target/test/log/itegrationtest.log
+logging:
+  file:
+    max-history: 3
+    max-size: 100MB
+
+backup:
+  enabled: false

@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
+import com.jbr.middletier.backup.data.Source;
+
 import javax.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")
@@ -9,30 +11,33 @@ public class SourceDTO {
     private LocationDTO location;
     private String status;
     private String filter;
-    private String type;
-    private Integer destinationId;
     private int directoryCount;
     private int fileCount;
     private long totalFileSize;
     private long largestFile;
 
-    private void initialise() {
+    public SourceDTO() {
+        setId(null);
+        setPath("");
         this.directoryCount = 0;
         this.fileCount = 0;
         this.totalFileSize = 0;
         this.largestFile = 0;
     }
 
-    public SourceDTO() {
-        setId(0);
-        setPath("");
-        initialise();
-    }
-
     public SourceDTO(int id, String path) {
+        this();
         setId(id);
         setPath(path);
-        initialise();
+    }
+
+    protected SourceDTO(SourceDTO sourceDTO) {
+        this();
+        setId(sourceDTO.getId());
+        setPath(sourceDTO.getPath());
+        setLocation(sourceDTO.getLocation());
+        setStatus(sourceDTO.getStatus());
+        setFilter(sourceDTO.getFilter());
     }
 
     public Integer getId() {
@@ -73,22 +78,6 @@ public class SourceDTO {
 
     public void setFilter(String filter) {
         this.filter = filter;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Integer getDestinationId() {
-        return destinationId;
-    }
-
-    public void setDestinationId(Integer destinationId) {
-        this.destinationId = destinationId;
     }
 
     public int getDirectoryCount() {

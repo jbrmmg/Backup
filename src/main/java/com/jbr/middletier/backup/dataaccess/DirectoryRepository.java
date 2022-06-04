@@ -15,19 +15,21 @@ import java.util.Optional;
 
 @Repository
 public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integer>, JpaSpecificationExecutor<DirectoryInfo> {
-    List<DirectoryInfo> findBySourceAndParent(Source source, DirectoryInfo parent);
+    List<DirectoryInfo> findAllByOrderByIdAsc();
 
-    List<DirectoryInfo> findBySource(Source source);
+    List<DirectoryInfo> findByParentId(Integer parentId);
 
-    @Query("SELECT new com.jbr.middletier.backup.data.HierarchyResponse ( " +
-           "d.source.id, " +
-           "LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')), " +
-           "d.name, " +
-           "d.id ) " +
-           "FROM DirectoryInfo AS d " +
-           "WHERE d.source.id = ?1 " +
-           "AND LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')) = ?2 " +
-           "AND name like ?3 " +
-           "ORDER BY d.name ")
-    List<HierarchyResponse> findAtLevel(int source, int level, String path);
+//    List<DirectoryInfo> findBySource(Source source);
+
+//    @Query("SELECT new com.jbr.middletier.backup.data.HierarchyResponse ( " +
+//           "d.source.id, " +
+//           "LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')), " +
+//           "d.name, " +
+//           "d.id ) " +
+//           "FROM DirectoryInfo AS d " +
+//           "WHERE d.source.id = ?1 " +
+//           "AND LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')) = ?2 " +
+//           "AND name like ?3 " +
+//           "ORDER BY d.name ")
+//    List<HierarchyResponse> findAtLevel(int source, int level, String path);
 }

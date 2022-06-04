@@ -1,0 +1,101 @@
+databaseChangeLog:
+  - changeSet:
+      id: 12
+      author: jason
+      changes:
+        - dropColumn:
+            columnName: path
+            tableName: action_confirm
+
+        - addColumn:
+            tableName: action_confirm
+            columns:
+              - column:
+                  name: file_id
+                  type: int
+              - column:
+                  name: flags
+                  type: varchar(10)
+
+#        - addForeignKeyConstraint:
+#            constraintName: fk_action_file
+#            baseTableName: action_confirm
+#            baseColumnNames: file_id
+#            referencedTableName: file
+#            referencedColumnNames: id
+
+        - dropColumn:
+            columnName: auto_gather
+            tableName: source
+
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: destination
+                  type: int
+
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: source_type
+                  type: varchar(3)
+
+        - update:
+            columns:
+              - column:
+                  name: source_type
+                  value: STD
+            tableName: source
+
+        - dropColumn:
+            columnName: filename
+            tableName: import_file
+
+        - dropColumn:
+            columnName: path
+            tableName: import_file
+
+        - dropColumn:
+            columnName: size
+            tableName: import_file
+
+        - dropColumn:
+            columnName: date
+            tableName: import_file
+
+        - dropColumn:
+            columnName: md5
+            tableName: import_file
+
+        - dropColumn:
+            columnName: to_source
+            tableName: import_file
+
+        - addColumn:
+            tableName: import_file
+            columns:
+              - column:
+                  name: file_id
+                  type: int
+
+ #       - addForeignKeyConstraint:
+ #           constraintName: fk_import_file
+ #           baseTableName: import_file
+ #           baseColumnNames: file_id
+ #           referencedTableName: file
+ #           referencedColumnNames: id
+
+        - insert:
+            tableName: location
+            columns:
+              - column:
+                  name: id
+                  value: 4
+              - column:
+                  name: name
+                  value: Import
+              - column:
+                  name: size
+                  value: N/A

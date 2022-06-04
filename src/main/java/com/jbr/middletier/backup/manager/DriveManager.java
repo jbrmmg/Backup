@@ -51,7 +51,7 @@ public class DriveManager extends FileProcessor {
             return;
         }
 
-        if(nextSource.getTypeEnum() != Source.SourceTypeType.STANDARD ) {
+        if(nextSource.getClass() != Source.class) {
             return;
         }
 

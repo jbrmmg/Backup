@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -38,8 +39,8 @@ public class TestProperties {
         assertEquals("dd/mm",test.getDirectory().getDateFormat());
         test.getDirectory().setDays(1);
         assertEquals(1,test.getDirectory().getDays());
-        test.getDirectory().setName("test");
-        assertEquals("test",test.getDirectory().getName());
+        test.getDirectory().setName("synchronise");
+        assertEquals("synchronise",test.getDirectory().getName());
         test.getDirectory().setZip("zip");
         assertEquals("zip",test.getDirectory().getZip());
         test.getEmail().setAuthenticate(true);
