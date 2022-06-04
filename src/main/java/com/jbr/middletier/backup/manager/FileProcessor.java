@@ -254,7 +254,7 @@ abstract class FileProcessor {
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && next.getPath().getIdAndType().equals(node.getId())) {
+            if(next.confirmed() && next.getPath().getIdAndType().getId() == node.getId()) {
                 LOG.info("Deleting the file {}", sourcePath);
 
                 try {

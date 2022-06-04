@@ -17,7 +17,7 @@ public class SourceDTO {
     private long largestFile;
 
     public SourceDTO() {
-        setId(null);
+        setId(-1);
         setPath("");
         this.directoryCount = 0;
         this.fileCount = 0;

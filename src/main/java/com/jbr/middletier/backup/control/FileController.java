@@ -97,7 +97,7 @@ public class FileController {
 
             // Level 1 - get those sources that are the left hand side of synchronisation.
             for(Synchronize nextSynchronize: synchronizeRepository.findAll()) {
-                if(sourceIds.contains(nextSynchronize.getSource().getIdAndType())) {
+                if(sourceIds.contains(nextSynchronize.getSource().getIdAndType().getId())) {
                     continue;
                 }
 
