@@ -214,11 +214,11 @@ public class DatabaseIT {
 
     @Test
     @Order(6)
-    @Ignore
     public void action_confirm() {
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");
         newFile.setSize(10);
+        newFile.clearRemoved();
 
         fileRepository.save(newFile);
         int fileId = newFile.getIdAndType().getId();
@@ -241,7 +241,7 @@ public class DatabaseIT {
         Assert.assertEquals("x", findActionConfirm.get().getFlags());
         Assert.assertEquals("x1", findActionConfirm.get().getParameter());
         Assert.assertEquals(true, findActionConfirm.get().getParameterRequired());
-        Assert.assertEquals(fileId, findActionConfirm.get().getPath().getParentId().getId());
+        Assert.assertEquals(fileId, findActionConfirm.get().getPath().getIdAndType().getId());
 
         findActionConfirm.get().setParameter("x2");
         actionConfirmRepository.save(findActionConfirm.get());

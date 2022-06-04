@@ -501,7 +501,6 @@ public class TestBackups {
     }
 
     @Test
-    @Ignore
     public void TestDatabaseBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -521,7 +520,7 @@ public class TestBackups {
             backupDTO.setDirectory("db:2:usr:pwd");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("synchronise");
+            backupDTO.setArtifact("test");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
@@ -539,7 +538,6 @@ public class TestBackups {
     }
 
     @Test
-    @Ignore
     public void TestDatabaseBackupTimeout() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
@@ -559,7 +557,7 @@ public class TestBackups {
             backupDTO.setDirectory("TestDB");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("synchronise");
+            backupDTO.setArtifact("test");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
