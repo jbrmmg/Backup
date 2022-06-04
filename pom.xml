@@ -72,16 +72,47 @@
                 <version>0.8.5</version>
                 <executions>
                     <execution>
+                        <id>pre-unit-test</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
+                            <propertyName>surefireArgLine</propertyName>
+                        </configuration>
                     </execution>
                     <execution>
-                        <id>report</id>
+                        <id>post-unit-test</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+                            <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/coverage-reports/jacoco-it.exec</destFile>
+                            <propertyName>failsafeArgLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/coverage-reports/jacoco-it.exec</dataFile>
+                            <outputDirectory>${project.build.directory}/site/jacoco-it</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -89,6 +120,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M6</version>
                 <configuration>
+                    <argLine>${surefireArgLine}</argLine>
                     <skipTests>${skip.surefire.tests}</skipTests>
                 </configuration>
             </plugin>
@@ -104,6 +136,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <argLine>${failsafeArgLine}</argLine>
                     <classpathDependencyExcludes>
                         <classpathDependencyExclude>${project.groupId}:${project.artifactId}</classpathDependencyExclude>
                     </classpathDependencyExcludes>
