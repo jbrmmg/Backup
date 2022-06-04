@@ -17,7 +17,7 @@ public class SourceDTO {
     private long largestFile;
 
     public SourceDTO() {
-        setId(-1);
+        setId(null);
         setPath("");
         this.directoryCount = 0;
         this.fileCount = 0;
@@ -44,7 +44,7 @@ public class SourceDTO {
         return id;
     }
 
-    public void setId(@NotNull Integer id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -52,7 +52,7 @@ public class SourceDTO {
         return path;
     }
 
-    public void setPath(@NotNull String path) {
+    public void setPath(String path) {
         this.path = path;
     }
 
