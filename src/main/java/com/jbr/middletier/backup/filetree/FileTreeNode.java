@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
 
 import java.io.File;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +14,7 @@ import java.util.List;
 public class FileTreeNode {
     public enum CompareStatusType { UNKNOWN, EQUAL, CHANGE_TO_DIRECTORY, CHANGE_TO_FILE, ADDED, REMOVED, UPDATED }
 
-    public static int INVALID_ID = -1;
+    public final static int INVALID_ID = -1;
 
     private final FileTreeNode parent;
     private final List<FileTreeNode> children;
@@ -171,7 +172,7 @@ public class FileTreeNode {
             path = addToPath(node.parent,path);
         }
 
-        return path + "/" + node.name;
+        return path + FileSystems.getDefault().getSeparator() + node.name;
     }
 
     private String getRoot(FileTreeNode node) {

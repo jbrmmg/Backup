@@ -28,6 +28,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -154,12 +155,12 @@ public class SyncApiIT extends WebTester  {
 
     private void copyFiles(List<StructureDescription> description, String destination) throws IOException {
         for(StructureDescription nextFile: description) {
-            Files.createDirectories(new File(destination + "/" + nextFile.directory).toPath());
+            Files.createDirectories(new File(destination + FileSystems.getDefault().getSeparator() + nextFile.directory).toPath());
 
             InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + nextFile.filename);
 
             if(stream != null) {
-                Path destinationFile = new File(destination + "/" + nextFile.directory + "/" + nextFile.destinationName).toPath();
+                Path destinationFile = new File(destination + FileSystems.getDefault().getSeparator() + nextFile.directory + FileSystems.getDefault().getSeparator() + nextFile.destinationName).toPath();
                 Files.copy(stream,
                         destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
@@ -178,12 +179,12 @@ public class SyncApiIT extends WebTester  {
         // How many directories are expected?
         List<String> expectedDirectories = new ArrayList<>();
         for(StructureDescription nextFile : structure) {
-            String[] elements = nextFile.directory.split("/");
+            String[] elements = nextFile.directory.split(FileSystems.getDefault().getSeparator());
             String fullPath = elements[0];
             boolean skippedFirst = false;
             for(String nextElement: elements) {
                 if(skippedFirst) {
-                    fullPath = fullPath + "/" + nextElement;
+                    fullPath = fullPath + FileSystems.getDefault().getSeparator() + nextElement;
                 }
 
                 if(!expectedDirectories.contains(fullPath)) {
@@ -231,6 +232,7 @@ public class SyncApiIT extends WebTester  {
     public void synchronise() throws Exception {
         LOG.info("Synchronize Testing");
 
+        // Update JPG so it gets an MD5
         for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
             if(nextClassification.getRegex().contains("jpg")) {
                 ClassificationDTO updateClassification = new ClassificationDTO();
@@ -279,6 +281,22 @@ public class SyncApiIT extends WebTester  {
 
         // Update the directory structure
         sourceDescription = getTestStructure("test2");
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
+        copyFiles(sourceDescription, sourceDirectory);
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(synchronize.getSource(),sourceDescription);
+
+        // Update the directory structure again.
+        sourceDescription = getTestStructure("test3");
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
         copyFiles(sourceDescription, sourceDirectory);
 
         LOG.info("Gather the data.");

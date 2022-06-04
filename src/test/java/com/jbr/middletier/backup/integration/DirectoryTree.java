@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import org.junit.Assert;
 
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class DirectoryTree {
         for(String nextPath: paths) {
             DirectoryTreeNode currentLevel = level1;
 
-            String[] directories = nextPath.split("/");
+            String[] directories = nextPath.split(FileSystems.getDefault().getSeparator());
 
             for(String nextDirectory: directories) {
                 // Does this exist at the current level?
@@ -100,7 +101,7 @@ public class DirectoryTree {
     }
 
     public int FindDirectory(String path) {
-        String[] elements = path.split("/");
+        String[] elements = path.split(FileSystems.getDefault().getSeparator());
         int index = 0;
         return FindDirectoryAtLevel(elements,0, level1);
     }

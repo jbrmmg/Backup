@@ -27,6 +27,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
+import java.nio.file.FileSystems;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertTrue;
@@ -95,7 +96,7 @@ public class EmailApiIT extends WebTester {
             LOG.info("Location {}", location.get());
 
             Source source = new Source();
-            source.setPath("/");
+            source.setPath(FileSystems.getDefault().getSeparator());
             source.setLocation(location.get());
             sourceRepository.save(source);
 
