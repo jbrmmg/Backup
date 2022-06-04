@@ -1,0 +1,113 @@
+databaseChangeLog:
+  - changeSet:
+      id: 15
+      author: jason
+      changes:
+
+        # This is just to bring the database into line
+        - modifyDataType:
+            tableName: backup
+            columnName: time
+            newDataType: int
+
+        # This is to update the file table to remove the auto increment on the id,
+        # the id will now be generated from
+
+#        - dropForeignKeyConstraint:
+#            constraintName: fk_action_file
+#            baseTableName: action_confirm
+#            baseColumnNames: file_id
+
+#        - dropForeignKeyConstraint:
+#            constraintName: fk_import_file
+#            baseTableName: import_file
+#            baseColumnNames: file_id
+
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: file
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: file
+
+        - sql:
+            sql: |
+              update file set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: file
+
+        - addNotNullConstraint:
+            columnDataType: int
+            columnName: id
+            tableName: file
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName:
+            tableName: file
+
+        - dropColumn:
+            columnName: oldId
+            tableName: file
+
+        - dropColumn:
+            columnName: path
+            tableName: source
+
+        - dropForeignKeyConstraint:
+            constraintName: fk_directory_file
+            baseTableName: file
+            baseColumnNames: directory_id
+
+        - dropColumn:
+            columnName: directory_id
+            tableName: file
+
+        - dropColumn:
+            columnName: name
+            tableName: file
+
+        - dropColumn:
+            columnName: destination
+            tableName: source
+
+        - createTable:
+            tableName: import_source
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: destination
+                  type: int
+
+        - addForeignKeyConstraint:
+            constraintName: fk_action_file
+            baseTableName: action_confirm
+            baseColumnNames: file_id
+            referencedTableName: file
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_import_file
+            baseTableName: import_file
+            baseColumnNames: file_id
+            referencedTableName: file
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_imp_source
+            baseTableName: import_source
+            baseColumnNames: id
+            referencedTableName: source
+            referencedColumnNames: id

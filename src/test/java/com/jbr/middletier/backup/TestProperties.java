@@ -9,7 +9,6 @@ import static org.junit.Assert.assertTrue;
 
 public class TestProperties {
     @Test
-    @Ignore
     public void TestPropertyClass() {
         ApplicationProperties test = new ApplicationProperties();
         test.setDbBackupCommand("DBCmd");

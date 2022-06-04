@@ -108,7 +108,6 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    @Ignore
     public void TestCleanBackupDirect() {
         try {
             // Setup the test
@@ -142,7 +141,6 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    @Ignore
     public void LocationCRUD() {
         try {
             LocationDTO location = new LocationDTO(6,"Test", "1MB");
@@ -197,7 +195,6 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    @Ignore
     public void ClassificationCRUD() {
         try {
             int classificationCount = (int)classificationRepository.count();
@@ -271,7 +268,6 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    @Ignore
     public void HardwareCRUD() {
         try {
             HardwareDTO hardware = new HardwareDTO("00:00:00:00:00:00","N");

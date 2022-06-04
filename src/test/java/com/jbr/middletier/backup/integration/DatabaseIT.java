@@ -10,10 +10,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -216,12 +213,8 @@ public class DatabaseIT {
     }
 
     @Test
-    @Order(5)
-    public void synchronise() {
-    }
-
-    @Test
     @Order(6)
+    @Ignore
     public void action_confirm() {
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");

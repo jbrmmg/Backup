@@ -543,7 +543,6 @@ public class TestFiles extends WebTester {
     }
 
     @Test
-    @Ignore
     public void TestSyncrhonizeStatus() {
         try {
             SynchronizeStatus status = new SynchronizeStatus(null,null,null, null, null, null, null);

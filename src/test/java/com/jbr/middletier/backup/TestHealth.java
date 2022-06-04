@@ -19,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestHealth extends WebTester {
     @Test
-    @Ignore
     public void TestHealthURL() throws Exception {
         getMockMvc().perform(get("/actuator/health")
                 .contentType(getContentType()))
