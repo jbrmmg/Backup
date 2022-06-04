@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableSwagger2
+@SuppressWarnings("java:S3011")
 public class SpringFoxConfig {
     // This has been added based on this:
     // https://github.com/springfox/springfox/issues/3462
@@ -29,7 +31,7 @@ public class SpringFoxConfig {
         return new BeanPostProcessor() {
 
             @Override
-            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+            public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName) throws BeansException {
                 if (bean instanceof WebMvcRequestHandlerProvider || bean instanceof WebFluxRequestHandlerProvider) {
                     customizeSpringfoxHandlerMappings(getHandlerMappings(bean));
                 }
