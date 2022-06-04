@@ -47,7 +47,7 @@ public class FileTreeNode {
         this.directory = false;
         this.compareStatus = CompareStatusType.UNKNOWN;
         this.parent = parent;
-        this.id = file.getParentId().getId();
+        this.id = file.getIdAndType().getId();
     }
 
     private void deepCopy(List<FileTreeNode> sourceList, CompareStatusType compareStatus) {

@@ -102,7 +102,9 @@ public class SyncApiIT extends WebTester  {
         public final String filename;
         public final String directory;
         public final String destinationName;
+        public final String md5;
         public final Date dateTime;
+        public final Long fileSize;
         public boolean checked;
 
         public StructureDescription(String description) throws ParseException {
@@ -111,6 +113,8 @@ public class SyncApiIT extends WebTester  {
             this.filename = structureItems[0];
             this.directory = structureItems[1];
             this.destinationName = structureItems[2];
+            this.fileSize = (structureItems.length > 4) ? Long.parseLong(structureItems[4]) : null;
+            this.md5 = (structureItems.length > 5) ? structureItems[5] : null;
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
             this.dateTime = sdf.parse(structureItems[3]);
@@ -171,7 +175,6 @@ public class SyncApiIT extends WebTester  {
     }
 
     private void validateSource(Source source, List<StructureDescription> structure) {
-        // TODO - check what was gathered was expected.
         // Get the directories and files that were found.
         Iterable<DirectoryInfo> directories = directoryRepository.findAllByOrderByIdAsc();
         Iterable<FileInfo> files = fileRepository.findAllByOrderByIdAsc();
@@ -218,6 +221,12 @@ public class SyncApiIT extends WebTester  {
                 if(nextFile.getName().equals(nextExpectedFile.destinationName) && nextFile.getParentId().getId() == expectedParentId) {
                     found = true;
                     Assert.assertEquals(nextExpectedFile.dateTime,nextFile.getDate());
+                    if(nextExpectedFile.md5 != null) {
+                        Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5());
+                    }
+                    if(nextExpectedFile.fileSize != null) {
+                        Assert.assertEquals(nextExpectedFile.fileSize,nextFile.getSize());
+                    }
                     nextExpectedFile.checked = true;
                 }
             }
@@ -229,7 +238,7 @@ public class SyncApiIT extends WebTester  {
 
     @Test
     @Order(1)
-    public void synchronise() throws Exception {
+    public void gather() throws Exception {
         LOG.info("Synchronize Testing");
 
         // Update JPG so it gets an MD5
@@ -306,5 +315,63 @@ public class SyncApiIT extends WebTester  {
                 .andExpect(status().isOk());
 
         validateSource(synchronize.getSource(),sourceDescription);
+
+        synchronizeRepository.delete(synchronize);
+        fileRepository.deleteAll();
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>();
+        directoryRepository.findAllByOrderByIdAsc().forEach(dbDirectories::add);
+        for(DirectoryInfo nextDirectory : dbDirectories) {
+            nextDirectory.setParentId(null);
+            directoryRepository.save(nextDirectory);
+        }
+
+        directoryRepository.deleteAll();
+        sourceRepository.delete(synchronize.getSource());
+        sourceRepository.delete(synchronize.getDestination());
+    }
+
+    @Test
+    @Order(2)
+    public void synchronize() throws Exception {
+        LOG.info("Synchronize Testing");
+
+        // During this test create files in the following directories
+        String sourceDirectory = "./target/it_test/source";
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
+
+        String destinationDirectory = "./target/it_test/destination";
+        deleteDirectoryContents(new File(destinationDirectory).toPath());
+        Files.createDirectories(new File(destinationDirectory).toPath());
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Create the source and synchronise entries
+        Synchronize synchronize = new Synchronize();
+        synchronize.setId(1);
+        synchronize.setSource(createSource("./target/it_test/source",1));
+        synchronize.setDestination(createSource("./target/it_test/destination",1));
+
+        synchronizeRepository.save(synchronize);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(synchronize.getSource(),sourceDescription);
+
+        LOG.info("Synchronize the data.");
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(synchronize.getDestination(),sourceDescription);
     }
 }
