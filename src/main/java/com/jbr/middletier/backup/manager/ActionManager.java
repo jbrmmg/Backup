@@ -1,9 +1,10 @@
 package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
-import com.jbr.middletier.backup.data.ActionConfirm;
-import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
+import com.jbr.middletier.backup.dto.ActionConfirmDTO;
+import com.jbr.middletier.backup.exception.ActionNotFoundException;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -43,12 +46,94 @@ public class ActionManager {
         this.resourceLoader = resourceLoader;
     }
 
+    public List<ActionConfirmDTO> externalFindByConfirmed(boolean confirmed) {
+        List<ActionConfirmDTO> result = new ArrayList<>();
+
+        this.actionConfirmRepository.findByConfirmed(confirmed).forEach(action -> result.add(new ActionConfirmDTO(action)));
+
+        return result;
+    }
+
+    public ActionConfirmDTO confirmAction(ConfirmActionRequest request) {
+        // Is this a valid action?
+        Optional<ActionConfirm> existingAction = actionConfirmRepository.findById(request.getId());
+
+        if(!existingAction.isPresent()) {
+            throw new ActionNotFoundException(request.getId());
+        }
+
+        // What type is this?
+        if(ActionConfirmType.AC_IMPORT.equals(existingAction.get().getAction()) || Boolean.TRUE.equals(request.getConfirm())) {
+            // For import, always confirm the action.
+            existingAction.get().setConfirmed(true);
+            existingAction.get().setParameter(request.getParameter());
+
+            actionConfirmRepository.save(existingAction.get());
+        } else {
+            actionConfirmRepository.deleteById(request.getId());
+        }
+
+        return new ActionConfirmDTO(existingAction.get());
+    }
+
+    private ActionConfirmDTO createAction(ActionConfirmType type, FileInfo file, String flags) {
+        ActionConfirm actionConfirm = new ActionConfirm();
+        actionConfirm.setFileInfo(file);
+        actionConfirm.setAction(type);
+        actionConfirm.setConfirmed(false);
+        switch(type) {
+            case AC_DELETE_DUPLICATE:
+            case AC_DELETE:
+                actionConfirm.setParameterRequired(false);
+                break;
+
+            case AC_IMPORT:
+                actionConfirm.setParameterRequired(true);
+                actionConfirm.setFlags(flags);
+                break;
+        }
+
+        actionConfirmRepository.save(actionConfirm);
+
+        return new ActionConfirmDTO(actionConfirm);
+    }
+
+    public ActionConfirmDTO createFileDeleteAction(FileInfo file) {
+        return createAction(ActionConfirmType.AC_DELETE, file, null);
+    }
+
+    public ActionConfirmDTO createFileImportAction(FileInfo file, String flags) {
+        return createAction(ActionConfirmType.AC_IMPORT, file, flags);
+    }
+
     public void actionPerformed(ActionConfirm action) {
         actionConfirmRepository.delete(action);
     }
 
-    boolean checkAction(FileInfo fileInfo, String action) {
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action);
+    public List<ActionConfirm> findConfirmedDeletes() {
+        return actionConfirmRepository.findByConfirmedAndAction(true,ActionConfirmType.AC_DELETE.getTypeName());
+    }
+
+    public void clearDuplicateActions() {
+        actionConfirmRepository.clearActions(ActionConfirmType.AC_DELETE_DUPLICATE.getTypeName(), false);
+    }
+
+    public void clearImportActions() {
+        actionConfirmRepository.clearActions(ActionConfirmType.AC_IMPORT.getTypeName(), false);
+    }
+
+    public void deleteActions(List<ActionConfirm> actions) {
+        for(ActionConfirm nextConfirm: actions) {
+            actionConfirmRepository.delete(nextConfirm);
+        }
+    }
+
+    public List<ActionConfirm> getConfirmedImportActionsForFile(FileInfo file) {
+        return actionConfirmRepository.findByFileInfoAndAction(file,ActionConfirmType.AC_IMPORT.getTypeName());
+    }
+
+    boolean checkAction(FileInfo fileInfo, ActionConfirmType action) {
+        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action.getTypeName());
 
         if(!confirmedActions.isEmpty()) {
             boolean confirmed = false;
@@ -82,7 +167,7 @@ public class ActionManager {
     void deleteFileIfConfirmed(FileInfo fileInfo) {
         File file = new File(fileInfo.getFullFilename());
 
-        if(file.exists() && checkAction(fileInfo, "DELETE")) {
+        if(file.exists() && checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
             LOG.info("Delete the file - {}", file );
             try {
                 // If the file is a folder, then delete the directory.

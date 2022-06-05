@@ -117,7 +117,7 @@ public class EmailApiIT extends WebTester {
             fileRepository.save(file);
 
             ActionConfirm action = new ActionConfirm();
-            action.setAction("Test");
+            action.setAction(ActionConfirmType.AC_DELETE);
             action.setConfirmed(false);
             action.setFileInfo(file);
             actionConfirmRepository.save(action);

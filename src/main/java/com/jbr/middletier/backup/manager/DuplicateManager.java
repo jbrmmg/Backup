@@ -1,8 +1,8 @@
 package com.jbr.middletier.backup.manager;
 
+import com.jbr.middletier.backup.data.ActionConfirmType;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import org.slf4j.Logger;
@@ -20,24 +20,21 @@ import java.util.List;
 public class DuplicateManager {
     private static final Logger LOG = LoggerFactory.getLogger(DuplicateManager.class);
 
-    private final ActionConfirmRepository actionConfirmRepository;
     private final SourceRepository sourceRepository;
     private final FileRepository fileRepository;
     private final ActionManager actionManager;
 
     @Autowired
-    public DuplicateManager(ActionConfirmRepository actionConfirmRepository,
-                            SourceRepository sourceRepository,
+    public DuplicateManager(SourceRepository sourceRepository,
                             FileRepository fileRepository,
                             ActionManager actionManager) {
-        this.actionConfirmRepository = actionConfirmRepository;
         this.sourceRepository = sourceRepository;
         this.fileRepository = fileRepository;
         this.actionManager = actionManager;
     }
 
     private void processDuplicate(FileInfo potentialDuplicate) {
-        if(this.actionManager.checkAction(potentialDuplicate,"DELETE_DUP")) {
+        if(this.actionManager.checkAction(potentialDuplicate, ActionConfirmType.AC_DELETE_DUPLICATE)) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
             if(true)
@@ -86,8 +83,7 @@ public class DuplicateManager {
     }
 
     public void duplicateCheck() {
-        actionConfirmRepository.clearDuplicateDelete(false);
-
+        actionManager.clearDuplicateActions();
         Iterable<Source> sources = sourceRepository.findAll();
 
         // Check for duplicates in sources.

@@ -26,7 +26,7 @@ abstract class FileProcessor {
     final DirectoryRepository directoryRepository;
     final FileRepository fileRepository;
     final BackupManager backupManager;
-    private final ActionManager actionManager;
+    final ActionManager actionManager;
 
     FileProcessor(DirectoryRepository directoryRepository,
                   FileRepository fileRepository,

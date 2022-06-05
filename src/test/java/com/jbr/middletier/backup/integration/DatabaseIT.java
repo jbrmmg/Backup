@@ -224,7 +224,7 @@ public class DatabaseIT {
         int fileId = newFile.getIdAndType().getId();
 
         ActionConfirm actionConfirm = new ActionConfirm();
-        actionConfirm.setAction("Test");
+        actionConfirm.setAction(ActionConfirmType.AC_DELETE);
         actionConfirm.setConfirmed(true);
         actionConfirm.setFileInfo(newFile);
         actionConfirm.setFlags("x");
@@ -237,7 +237,7 @@ public class DatabaseIT {
         Optional<ActionConfirm> findActionConfirm = actionConfirmRepository.findById(id);
         Assert.assertTrue(findActionConfirm.isPresent());
 
-        Assert.assertEquals("Test", findActionConfirm.get().getAction());
+        Assert.assertEquals("DELETE", findActionConfirm.get().getAction().getTypeName());
         Assert.assertEquals("x", findActionConfirm.get().getFlags());
         Assert.assertEquals("x1", findActionConfirm.get().getParameter());
         Assert.assertEquals(true, findActionConfirm.get().getParameterRequired());

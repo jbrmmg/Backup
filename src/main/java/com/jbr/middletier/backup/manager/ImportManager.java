@@ -29,7 +29,6 @@ public class ImportManager extends FileProcessor {
     private final ImportFileRepository importFileRepository;
     private final SourceRepository sourceRepository;
     private final ImportSourceRepository importSourceRepository;
-    private final ActionConfirmRepository actionConfirmRepository;
     private final ClassificationRepository classificationRepository;
     private final LocationRepository locationRepository;
     private final IgnoreFileRepository ignoreFileRepository;
@@ -38,7 +37,6 @@ public class ImportManager extends FileProcessor {
     public ImportManager(ImportFileRepository importFileRepository,
                          SourceRepository sourceRepository,
                          ImportSourceRepository importSourceRepository,
-                         ActionConfirmRepository actionConfirmRepository,
                          ClassificationRepository classificationRepository,
                          LocationRepository locationRepository,
                          DirectoryRepository directoryRepository,
@@ -50,7 +48,6 @@ public class ImportManager extends FileProcessor {
         this.importFileRepository = importFileRepository;
         this.sourceRepository = sourceRepository;
         this.importSourceRepository = importSourceRepository;
-        this.actionConfirmRepository = actionConfirmRepository;
         this.classificationRepository = classificationRepository;
         this.locationRepository = locationRepository;
         this.ignoreFileRepository = ignoreFileRepository;
@@ -100,7 +97,7 @@ public class ImportManager extends FileProcessor {
     }
 
     public void clearImports() {
-        actionConfirmRepository.clearImports(false);
+        actionManager.clearImportActions();
 
         // Clear out the imported file data.
         importFileRepository.deleteAll();
@@ -201,9 +198,7 @@ public class ImportManager extends FileProcessor {
     }
 
     private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter) {
-        for(ActionConfirm nextConfirm: confirmedActions) {
-            actionConfirmRepository.delete(nextConfirm);
-        }
+        actionManager.deleteActions(confirmedActions);
 
         // If the parameter value is IGNORE then add this file to the ignore list.
         if(parameter.equalsIgnoreCase("ignore")) {
@@ -295,19 +290,12 @@ public class ImportManager extends FileProcessor {
 
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile,"IMPORT");
+        List<ActionConfirm> confirmedActions = actionManager.getConfirmedImportActionsForFile(importFile);
         if(!confirmedActions.isEmpty()) {
             processImportActions(importFile,path,confirmedActions,source);
         } else {
             // Create an action to be confirmed.
-            ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setFileInfo(importFile);
-            actionConfirm.setAction("IMPORT");
-            actionConfirm.setConfirmed(false);
-            actionConfirm.setParameterRequired(true);
-            actionConfirm.setFlags(FileTestResultType.CLOSE == existingState ? "C" : null);
-
-            actionConfirmRepository.save(actionConfirm);
+            actionManager.createFileImportAction(importFile,FileTestResultType.CLOSE == existingState ? "C" : null);
         }
     }
 

@@ -1,13 +1,14 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
+import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.DriveManager;
 import com.jbr.middletier.backup.manager.DuplicateManager;
 import com.jbr.middletier.backup.manager.SynchronizeManager;
@@ -35,7 +36,7 @@ public class FileController {
     private final FileRepository fileRepository;
     private final SynchronizeRepository synchronizeRepository;
     private final DirectoryRepository directoryRepository;
-    private final ActionConfirmRepository actionConfirmRepository;
+    private final ActionManager actionManager;
     private final DuplicateManager duplicateManager;
     private final SynchronizeManager synchronizeManager;
 
@@ -45,14 +46,14 @@ public class FileController {
                           FileRepository fileRepository,
                           SynchronizeRepository synchronizeRepository,
                           DirectoryRepository directoryRepository,
-                          ActionConfirmRepository actionConfirmRepository,
+                          ActionManager actionManager,
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager ) {
         this.driveManager = driverManager;
         this.fileRepository = fileRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.directoryRepository = directoryRepository;
-        this.actionConfirmRepository = actionConfirmRepository;
+        this.actionManager = actionManager;
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
     }
@@ -228,7 +229,7 @@ public class FileController {
     }
 
     @DeleteMapping(path="/file")
-    public @ResponseBody OkStatus deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
+    public @ResponseBody ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
         Optional<FileInfo> file = fileRepository.findById(id);
 
         if(!file.isPresent()) {
@@ -236,14 +237,6 @@ public class FileController {
         }
 
         // Create a delete request.
-        ActionConfirm actionConfirm = new ActionConfirm();
-        actionConfirm.setFileInfo(file.get());
-        actionConfirm.setAction("DELETE");
-        actionConfirm.setConfirmed(false);
-        actionConfirm.setParameterRequired(false);
-
-        actionConfirmRepository.save(actionConfirm);
-
-        return OkStatus.getOkStatus();
+        return actionManager.createFileDeleteAction(file.get());
     }
 }

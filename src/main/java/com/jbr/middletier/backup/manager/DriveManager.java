@@ -21,7 +21,6 @@ public class DriveManager extends FileProcessor {
 
     private final SourceRepository sourceRepository;
     private final ClassificationRepository classificationRepository;
-    private final ActionConfirmRepository actionConfirmRepository;
 
     @Autowired
     public DriveManager(DirectoryRepository directoryRepository,
@@ -29,12 +28,10 @@ public class DriveManager extends FileProcessor {
                         SourceRepository sourceRepository,
                         ClassificationRepository classificationRepository,
                         BackupManager backupManager,
-                        ActionConfirmRepository actionConfirmRepository,
                         ActionManager actionManager) {
         super(directoryRepository,fileRepository,backupManager,actionManager);
         this.sourceRepository = sourceRepository;
         this.classificationRepository = classificationRepository;
-        this.actionConfirmRepository = actionConfirmRepository;
     }
 
     private void setSourceStatus(Source source, String status) {
@@ -78,7 +75,7 @@ public class DriveManager extends FileProcessor {
         Iterable<Classification> classifications = classificationRepository.findAll();
 
         // Are any files to be deleted?
-        List<ActionConfirm> deleteActions = actionConfirmRepository.findByConfirmedAndAction(true,"DELETE");
+        List<ActionConfirm> deleteActions = actionManager.findConfirmedDeletes();
 
         for(Source nextSource: sources) {
             processSource(nextSource,deleteActions,classifications);
