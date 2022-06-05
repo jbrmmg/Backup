@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.SourceStatusType;
 import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.data.SynchronizeStatus;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
@@ -239,13 +240,13 @@ public class SynchronizeManager {
 
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
 
-        if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getSource().getStatus().equals("OK")) {
+        if(nextSynchronize.getSource().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getSource().getStatus())) {
             backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
             result.setFailed();
             return result;
         }
 
-        if(nextSynchronize.getDestination().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
+        if(nextSynchronize.getDestination().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getDestination().getStatus())) {
             backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
             result.setFailed();
             return result;
