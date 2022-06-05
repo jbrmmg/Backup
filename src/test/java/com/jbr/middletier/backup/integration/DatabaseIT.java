@@ -184,7 +184,6 @@ public class DatabaseIT {
     public void classification() {
         ClassificationDTO newDTO = new ClassificationDTO();
         newDTO.setAction("Test");
-        newDTO.setType("File");
         newDTO.setImage(false);
         newDTO.setIcon("Fred");
         newDTO.setOrder(1);
@@ -270,14 +269,14 @@ public class DatabaseIT {
 
         Source newSource1 = new Source();
         newSource1.setLocation(newLocation);
-        newSource1.setStatus("OK");
+        newSource1.setStatus(SourceStatusType.SST_OK);
         newSource1.setFilter("*.xml");
         newSource1.setPath("/test/directory");
         sourceRepository.save(newSource1);
 
         Source newSource2 = new Source();
         newSource2.setLocation(newLocation);
-        newSource2.setStatus("OK");
+        newSource2.setStatus(SourceStatusType.SST_OK);
         newSource2.setFilter("*.xml");
         newSource2.setPath("/test/directory2");
         sourceRepository.save(newSource2);

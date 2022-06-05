@@ -4,6 +4,7 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.Source;
+import com.jbr.middletier.backup.data.SourceStatusType;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.*;
@@ -83,14 +84,14 @@ public class NonFsoApiIT extends WebTester {
 
         Source newSource1 = new Source();
         newSource1.setLocation(newLocation);
-        newSource1.setStatus("OK");
+        newSource1.setStatus(SourceStatusType.SST_OK);
         newSource1.setFilter("*.xml");
         newSource1.setPath("/test/directory");
         sourceRepository.save(newSource1);
 
         Source newSource2 = new Source();
         newSource2.setLocation(newLocation);
-        newSource2.setStatus("OK");
+        newSource2.setStatus(SourceStatusType.SST_OK);
         newSource2.setFilter("*.xml");
         newSource2.setPath("/test/directory2");
         sourceRepository.save(newSource2);
@@ -122,8 +123,8 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].source.idAndType.id", is(newSource2.getIdAndType().getId())))
-                .andExpect(jsonPath("$[0].destination.idAndType.id", is(newSource1.getIdAndType().getId())));
+                .andExpect(jsonPath("$[0].source.id", is(newSource2.getIdAndType().getId())))
+                .andExpect(jsonPath("$[0].destination.id", is(newSource1.getIdAndType().getId())));
 
         LOG.info("Update the source (switch source and destination.");
         newSync.setDestination(source);
@@ -139,8 +140,8 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].source.idAndType.id", is(newSource1.getIdAndType().getId())))
-                .andExpect(jsonPath("$[0].destination.idAndType.id", is(newSource2.getIdAndType().getId())));
+                .andExpect(jsonPath("$[0].source.id", is(newSource1.getIdAndType().getId())))
+                .andExpect(jsonPath("$[0].destination.id", is(newSource2.getIdAndType().getId())));
 
         LOG.info("Delete the remaining synchronize.");
         getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
@@ -322,7 +323,6 @@ public class NonFsoApiIT extends WebTester {
         classificationDTO.setAction("Help");
         classificationDTO.setRegex("*/sdaf");
         classificationDTO.setIcon("Flahr");
-        classificationDTO.setType("Test");
         classificationDTO.setImage(true);
 
         LOG.info("Create a classification.");
@@ -337,12 +337,12 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(33)))
                 .andExpect(jsonPath("$[32].id", is(33)))
-                .andExpect(jsonPath("$[32].isVideo", is(classificationDTO.getVideo())))
                 .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction())))
                 .andExpect(jsonPath("$[32].useMD5", is(classificationDTO.getUseMD5())))
                 .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
+                .andExpect(jsonPath("$[32].video", is(classificationDTO.getVideo())))
                 .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())))
-                .andExpect(jsonPath("$[32].isImage", is(classificationDTO.getImage())));
+                .andExpect(jsonPath("$[32].image", is(classificationDTO.getImage())));
 
         LOG.info("Modify the classification.");
         classificationDTO.setId(33);

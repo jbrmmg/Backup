@@ -153,6 +153,7 @@ public class SyncApiIT extends WebTester  {
     private Source createSource(String path, Integer locationId) {
         Source newSource = new Source();
         newSource.setLocation(getLocation(locationId));
+        newSource.setStatus(SourceStatusType.SST_OK);
         newSource.setPath(path);
 
         sourceRepository.save(newSource);

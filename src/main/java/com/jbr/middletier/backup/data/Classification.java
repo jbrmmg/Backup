@@ -74,12 +74,14 @@ public class Classification {
 
     public Boolean getIsImage() { return this.isImage; }
 
-    public boolean fileMatches(FileInfo file) {
-        return file.getName().toLowerCase().matches(regex);
-    }
+    public Integer getOrder() { return this.order; }
 
     @Override
     public String toString() {
         return id + "-" + regex;
+    }
+
+    public boolean fileMatches(FileInfo file) {
+        return file.getName().toLowerCase().matches(regex);
     }
 }

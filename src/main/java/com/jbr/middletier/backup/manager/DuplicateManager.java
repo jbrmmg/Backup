@@ -20,15 +20,15 @@ import java.util.List;
 public class DuplicateManager {
     private static final Logger LOG = LoggerFactory.getLogger(DuplicateManager.class);
 
-    private final SourceRepository sourceRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final FileRepository fileRepository;
     private final ActionManager actionManager;
 
     @Autowired
-    public DuplicateManager(SourceRepository sourceRepository,
+    public DuplicateManager(AssociatedFileDataManager associatedFileDataManager,
                             FileRepository fileRepository,
                             ActionManager actionManager) {
-        this.sourceRepository = sourceRepository;
+        this.associatedFileDataManager = associatedFileDataManager;
         this.fileRepository = fileRepository;
         this.actionManager = actionManager;
     }
@@ -84,10 +84,9 @@ public class DuplicateManager {
 
     public void duplicateCheck() {
         actionManager.clearDuplicateActions();
-        Iterable<Source> sources = sourceRepository.findAll();
 
         // Check for duplicates in sources.
-        for(Source nextSource: sources) {
+        for(Source nextSource: associatedFileDataManager.internalFindAllSource()) {
             if(Boolean.TRUE.equals(nextSource.getLocation().getCheckDuplicates())) {
                 // Find files that have the same name and size.
                 if(true)

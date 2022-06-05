@@ -27,25 +27,18 @@ abstract class FileProcessor {
     final FileRepository fileRepository;
     final BackupManager backupManager;
     final ActionManager actionManager;
+    final AssociatedFileDataManager associatedFileDataManager;
 
     FileProcessor(DirectoryRepository directoryRepository,
                   FileRepository fileRepository,
                   BackupManager backupManager,
-                  ActionManager actionManager) {
+                  ActionManager actionManager,
+                  AssociatedFileDataManager associatedFileDataManager) {
         this.directoryRepository = directoryRepository;
         this.fileRepository = fileRepository;
         this.backupManager = backupManager;
         this.actionManager = actionManager;
-    }
-
-    private Classification classifyFile(FileInfo file, Iterable<Classification> classifications)  {
-        for(Classification nextClassification : classifications) {
-            if(nextClassification.fileMatches(file)) {
-                return nextClassification;
-            }
-        }
-
-        return null;
+        this.associatedFileDataManager = associatedFileDataManager;
     }
 
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
@@ -86,14 +79,14 @@ abstract class FileProcessor {
 
     abstract void newFileInserted(FileInfo newFile);
 
-    private void createFile(Path path, FileSystemObject parent, Iterable<Classification> classifications, boolean skipMD5) {
+    private void createFile(Path path, FileSystemObject parent, boolean skipMD5) {
         Date fileDate = new Date(path.toFile().lastModified());
 
         // Get the file
         FileInfo newFile = new FileInfo();
         newFile.setName(path.getFileName().toString());
         newFile.setParentId(parent);
-        newFile.setClassification(classifyFile(newFile,classifications));
+        newFile.setClassification(associatedFileDataManager.classifyFile(newFile));
         newFile.setDate(fileDate);
         newFile.setSize(path.toFile().length());
         if(!skipMD5) {
@@ -106,11 +99,11 @@ abstract class FileProcessor {
         newFileInserted(newFile);
     }
 
-    private void updateFile(Path path, FileInfo file, Iterable<Classification> classifications, boolean skipMD5) {
+    private void updateFile(Path path, FileInfo file, boolean skipMD5) {
         Date fileDate = new Date(path.toFile().lastModified());
 
         if(file.getClassification() == null) {
-            Classification newClassification = classifyFile(file,classifications);
+            Classification newClassification = associatedFileDataManager.classifyFile(file);
 
             if(newClassification != null) {
                 file.setClassification(newClassification);
@@ -185,7 +178,7 @@ abstract class FileProcessor {
         toBeUpdated.setId(newDirectoryInfo);
     }
 
-    private void performDatabaseAddOrUpdate(Source source, FileTreeNode toBeUpdated, Iterable<Classification> classifications, boolean skipMD5) {
+    private void performDatabaseAddOrUpdate(Source source, FileTreeNode toBeUpdated, boolean skipMD5) {
         if(toBeUpdated.isDirectory()) {
             performDbAddOrUpdDirectory(source, toBeUpdated);
             return;
@@ -199,20 +192,20 @@ abstract class FileProcessor {
         }
 
         if(existingFile.isPresent()) {
-            updateFile(toBeUpdated.getPath(),existingFile.get(),classifications,skipMD5);
+            updateFile(toBeUpdated.getPath(),existingFile.get(),skipMD5);
         } else {
-            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated, source),classifications,skipMD5);
+            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated, source),skipMD5);
         }
     }
 
-    private void performDatabaseUpdate(Source source, FileTreeNode compare, Iterable<Classification> classifications, boolean skipMD5) {
+    private void performDatabaseUpdate(Source source, FileTreeNode compare, boolean skipMD5) {
         // If adding, then add now and then the children.
         if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.ADDED) ||
                 (compare.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) ||
                 (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE) ||
                 (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY)) {
             // Insert or update
-            performDatabaseAddOrUpdate(source, compare, classifications, skipMD5);
+            performDatabaseAddOrUpdate(source, compare, skipMD5);
         }
 
         // Process the children.
@@ -222,7 +215,7 @@ abstract class FileProcessor {
                 next.setCompareStatus(compare.getCompareStatus());
             }
 
-            performDatabaseUpdate(source, next, classifications, skipMD5);
+            performDatabaseUpdate(source, next, skipMD5);
         }
 
         // If removing, then remove after the children.
@@ -293,7 +286,7 @@ abstract class FileProcessor {
         }
     }
 
-    protected void updateDatabase(Source source, List<ActionConfirm> deletes, Iterable<Classification> classifications, boolean skipMD5) throws IOException {
+    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5) throws IOException {
         // Read the files structure from the real world.
         RootFileTreeNode realWorld = getFileDetails(source);
         realWorld.removeFilteredChildren(source);
@@ -309,7 +302,7 @@ abstract class FileProcessor {
 
         // Update the database with the real world.
         for(FileTreeNode next: compare.getChildren()) {
-            performDatabaseUpdate(source, next, classifications, skipMD5);
+            performDatabaseUpdate(source, next, skipMD5);
         }
     }
 

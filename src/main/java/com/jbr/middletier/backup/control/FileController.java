@@ -8,10 +8,7 @@ import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
-import com.jbr.middletier.backup.manager.ActionManager;
-import com.jbr.middletier.backup.manager.DriveManager;
-import com.jbr.middletier.backup.manager.DuplicateManager;
-import com.jbr.middletier.backup.manager.SynchronizeManager;
+import com.jbr.middletier.backup.manager.*;
 import liquibase.repackaged.org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
@@ -34,7 +31,7 @@ public class FileController {
 
     private final DriveManager driveManager;
     private final FileRepository fileRepository;
-    private final SynchronizeRepository synchronizeRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final DirectoryRepository directoryRepository;
     private final ActionManager actionManager;
     private final DuplicateManager duplicateManager;
@@ -44,14 +41,14 @@ public class FileController {
     @Autowired
     public FileController(DriveManager driverManager,
                           FileRepository fileRepository,
-                          SynchronizeRepository synchronizeRepository,
+                          AssociatedFileDataManager associatedFileDataManager,
                           DirectoryRepository directoryRepository,
                           ActionManager actionManager,
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager ) {
         this.driveManager = driverManager;
         this.fileRepository = fileRepository;
-        this.synchronizeRepository = synchronizeRepository;
+        this.associatedFileDataManager = associatedFileDataManager;
         this.directoryRepository = directoryRepository;
         this.actionManager = actionManager;
         this.duplicateManager = duplicateManager;
@@ -96,7 +93,7 @@ public class FileController {
             List<Integer> sourceIds = new ArrayList<>();
 
             // Level 1 - get those sources that are the left hand side of synchronisation.
-            for(Synchronize nextSynchronize: synchronizeRepository.findAll()) {
+            for(Synchronize nextSynchronize: associatedFileDataManager.internalFindAllSynchronize()) {
                 if(sourceIds.contains(nextSynchronize.getSource().getIdAndType().getId())) {
                     continue;
                 }

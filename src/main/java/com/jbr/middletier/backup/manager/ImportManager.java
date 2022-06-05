@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,36 +28,23 @@ public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
     private final ImportFileRepository importFileRepository;
-    private final SourceRepository sourceRepository;
-    private final ImportSourceRepository importSourceRepository;
-    private final ClassificationRepository classificationRepository;
-    private final LocationRepository locationRepository;
     private final IgnoreFileRepository ignoreFileRepository;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
-                         SourceRepository sourceRepository,
+                         AssociatedFileDataManager associatedFileDataManager,
                          ImportSourceRepository importSourceRepository,
-                         ClassificationRepository classificationRepository,
-                         LocationRepository locationRepository,
                          DirectoryRepository directoryRepository,
                          FileRepository fileRepository,
                          IgnoreFileRepository ignoreFileRepository,
                          BackupManager backupManager,
                          ActionManager actionManager) {
-        super(directoryRepository,fileRepository,backupManager,actionManager);
+        super(directoryRepository,fileRepository,backupManager,actionManager,associatedFileDataManager);
         this.importFileRepository = importFileRepository;
-        this.sourceRepository = sourceRepository;
-        this.importSourceRepository = importSourceRepository;
-        this.classificationRepository = classificationRepository;
-        this.locationRepository = locationRepository;
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
     public void importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
-        // Get the classifications
-        Iterable<Classification> classifications = classificationRepository.findAll();
-
         // Remove any existing import data.
         clearImports();
 
@@ -67,33 +55,23 @@ public class ImportManager extends FileProcessor {
         }
 
         // Validate the source.
-        Optional<Source> source = sourceRepository.findById(importRequest.getSource());
+        Optional<Source> source = associatedFileDataManager.internalFindSourceByIdIfExists(importRequest.getSource());
         if(!source.isPresent()) {
             throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
         // Find the location.
-        Optional<Location> importLocation = Optional.empty();
-        for(Location nextLocation: locationRepository.findAll()) {
-            if(nextLocation.getName().equalsIgnoreCase("import")) {
-                importLocation = Optional.of(nextLocation);
-            }
-        }
-
+        Optional<Location> importLocation = associatedFileDataManager.internalFindImportLocationIfExists();
         if(!importLocation.isPresent()) {
             throw new IOException("Cannot find import location.");
         }
 
         // Create a source to match this import
-        ImportSource importSource = new ImportSource(importRequest.getPath());
-        importSource.setDestination(source.get());
-        importSource.setLocation(importLocation.get());
-
-        sourceRepository.save(importSource);
+        ImportSource importSource = associatedFileDataManager.createImportSource(importRequest.getPath(), source.get(), importLocation.get());
 
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
-        updateDatabase(importSource, new ArrayList<>(), classifications, true);
+        updateDatabase(importSource, new ArrayList<>(), true);
     }
 
     public void clearImports() {
@@ -103,7 +81,7 @@ public class ImportManager extends FileProcessor {
         importFileRepository.deleteAll();
 
         // Remove the files associated with imports - first remove files, then directories then source.
-        for(ImportSource nextSource: importSourceRepository.findAll()) {
+        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
             if(true)
                 throw new IllegalStateException("Fix this");
 //            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
@@ -114,7 +92,7 @@ public class ImportManager extends FileProcessor {
 //                directoryRepository.delete(nextDirectory);
 //            }
 
-            sourceRepository.delete(nextSource);
+            associatedFileDataManager.deleteImportSource(nextSource);
         }
     }
 
@@ -303,19 +281,17 @@ public class ImportManager extends FileProcessor {
         LOG.info("Import Photo Process");
 
         // Get the source.
-        Optional<ImportSource> source = Optional.empty();
-
-        for(ImportSource nextSource: importSourceRepository.findAll()) {
-            source = Optional.of(nextSource);
+        Optional<ImportSourceDTO> importSource = Optional.empty();
+        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
+            importSource = Optional.of(nextSource);
         }
 
-        if(!source.isPresent()) {
+        if(!importSource.isPresent()) {
             throw new ImportRequestException("There is no import source defined.");
         }
 
         // Get the place they are to be imported to.
-        //TODO - this can use the object already loaded.
-        Optional<Source> destination = sourceRepository.findById(source.get().getDestination().getIdAndType().getId());
+        Optional<Source> destination = associatedFileDataManager.internalFindSourceByIdIfExists(importSource.get().getDestinationId());
         if(!destination.isPresent()) {
             throw new ImportRequestException("Destination for import is not found.");
         }

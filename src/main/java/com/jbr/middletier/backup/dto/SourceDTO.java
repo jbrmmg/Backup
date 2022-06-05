@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.Source;
+import com.jbr.middletier.backup.data.SourceStatusType;
 
 import javax.validation.constraints.NotNull;
 
@@ -9,7 +10,7 @@ public class SourceDTO {
     private Integer id;
     private String path;
     private LocationDTO location;
-    private String status;
+    private SourceStatusType status;
     private String filter;
     private int directoryCount;
     private int fileCount;
@@ -23,6 +24,15 @@ public class SourceDTO {
         this.fileCount = 0;
         this.totalFileSize = 0;
         this.largestFile = 0;
+    }
+
+    public SourceDTO(Source source) {
+        this();
+        setId(source.getIdAndType().getId());
+        setPath(source.getPath());
+        setLocation(new LocationDTO(source.getLocation()));
+        setStatus(source.getStatus());
+        setFilter(source.getFilter());
     }
 
     public SourceDTO(int id, String path) {
@@ -64,11 +74,11 @@ public class SourceDTO {
         this.location = location;
     }
 
-    public String getStatus() {
+    public SourceStatusType getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(SourceStatusType status) {
         this.status = status;
     }
 

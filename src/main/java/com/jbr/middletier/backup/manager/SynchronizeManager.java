@@ -26,17 +26,17 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 public class SynchronizeManager {
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeManager.class);
 
-    private final SynchronizeRepository synchronizeRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final BackupManager backupManager;
     private final FileRepository fileRepository;
     private final ActionManager actionManager;
 
     @Autowired
-    public SynchronizeManager(SynchronizeRepository synchronizeRepository,
+    public SynchronizeManager(AssociatedFileDataManager associatedFileDataManager,
                               BackupManager backupManager,
                               FileRepository fileRepository,
                               ActionManager actionManager) {
-        this.synchronizeRepository = synchronizeRepository;
+        this.associatedFileDataManager = associatedFileDataManager;
         this.backupManager = backupManager;
         this.fileRepository = fileRepository;
         this.actionManager = actionManager;
@@ -259,9 +259,7 @@ public class SynchronizeManager {
     public List<SyncDataDTO> synchronize() {
         List<SyncDataDTO> result = new ArrayList<>();
 
-        Iterable<Synchronize> synchronizes = synchronizeRepository.findAll();
-
-        for(Synchronize nextSynchronize : synchronizes) {
+        for(Synchronize nextSynchronize : associatedFileDataManager.internalFindAllSynchronize()) {
             result.add(processSynchronize(nextSynchronize));
         }
 

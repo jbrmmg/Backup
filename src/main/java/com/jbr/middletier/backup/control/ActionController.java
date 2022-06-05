@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
 import com.jbr.middletier.backup.manager.ActionManager;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.summary.Summary;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -28,14 +29,13 @@ public class ActionController {
     @Contract(pure = true)
     @Autowired
     public ActionController(IgnoreFileRepository ignoreFileRepository,
-                            ActionConfirmRepository actionConfirmRepository,
                             ActionManager actionManager,
-                            SourceRepository sourceRepository,
+                            AssociatedFileDataManager associatedFileDataManager,
                             DirectoryRepository directoryRepository,
                             FileRepository fileRepository) {
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionManager = actionManager;
-        this.summary = Summary.getInstance(sourceRepository,directoryRepository,fileRepository);
+        this.summary = Summary.getInstance(associatedFileDataManager,directoryRepository,fileRepository);
     }
 
     @GetMapping(path="/actions")

@@ -12,15 +12,19 @@ public class FileSystemObjectManager {
     private final FileRepository fileRepository;
     private final DirectoryRepository directoryRepository;
     private final IgnoreFileRepository ignoreFileRepository;
-    private final SourceRepository sourceRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final ImportFileRepository importFileRepository;
 
     @Autowired
-    public FileSystemObjectManager(FileRepository fileRepository, DirectoryRepository directoryRepository, IgnoreFileRepository ignoreFileRepository, SourceRepository sourceRepository, ImportFileRepository importFileRepository) {
+    public FileSystemObjectManager(FileRepository fileRepository,
+                                   DirectoryRepository directoryRepository,
+                                   IgnoreFileRepository ignoreFileRepository,
+                                   AssociatedFileDataManager associatedFileDataManager,
+                                   ImportFileRepository importFileRepository) {
         this.fileRepository = fileRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
-        this.sourceRepository = sourceRepository;
+        this.associatedFileDataManager = associatedFileDataManager;
         this.importFileRepository = importFileRepository;
     }
 
@@ -28,6 +32,14 @@ public class FileSystemObjectManager {
         Optional<FileSystemObject> result = Optional.empty();
 
         switch(id.getType()) {
+            case FSO_IMPORT_SOURCE:
+                //TODO
+                break;
+
+            case FSO_VIDEO_FILE:
+                //TODO
+                break;
+
             case FSO_DIRECTORY:
                 Optional<DirectoryInfo> directory = directoryRepository.findById(id.getId());
                 if(directory.isPresent()) {
@@ -56,18 +68,12 @@ public class FileSystemObjectManager {
                 break;
 
             case FSO_SOURCE:
-                Optional<Source> source = sourceRepository.findById(id.getId());
+                Optional<Source> source = associatedFileDataManager.internalFindSourceByIdIfExists(id.getId());
                 if(source.isPresent()) {
                     return Optional.of(source.get());
                 }
 
-            case FSO_IMPORT_SOURCE:
-                //TODO
-                break;
 
-            case FSO_VIDEO_FILE:
-                //TODO
-                break;
         }
 
         return result;

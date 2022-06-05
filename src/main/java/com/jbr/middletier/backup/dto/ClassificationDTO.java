@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.dto;
 
+import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.FileInfo;
+
 @SuppressWarnings("unused")
 public class ClassificationDTO {
     private Integer id;
@@ -8,9 +11,22 @@ public class ClassificationDTO {
     private String action;
     private String icon;
     private Boolean useMD5;
-    private String type;
     private Boolean isImage;
     private Boolean isVideo;
+
+    public ClassificationDTO() {
+    }
+
+    public ClassificationDTO(Classification classification) {
+        this.id = classification.getId();
+        this.order = classification.getOrder();
+        this.regex = classification.getRegex();
+        this.action = classification.getAction();
+        this.icon = classification.getIcon();
+        this.useMD5 = classification.getUseMD5();
+        this.isImage = classification.getIsImage();
+        this.isVideo = classification.getIsVideo();
+    }
 
     public Integer getId() {
         return id;
@@ -58,14 +74,6 @@ public class ClassificationDTO {
 
     public void setUseMD5(Boolean useMD5) {
         this.useMD5 = useMD5;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Boolean getImage() {

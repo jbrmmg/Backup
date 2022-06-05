@@ -64,11 +64,11 @@ public class Source extends FileSystemObject {
 
     public void setPath(@NotNull String path) { this.name = path; }
 
-    public void setStatus(String status) { this.status = status; }
+    public void setStatus(SourceStatusType status) { this.status = status.getTypeName(); }
 
     public void setFilter(String filter) { this.filter = filter; }
 
-    public String getStatus() { return this.status; }
+    public SourceStatusType getStatus() { return SourceStatusType.getSourceStatusType(this.status); }
 
     public String getPath() { return this.name; }
 

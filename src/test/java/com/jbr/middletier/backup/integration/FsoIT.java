@@ -103,7 +103,7 @@ public class FsoIT   {
         Source newSource = new Source();
         newSource.setPath("/test/source/path");
         newSource.setFilter("*.FRD");
-        newSource.setStatus("OK");
+        newSource.setStatus(SourceStatusType.SST_OK);
         newSource.setLocation(location.get());
 
         sourceRepository.save(newSource);
@@ -114,18 +114,18 @@ public class FsoIT   {
 
         Assert.assertEquals("/test/source/path", foundSource.get().getPath());
         Assert.assertEquals("*.FRD", foundSource.get().getFilter());
-        Assert.assertEquals("OK", foundSource.get().getStatus());
+        Assert.assertEquals("OK", foundSource.get().getStatus().getTypeName());
         Assert.assertEquals(1, foundSource.get().getLocation().getId());
 
         foundSource.get().setPath("/test/source2/path");
-        foundSource.get().setStatus("ERROR");
+        foundSource.get().setStatus(SourceStatusType.SST_ERROR);
         foundSource.get().setFilter("FRD.*");
         sourceRepository.save(foundSource.get());
 
         Optional<Source> foundSource2 = sourceRepository.findById(newId);
         Assert.assertTrue(foundSource2.isPresent());
 
-        Assert.assertEquals("ERROR", foundSource2.get().getStatus());
+        Assert.assertEquals("ERROR", foundSource2.get().getStatus().getTypeName());
         Assert.assertEquals("/test/source2/path", foundSource2.get().getPath());
         Assert.assertEquals("FRD.*", foundSource2.get().getFilter());
 
@@ -146,7 +146,7 @@ public class FsoIT   {
         Source testSource = new Source();
         testSource.setPath("/test/source/path");
         testSource.setFilter("*.FRD");
-        testSource.setStatus("OK");
+        testSource.setStatus(SourceStatusType.SST_OK);
         testSource.setLocation(testLocation.get());
 
         sourceRepository.save(testSource);
@@ -226,7 +226,7 @@ public class FsoIT   {
         Source testSource = new Source();
         testSource.setPath("/test/source/path");
         testSource.setFilter("*.FRD");
-        testSource.setStatus("OK");
+        testSource.setStatus(SourceStatusType.SST_OK);
         testSource.setLocation(testLocation.get());
 
         sourceRepository.save(testSource);
@@ -384,7 +384,7 @@ public class FsoIT   {
         Source newSource = new Source();
         newSource.setPath("/test/source/path");
         newSource.setFilter("*.FRD");
-        newSource.setStatus("OK");
+        newSource.setStatus(SourceStatusType.SST_OK);
         newSource.setLocation(location.get());
 
         sourceRepository.save(newSource);
@@ -393,7 +393,7 @@ public class FsoIT   {
         ImportSource newImportSource = new ImportSource();
         newImportSource.setPath("/test/source/import");
         newImportSource.setFilter("*.FRD");
-        newImportSource.setStatus("OK");
+        newImportSource.setStatus(SourceStatusType.SST_OK);
         newImportSource.setLocation(location.get());
         newImportSource.setDestination(newSource);
 
@@ -405,19 +405,19 @@ public class FsoIT   {
 
         Assert.assertEquals("/test/source/import", foundSource.get().getPath());
         Assert.assertEquals("*.FRD", foundSource.get().getFilter());
-        Assert.assertEquals("OK", foundSource.get().getStatus());
+        Assert.assertEquals(SourceStatusType.SST_OK, foundSource.get().getStatus());
         Assert.assertEquals(1, foundSource.get().getLocation().getId());
         Assert.assertEquals( destinationId, foundSource.get().getDestination().getIdAndType().getId());
 
         foundSource.get().setPath("/test/source2/import");
-        foundSource.get().setStatus("ERROR");
+        foundSource.get().setStatus(SourceStatusType.SST_ERROR);
         foundSource.get().setFilter("FRD.*");
         sourceRepository.save(foundSource.get());
 
         Optional<ImportSource> foundSource2 = importSourceRepository.findById(newId);
         Assert.assertTrue(foundSource2.isPresent());
 
-        Assert.assertEquals("ERROR", foundSource2.get().getStatus());
+        Assert.assertEquals(SourceStatusType.SST_ERROR, foundSource2.get().getStatus());
         Assert.assertEquals("/test/source2/import", foundSource2.get().getPath());
         Assert.assertEquals("FRD.*", foundSource2.get().getFilter());
         Assert.assertEquals( destinationId, foundSource2.get().getDestination().getIdAndType().getId());
