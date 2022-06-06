@@ -3,22 +3,23 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.filetree.FileTreeNode;
-import com.jbr.middletier.backup.filetree.RootFileTreeNode;
+import com.jbr.middletier.backup.filetree.*;
+import com.jbr.middletier.backup.filetree.compare.RwDbTree;
+import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
+import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 abstract class FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
@@ -227,40 +228,32 @@ abstract class FileProcessor {
     }
 
     private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed) {
-        // Only nodes that are the same as the DB can be deleted
-        if(node.getCompareStatus() != FileTreeNode.CompareStatusType.EQUAL) {
+        // Only process nodes of type RwDbCompareNode
+        if(!(node instanceof RwDbCompareNode)) {
             return;
         }
 
+        // Process the children.
         for(FileTreeNode next: node.getChildren()) {
-            processDeletesIteratively ( next, deletes, performed );
+            processDeletesIteratively(next,deletes,performed);
         }
 
-        // Does this node have a source file?
-        Path sourcePath = node.getPath();
-        if(node.hasValidId() || sourcePath == null) {
-            LOG.warn("CANNOT process the delete as the node does not have a db entry equal to real world.");
-            LOG.warn("> " + node);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"CANNOT process the delete as the node does not have a db entry equal to real world.");
+        // Only nodes that are the same as the DB can be deleted
+        if(((RwDbCompareNode) node).getActionType() != RwDbCompareNode.ActionType.NONE) {
             return;
         }
+
+        // Get details of the file
+        RwDbCompareNode compareNode = (RwDbCompareNode)node;
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && next.getPath().getIdAndType().getId() == node.getId()) {
-                LOG.info("Deleting the file {}", sourcePath);
-
-                try {
-                    Files.deleteIfExists(sourcePath);
-                    node.setCompareStatus(FileTreeNode.CompareStatusType.REMOVED);
-
-                    LOG.info("Deleted.");
-
+            if(next.confirmed() && compareNode.getDatabaseObjectId().getId() == next.getPath().getIdAndType().getId()) {
+                // Get details of the file that needs to be deleted.
+                if (compareNode.deleteRwFile()) {
                     // Remove the action.
                     actionManager.actionPerformed(next);
                     performed.add(next);
-                } catch (IOException e) {
-                    LOG.warn("Failed to delete file {}", sourcePath);
                 }
             }
         }
@@ -274,7 +267,7 @@ abstract class FileProcessor {
 
         List<ActionConfirm> performedActions = new ArrayList<>();
 
-        processDeletesIteratively ( details, deletes, performedActions );
+        processDeletesIteratively(details,deletes,performedActions);
         deletes.removeAll(performedActions);
 
         // If there are still confirmed deletes to perform then they are invalid, so delete them anyway.
@@ -286,72 +279,63 @@ abstract class FileProcessor {
         }
     }
 
+    private void processFileRemoval(List<FileTreeNode> compareNodeList) {
+        for(FileTreeNode nextNode: compareNodeList) {
+            if(nextNode instanceof RwDbCompareNode) {
+                // Delete this file from the database.
+            }
+        }
+    }
+
+    private void processDirectoryRemoval(List<FileTreeNode> compareNodeList) {
+        for(FileTreeNode nextNode: compareNodeList) {
+            if(nextNode instanceof DelDbDirectory) {
+                // Delete this direct from the database.
+            }
+        }
+    }
+
+    private void processDirectoryAddUpdate(List<FileTreeNode> compareNodeList) {
+        for(FileTreeNode nextNode: compareNodeList) {
+            if(nextNode instanceof AddUpdDbDirectory) {
+                // Delete this direct from the database.
+            }
+        }
+    }
+
+    private void processFileAddUpdate(List<FileTreeNode> compareNodeList) {
+        for(FileTreeNode nextNode: compareNodeList) {
+            if(nextNode instanceof AddUpdDbFile) {
+                // Delete this direct from the database.
+            }
+        }
+    }
+
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5) throws IOException {
         // Read the files structure from the real world.
-        RootFileTreeNode realWorld = getFileDetails(source);
-        realWorld.removeFilteredChildren(source);
+        RwRoot realWorld = new RwRoot(source.getPath(), backupManager);
+        realWorld.removeFilteredChildren(source.getFilter());
 
         // Read the same from the database.
-        RootFileTreeNode database = getDatabaseDetails(source);
+        DbRoot database = new DbRoot(source, fileRepository, directoryRepository);
 
         // Compare the real world with the database.
-        RootFileTreeNode compare = realWorld.compare(database);
+        RwDbTree compare = new RwDbTree();
+        compare.compare(realWorld, database);
+
+        // Perform deletes
+        processDeletes(compare,deletes);
+
+        // Get the ordered node list (they will be in the order they should be processed)
+        List<FileTreeNode> orderedNodeList = compare.getOrderedNodeList();
 
         // Process the deletes
-        processDeletes(compare, deletes);
+        processFileRemoval(compareNodeList);
+        processDirectoryRemoval(compareNodeList);
 
-        // Update the database with the real world.
-        for(FileTreeNode next: compare.getChildren()) {
-            performDatabaseUpdate(source, next, skipMD5);
-        }
-    }
-
-    private RootFileTreeNode getFileDetails(Source root) throws IOException {
-        Path rootDirectory = Paths.get(root.getPath());
-        RootFileTreeNode result = new RootFileTreeNode(rootDirectory);
-
-        try(Stream<Path> fileDetails = Files.walk(rootDirectory)) {
-            fileDetails.forEach(path -> {
-                if(path.getNameCount() > rootDirectory.getNameCount()) {
-                    FileTreeNode nextIterator = result;
-
-                    for(int directoryIdx = rootDirectory.getNameCount(); directoryIdx < path.getNameCount() - 1; directoryIdx++) {
-                        nextIterator = nextIterator.getNamedChild(path.getName(directoryIdx).toString());
-                    }
-
-                    nextIterator.addChild(path);
-                }
-            });
-        } catch (IOException e) {
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to read + " + rootDirectory);
-            throw e;
-        }
-
-        return result;
-    }
-
-    private void getDatabaseDetails(FileTreeNode result, FileSystemObject parent) {
-        List<DirectoryInfo> directories = directoryRepository.findByParentId(parent.getIdAndType().getId());
-        for(DirectoryInfo next: directories) {
-            FileTreeNode nextNode = result.addChild(next);
-
-            List<FileInfo> files = fileRepository.findByParentId(next.getIdAndType().getId());
-
-            for(FileInfo nextFile: files) {
-                nextNode.addChild(nextFile);
-            }
-
-            // Process the next level.
-            getDatabaseDetails(nextNode, next);
-        }
-    }
-
-    private RootFileTreeNode getDatabaseDetails(Source source) {
-        RootFileTreeNode result = new RootFileTreeNode(source);
-
-        getDatabaseDetails(result, source);
-
-        return result;
+        // Process the updates and adds
+        processDirectoryAddUpdate(compareNodeList);
+        processFileAddUpdate(compareNodeList);
     }
 
     protected void createDirectory(String path) {
