@@ -301,7 +301,7 @@ public class FsoIT   {
         testIgnoreFile.setMD5("YTWVS");
         testIgnoreFile.setSize(8310L);
         testIgnoreFile.clearRemoved();
-        testIgnoreFile.setParentId(null);
+        testIgnoreFile.setParent(null);
 
         ignoreFileRepository.save(testIgnoreFile);
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, testIgnoreFile.getIdAndType().getType());

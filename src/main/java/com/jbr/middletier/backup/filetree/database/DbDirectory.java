@@ -15,11 +15,11 @@ public class DbDirectory extends DbNode {
         this.directoryInfo = directoryInfo;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            children.add(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
+            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
         }
 
         for(FileInfo nextFile : fileRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            children.add(new DbFile(this, nextFile));
+            addChild(new DbFile(this, nextFile));
         }
     }
 

@@ -20,7 +20,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -132,6 +131,7 @@ public class TestFileTree {
         }
 
         public boolean test() {
+            childAdded(new BasicRwDirectory());
             try {
                 childAdded(new BasicTestNode());
                 Assert.fail();

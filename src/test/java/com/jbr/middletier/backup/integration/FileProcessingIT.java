@@ -193,7 +193,7 @@ public class FileProcessingIT extends FileTester {
         for(FileTreeNode nextNode: nodes) {
             Assert.assertTrue(nextNode instanceof RwDbSectionNode);
             RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
-            Assert.assertNull(sectionNode);
+            Assert.assertNull(sectionNode.getName());
         }
 
         Assert.assertNull(rwDbTree.getName());

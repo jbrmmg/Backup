@@ -14,7 +14,7 @@ public class DbRoot extends RootFileTreeNode {
         this.databaseSource = databaseSource;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(databaseSource.getIdAndType().getId())) {
-            children.add(new DbDirectory(this,nextDirectory,fileRepository,directoryRepository));
+            addChild(new DbDirectory(this,nextDirectory,fileRepository,directoryRepository));
         }
     }
 
