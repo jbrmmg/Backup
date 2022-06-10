@@ -224,7 +224,9 @@ abstract class FileProcessor {
         // Get the real world object.
         RwFile rwNode = (RwFile)getRwNode(node);
 
-        Date fileDate = new Date(rwNode.getFile().lastModified());
+        existingFile.get().setName(rwNode.getName());
+        existingFile.get().setParentId(getParentIt(node));
+        existingFile.get().clearRemoved();
 
         if(existingFile.get().getClassification() == null) {
             Classification newClassification = associatedFileDataManager.classifyFile(existingFile.get());
@@ -234,7 +236,8 @@ abstract class FileProcessor {
             }
         }
 
-        long dbTime = existingFile.get().getDate().getTime() / 1000;
+        Date fileDate = new Date(rwNode.getFile().lastModified());
+        long dbTime = existingFile.get().getDate() == null ? 0 : existingFile.get().getDate().getTime() / 1000;
         long fileTime = fileDate.getTime() / 1000;
 
         if((existingFile.get().getSize() == null) || (existingFile.get().getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(dbTime - fileTime) > 1)) {
@@ -244,11 +247,6 @@ abstract class FileProcessor {
                 existingFile.get().setMD5(getMD5(rwNode.getFile().toPath(), existingFile.get().getClassification()));
             }
         }
-
-        // Insert a new file.
-        existingFile.get().setName(rwNode.getName());
-        existingFile.get().setParentId(getParentIt(node));
-        existingFile.get().clearRemoved();
 
         fileRepository.save(existingFile.get());
         if(newFile) {

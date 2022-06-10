@@ -559,4 +559,64 @@ public class FileProcessingIT extends FileTester {
         directoryRepository.delete(level1);
         sourceRepository.deleteAll();
     }
+
+    @Test
+    @Order(9)
+    public void compareRwDb7() throws Exception {
+        Optional<Location> location = locationRepository.findById(1);
+        Assert.assertTrue(location.isPresent());
+
+        Source source = new Source();
+        source.setLocation(location.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("test");
+        sourceRepository.save(source);
+
+        DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
+
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        // Compare
+        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        rwDbTree.compare();
+
+        List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
+
+        Assert.assertEquals(6, nodes.size());
+        int sectionCount = 0;
+        int compareDirectoryCount = 0;
+        int compareFileCount = 0;
+        for(FileTreeNode nextNode: nodes) {
+            if(nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+                Assert.assertNull(sectionNode.getName());
+                sectionCount++;
+            } else if (nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                if(compareNode.isDirectory()) {
+                    Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                    compareDirectoryCount++;
+                } else {
+                    Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                    compareFileCount++;
+                }
+            } else {
+                Assert.fail();
+            }
+        }
+
+        Assert.assertNull(rwDbTree.getName());
+        Assert.assertEquals(4, sectionCount);
+        Assert.assertEquals(1, compareFileCount);
+        Assert.assertEquals(1, compareDirectoryCount);
+
+        Assert.assertNull(rwDbTree.getName());
+
+        sourceRepository.deleteAll();
+    }
 }

@@ -254,7 +254,7 @@ public class SyncApiIT extends FileTester {
         List<DirectoryInfo> dbDirectories = new ArrayList<>();
         dbDirectories.addAll(directoryRepository.findAllByOrderByIdAsc());
         for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParentId(null);
+            nextDirectory.setParent(null);
             directoryRepository.save(nextDirectory);
         }
 
