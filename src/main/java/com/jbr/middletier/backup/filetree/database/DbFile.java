@@ -20,7 +20,7 @@ public class DbFile extends DbNode {
     @Override
     protected void childAdded(FileTreeNode newChild) {
         // This is not allow.
-        throw new IllegalStateException("Cannot add child notes to a file database node.");
+        throw new IllegalStateException("Cannot add child nodes to a file database node.");
     }
 
     @Override

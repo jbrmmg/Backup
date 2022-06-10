@@ -1,9 +1,11 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
+import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
@@ -155,6 +157,24 @@ public class TestFileTree {
         }
     }
 
+    private static class BasicDbFile extends DbFile {
+
+        public BasicDbFile() {
+            super(null, new FileInfo());
+        }
+
+        public boolean test() {
+            try {
+                childAdded(null);
+                Assert.fail();
+            } catch (IllegalStateException e) {
+                Assert.assertEquals("Cannot add child nodes to a file database node.", e.getMessage());
+            }
+
+            return true;
+        }
+    }
+
     @Autowired
     BackupManager backupManager;
 
@@ -202,5 +222,8 @@ public class TestFileTree {
         } catch (IllegalStateException e) {
             Assert.assertEquals("Cannot initialise a Rw DB Section object as unknown.", e.getMessage());
         }
+
+        BasicDbFile testDbFile = new BasicDbFile();
+        Assert.assertTrue(testDbFile.test());
     }
 }

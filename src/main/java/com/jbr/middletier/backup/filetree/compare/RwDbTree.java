@@ -42,17 +42,16 @@ public class RwDbTree extends CompareRoot {
         // EQUAL - RealWorld is a file, Database is a directory.  Need the real world and the id and type.
         //         Need to delete the directory and create a file.
 
-        RwNode rwLhsNode = (RwNode)lhs;
         if(CompareStatusType.REMOVED.equals(status)) {
-            return new RwDbCompareNode(parent,rwLhsNode);
+            return new RwDbCompareNode(parent,(RwNode)lhs);
         }
 
-        DbNode dbRhsNode = (DbNode)rhs;
         if(CompareStatusType.ADDED.equals(status)) {
+            DbNode dbRhsNode = (DbNode)rhs;
             return new RwDbCompareNode(parent,dbRhsNode.getObjectId());
         }
 
-        return new RwDbCompareNode(parent,rwLhsNode,dbRhsNode);
+        return new RwDbCompareNode(parent,(RwNode)lhs,(DbNode)rhs);
     }
 
     private void findDeleteFiles(FileTreeNode node, List<FileTreeNode> result) {

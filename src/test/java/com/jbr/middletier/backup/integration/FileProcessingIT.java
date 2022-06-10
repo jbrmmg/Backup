@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
+import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
@@ -197,5 +198,365 @@ public class FileProcessingIT extends FileTester {
         }
 
         Assert.assertNull(rwDbTree.getName());
+
+        fileRepository.deleteAll();
+        directoryRepository.deleteAll();
+        sourceRepository.deleteAll();
+    }
+
+    @Test
+    @Order(4)
+    public void compareRwDb2() throws Exception {
+        Optional<Location> location = locationRepository.findById(1);
+        Assert.assertTrue(location.isPresent());
+
+        Source source = new Source();
+        source.setLocation(location.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("test");
+        sourceRepository.save(source);
+
+        DirectoryInfo level1 = new DirectoryInfo();
+        level1.setParent(source);
+        level1.setName("Documents");
+        level1.clearRemoved();
+        directoryRepository.save(level1);
+
+        DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
+
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        // Compare
+        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        rwDbTree.compare();
+
+        List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
+
+        Assert.assertEquals(5, nodes.size());
+        int sectionCount = 0;
+        for(FileTreeNode nextNode: nodes) {
+            if(nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+                Assert.assertNull(sectionNode.getName());
+                sectionCount++;
+            } else if (nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                Assert.assertFalse(compareNode.isDirectory());
+            } else {
+                Assert.fail();
+            }
+        }
+
+        Assert.assertNull(rwDbTree.getName());
+        Assert.assertEquals(4, sectionCount);
+
+        fileRepository.deleteAll();
+        directoryRepository.deleteAll();
+        sourceRepository.deleteAll();
+    }
+
+    @Test
+    @Order(5)
+    public void compareRwDb3() throws Exception {
+        Optional<Location> location = locationRepository.findById(1);
+        Assert.assertTrue(location.isPresent());
+
+        Source source = new Source();
+        source.setLocation(location.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("test");
+        sourceRepository.save(source);
+
+        DirectoryInfo level1 = new DirectoryInfo();
+        level1.setParent(source);
+        level1.setName("Documents");
+        level1.clearRemoved();
+        directoryRepository.save(level1);
+
+        DirectoryInfo file = new DirectoryInfo();
+        file.setParent(level1);
+        file.setName("Backup.dxf~3");
+        file.clearRemoved();
+        directoryRepository.save(file);
+
+        DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
+
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        // Compare
+        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        rwDbTree.compare();
+
+        List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
+
+        Assert.assertEquals(6, nodes.size());
+        int sectionCount = 0;
+        int compareCount = 0;
+        for(FileTreeNode nextNode: nodes) {
+            if(nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+                Assert.assertNull(sectionNode.getName());
+                sectionCount++;
+            } else if (nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
+                Assert.assertFalse(compareNode.isDirectory());
+                compareCount++;
+            } else {
+                Assert.fail();
+            }
+        }
+
+        Assert.assertNull(rwDbTree.getName());
+        Assert.assertEquals(4, sectionCount);
+        Assert.assertEquals(2, compareCount);
+
+        Assert.assertNull(rwDbTree.getName());
+
+        directoryRepository.delete(file);
+        directoryRepository.delete(level1);
+        sourceRepository.deleteAll();
+    }
+
+    @Test
+    @Order(6)
+    public void compareRwDb4() throws Exception {
+        Optional<Location> location = locationRepository.findById(1);
+        Assert.assertTrue(location.isPresent());
+
+        Source source = new Source();
+        source.setLocation(location.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("test");
+        sourceRepository.save(source);
+
+        DirectoryInfo level1 = new DirectoryInfo();
+        level1.setParent(source);
+        level1.setName("Documents");
+        level1.clearRemoved();
+        directoryRepository.save(level1);
+
+        FileInfo file = new FileInfo();
+        file.setParent(level1);
+        file.setName("Backup");
+        file.clearRemoved();
+        fileRepository.save(file);
+
+        FileInfo file2 = new FileInfo();
+        file2.setParent(level1);
+        file2.setName("Text1.txt");
+        file2.clearRemoved();
+        fileRepository.save(file2);
+
+        DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
+
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        // Compare
+        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        rwDbTree.compare();
+
+        List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
+
+        Assert.assertEquals(7, nodes.size());
+        int sectionCount = 0;
+        int compareDirectoryCount = 0;
+        int compareFileCount = 0;
+        for(FileTreeNode nextNode: nodes) {
+            if(nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+                Assert.assertNull(sectionNode.getName());
+                sectionCount++;
+            } else if (nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                if(compareNode.isDirectory()) {
+                    Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compareNode.getActionType());
+                    compareDirectoryCount++;
+                } else {
+                    Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                    compareFileCount++;
+                }
+            } else {
+                Assert.fail();
+            }
+        }
+
+        Assert.assertNull(rwDbTree.getName());
+        Assert.assertEquals(4, sectionCount);
+        Assert.assertEquals(2, compareDirectoryCount);
+        Assert.assertEquals(1, compareFileCount);
+
+        Assert.assertNull(rwDbTree.getName());
+
+        fileRepository.delete(file);
+        fileRepository.delete(file2);
+        directoryRepository.delete(level1);
+        sourceRepository.deleteAll();
+    }
+
+    @Test
+    @Order(7)
+    public void compareRwDb5() throws Exception {
+        Optional<Location> location = locationRepository.findById(1);
+        Assert.assertTrue(location.isPresent());
+
+        Source source = new Source();
+        source.setLocation(location.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("test");
+        sourceRepository.save(source);
+
+        DirectoryInfo level1 = new DirectoryInfo();
+        level1.setParent(source);
+        level1.setName("Documents");
+        level1.clearRemoved();
+        directoryRepository.save(level1);
+
+        FileInfo file = new FileInfo();
+        file.setParent(level1);
+        file.setName("Deleted.txt");
+        file.clearRemoved();
+        fileRepository.save(file);
+
+        FileInfo file2 = new FileInfo();
+        file2.setParent(level1);
+        file2.setName("Backup.dxf~3");
+        file2.clearRemoved();
+        fileRepository.save(file2);
+
+        DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
+
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        // Compare
+        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        rwDbTree.compare();
+
+        List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
+
+        Assert.assertEquals(5, nodes.size());
+        int sectionCount = 0;
+        int compareCount = 0;
+        for(FileTreeNode nextNode: nodes) {
+            if(nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+                Assert.assertNull(sectionNode.getName());
+                sectionCount++;
+            } else if (nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
+                Assert.assertFalse(compareNode.isDirectory());
+                compareCount++;
+            } else {
+                Assert.fail();
+            }
+        }
+
+        Assert.assertNull(rwDbTree.getName());
+        Assert.assertEquals(4, sectionCount);
+        Assert.assertEquals(1, compareCount);
+
+        Assert.assertNull(rwDbTree.getName());
+
+        fileRepository.delete(file2);
+        fileRepository.delete(file);
+        directoryRepository.delete(level1);
+        sourceRepository.deleteAll();
+    }
+
+    @Test
+    @Order(8)
+    public void compareRwDb6() throws Exception {
+        Optional<Location> location = locationRepository.findById(1);
+        Assert.assertTrue(location.isPresent());
+
+        Source source = new Source();
+        source.setLocation(location.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("test");
+        sourceRepository.save(source);
+
+        DirectoryInfo level1 = new DirectoryInfo();
+        level1.setParent(source);
+        level1.setName("Documents");
+        level1.clearRemoved();
+        directoryRepository.save(level1);
+
+        DirectoryInfo extraDirectory = new DirectoryInfo();
+        extraDirectory.setParent(level1);
+        extraDirectory.setName("Deleted");
+        extraDirectory.clearRemoved();
+        directoryRepository.save(extraDirectory);
+
+        FileInfo file2 = new FileInfo();
+        file2.setParent(level1);
+        file2.setName("Backup.dxf~3");
+        file2.clearRemoved();
+        fileRepository.save(file2);
+
+        DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
+
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        // Compare
+        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        rwDbTree.compare();
+
+        List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
+
+        Assert.assertEquals(5, nodes.size());
+        int sectionCount = 0;
+        int compareCount = 0;
+        for(FileTreeNode nextNode: nodes) {
+            if(nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+                Assert.assertNull(sectionNode.getName());
+                sectionCount++;
+            } else if (nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
+                Assert.assertTrue(compareNode.isDirectory());
+                compareCount++;
+            } else {
+                Assert.fail();
+            }
+        }
+
+        Assert.assertNull(rwDbTree.getName());
+        Assert.assertEquals(4, sectionCount);
+        Assert.assertEquals(1, compareCount);
+
+        Assert.assertNull(rwDbTree.getName());
+
+        fileRepository.delete(file2);
+        directoryRepository.delete(extraDirectory);
+        directoryRepository.delete(level1);
+        sourceRepository.deleteAll();
     }
 }
