@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
+import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class ImportManager extends FileProcessor {
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
-    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
+    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException, FileProcessException {
         List<GatherDataDTO> result = new ArrayList<>();
 
         // Remove any existing import data.

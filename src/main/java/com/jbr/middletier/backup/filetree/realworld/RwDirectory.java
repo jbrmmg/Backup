@@ -5,7 +5,7 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import java.nio.file.Path;
 
 public class RwDirectory extends RwNode {
-    private Path path;
+    private final Path path;
 
     public RwDirectory(FileTreeNode parent, Path path) {
         super(parent);

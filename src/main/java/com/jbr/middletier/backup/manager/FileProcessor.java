@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import org.slf4j.Logger;
@@ -84,125 +85,6 @@ abstract class FileProcessor {
 
     abstract void newFileInserted(FileInfo newFile);
 
-    private void createFile(Path path, FileSystemObject parent, boolean skipMD5) {
-        Date fileDate = new Date(path.toFile().lastModified());
-
-        // Get the file
-        FileInfo newFile = new FileInfo();
-        newFile.setName(path.getFileName().toString());
-        newFile.setParentId(parent);
-        newFile.setClassification(associatedFileDataManager.classifyFile(newFile));
-        newFile.setDate(fileDate);
-        newFile.setSize(path.toFile().length());
-        if(!skipMD5) {
-            newFile.setMD5(getMD5(path, newFile.getClassification()));
-        }
-        newFile.clearRemoved();
-
-        fileRepository.save(newFile);
-
-        newFileInserted(newFile);
-    }
-
-    private void updateFile(Path path, FileInfo file, boolean skipMD5) {
-        Date fileDate = new Date(path.toFile().lastModified());
-
-        if(file.getClassification() == null) {
-            Classification newClassification = associatedFileDataManager.classifyFile(file);
-
-            if(newClassification != null) {
-                file.setClassification(newClassification);
-            }
-        }
-
-        long dbTime = file.getDate().getTime() / 1000;
-        long fileTime = fileDate.getTime() / 1000;
-
-        if((file.getSize().compareTo(path.toFile().length()) != 0) ||
-                (Math.abs(dbTime - fileTime) > 1)) {
-            file.setSize(path.toFile().length());
-            file.setDate(fileDate);
-            if(!skipMD5) {
-                file.setMD5(getMD5(path, file.getClassification()));
-            }
-        }
-
-        file.clearRemoved();
-        fileRepository.save(file);
-    }
-
-    private void performDatabaseRemove(FileTreeNode toBeRemoved) {
-        // Remove the item from the database (either a file or a directory)
-        if(toBeRemoved.isDirectory()) {
-            Optional<DirectoryInfo> existingDirectory = directoryRepository.findById(toBeRemoved.getId());
-
-            existingDirectory.ifPresent(directoryRepository::delete);
-        } else {
-            Optional<FileInfo> existingFile = fileRepository.findById(toBeRemoved.getId());
-
-            existingFile.ifPresent(fileRepository::delete);
-        }
-    }
-
-    private FileSystemObject getParentDirectory(FileTreeNode node, Source source) {
-        // If there is no parent, then return the source.
-        if(node.getParent() == null) {
-            return source;
-        }
-
-        if(node.getParent().isDirectory() && node.getParent().hasValidId()) {
-            Optional<DirectoryInfo> existing = directoryRepository.findById(node.getParent().getId());
-            if(existing.isPresent()) {
-                return existing.get();
-            }
-        }
-
-        // If no parent then return the source.
-        return source;
-    }
-
-    private void performDbAddOrUpdDirectory(Source source, FileTreeNode toBeUpdated) {
-        if(toBeUpdated.hasValidId() && toBeUpdated.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) {
-            Optional<DirectoryInfo> existingDirectory = directoryRepository.findById(toBeUpdated.getId());
-
-            if(existingDirectory.isPresent()) {
-                //TODO - perform the update.
-                directoryRepository.save(existingDirectory.get());
-                return;
-            }
-        }
-
-        // Insert a new directory.
-        DirectoryInfo newDirectoryInfo = new DirectoryInfo();
-        newDirectoryInfo.setName(toBeUpdated.getName());
-        newDirectoryInfo.setParentId(getParentDirectory(toBeUpdated,source));
-        newDirectoryInfo.clearRemoved();
-
-        directoryRepository.save(newDirectoryInfo);
-
-        toBeUpdated.setId(newDirectoryInfo);
-    }
-
-    private void performDatabaseAddOrUpdate(Source source, FileTreeNode toBeUpdated, boolean skipMD5) {
-        if(toBeUpdated.isDirectory()) {
-            performDbAddOrUpdDirectory(source, toBeUpdated);
-            return;
-        }
-
-        // Is this a create or update?
-        Optional<FileInfo> existingFile = Optional.empty();
-
-        if(toBeUpdated.hasValidId()) {
-            existingFile = fileRepository.findById(toBeUpdated.getId());
-        }
-
-        if(existingFile.isPresent()) {
-            updateFile(toBeUpdated.getPath(),existingFile.get(),skipMD5);
-        } else {
-            createFile(toBeUpdated.getPath(),getParentDirectory(toBeUpdated, source),skipMD5);
-        }
-    }
-
     private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed, GatherDataDTO gatherData) {
         // Only process nodes of type RwDbCompareNode
         if(!(node instanceof RwDbCompareNode)) {
@@ -244,7 +126,7 @@ abstract class FileProcessor {
 
         List<ActionConfirm> performedActions = new ArrayList<>();
 
-        processDeletesIteratively(details,deletes,performedActions, GatherDataDTO gatherData);
+        processDeletesIteratively(details,deletes,performedActions, gatherData);
         deletes.removeAll(performedActions);
 
         // If there are still confirmed deletes to perform then they are invalid, so delete them anyway.
@@ -269,24 +151,15 @@ abstract class FileProcessor {
         existingDirectory.ifPresent(directoryRepository::delete);
     }
 
-    private void processDirectoryAddUpdate(RwDbCompareNode node) throws FileProcessException {
-        // If there is a database object then read it first.
-        Optional<DirectoryInfo> existingDirectory = Optional.empty();
-        if(node.getDatabaseObjectId() != null) {
-            existingDirectory = directoryRepository.findById(node.getDatabaseObjectId().getId());
-        }
-
-        if(!existingDirectory.isPresent()) {
-            existingDirectory = Optional.of(new DirectoryInfo());
-        }
-
-        // Get the real world object.
-        RwNode rwNode = node.getRealWorldNode();
-        if(rwNode == null) {
+    private RwNode getRwNode(RwDbCompareNode node) throws FileProcessException {
+        if(node.getRealWorldNode() == null) {
             throw new FileProcessException("Cannot add or update directory with no real world object.");
         }
 
-        // Get the parent id.
+        return node.getRealWorldNode();
+    }
+
+    private FileSystemObjectId getParentIt(RwDbCompareNode node) throws FileProcessException {
         FileTreeNode parentNode = node.getParent();
         FileSystemObjectId parentId = null;
         if(parentNode instanceof RwDbCompareNode) {
@@ -307,9 +180,26 @@ abstract class FileProcessor {
             throw new FileProcessException("Unable to determine the directory parent id.");
         }
 
+        return parentId;
+    }
+
+    private void processDirectoryAddUpdate(RwDbCompareNode node) throws FileProcessException {
+        // If there is a database object then read it first.
+        Optional<DirectoryInfo> existingDirectory = Optional.empty();
+        if(node.getDatabaseObjectId() != null) {
+            existingDirectory = directoryRepository.findById(node.getDatabaseObjectId().getId());
+        }
+
+        if(!existingDirectory.isPresent()) {
+            existingDirectory = Optional.of(new DirectoryInfo());
+        }
+
+        // Get the real world object.
+        RwNode rwNode = getRwNode(node);
+
         // Insert a new directory.
         existingDirectory.get().setName(rwNode.getName());
-        existingDirectory.get().setParentId(parentId);
+        existingDirectory.get().setParentId(getParentIt(node));
         existingDirectory.get().clearRemoved();
 
         directoryRepository.save(existingDirectory.get());
@@ -318,7 +208,55 @@ abstract class FileProcessor {
         node.setDatabaseObjectId(existingDirectory.get());
     }
 
-    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) {
+    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) throws FileProcessException {
+        // If there is a database object then read it first.
+        boolean newFile = false;
+        Optional<FileInfo> existingFile = Optional.empty();
+        if(node.getDatabaseObjectId() != null) {
+            existingFile = fileRepository.findById(node.getDatabaseObjectId().getId());
+        }
+
+        if(!existingFile.isPresent()) {
+            existingFile = Optional.of(new FileInfo());
+            newFile = true;
+        }
+
+        // Get the real world object.
+        RwFile rwNode = (RwFile)getRwNode(node);
+
+        Date fileDate = new Date(rwNode.getFile().lastModified());
+
+        if(existingFile.get().getClassification() == null) {
+            Classification newClassification = associatedFileDataManager.classifyFile(existingFile.get());
+
+            if(newClassification != null) {
+                existingFile.get().setClassification(newClassification);
+            }
+        }
+
+        long dbTime = existingFile.get().getDate().getTime() / 1000;
+        long fileTime = fileDate.getTime() / 1000;
+
+        if((existingFile.get().getSize() == null) || (existingFile.get().getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(dbTime - fileTime) > 1)) {
+            existingFile.get().setSize(rwNode.getFile().length());
+            existingFile.get().setDate(fileDate);
+            if(!skipMD5) {
+                existingFile.get().setMD5(getMD5(rwNode.getFile().toPath(), existingFile.get().getClassification()));
+            }
+        }
+
+        // Insert a new file.
+        existingFile.get().setName(rwNode.getName());
+        existingFile.get().setParentId(getParentIt(node));
+        existingFile.get().clearRemoved();
+
+        fileRepository.save(existingFile.get());
+        if(newFile) {
+            newFileInserted(existingFile.get());
+        }
+
+        // Store the id of this item.
+        node.setDatabaseObjectId(existingFile.get());
     }
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException, FileProcessException {

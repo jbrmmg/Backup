@@ -24,6 +24,10 @@ public class RwFile extends RwNode {
         throw new IllegalStateException("Cannot add child notes to a file node.");
     }
 
+    public File getFile() {
+        return this.file;
+    }
+
     @Override
     public boolean isDirectory() {
         return false;
