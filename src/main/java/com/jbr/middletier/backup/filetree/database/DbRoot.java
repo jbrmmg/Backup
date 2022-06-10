@@ -18,6 +18,10 @@ public class DbRoot extends RootFileTreeNode {
         }
     }
 
+    public Source getSource() {
+        return this.databaseSource;
+    }
+
     @Override
     public String getName() {
         return null;

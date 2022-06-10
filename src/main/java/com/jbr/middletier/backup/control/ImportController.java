@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.manager.ImportManager;
 import org.jetbrains.annotations.Contract;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -32,12 +34,10 @@ public class ImportController {
     }
 
     @PostMapping(path="/import")
-    public @ResponseBody OkStatus importPhotoDirectory(@NotNull @RequestBody ImportRequest importRequest) throws ImportRequestException, IOException {
+    public @ResponseBody List<GatherDataDTO> importPhotoDirectory(@NotNull @RequestBody ImportRequest importRequest) throws ImportRequestException, IOException {
         LOG.info("Import - {}", importRequest.getPath());
 
-        importManager.importPhoto(importRequest);
-
-        return OkStatus.getOkStatus();
+        return importManager.importPhoto(importRequest);
     }
 
     @DeleteMapping(path="/import")

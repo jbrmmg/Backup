@@ -3,10 +3,14 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.filetree.*;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
+import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,35 +203,7 @@ abstract class FileProcessor {
         }
     }
 
-    private void performDatabaseUpdate(Source source, FileTreeNode compare, boolean skipMD5) {
-        // If adding, then add now and then the children.
-        if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.ADDED) ||
-                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.UPDATED) ||
-                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE) ||
-                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY)) {
-            // Insert or update
-            performDatabaseAddOrUpdate(source, compare, skipMD5);
-        }
-
-        // Process the children.
-        for(FileTreeNode next: compare.getChildren()) {
-            // If the child compare status is unknown then copy from parent.
-            if(next.getCompareStatus() == FileTreeNode.CompareStatusType.UNKNOWN) {
-                next.setCompareStatus(compare.getCompareStatus());
-            }
-
-            performDatabaseUpdate(source, next, skipMD5);
-        }
-
-        // If removing, then remove after the children.
-        if((compare.getCompareStatus() == FileTreeNode.CompareStatusType.REMOVED) ||
-                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_FILE) ||
-                (compare.getCompareStatus() == FileTreeNode.CompareStatusType.CHANGE_TO_DIRECTORY)) {
-            performDatabaseRemove(compare);
-        }
-    }
-
-    private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed) {
+    private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed, GatherDataDTO gatherData) {
         // Only process nodes of type RwDbCompareNode
         if(!(node instanceof RwDbCompareNode)) {
             return;
@@ -235,7 +211,7 @@ abstract class FileProcessor {
 
         // Process the children.
         for(FileTreeNode next: node.getChildren()) {
-            processDeletesIteratively(next,deletes,performed);
+            processDeletesIteratively(next,deletes,performed,gatherData);
         }
 
         // Only nodes that are the same as the DB can be deleted
@@ -254,12 +230,13 @@ abstract class FileProcessor {
                     // Remove the action.
                     actionManager.actionPerformed(next);
                     performed.add(next);
+                    gatherData.incrementDeletes();
                 }
             }
         }
     }
 
-    private void processDeletes(RootFileTreeNode details, List<ActionConfirm> deletes) {
+    private void processDeletes(RootFileTreeNode details, List<ActionConfirm> deletes, GatherDataDTO gatherData) {
         // If there are no deletes then there is nothing to do.
         if(deletes == null || deletes.size() == 0) {
             return;
@@ -267,7 +244,7 @@ abstract class FileProcessor {
 
         List<ActionConfirm> performedActions = new ArrayList<>();
 
-        processDeletesIteratively(details,deletes,performedActions);
+        processDeletesIteratively(details,deletes,performedActions, GatherDataDTO gatherData);
         deletes.removeAll(performedActions);
 
         // If there are still confirmed deletes to perform then they are invalid, so delete them anyway.
@@ -279,39 +256,72 @@ abstract class FileProcessor {
         }
     }
 
-    private void processFileRemoval(List<FileTreeNode> compareNodeList) {
-        for(FileTreeNode nextNode: compareNodeList) {
-            if(nextNode instanceof RwDbCompareNode) {
-                // Delete this file from the database.
-            }
-        }
+    private void processFileRemoval(RwDbCompareNode node) {
+        // Delete this file from the database.
+        Optional<FileInfo> existingFile = fileRepository.findById(node.getDatabaseObjectId().getId());
+
+        existingFile.ifPresent(fileRepository::delete);
     }
 
-    private void processDirectoryRemoval(List<FileTreeNode> compareNodeList) {
-        for(FileTreeNode nextNode: compareNodeList) {
-            if(nextNode instanceof DelDbDirectory) {
-                // Delete this direct from the database.
-            }
-        }
+    private void processDirectoryRemoval(RwDbCompareNode node) {
+        Optional<DirectoryInfo> existingDirectory = directoryRepository.findById(node.getDatabaseObjectId().getId());
+
+        existingDirectory.ifPresent(directoryRepository::delete);
     }
 
-    private void processDirectoryAddUpdate(List<FileTreeNode> compareNodeList) {
-        for(FileTreeNode nextNode: compareNodeList) {
-            if(nextNode instanceof AddUpdDbDirectory) {
-                // Delete this direct from the database.
-            }
+    private void processDirectoryAddUpdate(RwDbCompareNode node) throws FileProcessException {
+        // If there is a database object then read it first.
+        Optional<DirectoryInfo> existingDirectory = Optional.empty();
+        if(node.getDatabaseObjectId() != null) {
+            existingDirectory = directoryRepository.findById(node.getDatabaseObjectId().getId());
         }
+
+        if(!existingDirectory.isPresent()) {
+            existingDirectory = Optional.of(new DirectoryInfo());
+        }
+
+        // Get the real world object.
+        RwNode rwNode = node.getRealWorldNode();
+        if(rwNode == null) {
+            throw new FileProcessException("Cannot add or update directory with no real world object.");
+        }
+
+        // Get the parent id.
+        FileTreeNode parentNode = node.getParent();
+        FileSystemObjectId parentId = null;
+        if(parentNode instanceof RwDbCompareNode) {
+            RwDbCompareNode rwDbParentNode = (RwDbCompareNode)parentNode;
+
+            if(rwDbParentNode.getDatabaseObjectId() == null) {
+                throw new FileProcessException("Cannot add or update directory with no known parent.");
+            }
+
+            parentId = rwDbParentNode.getDatabaseObjectId();
+        } else if(parentNode instanceof RwDbTree) {
+            RwDbTree rwDbSource = (RwDbTree)parentNode;
+
+            parentId = rwDbSource.getDbSource().getSource().getIdAndType();
+        }
+
+        if(parentId == null) {
+            throw new FileProcessException("Unable to determine the directory parent id.");
+        }
+
+        // Insert a new directory.
+        existingDirectory.get().setName(rwNode.getName());
+        existingDirectory.get().setParentId(parentId);
+        existingDirectory.get().clearRemoved();
+
+        directoryRepository.save(existingDirectory.get());
+
+        // Store the id of this item.
+        node.setDatabaseObjectId(existingDirectory.get());
     }
 
-    private void processFileAddUpdate(List<FileTreeNode> compareNodeList) {
-        for(FileTreeNode nextNode: compareNodeList) {
-            if(nextNode instanceof AddUpdDbFile) {
-                // Delete this direct from the database.
-            }
-        }
+    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) {
     }
 
-    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5) throws IOException {
+    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException, FileProcessException {
         // Read the files structure from the real world.
         RwRoot realWorld = new RwRoot(source.getPath(), backupManager);
         realWorld.removeFilteredChildren(source.getFilter());
@@ -320,22 +330,40 @@ abstract class FileProcessor {
         DbRoot database = new DbRoot(source, fileRepository, directoryRepository);
 
         // Compare the real world with the database.
-        RwDbTree compare = new RwDbTree();
-        compare.compare(realWorld, database);
+        RwDbTree compare = new RwDbTree(realWorld, database);
+        compare.compare();
 
         // Perform deletes
-        processDeletes(compare,deletes);
+        processDeletes(compare,deletes, gatherData);
 
-        // Get the ordered node list (they will be in the order they should be processed)
-        List<FileTreeNode> orderedNodeList = compare.getOrderedNodeList();
-
-        // Process the deletes
-        processFileRemoval(compareNodeList);
-        processDirectoryRemoval(compareNodeList);
-
-        // Process the updates and adds
-        processDirectoryAddUpdate(compareNodeList);
-        processFileAddUpdate(compareNodeList);
+        // Process the actions.
+        RwDbSectionNode.RwDbSectionNodeType section = RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_REMOVE;
+        for(FileTreeNode nextNode : compare.getOrderedNodeList()) {
+            if(nextNode instanceof RwDbCompareNode) {
+                RwDbCompareNode compareNode = (RwDbCompareNode)nextNode;
+                switch(section) {
+                    case FILE_FOR_REMOVE:
+                        processFileRemoval(compareNode);
+                        gatherData.incrementFilesRemoved();
+                        break;
+                    case DIRECTORY_FOR_REMOVE:
+                        processDirectoryRemoval(compareNode);
+                        gatherData.incrementDirectoriesRemoved();
+                        break;
+                    case DIRECTORY_FOR_INSERT:
+                        processDirectoryAddUpdate(compareNode);
+                        gatherData.incrementDirectoriesInserted();
+                        break;
+                    case FILE_FOR_INSERT:
+                        processFileAddUpdate(compareNode, skipMD5);
+                        gatherData.incrementFilesInserted();
+                        break;
+                }
+            } else if (nextNode instanceof RwDbSectionNode) {
+                RwDbSectionNode sectionNode = (RwDbSectionNode)nextNode;
+                section = sectionNode.getSection();
+            }
+        }
     }
 
     protected void createDirectory(String path) {

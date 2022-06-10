@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
@@ -44,7 +45,9 @@ public class ImportManager extends FileProcessor {
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
-    public void importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
+    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
+        List<GatherDataDTO> result = new ArrayList<>();
+
         // Remove any existing import data.
         clearImports();
 
@@ -71,7 +74,11 @@ public class ImportManager extends FileProcessor {
 
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
-        updateDatabase(importSource, new ArrayList<>(), true);
+        GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
+        updateDatabase(importSource, new ArrayList<>(), true, gatherData);
+        result.add(gatherData);
+
+        return result;
     }
 
     public void clearImports() {

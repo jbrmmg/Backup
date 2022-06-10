@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.filetree.compare.node;
 
+import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectId;
 import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
@@ -10,7 +11,7 @@ public class RwDbCompareNode extends FileTreeNode {
     public enum ActionType { NONE, INSERT, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
 
     private final RwNode realWorldNode;
-    private final FileSystemObjectId databaseObjectId;
+    private FileSystemObjectId databaseObjectId;
     private ActionType actionType;
     private final boolean isDirectory;
 
@@ -70,6 +71,10 @@ public class RwDbCompareNode extends FileTreeNode {
 
     public FileSystemObjectId getDatabaseObjectId() {
         return this.databaseObjectId;
+    }
+
+    public void setDatabaseObjectId(FileSystemObject databaseObject) {
+        this.databaseObjectId = databaseObject.getIdAndType();
     }
 
     public boolean isDirectory() {

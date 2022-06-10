@@ -1,8 +1,10 @@
 package com.jbr.middletier.backup.filetree.compare;
 
 import com.jbr.middletier.backup.data.FileSystemObjectId;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
+import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
@@ -12,6 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RwDbTree extends CompareRoot {
+    private final RwRoot realWorld;
+    private final DbRoot database;
+
+    public RwDbTree(RwRoot realWorld, DbRoot database) {
+        this.realWorld = realWorld;
+        this.database = database;
+    }
+
     @Override
     protected FileTreeNode createCompareNode(CompareStatusType status, FileTreeNode parent, FileTreeNode lhs, FileTreeNode rhs) {
         // Possible status is EQUAL, REMOVED (needs to be added to DB) or ADDED (needs to be removed from the DB).
@@ -67,6 +77,64 @@ public class RwDbTree extends CompareRoot {
         }
     }
 
+    private void findDeleteDirectories(FileTreeNode node, List<FileTreeNode> result) {
+        for(FileTreeNode next : node.getChildren()) {
+            findDeleteDirectories(next,result);
+        }
+
+        // Ignore nodes that are not the right type.
+        if(!(node instanceof RwDbCompareNode)) {
+            return;
+        }
+
+        RwDbCompareNode compareNode = (RwDbCompareNode)node;
+        if(!compareNode.isDirectory() && !compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
+            return;
+        }
+
+        // If this is a file, add a delete then add to the list now.
+        if(compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) ||
+                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE) ) {
+            result.add(compareNode);
+        }
+    }
+
+    private void findInsertDirectories (FileTreeNode node, List<FileTreeNode> result) {
+        if(node instanceof  RwDbCompareNode) {
+            RwDbCompareNode compareNode = (RwDbCompareNode)node;
+
+            if(compareNode.isDirectory() || compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
+                result.add(compareNode);
+            }
+        }
+
+        for(FileTreeNode next : node.getChildren()) {
+            findInsertDirectories(next,result);
+        }
+    }
+
+    private void findInsertFiles(FileTreeNode node, List<FileTreeNode> result) {
+        for(FileTreeNode next : node.getChildren()) {
+            findInsertFiles(next,result);
+        }
+
+        // Ignore nodes that are not the right type.
+        if(!(node instanceof RwDbCompareNode)) {
+            return;
+        }
+
+        RwDbCompareNode compareNode = (RwDbCompareNode)node;
+        if(compareNode.isDirectory() && !compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
+            return;
+        }
+
+        // If this is a file, add a delete then add to the list now.
+        if(compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) ||
+                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE) ) {
+            result.add(compareNode);
+        }
+    }
+
     @Override
     public List<FileTreeNode> getOrderedNodeList() {
         // Nodes are placed in this order in the list:
@@ -79,20 +147,25 @@ public class RwDbTree extends CompareRoot {
         List<FileTreeNode> result = new ArrayList<>();
 
         // Get the nodes that represent a delete file.
-        findDeleteFiles(this,result);
+        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_REMOVE));
+        findDeleteFiles(this, result);
 
         // Get the nodes that represent a delete directory.
-        findDeleteDirectories();
+        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.DIRECTORY_FOR_REMOVE));
+        findDeleteDirectories(this, result);
 
         // Get the nodes that represent an insert directory.
+        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.DIRECTORY_FOR_INSERT));
+        findInsertDirectories(this, result);
 
         // Get the nodes that represent an insert file.
-
+        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_INSERT));
+        findInsertFiles(this, result);
         return result;
     }
 
-    public void compare(RwRoot realWorld, DbRoot database) {
-        internalCompare(realWorld, database);
+    public void compare() {
+        internalCompare(this.realWorld, this.database);
     }
 
     @Override
@@ -103,5 +176,9 @@ public class RwDbTree extends CompareRoot {
     @Override
     protected void childAdded(FileTreeNode newChild) {
         // Not required on this.
+    }
+
+    public DbRoot getDbSource() {
+        return this.database;
     }
 }

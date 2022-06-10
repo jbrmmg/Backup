@@ -3,7 +3,9 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.filetree.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ public class DriveManager extends FileProcessor {
         super(directoryRepository,fileRepository,backupManager,actionManager,associatedFileDataManager);
     }
 
-    private void processSource(Source nextSource, List<ActionConfirm> deleteActions) throws IOException {
+    private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {
         if(nextSource.getStatus() != null && SourceStatusType.SST_GATHERING.equals(nextSource.getStatus())) {
             return;
         }
@@ -45,24 +47,34 @@ public class DriveManager extends FileProcessor {
         // If the source does not exist, create it.
         createDirectory(nextSource.getPath());
 
+        GatherDataDTO gatherData = new GatherDataDTO(nextSource.getIdAndType().getId());
+
         try {
-            updateDatabase(nextSource, deleteActions, false);
+            updateDatabase(nextSource, deleteActions, false, gatherData);
+
+            associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e);
-            throw e;
+        } catch (FileProcessException e) {
+            associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e);
         }
 
-        associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
+        data.add(gatherData);
     }
 
-    public void gather() throws IOException {
+    public List<GatherDataDTO> gather() throws IOException {
+        List<GatherDataDTO> result = new ArrayList<>();
+
         // Are any files to be deleted?
         List<ActionConfirm> deleteActions = actionManager.findConfirmedDeletes();
 
         for(Source nextSource: associatedFileDataManager.internalFindAllSource()) {
-            processSource(nextSource, deleteActions);
+            processSource(nextSource, deleteActions, result);
         }
+
+        return result;
     }
 
     @Override

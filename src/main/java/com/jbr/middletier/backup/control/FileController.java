@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
@@ -60,12 +61,10 @@ public class FileController {
     Iterable<FileInfo> getFiles() { return fileRepository.findAllByOrderByIdAsc(); }
 
     @PostMapping(path="/gather")
-    public @ResponseBody OkStatus gather(@RequestBody String reason) throws IOException {
+    public @ResponseBody List<GatherDataDTO> gather(@RequestBody String reason) throws IOException {
         LOG.info("Process drive - {}", reason);
 
-        driveManager.gather();
-
-        return OkStatus.getOkStatus();
+        return driveManager.gather();
     }
 
     @PostMapping(path="/duplicate")
