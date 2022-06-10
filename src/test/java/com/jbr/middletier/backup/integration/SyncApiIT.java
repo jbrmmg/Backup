@@ -326,7 +326,7 @@ public class SyncApiIT extends WebTester  {
         fileRepository.deleteAll();
 
         List<DirectoryInfo> dbDirectories = new ArrayList<>();
-        directoryRepository.findAllByOrderByIdAsc().forEach(dbDirectories::add);
+        dbDirectories.addAll(directoryRepository.findAllByOrderByIdAsc());
         for(DirectoryInfo nextDirectory : dbDirectories) {
             nextDirectory.setParentId(null);
             directoryRepository.save(nextDirectory);

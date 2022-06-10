@@ -152,7 +152,7 @@ public class FsoIT   {
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParentId(testSource);
+        directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
         directoryInfo.clearRemoved();
 
@@ -167,7 +167,7 @@ public class FsoIT   {
         Date aDate = sdf.parse("2022-06-02 10:02:03");
 
         FileInfo fileInfo = new FileInfo();
-        fileInfo.setParentId(directoryInfo);
+        fileInfo.setParent(directoryInfo);
         fileInfo.setName("Blah");
         fileInfo.setClassification(classificationList.get(0));
         fileInfo.setDate(aDate);
@@ -232,14 +232,14 @@ public class FsoIT   {
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParentId(testSource);
+        directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
         directoryInfo.clearRemoved();
 
         directoryRepository.save(directoryInfo);
 
         DirectoryInfo directoryInfo1 = new DirectoryInfo();
-        directoryInfo1.setParentId(directoryInfo);
+        directoryInfo1.setParent(directoryInfo);
         directoryInfo1.setName("test 2");
         directoryInfo1.clearRemoved();
 

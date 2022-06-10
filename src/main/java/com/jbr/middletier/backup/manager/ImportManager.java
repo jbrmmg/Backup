@@ -46,7 +46,7 @@ public class ImportManager extends FileProcessor {
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
-    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException, FileProcessException {
+    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
         List<GatherDataDTO> result = new ArrayList<>();
 
         // Remove any existing import data.
@@ -54,19 +54,19 @@ public class ImportManager extends FileProcessor {
 
         // Check the path exists
         File importPath = new File(importRequest.getPath());
-        if(!importPath.exists()) {
+        if (!importPath.exists()) {
             throw new ImportRequestException("The path does not exist - " + importPath);
         }
 
         // Validate the source.
         Optional<Source> source = associatedFileDataManager.internalFindSourceByIdIfExists(importRequest.getSource());
-        if(!source.isPresent()) {
-            throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
+        if (!source.isPresent()) {
+            throw new ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
         // Find the location.
         Optional<Location> importLocation = associatedFileDataManager.internalFindImportLocationIfExists();
-        if(!importLocation.isPresent()) {
+        if (!importLocation.isPresent()) {
             throw new IOException("Cannot find import location.");
         }
 
@@ -76,7 +76,11 @@ public class ImportManager extends FileProcessor {
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
-        updateDatabase(importSource, new ArrayList<>(), true, gatherData);
+        try {
+            updateDatabase(importSource, new ArrayList<>(), true, gatherData);
+        } catch (FileProcessException e) {
+            gatherData.setProblems();
+        }
         result.add(gatherData);
 
         return result;

@@ -50,7 +50,7 @@ public class FileSystemObject {
         return new FileSystemObjectId(this.parentId, FileSystemObjectType.getFileSystemObjectType(this.parentType));
     }
 
-    public void setParentId(FileSystemObject parent) {
+    public void setParent(FileSystemObject parent) {
         if(parent == null) {
             this.parentId = null;
             this.parentType = null;

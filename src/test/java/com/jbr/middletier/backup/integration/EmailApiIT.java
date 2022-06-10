@@ -103,7 +103,7 @@ public class EmailApiIT extends WebTester {
             LOG.info("Source {}", source);
 
             DirectoryInfo directory = new DirectoryInfo();
-            directory.setParentId(source);
+            directory.setParent(source);
             directory.setName("");
             directory.clearRemoved();
             directoryRepository.save(directory);
@@ -112,7 +112,7 @@ public class EmailApiIT extends WebTester {
 
             FileInfo file = new FileInfo();
             file.setName("Test");
-            file.setParentId(directory);
+            file.setParent(directory);
             file.clearRemoved();
             fileRepository.save(file);
 
