@@ -17,7 +17,7 @@ public abstract class CompareRoot extends RootFileTreeNode {
                 if(nextLHS.getName().equals(nextRHS.getName())) {
                     added.add(nextLHS.getName());
                     FileTreeNode resultNode = createCompareNode(CompareStatusType.EQUAL, result, nextLHS, nextRHS);
-                    getChildren(result).add(resultNode);
+                    result.addChild(resultNode);
                     performCompare(resultNode,nextLHS,nextRHS);
                 }
             }
@@ -25,7 +25,7 @@ public abstract class CompareRoot extends RootFileTreeNode {
             if(!added.contains(nextLHS.getName())) {
                 added.add(nextLHS.getName());
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.REMOVED, result, nextLHS, nullNode);
-                getChildren(result).add(resultNode);
+                result.addChild(resultNode);
                 performCompare(resultNode,nextLHS,nullNode);
             }
         }
@@ -34,7 +34,7 @@ public abstract class CompareRoot extends RootFileTreeNode {
             if(!added.contains(nextRHS.getName())) {
                 added.add(nextRHS.getName());
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.ADDED, result, nullNode, nextRHS);
-                getChildren(result).add(resultNode);
+                result.addChild(resultNode);
                 performCompare(resultNode,nullNode,nextRHS);
             }
         }
