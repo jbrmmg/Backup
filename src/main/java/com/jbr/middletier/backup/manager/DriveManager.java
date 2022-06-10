@@ -56,9 +56,11 @@ public class DriveManager extends FileProcessor {
         } catch (IOException e) {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e);
+            gatherData.setProblems();
         } catch (FileProcessException e) {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to update database as part of gather + " + e);
+            gatherData.setProblems();
         }
 
         data.add(gatherData);

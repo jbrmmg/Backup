@@ -337,7 +337,7 @@ abstract class FileProcessor {
         processDeletes(compare,deletes, gatherData);
 
         // Process the actions.
-        RwDbSectionNode.RwDbSectionNodeType section = RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_REMOVE;
+        RwDbSectionNode.RwDbSectionNodeType section = RwDbSectionNode.RwDbSectionNodeType.UNKNOWN;
         for(FileTreeNode nextNode : compare.getOrderedNodeList()) {
             if(nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode)nextNode;
