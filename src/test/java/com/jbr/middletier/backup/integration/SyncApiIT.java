@@ -51,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(initializers = {SyncApiIT.Initializer.class})
 @ActiveProfiles(value="it")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class SyncApiIT extends WebTester  {
+public class SyncApiIT extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(SyncApiIT.class);
 
     @ClassRule
@@ -91,57 +91,6 @@ public class SyncApiIT extends WebTester  {
     @Autowired
     ClassificationRepository classificationRepository;
 
-    private void deleteDirectoryContents(Path path) throws IOException {
-        if(!Files.exists(path))
-            return;
-
-        Files.walk(path)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-    }
-
-    private static class StructureDescription {
-        public final String filename;
-        public final String directory;
-        public final String destinationName;
-        public final String md5;
-        public final Date dateTime;
-        public final Long fileSize;
-        public boolean checked;
-
-        public StructureDescription(String description) throws ParseException {
-            String[] structureItems = description.split("\\s+");
-
-            this.filename = structureItems[0];
-            this.directory = structureItems[1];
-            this.destinationName = structureItems[2];
-            this.fileSize = (structureItems.length > 4) ? Long.parseLong(structureItems[4]) : null;
-            this.md5 = (structureItems.length > 5) ? structureItems[5] : null;
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-            this.dateTime = sdf.parse(structureItems[3]);
-
-            checked = false;
-        }
-    }
-
-    private List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
-        List<StructureDescription> result = new ArrayList<>();
-
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + testName + ".structure.txt");
-        assert stream != null;
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-
-        String resource;
-        while((resource = br.readLine()) != null) {
-            result.add(new StructureDescription(resource));
-            LOG.info(resource);
-        }
-
-        return result;
-    }
-
     private Location getLocation(Integer id) {
         Optional<Location> location = locationRepository.findById(id);
         if(!location.isPresent())
@@ -159,23 +108,6 @@ public class SyncApiIT extends WebTester  {
         sourceRepository.save(newSource);
 
         return newSource;
-    }
-
-    private void copyFiles(List<StructureDescription> description, String destination) throws IOException {
-        for(StructureDescription nextFile: description) {
-            Files.createDirectories(new File(destination + FileSystems.getDefault().getSeparator() + nextFile.directory).toPath());
-
-            InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + nextFile.filename);
-
-            if(stream != null) {
-                Path destinationFile = new File(destination + FileSystems.getDefault().getSeparator() + nextFile.directory + FileSystems.getDefault().getSeparator() + nextFile.destinationName).toPath();
-                Files.copy(stream,
-                        destinationFile,
-                        StandardCopyOption.REPLACE_EXISTING);
-
-                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(nextFile.dateTime.getTime()));
-            }
-        }
     }
 
     private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
@@ -265,13 +197,7 @@ public class SyncApiIT extends WebTester  {
         }
 
         // During this test create files in the following directories
-        String sourceDirectory = "./target/it_test/source";
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
-
-        String destinationDirectory = "./target/it_test/destination";
-        deleteDirectoryContents(new File(destinationDirectory).toPath());
-        Files.createDirectories(new File(destinationDirectory).toPath());
+        initialiseDirectories();
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test1");

@@ -103,7 +103,9 @@ public class RwDbTree extends CompareRoot {
         if(node instanceof  RwDbCompareNode) {
             RwDbCompareNode compareNode = (RwDbCompareNode)node;
 
-            if(compareNode.isDirectory() || compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
+            if(compareNode.isDirectory() &&
+                    (compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT)
+                            || compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY))) {
                 result.add(compareNode);
             }
         }

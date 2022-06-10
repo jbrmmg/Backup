@@ -49,11 +49,15 @@ public class RwRoot extends RootFileTreeNode {
         // Nothing required.
     }
 
-
     public void removeFilteredChildren(String filter) {
         // Remove anything from realworld that does not meet the source filter.
         if(filter != null && filter.length() > 0) {
             throw new IllegalStateException("Fix this");
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Real World (R): " + rootOfRealWorld.toString() + " " + this.children.size();
     }
 }

@@ -14,7 +14,7 @@ public class RwDirectory extends RwNode {
 
     @Override
     public String getName() {
-        return path.toFile().getParentFile().getName();
+        return path.getFileName().toString();
     }
 
     @Override
@@ -29,5 +29,10 @@ public class RwDirectory extends RwNode {
     @Override
     public boolean isDirectory() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "RW (dir): " + getName() + " " + this.children.size();
     }
 }

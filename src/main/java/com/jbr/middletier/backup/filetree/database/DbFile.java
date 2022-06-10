@@ -14,7 +14,7 @@ public class DbFile extends DbNode {
 
     @Override
     public String getName() {
-        return null;
+        return fileInfo.getName();
     }
 
     @Override

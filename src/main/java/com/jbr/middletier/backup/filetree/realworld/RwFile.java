@@ -32,4 +32,9 @@ public class RwFile extends RwNode {
     public boolean isDirectory() {
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "RW (file): " + getName();
+    }
 }

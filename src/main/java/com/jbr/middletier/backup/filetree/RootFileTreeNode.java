@@ -16,4 +16,9 @@ public abstract class RootFileTreeNode extends FileTreeNode {
     protected List<FileTreeNode> getChildren(FileTreeNode parent) {
         return parent.children;
     }
+
+    @Override
+    public String toString() {
+        return "Root: " + this.children.size();
+    }
 }

@@ -8,7 +8,7 @@ import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
 public class DbDirectory extends DbNode {
-    private DirectoryInfo directoryInfo;
+    private final DirectoryInfo directoryInfo;
 
     public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
         super(parent);

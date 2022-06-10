@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.filetree;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,5 +71,10 @@ public abstract class FileTreeNode {
 
     public Iterable<FileTreeNode> getChildren() {
         return this.children;
+    }
+
+    @Override
+    public String toString() {
+        return getName() + " " + this.children.size();
     }
 }
