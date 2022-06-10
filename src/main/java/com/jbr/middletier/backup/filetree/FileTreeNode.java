@@ -40,7 +40,7 @@ public abstract class FileTreeNode {
 
     public CompareStatusType getStatus() {
         // If there are no children then use my own status.
-        if(children.size() == 0) {
+        if(children.isEmpty()) {
             return this.status;
         }
 

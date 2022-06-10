@@ -21,7 +21,7 @@ public class RwFile extends RwNode {
     @Override
     protected void childAdded(FileTreeNode newChild) {
         // This is not allow.
-        throw new IllegalStateException("Cannot add child notes to a file node.");
+        throw new IllegalStateException("Cannot add child nodes to a file node.");
     }
 
     public File getFile() {

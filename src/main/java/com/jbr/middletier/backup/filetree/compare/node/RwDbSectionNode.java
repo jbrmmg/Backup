@@ -3,9 +3,9 @@ package com.jbr.middletier.backup.filetree.compare.node;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
 public class RwDbSectionNode extends FileTreeNode  {
-    public enum RwDbSectionNodeType { UNKNOWN, FILE_FOR_REMOVE, DIRECTORY_FOR_REMOVE, DIRECTORY_FOR_INSERT, FILE_FOR_INSERT };
+    public enum RwDbSectionNodeType { UNKNOWN, FILE_FOR_REMOVE, DIRECTORY_FOR_REMOVE, DIRECTORY_FOR_INSERT, FILE_FOR_INSERT }
 
-    private RwDbSectionNodeType section;
+    private final RwDbSectionNodeType section;
 
     public RwDbSectionNode(RwDbSectionNodeType section) {
         super(null);

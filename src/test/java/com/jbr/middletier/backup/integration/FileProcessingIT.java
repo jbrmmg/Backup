@@ -104,6 +104,8 @@ public class FileProcessingIT extends FileTester {
             }
         }
         Assert.assertEquals(1, count);
+
+        Assert.assertEquals("Real World (R): " + sourceDirectory + " 1", rwRoot.toString());
     }
 
     @Test
@@ -190,6 +192,10 @@ public class FileProcessingIT extends FileTester {
         Assert.assertEquals(4, nodes.size());
         for(FileTreeNode nextNode: nodes) {
             Assert.assertTrue(nextNode instanceof RwDbSectionNode);
+            RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            Assert.assertNull(sectionNode);
         }
+
+        Assert.assertNull(rwDbTree.getName());
     }
 }
