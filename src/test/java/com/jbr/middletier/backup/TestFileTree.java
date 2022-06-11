@@ -1,16 +1,10 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.FileSystemObjectId;
-import com.jbr.middletier.backup.data.FileSystemObjectType;
-import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
-import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
-import com.jbr.middletier.backup.filetree.database.DbDirectory;
+import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
@@ -151,9 +145,9 @@ public class TestFileTree {
         }
     }
 
-    private static class BasicRwDbSection extends RwDbSectionNode {
+    private static class BasicSection extends SectionNode {
 
-        public BasicRwDbSection(RwDbSectionNodeType section) {
+        public BasicSection(SectionNodeType section) {
             super(section);
         }
 
@@ -219,11 +213,11 @@ public class TestFileTree {
             Assert.assertEquals("does not exist", e.getMessage());
         }
 
-        BasicRwDbSection testRwDbSection = new BasicRwDbSection(RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_INSERT);
+        BasicSection testRwDbSection = new BasicSection(SectionNode.SectionNodeType.FILE_FOR_INSERT);
         Assert.assertTrue(testRwDbSection.test());
 
         try {
-            testRwDbSection = new BasicRwDbSection(RwDbSectionNode.RwDbSectionNodeType.UNKNOWN);
+            testRwDbSection = new BasicSection(SectionNode.SectionNodeType.UNKNOWN);
             Assert.fail();
         } catch (IllegalStateException e) {
             Assert.assertEquals("Cannot initialise a Rw DB Section object as unknown.", e.getMessage());

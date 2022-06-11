@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class AssociatedFileDataManager {
     private final ImportSourceRepository importSourceRepository;
     private List<Classification> cachedClassifications;
 
+    @Autowired
     public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository) {
         this.sourceRepository = sourceRepository;
         this.locationRepository = locationRepository;

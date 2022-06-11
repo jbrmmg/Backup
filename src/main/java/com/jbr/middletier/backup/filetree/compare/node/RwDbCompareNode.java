@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.filetree.compare.node;
 
-import com.jbr.middletier.backup.control.ActionController;
 import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectId;
 import com.jbr.middletier.backup.data.FileSystemObjectType;
@@ -68,6 +67,7 @@ public class RwDbCompareNode extends FileTreeNode {
 
     @Override
     protected void childAdded(FileTreeNode newChild) {
+        // Nothing to do for this type
     }
 
     public ActionType getActionType() {

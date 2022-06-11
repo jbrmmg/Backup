@@ -9,7 +9,7 @@ import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
-import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
+import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
@@ -206,8 +206,8 @@ public class FileProcessingIT extends FileTester {
 
         Assert.assertEquals(4, nodes.size());
         for (FileTreeNode nextNode : nodes) {
-            Assert.assertTrue(nextNode instanceof RwDbSectionNode);
-            RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            Assert.assertTrue(nextNode instanceof SectionNode);
+            SectionNode sectionNode = (SectionNode) nextNode;
             Assert.assertNull(sectionNode.getName());
         }
 
@@ -254,8 +254,8 @@ public class FileProcessingIT extends FileTester {
         Assert.assertEquals(5, nodes.size());
         int sectionCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
@@ -319,8 +319,8 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
@@ -394,8 +394,8 @@ public class FileProcessingIT extends FileTester {
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
@@ -474,8 +474,8 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
@@ -549,8 +549,8 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
@@ -607,8 +607,8 @@ public class FileProcessingIT extends FileTester {
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
+            if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
@@ -646,6 +646,15 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         int childCount = 0;
+        for(FileTreeNode nextChild : rwRoot.getChildren()) {
+            Assert.assertTrue(nextChild instanceof RwNode);
+            childCount++;
+        }
+        Assert.assertEquals(3, childCount);
+
+        rwRoot.removeFilteredChildren(null);
+        rwRoot.removeFilteredChildren("");
+        childCount = 0;
         for(FileTreeNode nextChild : rwRoot.getChildren()) {
             Assert.assertTrue(nextChild instanceof RwNode);
             childCount++;

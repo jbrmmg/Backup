@@ -2,21 +2,21 @@ package com.jbr.middletier.backup.filetree.compare.node;
 
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
-public class RwDbSectionNode extends FileTreeNode  {
-    public enum RwDbSectionNodeType { UNKNOWN, FILE_FOR_REMOVE, DIRECTORY_FOR_REMOVE, DIRECTORY_FOR_INSERT, FILE_FOR_INSERT }
+public class SectionNode extends FileTreeNode  {
+    public enum SectionNodeType { UNKNOWN, FILE_FOR_REMOVE, DIRECTORY_FOR_REMOVE, DIRECTORY_FOR_INSERT, FILE_FOR_INSERT }
 
-    private final RwDbSectionNodeType section;
+    private final SectionNodeType section;
 
-    public RwDbSectionNode(RwDbSectionNodeType section) {
+    public SectionNode(SectionNodeType section) {
         super(null);
         this.section = section;
 
-        if(section.equals(RwDbSectionNodeType.UNKNOWN)) {
+        if(section.equals(SectionNodeType.UNKNOWN)) {
             throw new IllegalStateException("Cannot initialise a Rw DB Section object as unknown.");
         }
     }
 
-    public RwDbSectionNodeType getSection() {
+    public SectionNodeType getSection() {
         return this.section;
     }
 

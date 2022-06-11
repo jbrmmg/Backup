@@ -1,10 +1,8 @@
 package com.jbr.middletier.backup.filetree.compare;
 
-import com.jbr.middletier.backup.data.FileSystemObjectId;
-import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
-import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
+import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
@@ -54,7 +52,8 @@ public class RwDbTree extends CompareRoot {
         return new RwDbCompareNode(parent,(RwNode)lhs,(DbNode)rhs);
     }
 
-    private void findDeleteFiles(FileTreeNode node, List<FileTreeNode> result) {
+    @Override
+    protected void findDeleteFiles(FileTreeNode node, List<FileTreeNode> result) {
         for(FileTreeNode next : node.getChildren()) {
             findDeleteFiles(next,result);
         }
@@ -72,7 +71,8 @@ public class RwDbTree extends CompareRoot {
         }
     }
 
-    private void findDeleteDirectories(FileTreeNode node, List<FileTreeNode> result) {
+    @Override
+    protected void findDeleteDirectories(FileTreeNode node, List<FileTreeNode> result) {
         for(FileTreeNode next : node.getChildren()) {
             findDeleteDirectories(next,result);
         }
@@ -90,7 +90,8 @@ public class RwDbTree extends CompareRoot {
         }
     }
 
-    private void findInsertDirectories (FileTreeNode node, List<FileTreeNode> result) {
+    @Override
+    protected void findInsertDirectories (FileTreeNode node, List<FileTreeNode> result) {
         if(node instanceof  RwDbCompareNode) {
             RwDbCompareNode compareNode = (RwDbCompareNode)node;
 
@@ -106,7 +107,8 @@ public class RwDbTree extends CompareRoot {
         }
     }
 
-    private void findInsertFiles(FileTreeNode node, List<FileTreeNode> result) {
+    @Override
+    protected void findInsertFiles(FileTreeNode node, List<FileTreeNode> result) {
         for(FileTreeNode next : node.getChildren()) {
             findInsertFiles(next,result);
         }
@@ -122,35 +124,6 @@ public class RwDbTree extends CompareRoot {
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
         }
-    }
-
-    @Override
-    public List<FileTreeNode> getOrderedNodeList() {
-        // Nodes are placed in this order in the list:
-        //
-        // DELETE file      - delete file details from DB (order not important).
-        // DELETE directory - delete directory details from DB (highest level first).
-        // INSERT directory - insert directory details (lowest level first).
-        // INSERT file      - insert files (order not important).
-
-        List<FileTreeNode> result = new ArrayList<>();
-
-        // Get the nodes that represent a delete file.
-        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_REMOVE));
-        findDeleteFiles(this, result);
-
-        // Get the nodes that represent a delete directory.
-        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.DIRECTORY_FOR_REMOVE));
-        findDeleteDirectories(this, result);
-
-        // Get the nodes that represent an insert directory.
-        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.DIRECTORY_FOR_INSERT));
-        findInsertDirectories(this, result);
-
-        // Get the nodes that represent an insert file.
-        result.add(new RwDbSectionNode(RwDbSectionNode.RwDbSectionNodeType.FILE_FOR_INSERT));
-        findInsertFiles(this, result);
-        return result;
     }
 
     public void compare() {

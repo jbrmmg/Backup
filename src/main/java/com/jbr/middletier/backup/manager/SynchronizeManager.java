@@ -6,10 +6,13 @@ import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.data.SynchronizeStatus;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
 import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
-import com.jbr.middletier.backup.filetree.RootFileTreeNode;
+import com.jbr.middletier.backup.filetree.compare.DbTree;
+import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
+import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
+import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
+import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,16 +33,19 @@ public class SynchronizeManager {
     private final AssociatedFileDataManager associatedFileDataManager;
     private final BackupManager backupManager;
     private final FileRepository fileRepository;
+    private final DirectoryRepository directoryRepository;
     private final ActionManager actionManager;
 
     @Autowired
     public SynchronizeManager(AssociatedFileDataManager associatedFileDataManager,
                               BackupManager backupManager,
                               FileRepository fileRepository,
+                              DirectoryRepository directoryRepository,
                               ActionManager actionManager) {
         this.associatedFileDataManager = associatedFileDataManager;
         this.backupManager = backupManager;
         this.fileRepository = fileRepository;
+        this.directoryRepository = directoryRepository;
         this.actionManager = actionManager;
     }
 
@@ -234,25 +240,85 @@ public class SynchronizeManager {
         }
     }
 
+    private void deleteFile(DbCompareNode node) {
+        // Delete the file specified in the node.
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted - %s/%s", status.getSourceDirectory().getName(), status.getSourceFile().getName()));
+
+        actionManager.deleteFileIfConfirmed();
+    }
+
+    private void deleteDirectory(DbCompareNode node) {
+
+    }
+
+    private void copyFile(DbCompareNode node) {
+
+    }
+
+    private void copyDirectory(DbCompareNode node) {
+
+    }
+
     private SyncDataDTO processSynchronize(Synchronize nextSynchronize) {
         SyncDataDTO result = new SyncDataDTO();
         result.setSyncId(nextSynchronize.getId());
 
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+        try {
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
 
-        if(nextSynchronize.getSource().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getSource().getStatus())) {
-            backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+            if (nextSynchronize.getSource().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getSource().getStatus())) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as source not OK");
+                result.setFailed();
+                return result;
+            }
+
+            if (nextSynchronize.getDestination().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getDestination().getStatus())) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as destination not OK");
+                result.setFailed();
+                return result;
+            }
+
+            // Compare the source and destination.
+            DbRoot source = new DbRoot(nextSynchronize.getSource(), fileRepository, directoryRepository);
+            DbRoot destination = new DbRoot(nextSynchronize.getDestination(), fileRepository, directoryRepository);
+
+            DbTree dbTree = new DbTree(source, destination);
+            dbTree.compare();
+
+            // Process the comparison.
+            SectionNode.SectionNodeType section = SectionNode.SectionNodeType.UNKNOWN;
+            for (FileTreeNode nextNode : dbTree.getOrderedNodeList()) {
+                if (nextNode instanceof DbCompareNode) {
+                    DbCompareNode compareNode = (DbCompareNode) nextNode;
+                    switch (section) {
+                        case FILE_FOR_REMOVE:
+                            deleteFile(compareNode);
+                            result.incrementFilesDeleted();
+                            break;
+                        case DIRECTORY_FOR_REMOVE:
+                            deleteDirectory(compareNode);
+                            result.incrementDirectoriesDeleted();
+                            break;
+                        case DIRECTORY_FOR_INSERT:
+                            copyDirectory(compareNode);
+                            result.incrementFilesCopied();
+                            break;
+                        case FILE_FOR_INSERT:
+                            copyFile(compareNode);
+                            result.incrementDirectoriesCopied();
+                            break;
+                    }
+                } else if (nextNode instanceof SectionNode) {
+                    SectionNode sectionNode = (SectionNode) nextNode;
+                    section = sectionNode.getSection();
+                }
+            }
+
+            LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
+        } catch (Exception e) {
+            LOG.warn("Failure in {} -> {} {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
             result.setFailed();
-            return result;
         }
-
-        if(nextSynchronize.getDestination().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getDestination().getStatus())) {
-            backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
-            result.setFailed();
-            return result;
-        }
-
-        LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
 
         return result;
     }

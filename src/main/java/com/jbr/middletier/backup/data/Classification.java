@@ -63,7 +63,7 @@ public class Classification {
 
     public String getRegex() { return this.regex; }
 
-    public String getAction() { return this.action; }
+    public ClassificationActionType getAction() { return ClassificationActionType.getClassificationActionType(this.action); }
 
     public String getIcon() { return this.icon; }
 
@@ -74,7 +74,7 @@ public class Classification {
 
     public Boolean getIsImage() { return this.isImage; }
 
-    public Integer getOrder() { return this.order; }
+    public @NotNull Integer getOrder() { return this.order; }
 
     @Override
     public String toString() {

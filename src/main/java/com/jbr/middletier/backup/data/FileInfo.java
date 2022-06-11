@@ -48,7 +48,7 @@ public class FileInfo extends FileSystemObject {
 
     public void setDate(Date date) { this.date = date; }
 
-    public void setMD5(String md5) { this.md5 = md5; }
+    public void setMD5(MD5 md5) { this.md5 = md5.toString(); }
 
     public void clearRemoved() { this.removed = false; }
 
@@ -58,7 +58,7 @@ public class FileInfo extends FileSystemObject {
 
     public Date getDate() { return this.date; }
 
-    public String getMD5() { return this.md5; }
+    public MD5 getMD5() { return new MD5(this.md5); }
 
     public Classification getClassification() { return this.classification; }
 
@@ -78,23 +78,6 @@ public class FileInfo extends FileSystemObject {
         }
 
         return (this.md5 == null) || (otherFile.md5 == null) || this.md5.equals(otherFile.md5);
-    }
-
-    public String getFullFilename() {
-        List<String> result = new ArrayList<>();
-
-        result.add(getName());
-
-        // TODO fix this (remove the need for it)
-//        FileSystemObject parent = getDirectoryInfo().getParent();
-//        while(parent != null) {
-//            result.add(parent.name);
-//            parent = parent.getParent();
-//        }
-
-        Collections.reverse(result);
-
-        return String.join("/", result);
     }
 
     @Override

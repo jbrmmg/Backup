@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dataaccess.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.Optional;
 
 @Component
@@ -45,6 +46,7 @@ public class FileSystemObjectManager {
                 if(directory.isPresent()) {
                     return Optional.of(directory.get());
                 }
+                break;
 
             case FSO_FILE:
                 Optional<FileInfo> file = fileRepository.findById(id.getId());
@@ -52,6 +54,7 @@ public class FileSystemObjectManager {
                     //TODO
 //                    return Optional.of(file.get());
                 }
+                break;
 
             case FSO_IGNORE_FILE:
                 //TODO
@@ -72,10 +75,12 @@ public class FileSystemObjectManager {
                 if(source.isPresent()) {
                     return Optional.of(source.get());
                 }
-
-
         }
 
         return result;
+    }
+
+    public File getFullFileName(FileSystemObject fso) {
+
     }
 }

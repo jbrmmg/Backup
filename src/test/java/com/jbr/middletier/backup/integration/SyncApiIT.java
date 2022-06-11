@@ -304,7 +304,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesCopied", is(14)));
 
- //       validateSource(synchronize.getDestination(),sourceDescription, false);
+        validateSource(synchronize.getDestination(),sourceDescription, false);
     }
 
     @Test

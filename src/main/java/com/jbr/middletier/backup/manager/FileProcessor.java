@@ -8,7 +8,7 @@ import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.filetree.*;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
-import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
+import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
@@ -273,7 +273,7 @@ abstract class FileProcessor {
         processDeletes(compare,deletes, gatherData);
 
         // Process the actions.
-        RwDbSectionNode.RwDbSectionNodeType section = RwDbSectionNode.RwDbSectionNodeType.UNKNOWN;
+        SectionNode.SectionNodeType section = SectionNode.SectionNodeType.UNKNOWN;
         for(FileTreeNode nextNode : compare.getOrderedNodeList()) {
             if(nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode)nextNode;
@@ -295,8 +295,8 @@ abstract class FileProcessor {
                         gatherData.incrementFilesInserted();
                         break;
                 }
-            } else if (nextNode instanceof RwDbSectionNode) {
-                RwDbSectionNode sectionNode = (RwDbSectionNode)nextNode;
+            } else if (nextNode instanceof SectionNode) {
+                SectionNode sectionNode = (SectionNode)nextNode;
                 section = sectionNode.getSection();
             }
         }
