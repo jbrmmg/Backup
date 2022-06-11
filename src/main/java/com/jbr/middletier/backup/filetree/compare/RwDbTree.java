@@ -64,14 +64,10 @@ public class RwDbTree extends CompareRoot {
             return;
         }
 
+        // If this is a delete and not a directory, or a recreate as directory.
         RwDbCompareNode compareNode = (RwDbCompareNode)node;
-        if(compareNode.isDirectory() && !compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
-            return;
-        }
-
-        // If this is a file, add a delete then add to the list now.
-        if(compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) ||
-            compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY) ) {
+        if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) && !compareNode.isDirectory()) ||
+                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
             result.add(compareNode);
         }
     }
@@ -86,14 +82,10 @@ public class RwDbTree extends CompareRoot {
             return;
         }
 
+        // If this is a delete and a directory, or a recreate as file.
         RwDbCompareNode compareNode = (RwDbCompareNode)node;
-        if(!compareNode.isDirectory() && !compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
-            return;
-        }
-
-        // If this is a file, add a delete then add to the list now.
-        if(compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) ||
-                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE) ) {
+        if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) && compareNode.isDirectory()) ||
+                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
         }
     }
@@ -102,9 +94,9 @@ public class RwDbTree extends CompareRoot {
         if(node instanceof  RwDbCompareNode) {
             RwDbCompareNode compareNode = (RwDbCompareNode)node;
 
-            if(compareNode.isDirectory() &&
-                    (compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT)
-                            || compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY))) {
+            // If this is an insert and not a directory, or recreate as file.
+            if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && compareNode.isDirectory()) ||
+                    compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
                 result.add(compareNode);
             }
         }
@@ -124,14 +116,10 @@ public class RwDbTree extends CompareRoot {
             return;
         }
 
-        RwDbCompareNode compareNode = (RwDbCompareNode)node;
-        if(compareNode.isDirectory() && !compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
-            return;
-        }
-
         // If this is a file, add a delete then add to the list now.
-        if(compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) ||
-                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE) ) {
+        RwDbCompareNode compareNode = (RwDbCompareNode)node;
+        if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && !compareNode.isDirectory()) ||
+                compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
         }
     }
