@@ -79,8 +79,4 @@ public class FileSystemObjectManager {
 
         return result;
     }
-
-    public File getFullFileName(FileSystemObject fso) {
-
-    }
 }

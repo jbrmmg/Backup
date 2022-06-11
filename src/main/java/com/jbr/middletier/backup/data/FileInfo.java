@@ -52,8 +52,6 @@ public class FileInfo extends FileSystemObject {
 
     public void clearRemoved() { this.removed = false; }
 
-    public String getName() { return this.name; }
-
     public Long getSize() { return this.size; }
 
     public Date getDate() { return this.date; }

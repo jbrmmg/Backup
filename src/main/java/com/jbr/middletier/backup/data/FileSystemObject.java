@@ -64,4 +64,8 @@ public class FileSystemObject {
         this.parentId = parentId.getId();
         this.parentType = parentId.getType().getTypeName();
     }
+
+    public String getName() {
+        return this.name;
+    }
 }
