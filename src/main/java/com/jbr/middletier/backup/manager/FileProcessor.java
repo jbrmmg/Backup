@@ -86,14 +86,14 @@ abstract class FileProcessor {
     abstract void newFileInserted(FileInfo newFile);
 
     private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed, GatherDataDTO gatherData) {
-        // Only process nodes of type RwDbCompareNode
-        if(!(node instanceof RwDbCompareNode)) {
-            return;
-        }
-
         // Process the children.
         for(FileTreeNode next: node.getChildren()) {
             processDeletesIteratively(next,deletes,performed,gatherData);
+        }
+
+        // Only process if RW DB Compare.
+        if (!(node instanceof RwDbCompareNode)) {
+            return;
         }
 
         // Only nodes that are the same as the DB can be deleted

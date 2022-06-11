@@ -8,10 +8,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class RwRoot extends RootFileTreeNode {
-    private Path rootOfRealWorld;
+    private final Path rootOfRealWorld;
 
     public RwRoot(String pathName, BackupManager backupManager) throws IOException {
         this.rootOfRealWorld = new File(pathName).toPath();
@@ -52,7 +54,15 @@ public class RwRoot extends RootFileTreeNode {
     public void removeFilteredChildren(String filter) {
         // Remove anything from realworld that does not meet the source filter.
         if(filter != null && filter.length() > 0) {
-            throw new IllegalStateException("Fix this");
+            List<FileTreeNode> toBeRemoved = new ArrayList<>();
+
+            for(FileTreeNode nextNode : this.children) {
+                if(!nextNode.getName().matches(filter)) {
+                    toBeRemoved.add(nextNode);
+                }
+            }
+
+            this.children.removeAll(toBeRemoved);
         }
     }
 

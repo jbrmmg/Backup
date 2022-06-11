@@ -1,13 +1,22 @@
 package com.jbr.middletier.backup.filetree.compare.node;
 
+import com.jbr.middletier.backup.control.ActionController;
 import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectId;
 import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
+import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class RwDbCompareNode extends FileTreeNode {
+    private static final Logger LOG = LoggerFactory.getLogger(RwDbCompareNode.class);
+
     public enum ActionType { NONE, INSERT, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
 
     private final RwNode realWorldNode;
@@ -82,23 +91,21 @@ public class RwDbCompareNode extends FileTreeNode {
     }
 
     public boolean deleteRwFile() {
-        /*
-        LOG.info("Deleting the file {}", sourcePath);
+        if( !(realWorldNode instanceof RwFile)) {
+            return false;
+        }
 
-                try {
-                    Files.deleteIfExists(sourcePath);
-                    node.setCompareStatus(FileTreeNode.CompareStatusType.REMOVED);
+        boolean result = false;
+        RwFile file = (RwFile)realWorldNode;
 
-                    LOG.info("Deleted.");
+        try {
+            Files.deleteIfExists(file.getFile().toPath());
+            result = true;
+        } catch (IOException e) {
+            LOG.warn("Failed to delete file {}", file.getFile());
+        }
 
-                    // Remove the action.
-                    actionManager.actionPerformed(next);
-                    performed.add(next);
-                } catch (IOException e) {
-                    LOG.warn("Failed to delete file {}", sourcePath);
-                }
-         */
         this.actionType = ActionType.DELETE;
-        throw new IllegalStateException("Fix this");
+        return result;
     }
 }

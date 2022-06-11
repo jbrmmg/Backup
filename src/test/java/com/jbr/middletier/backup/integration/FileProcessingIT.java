@@ -1,18 +1,18 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
-import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
+import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.junit.Assert;
@@ -24,8 +24,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -36,8 +34,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
-
-import javax.validation.constraints.AssertTrue;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,8 +45,7 @@ import java.util.Optional;
 @ActiveProfiles(value="it")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FileProcessingIT extends FileTester {
-    private static final Logger LOG = LoggerFactory.getLogger(SyncApiIT.class);
-
+    @SuppressWarnings("rawtypes")
     @ClassRule
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
@@ -67,6 +62,25 @@ public class FileProcessingIT extends FileTester {
                     "spring.datasource.username=" + mysqlContainer.getUsername(),
                     "spring.datasource.password=" + mysqlContainer.getPassword()
             ).applyTo(configurableApplicationContext.getEnvironment());
+        }
+    }
+
+
+
+    private static class BasicDbDirectory extends DbDirectory {
+        public BasicDbDirectory(DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
+            super(null, directoryInfo, fileRepository, directoryRepository);
+        }
+
+        public boolean test() {
+            try {
+                childAdded(nullNode);
+                Assert.fail();
+            } catch (IllegalStateException e) {
+                Assert.assertEquals("Database Directory children must be Database Directory or File.", e.getMessage());
+            }
+
+            return true;
         }
     }
 
@@ -98,8 +112,8 @@ public class FileProcessingIT extends FileTester {
         // Check that the details were read as expected.
         Assert.assertNull(rwRoot.getName());
         int count = 0;
-        for(FileTreeNode nextNode: rwRoot.getChildren()) {
-            for(FileTreeNode children: nextNode.getChildren()) {
+        for (FileTreeNode nextNode : rwRoot.getChildren()) {
+            for (FileTreeNode children : nextNode.getChildren()) {
                 Assert.assertEquals("Backup.dxf~3", children.getName());
                 count++;
             }
@@ -111,7 +125,7 @@ public class FileProcessingIT extends FileTester {
 
     @Test
     @Order(2)
-    public void basicDatabase() throws Exception {
+    public void basicDatabase() {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
 
@@ -138,8 +152,8 @@ public class FileProcessingIT extends FileTester {
         // Check that the details were read as expected.
         Assert.assertNull(dbRoot.getName());
         int count = 0;
-        for(FileTreeNode nextNode: dbRoot.getChildren()) {
-            for(FileTreeNode children: nextNode.getChildren()) {
+        for (FileTreeNode nextNode : dbRoot.getChildren()) {
+            for (FileTreeNode children : nextNode.getChildren()) {
                 Assert.assertEquals("testFile.txt", children.getName());
                 count++;
             }
@@ -185,13 +199,13 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
         Assert.assertEquals(4, nodes.size());
-        for(FileTreeNode nextNode: nodes) {
+        for (FileTreeNode nextNode : nodes) {
             Assert.assertTrue(nextNode instanceof RwDbSectionNode);
             RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
             Assert.assertNull(sectionNode.getName());
@@ -232,20 +246,21 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
         Assert.assertEquals(5, nodes.size());
         int sectionCount = 0;
-        for(FileTreeNode nextNode: nodes) {
-            if(nextNode instanceof RwDbSectionNode) {
+        for (FileTreeNode nextNode : nodes) {
+            if (nextNode instanceof RwDbSectionNode) {
                 RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+                Assert.assertNull(compareNode.getName());
                 Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                 Assert.assertFalse(compareNode.isDirectory());
             } else {
@@ -295,7 +310,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -303,8 +318,8 @@ public class FileProcessingIT extends FileTester {
         Assert.assertEquals(6, nodes.size());
         int sectionCount = 0;
         int compareCount = 0;
-        for(FileTreeNode nextNode: nodes) {
-            if(nextNode instanceof RwDbSectionNode) {
+        for (FileTreeNode nextNode : nodes) {
+            if (nextNode instanceof RwDbSectionNode) {
                 RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
@@ -369,7 +384,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -378,14 +393,14 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
-        for(FileTreeNode nextNode: nodes) {
-            if(nextNode instanceof RwDbSectionNode) {
+        for (FileTreeNode nextNode : nodes) {
+            if (nextNode instanceof RwDbSectionNode) {
                 RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
-                if(compareNode.isDirectory()) {
+                if (compareNode.isDirectory()) {
                     Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compareNode.getActionType());
                     compareDirectoryCount++;
                 } else {
@@ -450,7 +465,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -458,8 +473,8 @@ public class FileProcessingIT extends FileTester {
         Assert.assertEquals(5, nodes.size());
         int sectionCount = 0;
         int compareCount = 0;
-        for(FileTreeNode nextNode: nodes) {
-            if(nextNode instanceof RwDbSectionNode) {
+        for (FileTreeNode nextNode : nodes) {
+            if (nextNode instanceof RwDbSectionNode) {
                 RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
@@ -525,7 +540,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -533,8 +548,8 @@ public class FileProcessingIT extends FileTester {
         Assert.assertEquals(5, nodes.size());
         int sectionCount = 0;
         int compareCount = 0;
-        for(FileTreeNode nextNode: nodes) {
-            if(nextNode instanceof RwDbSectionNode) {
+        for (FileTreeNode nextNode : nodes) {
+            if (nextNode instanceof RwDbSectionNode) {
                 RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
@@ -582,7 +597,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot,dbRoot);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -591,14 +606,14 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
-        for(FileTreeNode nextNode: nodes) {
-            if(nextNode instanceof RwDbSectionNode) {
+        for (FileTreeNode nextNode : nodes) {
+            if (nextNode instanceof RwDbSectionNode) {
                 RwDbSectionNode sectionNode = (RwDbSectionNode) nextNode;
                 Assert.assertNull(sectionNode.getName());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
-                if(compareNode.isDirectory()) {
+                if (compareNode.isDirectory()) {
                     Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                     compareDirectoryCount++;
                 } else {
@@ -618,5 +633,46 @@ public class FileProcessingIT extends FileTester {
         Assert.assertNull(rwDbTree.getName());
 
         sourceRepository.deleteAll();
+    }
+
+    @Test
+    @Order(10)
+    public void checkFilter() throws Exception {
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test5");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+
+        int childCount = 0;
+        for(FileTreeNode nextChild : rwRoot.getChildren()) {
+            Assert.assertTrue(nextChild instanceof RwNode);
+            childCount++;
+        }
+        Assert.assertEquals(3, childCount);
+
+        rwRoot.removeFilteredChildren("\\d{4}$");
+        childCount = 0;
+        for(FileTreeNode nextChild : rwRoot.getChildren()) {
+            Assert.assertTrue(nextChild instanceof RwNode);
+            childCount++;
+        }
+        Assert.assertEquals(1, childCount);
+    }
+
+    @Test
+    @Order(11)
+    public void checkDbDirectoryException() {
+        DirectoryInfo tempDirectory = new DirectoryInfo();
+        tempDirectory.setParent(null);
+        tempDirectory.setName("Documents");
+        tempDirectory.clearRemoved();
+        directoryRepository.save(tempDirectory);
+
+        BasicDbDirectory testDbDirectory = new BasicDbDirectory(tempDirectory, fileRepository, directoryRepository);
+        Assert.assertTrue(testDbDirectory.test());
+
+        directoryRepository.deleteAll();
     }
 }

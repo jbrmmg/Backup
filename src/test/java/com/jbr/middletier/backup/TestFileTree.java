@@ -1,10 +1,16 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.FileSystemObjectId;
+import com.jbr.middletier.backup.data.FileSystemObjectType;
+import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
+import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbSectionNode;
+import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;

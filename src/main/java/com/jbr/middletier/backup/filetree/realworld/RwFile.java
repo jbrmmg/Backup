@@ -6,7 +6,7 @@ import java.io.File;
 import java.nio.file.Path;
 
 public class RwFile extends RwNode {
-    private File file;
+    private final File file;
 
     public RwFile(FileTreeNode parent, Path path) {
         super(parent);

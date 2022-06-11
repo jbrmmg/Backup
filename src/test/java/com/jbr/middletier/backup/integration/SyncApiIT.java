@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
@@ -30,11 +29,6 @@ import org.testcontainers.containers.MySQLContainer;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileTime;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -54,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class SyncApiIT extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(SyncApiIT.class);
 
+    @SuppressWarnings("rawtypes")
     @ClassRule
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
@@ -91,17 +86,20 @@ public class SyncApiIT extends FileTester {
     @Autowired
     ClassificationRepository classificationRepository;
 
-    private Location getLocation(Integer id) {
-        Optional<Location> location = locationRepository.findById(id);
+    @Autowired
+    ActionConfirmRepository actionConfirmRepository;
+
+    private Location getLocation() {
+        Optional<Location> location = locationRepository.findById(1);
         if(!location.isPresent())
             fail();
 
         return location.get();
     }
 
-    private Source createSource(String path, Integer locationId) {
+    private Source createSource(String path) {
         Source newSource = new Source();
-        newSource.setLocation(getLocation(locationId));
+        newSource.setLocation(getLocation());
         newSource.setStatus(SourceStatusType.SST_OK);
         newSource.setPath(path);
 
@@ -206,8 +204,8 @@ public class SyncApiIT extends FileTester {
         // Create the source and synchronise entries
         Synchronize synchronize = new Synchronize();
         synchronize.setId(1);
-        synchronize.setSource(createSource("./target/it_test/source",1));
-        synchronize.setDestination(createSource("./target/it_test/destination",1));
+        synchronize.setSource(createSource("./target/it_test/source"));
+        synchronize.setDestination(createSource("./target/it_test/destination"));
 
         synchronizeRepository.save(synchronize);
 
@@ -251,8 +249,7 @@ public class SyncApiIT extends FileTester {
         synchronizeRepository.delete(synchronize);
         fileRepository.deleteAll();
 
-        List<DirectoryInfo> dbDirectories = new ArrayList<>();
-        dbDirectories.addAll(directoryRepository.findAllByOrderByIdAsc());
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
         for(DirectoryInfo nextDirectory : dbDirectories) {
             nextDirectory.setParent(null);
             directoryRepository.save(nextDirectory);
@@ -284,8 +281,8 @@ public class SyncApiIT extends FileTester {
         // Create the source and synchronise entries
         Synchronize synchronize = new Synchronize();
         synchronize.setId(1);
-        synchronize.setSource(createSource("./target/it_test/source",1));
-        synchronize.setDestination(createSource("./target/it_test/destination",1));
+        synchronize.setSource(createSource("./target/it_test/source"));
+        synchronize.setDestination(createSource("./target/it_test/destination"));
 
         synchronizeRepository.save(synchronize);
 
@@ -308,5 +305,78 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesCopied", is(14)));
 
  //       validateSource(synchronize.getDestination(),sourceDescription, false);
+    }
+
+    @Test
+    @Order(3)
+    public void gatherWithDelete() throws Exception {
+        LOG.info("Delete with Gather Testing");
+
+        // Setup the source
+        Source gatherSource = createSource("./target/it_test/source");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
+                .andExpect(jsonPath("$[0].problems", is(false)));
+
+        validateSource(gatherSource,sourceDescription,true);
+        Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
+
+
+        //Text1.txt
+        ActionConfirm deleteAction = new ActionConfirm();
+        deleteAction.setAction(ActionConfirmType.AC_DELETE);
+        deleteAction.setConfirmed(true);
+        boolean found = false;
+        for(FileInfo nextFile : fileRepository.findAllByOrderByIdAsc()) {
+            if(nextFile.getName().equalsIgnoreCase("Text1.txt")) {
+                deleteAction.setFileInfo(nextFile);
+                found = true;
+            }
+        }
+        Assert.assertTrue(found);
+        actionConfirmRepository.save(deleteAction);
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(1)))
+                .andExpect(jsonPath("$[0].problems", is(false)));
+        Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
+
+        fileRepository.deleteAll();
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
+        for(DirectoryInfo nextDirectory : dbDirectories) {
+            nextDirectory.setParent(null);
+            directoryRepository.save(nextDirectory);
+        }
+
+        directoryRepository.deleteAll();
+        sourceRepository.delete(gatherSource);
     }
 }
