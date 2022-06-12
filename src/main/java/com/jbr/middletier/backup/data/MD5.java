@@ -10,13 +10,14 @@ public class MD5 {
     public MD5(String md5) {
         if((md5 != null) && (md5.length() > 0)) {
             this.md5 = md5;
+            return;
         }
 
         this.md5 = null;
     }
 
     public MD5(MD5 source) {
-        this.md5 = source.md5;
+        this(source.md5);
     }
 
     public boolean compare(MD5 rhs, boolean blankOK) {

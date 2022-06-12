@@ -235,7 +235,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount + 1)))
-                    .andExpect(jsonPath("$..action",hasItems("FRED2")));
+                    .andExpect(jsonPath("$..action",hasItems("CA_BACKUP")));
 
             getMockMvc().perform(get("/jbr/ext/backup/classification")
                     .content(this.json(classification))

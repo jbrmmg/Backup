@@ -157,7 +157,7 @@ public class SyncApiIT extends FileTester {
                     Assert.assertEquals(nextExpectedFile.dateTime,nextFile.getDate());
                     if(checkSizeAndMD5) {
                         if(nextExpectedFile.md5 != null) {
-                            Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5());
+                            Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5().toString());
                         }
                         if(nextExpectedFile.fileSize != null) {
                             Assert.assertEquals(nextExpectedFile.fileSize,nextFile.getSize());

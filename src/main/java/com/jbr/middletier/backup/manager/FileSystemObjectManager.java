@@ -70,11 +70,11 @@ public class FileSystemObjectManager {
 
     public void save(FileSystemObject fso) {
         switch(fso.getIdAndType().getType()) {
-            case FSO_DIRECTORY:
+            case FSO_FILE:
                 fileRepository.save((FileInfo) fso);
                 break;
 
-            case FSO_FILE:
+            case FSO_DIRECTORY:
                 directoryRepository.save((DirectoryInfo) fso);
                 break;
 
@@ -85,11 +85,11 @@ public class FileSystemObjectManager {
 
     public void delete(FileSystemObject fso) {
         switch(fso.getIdAndType().getType()) {
-            case FSO_DIRECTORY:
+            case FSO_FILE:
                 fileRepository.delete((FileInfo) fso);
                 break;
 
-            case FSO_FILE:
+            case FSO_DIRECTORY:
                 directoryRepository.delete((DirectoryInfo) fso);
                 break;
 

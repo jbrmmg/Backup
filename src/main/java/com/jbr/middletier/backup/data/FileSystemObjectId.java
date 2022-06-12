@@ -1,10 +1,10 @@
 package com.jbr.middletier.backup.data;
 
 public class FileSystemObjectId {
-    private final int id;
+    private final Integer id;
     private final FileSystemObjectType type;
 
-    public FileSystemObjectId(int id, FileSystemObjectType type) {
+    public FileSystemObjectId(Integer id, FileSystemObjectType type) {
         this.id = id;
         this.type = type;
     }
@@ -37,7 +37,7 @@ public class FileSystemObjectId {
         return this.id == id.id;
     }
 
-    public int getId() {
+    public Integer getId() {
         return this.id;
     }
 

@@ -183,7 +183,7 @@ public class DatabaseIT {
     @Order(4)
     public void classification() {
         ClassificationDTO newDTO = new ClassificationDTO();
-        newDTO.setAction("Test");
+        newDTO.setAction(ClassificationActionType.CA_BACKUP);
         newDTO.setImage(false);
         newDTO.setIcon("Fred");
         newDTO.setOrder(1);
@@ -198,7 +198,7 @@ public class DatabaseIT {
 
         Optional<Classification> findClassification = classificationRepository.findById(id);
         Assert.assertTrue(findClassification.isPresent());
-        Assert.assertEquals("Test", findClassification.get().getAction());
+        Assert.assertEquals("BACKUP", findClassification.get().getAction().getTypeName());
         Assert.assertEquals("Fred", findClassification.get().getIcon());
         Assert.assertEquals("x", findClassification.get().getRegex());
         Assert.assertEquals(false, findClassification.get().getIsImage());
@@ -220,7 +220,7 @@ public class DatabaseIT {
         newFile.clearRemoved();
 
         fileRepository.save(newFile);
-        int fileId = newFile.getIdAndType().getId();
+        Integer fileId = newFile.getIdAndType().getId();
 
         ActionConfirm actionConfirm = new ActionConfirm();
         actionConfirm.setAction(ActionConfirmType.AC_DELETE);

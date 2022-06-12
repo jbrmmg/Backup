@@ -186,7 +186,7 @@ public class FsoIT   {
         Assert.assertEquals("Blah", theFile.get().getName());
         Assert.assertEquals(classificationList.get(0).getId(), theFile.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile.get().getDate());
-        Assert.assertEquals(new MD5("XYZ"), theFile.get().getMD5());
+        Assert.assertEquals("XYZ", theFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(291L), theFile.get().getSize());
         Assert.assertEquals(false, theFile.get().getRemoved());
 
@@ -205,7 +205,7 @@ public class FsoIT   {
         Assert.assertEquals("not Blah", theFile2.get().getName());
         Assert.assertEquals(classificationList.get(1).getId(), theFile2.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile2.get().getDate());
-        Assert.assertEquals("BHS", theFile2.get().getMD5());
+        Assert.assertEquals("BHS", theFile2.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(293L), theFile2.get().getSize());
 
         fileRepository.delete(theFile2.get());
@@ -313,7 +313,7 @@ public class FsoIT   {
 
         Assert.assertEquals("Ignore file", findIgnoreFile.get().getName());
         Assert.assertEquals(aDate, findIgnoreFile.get().getDate());
-        Assert.assertEquals("YTWVS", findIgnoreFile.get().getMD5());
+        Assert.assertEquals("YTWVS", findIgnoreFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(8310L), findIgnoreFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, findIgnoreFile.get().getIdAndType().getType());
 
@@ -323,7 +323,7 @@ public class FsoIT   {
         Optional<IgnoreFile> findIgnoreFile2 = ignoreFileRepository.findById(id);
         Assert.assertTrue(findIgnoreFile2.isPresent());
 
-        Assert.assertEquals("HYOSV", findIgnoreFile2.get().getMD5());
+        Assert.assertEquals("HYOSV", findIgnoreFile2.get().getMD5().toString());
 
         ignoreFileRepository.delete(findIgnoreFile2.get());
 
@@ -356,7 +356,7 @@ public class FsoIT   {
 
         Assert.assertEquals("Ignore file", findImportFile.get().getName());
         Assert.assertEquals(aDate, findImportFile.get().getDate());
-        Assert.assertEquals("YTWVS", findImportFile.get().getMD5());
+        Assert.assertEquals("YTWVS", findImportFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(8310L), findImportFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_FILE, findImportFile.get().getIdAndType().getType());
 
@@ -389,7 +389,7 @@ public class FsoIT   {
         newSource.setLocation(location.get());
 
         sourceRepository.save(newSource);
-        int destinationId = newSource.getIdAndType().getId();
+        Integer destinationId = newSource.getIdAndType().getId();
 
         ImportSource newImportSource = new ImportSource();
         newImportSource.setPath("/test/source/import");
@@ -399,7 +399,7 @@ public class FsoIT   {
         newImportSource.setDestination(newSource);
 
         importSourceRepository.save(newImportSource);
-        int newId = newImportSource.getIdAndType().getId();
+        Integer newId = newImportSource.getIdAndType().getId();
 
         Optional<ImportSource> foundSource = importSourceRepository.findById(newId);
         Assert.assertTrue(foundSource.isPresent());

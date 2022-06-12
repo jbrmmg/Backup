@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
+import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.data.SourceStatusType;
@@ -320,7 +321,7 @@ public class NonFsoApiIT extends WebTester {
         classificationDTO.setVideo(false);
         classificationDTO.setOrder(1);
         classificationDTO.setUseMD5(true);
-        classificationDTO.setAction("Help");
+        classificationDTO.setAction(ClassificationActionType.CA_BACKUP);
         classificationDTO.setRegex("*/sdaf");
         classificationDTO.setIcon("Flahr");
         classificationDTO.setImage(true);
@@ -337,7 +338,7 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(33)))
                 .andExpect(jsonPath("$[32].id", is(33)))
-                .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction())))
+                .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction().toString())))
                 .andExpect(jsonPath("$[32].useMD5", is(classificationDTO.getUseMD5())))
                 .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
                 .andExpect(jsonPath("$[32].video", is(classificationDTO.getVideo())))
