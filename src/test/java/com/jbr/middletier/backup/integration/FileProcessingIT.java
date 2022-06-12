@@ -10,8 +10,7 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
-import com.jbr.middletier.backup.filetree.database.DbDirectory;
-import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.filetree.database.*;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.BackupManager;
@@ -65,19 +64,29 @@ public class FileProcessingIT extends FileTester {
         }
     }
 
-
-
     private static class BasicDbDirectory extends DbDirectory {
         public BasicDbDirectory(DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
             super(null, directoryInfo, fileRepository, directoryRepository);
         }
 
-        public boolean test() {
+        public boolean test(BasicDbDirectory another, boolean anotherEqual) {
             try {
                 childAdded(nullNode);
                 Assert.fail();
             } catch (IllegalStateException e) {
                 Assert.assertEquals("Database Directory children must be Database Directory or File.", e.getMessage());
+            }
+
+            Assert.assertEquals(DbNodeCompareResultType.DBC_EQUAL,compare(this));
+
+            FileInfo fileInfo = new FileInfo();
+            DbNode dbNode = new DbFile(null, fileInfo);
+            Assert.assertEquals(DbNodeCompareResultType.DBC_NOT_EQUAL,compare(dbNode));
+
+            if(anotherEqual) {
+                Assert.assertEquals(DbNodeCompareResultType.DBC_EQUAL, compare(another));
+            } else {
+                Assert.assertEquals(DbNodeCompareResultType.DBC_NOT_EQUAL, compare(another));
             }
 
             return true;
@@ -679,8 +688,20 @@ public class FileProcessingIT extends FileTester {
         tempDirectory.clearRemoved();
         directoryRepository.save(tempDirectory);
 
+        DirectoryInfo tempDirectory2 = new DirectoryInfo();
+        tempDirectory2.setParent(null);
+        tempDirectory2.setName("Documents");
+        tempDirectory2.clearRemoved();
+        directoryRepository.save(tempDirectory2);
+
         BasicDbDirectory testDbDirectory = new BasicDbDirectory(tempDirectory, fileRepository, directoryRepository);
-        Assert.assertTrue(testDbDirectory.test());
+        BasicDbDirectory another = new BasicDbDirectory(tempDirectory2, fileRepository, directoryRepository);
+        Assert.assertTrue(testDbDirectory.test(another,true));
+
+        tempDirectory2.setName("Documents2");
+        Assert.assertTrue(testDbDirectory.test(another,false));
+
+        Assert.assertNotNull(testDbDirectory.getFSO());
 
         directoryRepository.deleteAll();
     }

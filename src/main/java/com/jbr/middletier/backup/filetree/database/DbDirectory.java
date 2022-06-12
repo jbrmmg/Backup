@@ -51,7 +51,7 @@ public class DbDirectory extends DbNode {
     @Override
     public DbNodeCompareResultType compare(DbNode rhs) {
         if(rhs == this)
-            return DbNodeCompareResultType.DBC_NOT_EQUAL;
+            return DbNodeCompareResultType.DBC_EQUAL;
 
         if( !(rhs instanceof DbDirectory) )
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
