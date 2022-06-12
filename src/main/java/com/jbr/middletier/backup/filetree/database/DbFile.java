@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.filetree.database;
 
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectId;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
@@ -64,5 +65,10 @@ public class DbFile extends DbNode {
         }
 
         return this.fileInfo.getMD5().equals(rhsFile.fileInfo.getMD5()) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
+    }
+
+    @Override
+    public FileSystemObject getFSO() {
+        return this.fileInfo;
     }
 }

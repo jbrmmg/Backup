@@ -1,10 +1,9 @@
 package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.exception.FileProcessException;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.filetree.*;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
@@ -29,19 +28,16 @@ import java.util.Optional;
 abstract class FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
 
-    final DirectoryRepository directoryRepository;
-    final FileRepository fileRepository;
+    final FileSystemObjectManager fileSystemObjectManager;
     final BackupManager backupManager;
     final ActionManager actionManager;
     final AssociatedFileDataManager associatedFileDataManager;
 
-    FileProcessor(DirectoryRepository directoryRepository,
-                  FileRepository fileRepository,
-                  BackupManager backupManager,
+    FileProcessor(BackupManager backupManager,
                   ActionManager actionManager,
-                  AssociatedFileDataManager associatedFileDataManager) {
-        this.directoryRepository = directoryRepository;
-        this.fileRepository = fileRepository;
+                  AssociatedFileDataManager associatedFileDataManager,
+                  FileSystemObjectManager fileSystemObjectManager) {
+        this.fileSystemObjectManager = fileSystemObjectManager;
         this.backupManager = backupManager;
         this.actionManager = actionManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -59,9 +55,9 @@ abstract class FileProcessor {
         return new String(hexChars);
     }
 
-    protected String getMD5(Path path, Classification classification) {
+    protected MD5 getMD5(Path path, Classification classification) {
         if(classification == null || !classification.getUseMD5()) {
-            return "";
+            return new MD5();
         }
 
         try {
@@ -74,13 +70,13 @@ abstract class FileProcessor {
                 md = dis.getMessageDigest();
             }
 
-            return bytesToHex(md.digest());
+            return new MD5(bytesToHex(md.digest()));
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Cannot get MD5 - " + path.toString());
         }
 
-        return "";
+        return new MD5();
     }
 
     abstract void newFileInserted(FileInfo newFile);
@@ -138,17 +134,17 @@ abstract class FileProcessor {
         }
     }
 
-    private void processFileRemoval(RwDbCompareNode node) {
+    private void processFileRemoval(RwDbCompareNode node) throws MissingFileSystemObject {
         // Delete this file from the database.
-        Optional<FileInfo> existingFile = fileRepository.findById(node.getDatabaseObjectId().getId());
+        Optional<FileSystemObject> existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
 
-        existingFile.ifPresent(fileRepository::delete);
+        existingFile.ifPresent(fileSystemObjectManager::delete);
     }
 
-    private void processDirectoryRemoval(RwDbCompareNode node) {
-        Optional<DirectoryInfo> existingDirectory = directoryRepository.findById(node.getDatabaseObjectId().getId());
+    private void processDirectoryRemoval(RwDbCompareNode node) throws MissingFileSystemObject {
+        Optional<FileSystemObject> existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
 
-        existingDirectory.ifPresent(directoryRepository::delete);
+        existingDirectory.ifPresent(fileSystemObjectManager::delete);
     }
 
     private RwNode getRwNode(RwDbCompareNode node) throws FileProcessException {
@@ -183,11 +179,11 @@ abstract class FileProcessor {
         return parentId;
     }
 
-    private void processDirectoryAddUpdate(RwDbCompareNode node) throws FileProcessException {
+    private void processDirectoryAddUpdate(RwDbCompareNode node) throws FileProcessException, MissingFileSystemObject {
         // If there is a database object then read it first.
-        Optional<DirectoryInfo> existingDirectory = Optional.empty();
+        Optional<FileSystemObject> existingDirectory = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
-            existingDirectory = directoryRepository.findById(node.getDatabaseObjectId().getId());
+            existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
         }
 
         if(!existingDirectory.isPresent()) {
@@ -198,22 +194,23 @@ abstract class FileProcessor {
         RwNode rwNode = getRwNode(node);
 
         // Insert a new directory.
-        existingDirectory.get().setName(rwNode.getName());
-        existingDirectory.get().setParentId(getParentIt(node));
-        existingDirectory.get().clearRemoved();
+        DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
+        directory.setName(rwNode.getName());
+        directory.setParentId(getParentIt(node));
+        directory.clearRemoved();
 
-        directoryRepository.save(existingDirectory.get());
+        fileSystemObjectManager.save(directory);
 
         // Store the id of this item.
-        node.setDatabaseObjectId(existingDirectory.get());
+        node.setDatabaseObjectId(directory);
     }
 
-    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) throws FileProcessException {
+    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) throws FileProcessException, MissingFileSystemObject {
         // If there is a database object then read it first.
         boolean newFile = false;
-        Optional<FileInfo> existingFile = Optional.empty();
+        Optional<FileSystemObject> existingFile = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
-            existingFile = fileRepository.findById(node.getDatabaseObjectId().getId());
+            existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
         }
 
         if(!existingFile.isPresent()) {
@@ -224,46 +221,47 @@ abstract class FileProcessor {
         // Get the real world object.
         RwFile rwNode = (RwFile)getRwNode(node);
 
-        existingFile.get().setName(rwNode.getName());
-        existingFile.get().setParentId(getParentIt(node));
-        existingFile.get().clearRemoved();
+        FileInfo file = (FileInfo) existingFile.get();
+        file.setName(rwNode.getName());
+        file.setParentId(getParentIt(node));
+        file.clearRemoved();
 
-        if(existingFile.get().getClassification() == null) {
-            Classification newClassification = associatedFileDataManager.classifyFile(existingFile.get());
+        if(file.getClassification() == null) {
+            Classification newClassification = associatedFileDataManager.classifyFile(file);
 
             if(newClassification != null) {
-                existingFile.get().setClassification(newClassification);
+                file.setClassification(newClassification);
             }
         }
 
         Date fileDate = new Date(rwNode.getFile().lastModified());
-        long dbTime = existingFile.get().getDate() == null ? 0 : existingFile.get().getDate().getTime() / 1000;
+        long dbTime = file.getDate() == null ? 0 : file.getDate().getTime() / 1000;
         long fileTime = fileDate.getTime() / 1000;
 
-        if((existingFile.get().getSize() == null) || (existingFile.get().getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(dbTime - fileTime) > 1)) {
-            existingFile.get().setSize(rwNode.getFile().length());
-            existingFile.get().setDate(fileDate);
+        if((file.getSize() == null) || (file.getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(dbTime - fileTime) > 1)) {
+            file.setSize(rwNode.getFile().length());
+            file.setDate(fileDate);
             if(!skipMD5) {
-                existingFile.get().setMD5(getMD5(rwNode.getFile().toPath(), existingFile.get().getClassification()));
+                file.setMD5(getMD5(rwNode.getFile().toPath(), file.getClassification()));
             }
         }
 
-        fileRepository.save(existingFile.get());
+        fileSystemObjectManager.save(file);
         if(newFile) {
-            newFileInserted(existingFile.get());
+            newFileInserted(file);
         }
 
         // Store the id of this item.
         node.setDatabaseObjectId(existingFile.get());
     }
 
-    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException, FileProcessException {
+    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException, FileProcessException, MissingFileSystemObject {
         // Read the files structure from the real world.
         RwRoot realWorld = new RwRoot(source.getPath(), backupManager);
         realWorld.removeFilteredChildren(source.getFilter());
 
         // Read the same from the database.
-        DbRoot database = new DbRoot(source, fileRepository, directoryRepository);
+        DbRoot database = fileSystemObjectManager.createDbRoot(source);
 
         // Compare the real world with the database.
         RwDbTree compare = new RwDbTree(realWorld, database);

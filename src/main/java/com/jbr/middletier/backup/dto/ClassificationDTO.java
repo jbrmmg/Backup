@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.data.FileInfo;
 
 @SuppressWarnings("unused")
@@ -8,7 +9,7 @@ public class ClassificationDTO {
     private Integer id;
     private Integer order;
     private String regex;
-    private String action;
+    private ClassificationActionType action;
     private String icon;
     private Boolean useMD5;
     private Boolean isImage;
@@ -52,11 +53,11 @@ public class ClassificationDTO {
         this.regex = regex;
     }
 
-    public String getAction() {
+    public ClassificationActionType getAction() {
         return action;
     }
 
-    public void setAction(String action) {
+    public void setAction(ClassificationActionType action) {
         this.action = action;
     }
 

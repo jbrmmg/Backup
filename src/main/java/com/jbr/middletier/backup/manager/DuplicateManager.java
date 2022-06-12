@@ -53,7 +53,7 @@ public class DuplicateManager {
         }
     }
 
-    private void checkDuplicateOfFile(List<FileInfo> files, Source source) {
+    private void checkDuplicateOfFile(Iterable<FileInfo> files, Source source) {
         // Get list of files from the original source.
         List<FileInfo> checkFiles = new ArrayList<>();
 
@@ -95,7 +95,7 @@ public class DuplicateManager {
 
                 // Are these files really duplicates.
                 for(String nextFile: files) {
-                    List<FileInfo> duplicates = fileRepository.findByName(nextFile);
+                    Iterable<FileInfo> duplicates = fileRepository.findByName(nextFile);
                     LOG.info("Check: {}", nextFile);
                     checkDuplicateOfFile(duplicates, nextSource);
                 }

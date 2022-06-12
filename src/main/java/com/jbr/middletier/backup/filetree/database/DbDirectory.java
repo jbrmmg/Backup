@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.filetree.database;
 
 import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectId;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
@@ -59,5 +60,10 @@ public class DbDirectory extends DbNode {
 
         // They are equal if the names match.
         return this.directoryInfo.getName().equals(lhs.directoryInfo.getName()) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
+    }
+
+    @Override
+    public FileSystemObject getFSO() {
+        return this.directoryInfo;
     }
 }

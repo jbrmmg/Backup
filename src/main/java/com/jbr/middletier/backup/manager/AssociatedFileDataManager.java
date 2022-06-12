@@ -166,6 +166,10 @@ public class AssociatedFileDataManager {
         return sourceRepository.findById(id);
     }
 
+    public Optional<ImportSource> internalFindImportSourceByIdIfExists(Integer id) {
+        return importSourceRepository.findById(id);
+    }
+
     public void createSource(SourceDTO newSource) throws SourceAlreadyExistsException {
         if(newSource.getId() != null) {
             throw new SourceAlreadyExistsException(newSource.getId());
@@ -183,6 +187,7 @@ public class AssociatedFileDataManager {
 
         return importSource;
     }
+
     public void updateSource(SourceDTO source) throws InvalidSourceIdException {
         Source existing = internalFindSourceById(source.getId());
         existing.update(source);

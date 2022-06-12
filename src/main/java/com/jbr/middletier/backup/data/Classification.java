@@ -51,7 +51,7 @@ public class Classification {
 
     public void update(ClassificationDTO source) {
         this.regex = source.getRegex();
-        this.action = source.getAction();
+        this.action = source.getAction().getTypeName();
         this.icon = source.getIcon();
         this.useMD5 = source.getUseMD5();
         this.isImage = source.getImage();

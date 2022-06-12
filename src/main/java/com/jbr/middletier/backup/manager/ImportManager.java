@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.exception.ImportRequestException;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +36,11 @@ public class ImportManager extends FileProcessor {
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
                          AssociatedFileDataManager associatedFileDataManager,
-                         ImportSourceRepository importSourceRepository,
-                         DirectoryRepository directoryRepository,
-                         FileRepository fileRepository,
+                         FileSystemObjectManager fileSystemObjectManager,
                          IgnoreFileRepository ignoreFileRepository,
                          BackupManager backupManager,
                          ActionManager actionManager) {
-        super(directoryRepository,fileRepository,backupManager,actionManager,associatedFileDataManager);
+        super(backupManager,actionManager,associatedFileDataManager,fileSystemObjectManager);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
     }
@@ -78,7 +77,7 @@ public class ImportManager extends FileProcessor {
         GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
         try {
             updateDatabase(importSource, new ArrayList<>(), true, gatherData);
-        } catch (FileProcessException e) {
+        } catch (FileProcessException | MissingFileSystemObject e) {
             gatherData.setProblems();
         }
         result.add(gatherData);
@@ -128,7 +127,7 @@ public class ImportManager extends FileProcessor {
             return false;
         }
 
-        if(!importFile.getClassification().getAction().equalsIgnoreCase("backup")) {
+        if(!importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
             LOG.info("{} not a backed up file, deleting", path);
             try {
                 Files.delete(path);
@@ -156,10 +155,10 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
-    private FileTestResultType processExisting(ImportFile importFile, Path path, Source source) {
-        List<FileInfo> existingFiles = fileRepository.findByName(path.getFileName().toString());
+    private FileTestResultType processExisting(ImportFile importFile, Path path, Source source) throws MissingFileSystemObject {
+        Iterable<FileSystemObject> existingFiles = fileSystemObjectManager.findFileSystemObjectByName(path.getFileName().toString(),FileSystemObjectType.FSO_FILE);
 
-        for(FileInfo nextFile: existingFiles) {
+        for(FileSystemObject nextFile: existingFiles) {
             LOG.info("{}", nextFile);
 
             // Make sure this file is from the same source.
@@ -170,7 +169,7 @@ public class ImportManager extends FileProcessor {
 //            }
 
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
+            FileTestResultType testResult = fileAlreadyExists(path,(FileInfo)nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
@@ -245,14 +244,14 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void processImport(ImportFile importFile, Source source) {
+    private void processImport(ImportFile importFile, Source source) throws MissingFileSystemObject {
         // If this file is completed then exit.
         if(importFile.getStatus().equalsIgnoreCase("complete")) {
             return;
         }
 
         // Get the path to the import file.
-        Path path = new File(importFile.getFullFilename()).toPath();
+        Path path = fileSystemObjectManager.getFile(importFile).toPath();
 
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(!processClassification(importFile,path)) {
@@ -260,11 +259,10 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get details of the file to import.
-        if(importFile.getMD5() == null || importFile.getMD5().length() <= 0) {
+        if(!importFile.getMD5().isSet()) {
             importFile.setMD5(getMD5(path, importFile.getClassification()));
 
-            // TODO - fix this
-            fileRepository.save(importFile);
+            fileSystemObjectManager.save(importFile);
         }
 
         // Is this file being ignored?
@@ -289,7 +287,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    public void importPhotoProcess() throws ImportRequestException {
+    public void importPhotoProcess() throws ImportRequestException, MissingFileSystemObject {
         LOG.info("Import Photo Process");
 
         // Get the source.
@@ -309,7 +307,7 @@ public class ImportManager extends FileProcessor {
         }
 
         for(ImportFile nextFile: importFileRepository.findAll()) {
-            LOG.info(nextFile.getFullFilename());
+            LOG.info(nextFile.getName() + " MD5: " + nextFile.getMD5());
 
             processImport(nextFile,destination.get());
 
@@ -318,17 +316,17 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    public void removeEntries() {
+    public void removeEntries() throws MissingFileSystemObject {
         // Remove entries from import table if they are no longer present.
         for (ImportFile nextFile : importFileRepository.findAll()) {
             // Does this file still exist?
-            File existingFile = new File(nextFile.getFullFilename());
+            File existingFile = fileSystemObjectManager.getFile(nextFile);
 
             if(!existingFile.exists()) {
-                LOG.info("Remove this import file - {}", nextFile.getFullFilename());
+                LOG.info("Remove this import file - {}", existingFile);
                 importFileRepository.delete(nextFile);
             } else {
-                LOG.info("Keeping {}", nextFile.getFullFilename());
+                LOG.info("Keeping {}", existingFile);
             }
         }
     }
@@ -336,7 +334,7 @@ public class ImportManager extends FileProcessor {
 
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
-    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) {
+    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) throws MissingFileSystemObject {
         if(!path.getFileName().toString().equals(fileInfo.getName())) {
             return FileTestResultType.DIFFERENT;
         }
@@ -348,18 +346,18 @@ public class ImportManager extends FileProcessor {
         }
 
         // Check MD 5
-        if((importFile.getMD5() != null) && importFile.getMD5().length() > 0) {
-            if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
+        if((importFile.getMD5().isSet())) {
+            if(!fileInfo.getMD5().isSet()) {
                 // Source filename
-                String sourceFilename = fileInfo.getFullFilename();
+                File sourceFile = fileSystemObjectManager.getFile(fileInfo);
 
                 // Need to get the MD5.
-                fileInfo.setMD5(getMD5(new File(sourceFilename).toPath(),fileInfo.getClassification()));
+                fileInfo.setMD5(getMD5(sourceFile.toPath(),fileInfo.getClassification()));
 
-                if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
+                if(!fileInfo.getMD5().isSet()) {
                     return FileTestResultType.DIFFERENT;
                 } else {
-                    fileRepository.save(fileInfo);
+                    fileSystemObjectManager.save(fileInfo);
                 }
             }
 

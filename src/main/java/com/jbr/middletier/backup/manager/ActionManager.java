@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,16 +35,19 @@ public class ActionManager {
     private final ApplicationProperties applicationProperties;
     private final ActionConfirmRepository actionConfirmRepository;
     private final ResourceLoader resourceLoader;
+    private final FileSystemObjectManager fileSystemObjectManager;
 
     private static final String END_TD = "</td>";
 
     @Autowired
     public ActionManager(ApplicationProperties applicationProperties,
                          ActionConfirmRepository actionConfirmRepository,
-                         ResourceLoader resourceLoader) {
+                         ResourceLoader resourceLoader,
+                         FileSystemObjectManager fileSystemObjectManager) {
         this.applicationProperties = applicationProperties;
         this.actionConfirmRepository = actionConfirmRepository;
         this.resourceLoader = resourceLoader;
+        this.fileSystemObjectManager = fileSystemObjectManager;
     }
 
     public List<ActionConfirmDTO> externalFindByConfirmed(boolean confirmed) {
@@ -123,9 +127,7 @@ public class ActionManager {
     }
 
     public void deleteActions(List<ActionConfirm> actions) {
-        for(ActionConfirm nextConfirm: actions) {
-            actionConfirmRepository.delete(nextConfirm);
-        }
+        actionConfirmRepository.deleteAll(actions);
     }
 
     public List<ActionConfirm> getConfirmedImportActionsForFile(FileInfo file) {
@@ -144,10 +146,7 @@ public class ActionManager {
             }
 
             if(confirmed) {
-                for(ActionConfirm nextConfirm: confirmedActions) {
-                    actionConfirmRepository.delete(nextConfirm);
-                }
-
+                actionConfirmRepository.deleteAll(confirmedActions);
                 return true;
             }
         } else {
@@ -164,8 +163,8 @@ public class ActionManager {
         return false;
     }
 
-    void deleteFileIfConfirmed(FileInfo fileInfo) {
-        File file = new File(fileInfo.getFullFilename());
+    void deleteFileIfConfirmed(FileInfo fileInfo) throws MissingFileSystemObject {
+        File file = fileSystemObjectManager.getFile(fileInfo);
 
         if(file.exists() && checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
             LOG.info("Delete the file - {}", file );
@@ -209,7 +208,7 @@ public class ActionManager {
                 emailText.append(nextAction.getParameter() == null ? "" : nextAction.getParameter());
                 emailText.append(END_TD);
                 emailText.append("<td class=\"filename\">");
-                emailText.append(nextAction.getPath().getFullFilename());
+                emailText.append(fileSystemObjectManager.getFile(nextAction.getPath()).toString());
                 emailText.append(END_TD);
                 emailText.append("</tr>");
             }

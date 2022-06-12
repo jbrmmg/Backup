@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.integration;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -171,7 +172,7 @@ public class FsoIT   {
         fileInfo.setName("Blah");
         fileInfo.setClassification(classificationList.get(0));
         fileInfo.setDate(aDate);
-        fileInfo.setMD5("XYZ");
+        fileInfo.setMD5(new MD5("XYZ"));
         fileInfo.setSize(291L);
         fileInfo.clearRemoved();
 
@@ -185,7 +186,7 @@ public class FsoIT   {
         Assert.assertEquals("Blah", theFile.get().getName());
         Assert.assertEquals(classificationList.get(0).getId(), theFile.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile.get().getDate());
-        Assert.assertEquals("XYZ", theFile.get().getMD5());
+        Assert.assertEquals(new MD5("XYZ"), theFile.get().getMD5());
         Assert.assertEquals(Long.valueOf(291L), theFile.get().getSize());
         Assert.assertEquals(false, theFile.get().getRemoved());
 
@@ -193,7 +194,7 @@ public class FsoIT   {
         theFile.get().setName("not Blah");
         theFile.get().setClassification(classificationList.get(1));
         theFile.get().setDate(aDate);
-        theFile.get().setMD5("BHS");
+        theFile.get().setMD5(new MD5("BHS"));
         theFile.get().setSize(293L);
         fileRepository.save(theFile.get());
 
@@ -217,7 +218,7 @@ public class FsoIT   {
 
     @Test
     @Order(3)
-    public void directory() {
+    public void directory() throws Exception {
         LOG.info("Test the basic directory object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -254,11 +255,11 @@ public class FsoIT   {
         Assert.assertEquals("test directory", directoryInfoList.get(0).getName());
         Assert.assertEquals("test 2", directoryInfoList.get(1).getName());
 
-        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId());
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId(), false);
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof DirectoryInfo);
 
-        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId());
+        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId(), false);
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof Source);
 
@@ -298,7 +299,7 @@ public class FsoIT   {
         IgnoreFile testIgnoreFile = new IgnoreFile();
         testIgnoreFile.setName("Ignore file");
         testIgnoreFile.setDate(aDate);
-        testIgnoreFile.setMD5("YTWVS");
+        testIgnoreFile.setMD5(new MD5("YTWVS"));
         testIgnoreFile.setSize(8310L);
         testIgnoreFile.clearRemoved();
         testIgnoreFile.setParent(null);
@@ -316,7 +317,7 @@ public class FsoIT   {
         Assert.assertEquals(Long.valueOf(8310L), findIgnoreFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, findIgnoreFile.get().getIdAndType().getType());
 
-        findIgnoreFile.get().setMD5("HYOSV");
+        findIgnoreFile.get().setMD5(new MD5("HYOSV"));
         ignoreFileRepository.save(findIgnoreFile.get());
 
         Optional<IgnoreFile> findIgnoreFile2 = ignoreFileRepository.findById(id);
@@ -341,7 +342,7 @@ public class FsoIT   {
         ImportFile testImportFile = new ImportFile();
         testImportFile.setName("Ignore file");
         testImportFile.setDate(aDate);
-        testImportFile.setMD5("YTWVS");
+        testImportFile.setMD5(new MD5("YTWVS"));
         testImportFile.setSize(8310L);
         testImportFile.clearRemoved();
         testImportFile.setStatus("BAD");

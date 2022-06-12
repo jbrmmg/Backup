@@ -48,7 +48,7 @@ public class FileInfo extends FileSystemObject {
 
     public void setDate(Date date) { this.date = date; }
 
-    public void setMD5(MD5 md5) { this.md5 = md5.toString(); }
+    public void setMD5(MD5 md5) { this.md5 = md5.toString().equals("") ? null : md5.toString(); }
 
     public void clearRemoved() { this.removed = false; }
 
@@ -80,6 +80,6 @@ public class FileInfo extends FileSystemObject {
 
     @Override
     public String toString() {
-        return "FileInfo: " + getIdAndType().toString() + " " + getFullFilename() + " " + md5;
+        return "FileInfo: " + getIdAndType().toString() + " " + getName() + " " + md5;
     }
 }

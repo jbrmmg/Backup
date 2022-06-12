@@ -4,6 +4,7 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
@@ -204,8 +205,8 @@ public class TestBasicCRUD extends WebTester {
              * will need update the counts.
              */
             ClassificationDTO classification = new ClassificationDTO();
-            classification.setAction("FRED");
-            classification.setOrder(10);
+            classification.setAction(ClassificationActionType.CA_BACKUP);
+            classification.setOrder(10131);
             classification.setUseMD5(true);
 
             getMockMvc().perform(post("/jbr/ext/backup/classification")
@@ -216,7 +217,7 @@ public class TestBasicCRUD extends WebTester {
 
             int id = 0;
             for(Classification next: classificationRepository.findAll()) {
-                if(next.getAction().equals("FRED")) {
+                if(next.getOrder().equals(10131)) {
                     id = next.getId();
                 }
             }
@@ -224,7 +225,7 @@ public class TestBasicCRUD extends WebTester {
             classification = new ClassificationDTO();
             classification.setId(id);
             classification.setOrder(1);
-            classification.setAction("FRED2");
+            classification.setAction(ClassificationActionType.CA_BACKUP);
             classification.setUseMD5(false);
 
             LOG.info("Classification {}", classification);

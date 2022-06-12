@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.FileProcessException;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.filetree.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +25,11 @@ public class DriveManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(DriveManager.class);
 
     @Autowired
-    public DriveManager(DirectoryRepository directoryRepository,
-                        FileRepository fileRepository,
-                        AssociatedFileDataManager associatedFileDataManager,
+    public DriveManager(AssociatedFileDataManager associatedFileDataManager,
                         BackupManager backupManager,
-                        ActionManager actionManager) {
-        super(directoryRepository,fileRepository,backupManager,actionManager,associatedFileDataManager);
+                        ActionManager actionManager,
+                        FileSystemObjectManager fileSystemObjectManager) {
+        super(backupManager,actionManager,associatedFileDataManager, fileSystemObjectManager);
     }
 
     private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {
@@ -55,11 +55,15 @@ public class DriveManager extends FileProcessor {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather + " + e);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather " + e);
             gatherData.setProblems();
         } catch (FileProcessException e) {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to update database as part of gather + " + e);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to update database as part of gather " + e);
+            gatherData.setProblems();
+        } catch (MissingFileSystemObject e) {
+            associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Missing File execption in gather " + e);
             gatherData.setProblems();
         }
 

@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.filetree.compare.node;
 
+import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbNode;
@@ -151,5 +152,26 @@ public class DbCompareNode  extends FileTreeNode {
     @Override
     protected void childAdded(FileTreeNode newChild) {
         // Nothing required.
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+
+        result.append(this.actionType);
+        result.append(" ");
+        result.append(this.subActionType);
+
+        if(this.source != null) {
+            result.append(" ");
+            result.append(this.source.getFSO().getIdAndType());
+        }
+
+        if(this.destination != null) {
+            result.append(" ");
+            result.append(this.destination.getFSO().getIdAndType());
+        }
+
+        return result.toString();
     }
 }
