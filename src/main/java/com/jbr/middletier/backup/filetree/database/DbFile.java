@@ -42,7 +42,7 @@ public class DbFile extends DbNode {
     @Override
     public DbNodeCompareResultType compare(DbNode rhs) {
         if(rhs == this)
-            return DbNodeCompareResultType.DBC_NOT_EQUAL;
+            return DbNodeCompareResultType.DBC_EQUAL;
 
         if( !(rhs instanceof DbFile) )
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
@@ -57,14 +57,14 @@ public class DbFile extends DbNode {
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
 
         if(!this.fileInfo.getDate().equals(rhsFile.fileInfo.getDate())) {
-            if(this.fileInfo.getMD5().equals(rhsFile.fileInfo.getMD5())) {
+            if(this.fileInfo.getMD5().compare(rhsFile.fileInfo.getMD5(),false)) {
                 return DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE;
             } else {
                 return DbNodeCompareResultType.DBC_NOT_EQUAL;
             }
         }
 
-        return this.fileInfo.getMD5().equals(rhsFile.fileInfo.getMD5()) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
+        return this.fileInfo.getMD5().compare(rhsFile.fileInfo.getMD5(), false) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
     }
 
     @Override

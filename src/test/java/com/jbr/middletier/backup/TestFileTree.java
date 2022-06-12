@@ -1,10 +1,13 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
+import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
@@ -22,6 +25,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
+
+import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -134,6 +140,7 @@ public class TestFileTree {
 
         public boolean test() {
             childAdded(new BasicRwDirectory());
+            childAdded(new BasicRwFile());
             try {
                 childAdded(new BasicTestNode());
                 Assert.fail();
@@ -225,5 +232,50 @@ public class TestFileTree {
 
         BasicDbFile testDbFile = new BasicDbFile();
         Assert.assertTrue(testDbFile.test());
+
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setMD5(new MD5("MATCH"));
+        fileInfo.setClassification(null);
+        fileInfo.setName("Test");
+        fileInfo.setSize(291);
+        fileInfo.setDate(new Date(10));
+        DbFile dbFile = new DbFile(null, fileInfo);
+        Assert.assertNull(dbFile.getClassification());
+        Assert.assertNotNull(dbFile.getFSO());
+
+        Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile));
+        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(null));
+
+        DbFile dbFile2 = new DbFile(null, fileInfo);
+        Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile2));
+
+        FileInfo fileInfo2 = new FileInfo();
+        fileInfo2.setMD5(new MD5("MATCH"));
+        fileInfo2.setClassification(null);
+        fileInfo2.setName("Test");
+        fileInfo2.setSize(291);
+        fileInfo2.setDate(new Date(20));
+
+        dbFile2 = new DbFile(null, fileInfo2);
+        Assert.assertEquals(DBC_EQUAL_EXCEPT_DATE, dbFile.compare(dbFile2));
+
+        fileInfo2.setDate(new Date(10));
+        Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile2));
+
+        fileInfo2.setMD5(new MD5("NOMATCH"));
+        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+
+        fileInfo2.setMD5(new MD5("MATCH"));
+        fileInfo2.setName("Test2");
+        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+
+        fileInfo2.setName("Test");
+        fileInfo2.setSize(293);
+        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+
+        fileInfo2.setSize(291);
+        fileInfo2.setDate(new Date(20));
+        fileInfo2.setMD5(new MD5("NOMATCH"));
+        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
     }
 }
