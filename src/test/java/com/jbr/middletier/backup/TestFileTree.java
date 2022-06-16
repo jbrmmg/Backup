@@ -205,8 +205,32 @@ public class TestFileTree {
 
             when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
             when(node.isDirectory()).thenReturn(true);
+            findDeleteFiles(node, list);
+            Assert.assertEquals(0, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
+            when(node.isDirectory()).thenReturn(false);
+            findDeleteFiles(node, list);
+            Assert.assertEquals(0, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
+            when(node.isDirectory()).thenReturn(true);
             findDeleteDirectories(node, list);
             Assert.assertEquals(1, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
+            when(node.isDirectory()).thenReturn(true);
+            findDeleteDirectories(node, list);
+            Assert.assertEquals(0, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
+            when(node.isDirectory()).thenReturn(false);
+            findDeleteDirectories(node, list);
+            Assert.assertEquals(0, list.size());
             list.clear();
 
             when(node.getActionType()).thenReturn(DbCompareNode.ActionType.RECREATE_AS_FILE);
@@ -227,6 +251,18 @@ public class TestFileTree {
             Assert.assertEquals(1, list.size());
             list.clear();
 
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
+            when(node.isDirectory()).thenReturn(true);
+            findInsertDirectories(node, list);
+            Assert.assertEquals(0, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
+            when(node.isDirectory()).thenReturn(false);
+            findInsertDirectories(node, list);
+            Assert.assertEquals(0, list.size());
+            list.clear();
+
             when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
             when(node.isDirectory()).thenReturn(false);
             findInsertFiles(node, list);
@@ -237,6 +273,18 @@ public class TestFileTree {
             when(node.isDirectory()).thenReturn(false);
             findInsertFiles(node, list);
             Assert.assertEquals(1, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
+            when(node.isDirectory()).thenReturn(true);
+            findInsertFiles(node, list);
+            Assert.assertEquals(0, list.size());
+            list.clear();
+
+            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
+            when(node.isDirectory()).thenReturn(false);
+            findInsertFiles(node, list);
+            Assert.assertEquals(0, list.size());
             list.clear();
 
             return true;
