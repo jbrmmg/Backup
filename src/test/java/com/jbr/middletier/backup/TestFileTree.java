@@ -4,11 +4,13 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
+import com.jbr.middletier.backup.filetree.compare.DbTree;
 import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbNode;
+import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
@@ -22,10 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
 import static org.mockito.Mockito.*;
@@ -369,5 +374,34 @@ public class TestFileTree {
 
         compareNode = new DbCompareNode(null, true, mockSourceFile);
         Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
+    }
+
+    @Test
+    public void dbCompareTest() {
+        DbFile mockFile = mock(DbFile.class);
+        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.isDirectory()).thenReturn(false);
+        when(mockFile.compare(mockFile)).thenReturn(DBC_EQUAL);
+        ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
+        List<FileTreeNode> list = new ArrayList<>();
+        list.add(mockFile);
+
+        DbRoot mockSource = mock(DbRoot.class);
+        ReflectionTestUtils.setField(mockSource,"children",list);
+        when(mockSource.getChildren()).thenReturn(list);
+
+        DbRoot mockDestination = mock(DbRoot.class);
+        ReflectionTestUtils.setField(mockDestination,"children",list);
+        when(mockDestination.getChildren()).thenReturn(list);
+
+        DbTree test = new DbTree(mockSource, mockDestination);
+        Assert.assertNull(test.getName());
+
+        test.compare();
+        Assert.assertEquals(FileTreeNode.CompareStatusType.EQUAL, test.getStatus());
+
+        List<FileTreeNode> result = test.getOrderedNodeList();
+        Assert.assertNotNull(result);
+        Assert.assertEquals(4, result.size());
     }
 }
