@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
 import com.jbr.middletier.backup.type.DatabaseBackup;
+import com.jbr.middletier.backup.type.FileBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
 import org.junit.FixMethodOrder;
@@ -33,6 +34,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -754,5 +757,23 @@ public class TestBackups {
             LOG.error("Test failed - ", ex);
             fail();
         }
+    }
+
+    @Test
+    public void testDbBackup() {
+        ApplicationProperties properties = mock(ApplicationProperties.class);
+        when(properties.getDbBackupCommand()).thenReturn("xx");
+        when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+
+        BackupManager manager = mock(BackupManager.class);
+        when(manager.todaysDirectory()).thenReturn("./target/it_test");
+
+        Backup backup = mock(Backup.class);
+        when(backup.getBackupName()).thenReturn("test");
+        when(backup.getArtifact()).thenReturn("blah.txt");
+        when(backup.getDirectory()).thenReturn("xx");
+
+        DatabaseBackup dbBackup = new DatabaseBackup(properties);
+        dbBackup.performBackup(manager,backup);
     }
 }

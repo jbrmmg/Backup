@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -76,6 +77,12 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            BackupDTO backup2 = new BackupDTO("TSTX","WhaT");
+            getMockMvc().perform(put("/jbr/ext/backup")
+                            .content(this.json(backup2))
+                            .contentType(getContentType()))
+                            .andExpect(status().isNotFound());
+
             getMockMvc().perform(get("/jbr/ext/backup")
                     .content(this.json(backup))
                     .contentType(getContentType()))
@@ -97,6 +104,16 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/backup")
+                            .content(this.json(backup2))
+                            .contentType(getContentType()))
+                            .andExpect(status().isNotFound());
+
+            getMockMvc().perform(post("/jbr/ext/backup/run")
+                            .content(this.json(backup2))
+                            .contentType(getContentType()))
+                    .andExpect(status().isNotFound());
 
             getMockMvc().perform(get("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -219,6 +236,8 @@ public class TestBasicCRUD extends WebTester {
             for(Classification next: classificationRepository.findAll()) {
                 if(next.getOrder().equals(10131)) {
                     id = next.getId();
+                    Assert.assertTrue(next.getUseMD5());
+                    Assert.assertEquals(id + "-null", next.toString());
                 }
             }
 
@@ -303,6 +322,12 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            HardwareDTO hardware2 = new HardwareDTO("00:00:00:00:00:99","N");
+            getMockMvc().perform(put("/jbr/ext/hardware")
+                            .content(this.json(hardware2))
+                            .contentType(getContentType()))
+                    .andExpect(status().isNotFound());
+
             getMockMvc().perform(get("/jbr/ext/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
@@ -310,16 +335,25 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].name",is("Testing2")));
 
-
             getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:10")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().is(404));
 
-            getMockMvc().perform(delete("/jbr/ext/hardware")
-                    .content(this.json(hardware))
-                    .contentType(getContentType()))
+            getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:00")
+                            .content(this.json(hardware))
+                            .contentType(getContentType()))
                     .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/hardware")
+                            .content(this.json(hardware))
+                            .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/hardware")
+                            .content(this.json(hardware2))
+                            .contentType(getContentType()))
+                    .andExpect(status().isNotFound());
 
             getMockMvc().perform(get("/jbr/ext/hardware")
                     .content(this.json(hardware))
