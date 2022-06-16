@@ -108,10 +108,22 @@ public class SyncApiIT extends FileTester {
         return newSource;
     }
 
+    private void loadByParent(int id, List<DirectoryInfo> directorys, List<FileInfo> files) {
+        for(FileInfo nextFile: fileRepository.findByParentId(id)) {
+            files.add(nextFile);
+        }
+
+        for(DirectoryInfo next: directoryRepository.findByParentId(id)) {
+            directorys.add(next);
+            loadByParent(next.getIdAndType().getId(), directorys, files);
+        }
+    }
+
     private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
         // Get the directories and files that were found.
-        Iterable<DirectoryInfo> directories = directoryRepository.findAllByOrderByIdAsc();
-        Iterable<FileInfo> files = fileRepository.findAllByOrderByIdAsc();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
+        loadByParent(source.getIdAndType().getId(), directories, files);
 
         // How many directories are expected?
         List<String> expectedDirectories = new ArrayList<>();
@@ -303,6 +315,12 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesCopied", is(14)));
+
+        LOG.info("Gather the data again.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
 
         validateSource(synchronize.getDestination(),sourceDescription, false);
     }
