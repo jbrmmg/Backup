@@ -1,14 +1,17 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.data.DirectoryInfo;
+import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
+import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbFile;
+import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
@@ -28,6 +31,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -214,7 +218,7 @@ public class TestFileTree {
         Assert.assertEquals("RW (dir): Test 0", testRwDirectory.toString());
 
         try {
-            RwRoot rwRoot = new RwRoot("does not exist", backupManager);
+            new RwRoot("does not exist", backupManager);
             Assert.fail();
         } catch (IOException e) {
             Assert.assertEquals("does not exist", e.getMessage());
@@ -224,7 +228,7 @@ public class TestFileTree {
         Assert.assertTrue(testRwDbSection.test());
 
         try {
-            testRwDbSection = new BasicSection(SectionNode.SectionNodeType.UNKNOWN);
+            new BasicSection(SectionNode.SectionNodeType.UNKNOWN);
             Assert.fail();
         } catch (IllegalStateException e) {
             Assert.assertEquals("Cannot initialise a Rw DB Section object as unknown.", e.getMessage());
@@ -277,5 +281,43 @@ public class TestFileTree {
         fileInfo2.setDate(new Date(20));
         fileInfo2.setMD5(new MD5("NOMATCH"));
         Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+    }
+
+    @Test
+    public void compareDbTests() {
+        // Directories that are equal.
+        DbNode mockSource = mock(DbDirectory.class);
+        when(mockSource.isDirectory()).thenReturn(true);
+
+        DbNode mockDestination = mock(DbDirectory.class);
+        when(mockDestination.isDirectory()).thenReturn(true);
+        when(mockSource.compare(mockDestination)).thenReturn(DBC_EQUAL);
+
+        DbCompareNode compareNode = new DbCompareNode(null, mockSource, mockDestination);
+        Assert.assertEquals(DbCompareNode.ActionType.NONE,compareNode.getActionType());
+
+        compareNode = new DbCompareNode(null, null, mockDestination);
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE,compareNode.getActionType());
+
+        compareNode = new DbCompareNode(null, mockSource, null);
+        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
+
+        // Check the file comparisons
+        Classification classification = mock(Classification.class);
+        when(classification.getAction()).thenReturn(ClassificationActionType.CA_WARN);
+
+        DbFile mockSourceFile = mock(DbFile.class);
+        when(mockSourceFile.isDirectory()).thenReturn(false);
+        when(mockSourceFile.getClassification()).thenReturn(classification);
+        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE,compareNode.getActionType());
+
+        when(classification.getAction()).thenReturn(ClassificationActionType.CA_IGNORE);
+        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE,compareNode.getActionType());
+
+        when(classification.getAction()).thenReturn(ClassificationActionType.CA_DELETE);
+        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE,compareNode.getActionType());
     }
 }

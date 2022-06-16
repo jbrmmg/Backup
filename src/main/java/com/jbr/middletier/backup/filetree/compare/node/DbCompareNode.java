@@ -21,6 +21,11 @@ public class DbCompareNode  extends FileTreeNode {
     }
 
     private SubActionType getSubActionCopy(DbNode source, DbNode destination) {
+        // If no destination, then not sub action
+        if(destination == null) {
+            return SubActionType.NONE;
+        }
+
         // For copy there must be a source.
         DbFile file = (DbFile)source;
         switch (file.getClassification().getAction()) {
@@ -30,11 +35,6 @@ public class DbCompareNode  extends FileTreeNode {
                 return SubActionType.IGNORE;
             case CA_DELETE:
                 return SubActionType.REMOVE_SOURCE;
-        }
-
-        // If no destination, then not sub action
-        if(destination == null) {
-            return SubActionType.NONE;
         }
 
         if(file.compare(destination) == DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE) {
@@ -101,7 +101,7 @@ public class DbCompareNode  extends FileTreeNode {
     public DbCompareNode(FileTreeNode parent, DbNode source, DbNode destination) {
         super(parent);
 
-        this.isDirectory = source.isDirectory();
+        this.isDirectory = source != null ? source.isDirectory() : destination.isDirectory();
         this.actionType = getAction(source, destination);
         this.subActionType = getSubAction(this.actionType, source, destination);
         this.source = source;
