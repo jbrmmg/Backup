@@ -128,7 +128,7 @@ public class SynchronizeManager {
 
     private void createDestinationDirectory(DbCompareNode node, Source destination) throws MissingFileSystemObject, IOException {
         // Create the directory at the destination.
-        if(!(node.getDestination() instanceof DbDirectory)) {
+        if(!(node.getSource() instanceof DbDirectory)) {
             LOG.warn("Delete directory called, but not a directory");
             return;
         }

@@ -148,8 +148,7 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void TestMD5() {
-        String nullString = null;
-        MD5 md5 = new MD5(nullString);
+        MD5 md5 = new MD5((String)null);
         Assert.assertFalse(md5.isSet());
 
         MD5 md5b = new MD5(md5);
@@ -179,6 +178,7 @@ public class TestGeneral extends WebTester {
         FileSystemObjectId fsoId4 = new FileSystemObjectId(1,FileSystemObjectType.FSO_FILE);
         Assert.assertNotEquals(fsoId3.hashCode(),fsoId.hashCode());
         Assert.assertNotEquals(fsoId, fsoId2);
+        //noinspection AssertBetweenInconvertibleTypes
         Assert.assertNotEquals("2", fsoId);
         Assert.assertNotEquals(null, fsoId);
         Assert.assertNotEquals(fsoId, fsoId3);
@@ -193,6 +193,6 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(0,hierarchyResponse.getLevel());
         Assert.assertEquals("",hierarchyResponse.getDisplayName());
         Assert.assertEquals("/",hierarchyResponse.getPath());
-        Assert.assertEquals(true,hierarchyResponse.getDirectory());
+        Assert.assertTrue(hierarchyResponse.getDirectory());
     }
 }

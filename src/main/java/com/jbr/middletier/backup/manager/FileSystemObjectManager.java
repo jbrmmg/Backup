@@ -155,13 +155,22 @@ public class FileSystemObjectManager {
             return;
         }
 
-        fileNameParts.add(findFileSystemObject(fso.getParentId(), true).get());
+        FileSystemObject parent = findFileSystemObject(fso.getParentId(), true).get();
+        fileNameParts.add(parent);
+
+        populateFileNamePartsList(parent, fileNameParts);
     }
 
     private File getFileNameFromParts(List<FileSystemObject> nameParts) {
         StringBuilder sb = new StringBuilder();
+        boolean first = true;
         for(FileSystemObject nextFso : nameParts) {
+            if(!first) {
+                sb.append("/");
+            }
             sb.append(nextFso.getName());
+
+            first = false;
         }
 
         return new File(sb.toString());
@@ -169,13 +178,20 @@ public class FileSystemObjectManager {
 
     private File getFileNameFromPartsAtDestination(List<FileSystemObject> nameParts, Source destination) {
         StringBuilder sb = new StringBuilder();
+        boolean first = true;
         for(FileSystemObject nextFso : nameParts) {
+            if(!first) {
+                sb.append("/");
+            }
+
             // If this is a source, then use the destination.
             if(nextFso instanceof Source) {
                 sb.append(destination.getName());
             } else {
                 sb.append(nextFso.getName());
             }
+
+            first = false;
         }
 
         return new File(sb.toString());
