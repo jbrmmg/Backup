@@ -302,10 +302,12 @@ public class TestFileTree {
         Assert.assertEquals(DbCompareNode.SubActionType.NONE,compareNode.getSubActionType());
 
         compareNode = new DbCompareNode(null, null, mockDestination);
+        Assert.assertEquals("REMOVE NONE FSO_FILE>1", compareNode.toString());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE,compareNode.getActionType());
         Assert.assertEquals(DbCompareNode.SubActionType.NONE,compareNode.getSubActionType());
 
         compareNode = new DbCompareNode(null, mockSource, null);
+        Assert.assertEquals("COPY NONE FSO_FILE>1", compareNode.toString());
         Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
         Assert.assertEquals(DbCompareNode.SubActionType.NONE,compareNode.getSubActionType());
 
@@ -364,5 +366,8 @@ public class TestFileTree {
 
         compareNode = new DbCompareNode(null, false, mockSourceFile);
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE,compareNode.getActionType());
+
+        compareNode = new DbCompareNode(null, true, mockSourceFile);
+        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
     }
 }
