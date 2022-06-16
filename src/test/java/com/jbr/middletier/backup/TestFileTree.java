@@ -378,21 +378,43 @@ public class TestFileTree {
 
     @Test
     public void dbCompareTest() {
+        Classification classification = mock(Classification.class);
+        when(classification.getAction()).thenReturn(ClassificationActionType.CA_BACKUP);
+
         DbFile mockFile = mock(DbFile.class);
         when(mockFile.getName()).thenReturn("test");
         when(mockFile.isDirectory()).thenReturn(false);
         when(mockFile.compare(mockFile)).thenReturn(DBC_EQUAL);
+        when(mockFile.getClassification()).thenReturn(classification);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
-        List<FileTreeNode> list = new ArrayList<>();
-        list.add(mockFile);
+
+        DbFile mockFile2 = mock(DbFile.class);
+        when(mockFile2.getName()).thenReturn("test1");
+        when(mockFile2.isDirectory()).thenReturn(false);
+        when(mockFile2.compare(mockFile)).thenReturn(DBC_EQUAL);
+        when(mockFile2.getClassification()).thenReturn(classification);
+        ReflectionTestUtils.setField(mockFile2,"children",new ArrayList<>());
+
+        DbFile mockFile3 = mock(DbFile.class);
+        when(mockFile3.getName()).thenReturn("test2");
+        when(mockFile3.isDirectory()).thenReturn(false);
+        when(mockFile3.compare(mockFile)).thenReturn(DBC_EQUAL);
+        when(mockFile3.getClassification()).thenReturn(classification);
+        ReflectionTestUtils.setField(mockFile3,"children",new ArrayList<>());
+
+        List<FileTreeNode> list1 = new ArrayList<>();
+        list1.add(mockFile);
+
+        List<FileTreeNode> list2 = new ArrayList<>();
+        list2.add(mockFile);
 
         DbRoot mockSource = mock(DbRoot.class);
-        ReflectionTestUtils.setField(mockSource,"children",list);
-        when(mockSource.getChildren()).thenReturn(list);
+        ReflectionTestUtils.setField(mockSource,"children",list1);
+        when(mockSource.getChildren()).thenReturn(list1);
 
         DbRoot mockDestination = mock(DbRoot.class);
-        ReflectionTestUtils.setField(mockDestination,"children",list);
-        when(mockDestination.getChildren()).thenReturn(list);
+        ReflectionTestUtils.setField(mockDestination,"children",list2);
+        when(mockDestination.getChildren()).thenReturn(list2);
 
         DbTree test = new DbTree(mockSource, mockDestination);
         Assert.assertNull(test.getName());
@@ -403,5 +425,14 @@ public class TestFileTree {
         List<FileTreeNode> result = test.getOrderedNodeList();
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.size());
+
+        when(mockFile.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
+        list1.add(mockFile2);
+        list2.add(mockFile3);
+
+        test.compare();
+        result = test.getOrderedNodeList();
+        Assert.assertNotNull(result);
+        Assert.assertEquals(7, result.size());
     }
 }
