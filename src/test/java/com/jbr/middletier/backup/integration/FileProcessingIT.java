@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.*;
+import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.BackupManager;
@@ -33,8 +34,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.List;
 import java.util.Optional;
+
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -566,6 +575,7 @@ public class FileProcessingIT extends FileTester {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
                 Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
                 Assert.assertTrue(compareNode.isDirectory());
+                Assert.assertFalse(compareNode.deleteRwFile());
                 compareCount++;
             } else {
                 Assert.fail();
@@ -704,5 +714,30 @@ public class FileProcessingIT extends FileTester {
         Assert.assertNotNull(testDbDirectory.getFSO());
 
         directoryRepository.deleteAll();
+    }
+
+    @Test
+    @Order(12)
+    public void checkCompareIO() throws IOException {
+        Path mockPath = mock(Path.class);
+        FileSystemProvider fsProvider = mock(FileSystemProvider.class);
+        doThrow(new IOException("Fail to delete")).when(fsProvider).deleteIfExists(mockPath);
+
+        FileSystem mockFS = mock(FileSystem.class);
+        when(mockFS.provider()).thenReturn(fsProvider);
+
+        when(mockPath.getFileSystem()).thenReturn(mockFS);
+
+        File mockFile = mock(File.class);
+        when(mockFile.toPath()).thenReturn(mockPath);
+
+        RwFile mockRwFile = mock(RwFile.class);
+        when(mockRwFile.getFile()).thenReturn(mockFile);
+
+        FileInfo fileInfo = new FileInfo();
+        DbFile dbFile = new DbFile(null, fileInfo);
+        RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
+
+        testNode.deleteRwFile();
     }
 }
