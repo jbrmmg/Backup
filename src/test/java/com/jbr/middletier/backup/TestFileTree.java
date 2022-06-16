@@ -294,6 +294,7 @@ public class TestFileTree {
         when(mockSource.compare(mockDestination)).thenReturn(DBC_EQUAL);
 
         DbCompareNode compareNode = new DbCompareNode(null, mockSource, mockDestination);
+        Assert.assertNull(compareNode.getName());
         Assert.assertEquals(DbCompareNode.ActionType.NONE,compareNode.getActionType());
 
         compareNode = new DbCompareNode(null, null, mockDestination);
@@ -302,7 +303,7 @@ public class TestFileTree {
         compareNode = new DbCompareNode(null, mockSource, null);
         Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
 
-        // Check the file comparisons
+        // Check the changing from file to directory, and vice versa
         Classification classification = mock(Classification.class);
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_WARN);
 
@@ -319,5 +320,12 @@ public class TestFileTree {
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_DELETE);
         compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
         Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE,compareNode.getActionType());
+
+        mockDestination = mock(DbFile.class);
+        when(mockDestination.isDirectory()).thenReturn(false);
+        compareNode = new DbCompareNode(null, mockSource, mockDestination);
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY,compareNode.getActionType());
+
+
     }
 }

@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.filetree.compare.node;
 
-import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbNode;
@@ -35,6 +34,8 @@ public class DbCompareNode  extends FileTreeNode {
                 return SubActionType.IGNORE;
             case CA_DELETE:
                 return SubActionType.REMOVE_SOURCE;
+            default:
+                // Nothing further, continue.
         }
 
         if(file.compare(destination) == DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE) {
@@ -66,6 +67,8 @@ public class DbCompareNode  extends FileTreeNode {
                 return getSubActionRecreateAsFile(source,destination);
             case RECREATE_AS_DIRECTORY:
                 return getSubActionRecreateAsDirectory();
+            default:
+                // Nothing further, continue.
         }
 
         return getSubActionNone();
@@ -88,6 +91,8 @@ public class DbCompareNode  extends FileTreeNode {
                 case DBC_NOT_EQUAL:
                 case DBC_EQUAL_EXCEPT_DATE:
                     return ActionType.COPY;
+                default:
+                    // Nothing further, continue.
             }
         } else if(source.isDirectory()) {
             return ActionType.RECREATE_AS_DIRECTORY;
