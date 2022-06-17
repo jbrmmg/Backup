@@ -5,10 +5,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -188,6 +185,15 @@ public class SyncApiIT extends FileTester {
         Assert.assertEquals(structure.size(), fileCount);
     }
 
+    @Before
+    public void setupClassification() {
+        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, false, true, false);
+        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, false, false, true);
+        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, false, false, true);
+        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, false, false, false);
+        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, false, false, false);
+    }
+
     @Test
     @Order(1)
     public void gather() throws Exception {
@@ -274,6 +280,23 @@ public class SyncApiIT extends FileTester {
         directoryRepository.deleteAll();
         sourceRepository.delete(synchronize.getSource());
         sourceRepository.delete(synchronize.getDestination());
+
+        // Update JPG so it gets an MD5
+        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
+            if(nextClassification.getRegex().contains("jpg")) {
+                ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setIcon(nextClassification.getIcon());
+                updateClassification.setRegex(nextClassification.getRegex());
+                updateClassification.setAction(nextClassification.getAction());
+                updateClassification.setVideo(nextClassification.getIsVideo());
+                updateClassification.setOrder(1);
+                updateClassification.setId(nextClassification.getId());
+                updateClassification.setUseMD5(false);
+
+                nextClassification.update(updateClassification);
+                classificationRepository.save(nextClassification);
+            }
+        }
     }
 
     @Test
@@ -281,12 +304,6 @@ public class SyncApiIT extends FileTester {
     public void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
         backupManager.clearMessageCache();
-
-        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, false, true, false);
-        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, false, false, true);
-        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, false, false, true);
-        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, false, false, false);
-        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, false, false, false);
 
         // During this test create files in the following directories
         String sourceDirectory = "./target/it_test/source";
@@ -298,6 +315,7 @@ public class SyncApiIT extends FileTester {
         Files.createDirectories(new File(destinationDirectory).toPath());
 
         // Copy the resource files into the source directory
+        initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
         copyFiles(sourceDescription, sourceDirectory);
 
