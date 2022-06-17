@@ -27,6 +27,7 @@ import org.testcontainers.containers.MySQLContainer;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -184,12 +185,21 @@ public class SyncApiIT extends FileTester {
     }
 
     @Before
-    public void setupClassification() {
+    public void setupClassification() throws IOException {
         addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
         addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, false, false, false);
         addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
         addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
         addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
+
+        // During this test create files in the following directories
+        String sourceDirectory = "./target/it_test/source";
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
+
+        String destinationDirectory = "./target/it_test/destination";
+        deleteDirectoryContents(new File(destinationDirectory).toPath());
+        Files.createDirectories(new File(destinationDirectory).toPath());
     }
 
     @Test
@@ -302,15 +312,6 @@ public class SyncApiIT extends FileTester {
     public void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
         backupManager.clearMessageCache();
-
-        // During this test create files in the following directories
-        String sourceDirectory = "./target/it_test/source";
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
-
-        String destinationDirectory = "./target/it_test/destination";
-        deleteDirectoryContents(new File(destinationDirectory).toPath());
-        Files.createDirectories(new File(destinationDirectory).toPath());
 
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -431,5 +432,32 @@ public class SyncApiIT extends FileTester {
 
         directoryRepository.deleteAll();
         sourceRepository.delete(gatherSource);
+    }
+
+    @Test
+    @Order(4)
+    public void importTest() throws Exception {
+        LOG.info("Delete with Gather Testing");
+
+        // Setup the source
+        Source importSource = createSource("./target/it_test/source");
+        sourceRepository.save(importSource);
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test6");
+        copyFiles(sourceDescription, destinationDirectory);
+
+        // Perform a gather.
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setPath("./target/it_test/source");
+        importRequest.setSource(importSource.getIdAndType().getId());
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
     }
 }
