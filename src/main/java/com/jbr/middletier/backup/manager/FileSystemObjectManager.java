@@ -149,16 +149,18 @@ public class FileSystemObjectManager {
         return empty;
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) throws MissingFileSystemObject {
         if(fso.getParentId() == null) {
             return;
         }
 
-        FileSystemObject parent = findFileSystemObject(fso.getParentId(), true).get();
-        fileNameParts.add(parent);
+        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId(), true);
+        if(!parent.isPresent())
+            return;
 
-        populateFileNamePartsList(parent, fileNameParts);
+        fileNameParts.add(parent.get());
+
+        populateFileNamePartsList(parent.get(), fileNameParts);
     }
 
     private File getFileNameFromParts(List<FileSystemObject> nameParts) {

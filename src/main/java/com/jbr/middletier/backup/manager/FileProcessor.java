@@ -102,7 +102,7 @@ abstract class FileProcessor {
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && compareNode.getDatabaseObjectId().getId() == next.getPath().getIdAndType().getId()) {
+            if(next.confirmed() && compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId())) {
                 // Get details of the file that needs to be deleted.
                 if (compareNode.deleteRwFile()) {
                     // Remove the action.

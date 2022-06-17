@@ -180,7 +180,7 @@ public class ImportManager extends FileProcessor {
                 }
             }
 
-            return testResult;
+//            return testResult;
         }
 
         return FileTestResultType.DIFFERENT;
