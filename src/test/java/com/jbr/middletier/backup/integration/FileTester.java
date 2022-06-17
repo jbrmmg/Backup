@@ -103,7 +103,7 @@ public class FileTester extends WebTester {
         Files.createDirectories(new File(destinationDirectory).toPath());
     }
 
-    protected void addClassification(ClassificationRepository repository, String regex, ClassificationActionType action, boolean useMD5, boolean image, boolean video) {
+    protected void addClassification(ClassificationRepository repository, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) {
         for(Classification nextClassification : repository.findAll()) {
             if(nextClassification.getRegex().equalsIgnoreCase(regex)) {
                 return;
@@ -113,7 +113,7 @@ public class FileTester extends WebTester {
         // If we get here, it should be added.
         ClassificationDTO newClassificationDTO = new ClassificationDTO();
         newClassificationDTO.setRegex(regex);
-        newClassificationDTO.setOrder(1);
+        newClassificationDTO.setOrder(order);
         newClassificationDTO.setVideo(video);
         newClassificationDTO.setImage(image);
         newClassificationDTO.setAction(action);

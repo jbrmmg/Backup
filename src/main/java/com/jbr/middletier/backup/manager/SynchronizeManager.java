@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +83,25 @@ public class SynchronizeManager {
         }
     }
 
+    private void removeSource(DbCompareNode node) throws MissingFileSystemObject {
+        if(!(node.getSource() instanceof DbFile)) {
+            LOG.warn("Remove Source called, but not a file");
+            return;
+        }
+
+        DbFile dbFile = (DbFile)node.getSource();
+        File file = fileSystemObjectManager.getFile(dbFile.getFSO());
+
+        try {
+            if(file.exists()) {
+                Files.deleteIfExists(file.toPath());
+            }
+        } catch (IOException e) {
+            LOG.warn("Failed to delete file {}", file);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("File should be deleted - %s %s", dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
+        }
+    }
+
     private void deleteFile(DbCompareNode node) throws MissingFileSystemObject {
         if(!(node.getDestination() instanceof DbFile)) {
             LOG.warn("Delete file called, but not a file");
@@ -121,7 +141,7 @@ public class SynchronizeManager {
                 warn(node);
                 break;
             case REMOVE_SOURCE:
-                //TODO -
+                removeSource(node);
                 break;
         }
     }

@@ -145,9 +145,7 @@ public class SyncApiIT extends FileTester {
             }
         }
 
-        List<DirectoryInfo> dbDirectories = new ArrayList<>();
-        directories.forEach(dbDirectories::add);
-
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directories);
         Assert.assertEquals(expectedDirectories.size(), dbDirectories.size());
 
         DirectoryTree structureTree = new DirectoryTree(expectedDirectories);
@@ -187,11 +185,11 @@ public class SyncApiIT extends FileTester {
 
     @Before
     public void setupClassification() {
-        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, false, true, false);
-        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, false, false, true);
-        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, false, false, true);
-        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, false, false, false);
-        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, false, false, false);
+        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
+        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, false, false, false);
+        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
+        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
+        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
     }
 
     @Test
@@ -356,7 +354,10 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk());
 
         sourceDescription = getTestStructure("test2_sync");
-        validateSource(synchronize.getDestination(),sourceDescription, false);
+        validateSource(synchronize.getDestination(), sourceDescription, false);
+
+        sourceDescription = getTestStructure("test2_post_sync");
+        validateSource(synchronize.getSource(), sourceDescription, false);
     }
 
     @Test
