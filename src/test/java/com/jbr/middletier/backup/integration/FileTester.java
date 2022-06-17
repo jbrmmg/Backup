@@ -1,6 +1,10 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.backup.WebTester;
+import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.ClassificationActionType;
+import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
+import com.jbr.middletier.backup.dto.ClassificationDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,5 +101,25 @@ public class FileTester extends WebTester {
 
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
+    }
+
+    protected void addClassification(ClassificationRepository repository, String regex, ClassificationActionType action, boolean useMD5, boolean image, boolean video) {
+        for(Classification nextClassification : repository.findAll()) {
+            if(nextClassification.getRegex().equalsIgnoreCase(regex)) {
+                return;
+            }
+        }
+
+        // If we get here, it should be added.
+        ClassificationDTO newClassificationDTO = new ClassificationDTO();
+        newClassificationDTO.setRegex(regex);
+        newClassificationDTO.setOrder(1);
+        newClassificationDTO.setVideo(video);
+        newClassificationDTO.setImage(image);
+        newClassificationDTO.setAction(action);
+        newClassificationDTO.setUseMD5(useMD5);
+
+        Classification newClassification = new Classification(newClassificationDTO);
+        repository.save(newClassification);
     }
 }

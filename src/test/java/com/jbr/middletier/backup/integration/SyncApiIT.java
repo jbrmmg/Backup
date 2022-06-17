@@ -4,6 +4,7 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
+import com.jbr.middletier.backup.manager.BackupManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
@@ -88,6 +89,9 @@ public class SyncApiIT extends FileTester {
 
     @Autowired
     ActionConfirmRepository actionConfirmRepository;
+
+    @Autowired
+    BackupManager backupManager;
 
     private Location getLocation() {
         Optional<Location> location = locationRepository.findById(1);
@@ -276,6 +280,11 @@ public class SyncApiIT extends FileTester {
     @Order(2)
     public void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
+        backupManager.clearMessageCache();
+
+        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, false, true, false);
+        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, false, false, true);
+        addClassification(classificationRepository,".*\\.mp4", ClassificationActionType.CA_BACKUP, false, false, true);
 
         // During this test create files in the following directories
         String sourceDirectory = "./target/it_test/source";
@@ -315,6 +324,10 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesCopied", is(14)));
+
+        // Check that no errors.
+        Assert.assertEquals(0, backupManager.getMessageCache(BackupManager.webLogLevel.WARN).size());
+        Assert.assertEquals(0, backupManager.getMessageCache(BackupManager.webLogLevel.ERROR).size());
 
         LOG.info("Gather the data again.");
         getMockMvc().perform(post("/jbr/int/backup/gather")

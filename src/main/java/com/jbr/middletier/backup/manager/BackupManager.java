@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.*;
 
 /**
  * Created by jason on 11/02/17.
@@ -29,6 +29,7 @@ public class BackupManager {
 
     private final ApplicationProperties applicationProperties;
     private final RestTemplateBuilder restTemplateBuilder;
+    private final Map<webLogLevel, List<String>> messageCache;
 
     @PostConstruct
     public void initialise() {
@@ -39,6 +40,7 @@ public class BackupManager {
                          RestTemplateBuilder restTemplateBuilder) {
         this.applicationProperties = applicationProperties;
         this.restTemplateBuilder = restTemplateBuilder;
+        this.messageCache = new HashMap<>();
     }
 
     public String todaysDirectory() {
@@ -46,6 +48,20 @@ public class BackupManager {
         Calendar calendar = Calendar.getInstance();
 
         return String.format("%s/%s/",this.applicationProperties.getDirectory().getName(),formatter.format(calendar.getTime()));
+    }
+
+    public List<String> getMessageCache(webLogLevel level) {
+        if(!this.messageCache.containsKey(level)) {
+            return new ArrayList<>();
+        }
+
+        return this.messageCache.get(level);
+    }
+
+    public void clearMessageCache() {
+        for(webLogLevel nextLevel : this.messageCache.keySet()) {
+            this.messageCache.get(nextLevel).clear();
+        }
     }
 
     public void initialiseDay() throws IOException {
@@ -74,6 +90,17 @@ public class BackupManager {
         try {
             // Only perform if there is a web log URL.
             if(applicationProperties.getWebLogUrl() == null || applicationProperties.getWebLogUrl().length() == 0) {
+                // If there is no web url and required then keep a cache.
+                if(applicationProperties.getCacheWebLog()) {
+                    List<String> messages;
+                    if (!messageCache.containsKey(level)) {
+                        messages = new ArrayList<>();
+                        messageCache.put(level, messages);
+                    } else {
+                        messages = messageCache.get(level);
+                    }
+                    messages.add(message);
+                }
                 return;
             }
 

@@ -132,7 +132,7 @@ public class FileProcessingIT extends FileTester {
         int count = 0;
         for (FileTreeNode nextNode : rwRoot.getChildren()) {
             for (FileTreeNode children : nextNode.getChildren()) {
-                Assert.assertEquals("Backup.dxf~3", children.getName());
+                Assert.assertEquals("Backup.dxf~", children.getName());
                 count++;
             }
         }
@@ -203,7 +203,7 @@ public class FileProcessingIT extends FileTester {
 
         FileInfo file = new FileInfo();
         file.setParent(level1);
-        file.setName("Backup.dxf~3");
+        file.setName("Backup.dxf~");
         file.clearRemoved();
         fileRepository.save(file);
 
@@ -314,7 +314,7 @@ public class FileProcessingIT extends FileTester {
 
         DirectoryInfo file = new DirectoryInfo();
         file.setParent(level1);
-        file.setName("Backup.dxf~3");
+        file.setName("Backup.dxf~");
         file.clearRemoved();
         directoryRepository.save(file);
 
@@ -469,7 +469,7 @@ public class FileProcessingIT extends FileTester {
 
         FileInfo file2 = new FileInfo();
         file2.setParent(level1);
-        file2.setName("Backup.dxf~3");
+        file2.setName("Backup.dxf~");
         file2.clearRemoved();
         fileRepository.save(file2);
 
@@ -544,7 +544,7 @@ public class FileProcessingIT extends FileTester {
 
         FileInfo file2 = new FileInfo();
         file2.setParent(level1);
-        file2.setName("Backup.dxf~3");
+        file2.setName("Backup.dxf~");
         file2.clearRemoved();
         fileRepository.save(file2);
 
