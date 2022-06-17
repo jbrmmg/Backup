@@ -284,7 +284,9 @@ public class SyncApiIT extends FileTester {
 
         addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, false, true, false);
         addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, false, false, true);
-        addClassification(classificationRepository,".*\\.mp4", ClassificationActionType.CA_BACKUP, false, false, true);
+        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, false, false, true);
+        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, false, false, false);
+        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, false, false, false);
 
         // During this test create files in the following directories
         String sourceDirectory = "./target/it_test/source";
@@ -326,7 +328,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesCopied", is(14)));
 
         // Check that no errors.
-        Assert.assertEquals(0, backupManager.getMessageCache(BackupManager.webLogLevel.WARN).size());
+        Assert.assertEquals(1, backupManager.getMessageCache(BackupManager.webLogLevel.WARN).size());
         Assert.assertEquals(0, backupManager.getMessageCache(BackupManager.webLogLevel.ERROR).size());
 
         LOG.info("Gather the data again.");
@@ -335,6 +337,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
+        sourceDescription = getTestStructure("test2_sync");
         validateSource(synchronize.getDestination(),sourceDescription, false);
     }
 

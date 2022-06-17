@@ -23,15 +23,17 @@ public class DbCompareNode  extends FileTreeNode {
         // For copy there must be a source.
         if(source instanceof DbFile) {
             DbFile file = (DbFile) source;
-            switch (file.getClassification().getAction()) {
-                case CA_WARN:
-                    return SubActionType.WARN;
-                case CA_IGNORE:
-                    return SubActionType.IGNORE;
-                case CA_DELETE:
-                    return SubActionType.REMOVE_SOURCE;
-                default:
-                    // Nothing further, continue.
+            if(file.getClassification() != null) {
+                switch (file.getClassification().getAction()) {
+                    case CA_WARN:
+                        return SubActionType.WARN;
+                    case CA_IGNORE:
+                        return SubActionType.IGNORE;
+                    case CA_DELETE:
+                        return SubActionType.REMOVE_SOURCE;
+                    default:
+                        // Nothing further, continue.
+                }
             }
         }
 
