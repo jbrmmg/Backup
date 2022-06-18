@@ -424,7 +424,7 @@ public class SyncApiIT extends FileTester {
         }
 
         directoryRepository.deleteAll();
-        sourceRepository.delete(gatherSource);
+        sourceRepository.deleteAll();
     }
 
     @Test
@@ -452,5 +452,16 @@ public class SyncApiIT extends FileTester {
                         .content(this.json(importRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
+
+        fileRepository.deleteAll();
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
+        for(DirectoryInfo nextDirectory : dbDirectories) {
+            nextDirectory.setParent(null);
+            directoryRepository.save(nextDirectory);
+        }
+
+        directoryRepository.deleteAll();
+        sourceRepository.deleteAll();
     }
 }
