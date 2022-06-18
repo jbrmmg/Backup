@@ -96,24 +96,10 @@ public class SyncApiIT extends FileTester {
     @Autowired
     FileSystemObjectManager fileSystemObjectManager;
 
-    private Location getLocation() {
-        Optional<Location> location = locationRepository.findById(1);
-        if(!location.isPresent())
-            fail();
-
-        return location.get();
-    }
-
-    private Source createSource(String path) {
-        Source newSource = new Source();
-        newSource.setLocation(getLocation());
-        newSource.setStatus(SourceStatusType.SST_OK);
-        newSource.setPath(path);
-
-        sourceRepository.save(newSource);
-
-        return newSource;
-    }
+    private Source source;
+    private Source destination;
+    private Location location;
+    private Synchronize synchronize;
 
     private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
         // Get the directories and files that were found.
@@ -194,6 +180,50 @@ public class SyncApiIT extends FileTester {
         String destinationDirectory = "./target/it_test/destination";
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
+
+        // Create the standard sources
+        Optional<Location> existingLocation = locationRepository.findById(1);
+        if(!existingLocation.isPresent())
+            fail();
+        this.location = existingLocation.get();
+
+        this.source = new Source();
+        this.source.setLocation(this.location);
+        this.source.setStatus(SourceStatusType.SST_OK);
+        this.source.setPath(sourceDirectory);
+
+        sourceRepository.save(this.source);
+
+        this.destination = new Source();
+        this.destination.setLocation(this.location);
+        this.destination.setStatus(SourceStatusType.SST_OK);
+        this.destination.setPath(destinationDirectory);
+
+        sourceRepository.save(this.destination);
+
+        // Create the source and synchronise entries
+        this.synchronize = new Synchronize();
+        synchronize.setId(1);
+        synchronize.setSource(this.source);
+        synchronize.setDestination(this.destination);
+
+        synchronizeRepository.save(synchronize);
+    }
+
+    @After
+    public void cleanUpTest() {
+        // Remove the sources, files & directories.
+        synchronizeRepository.deleteAll();
+        fileRepository.deleteAll();
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
+        for(DirectoryInfo nextDirectory : dbDirectories) {
+            nextDirectory.setParent(null);
+            directoryRepository.save(nextDirectory);
+        }
+
+        directoryRepository.deleteAll();
+        sourceRepository.deleteAll();
     }
 
     @Test
@@ -224,14 +254,6 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
-
-        // Create the source and synchronise entries
-        Synchronize synchronize = new Synchronize();
-        synchronize.setId(1);
-        synchronize.setSource(createSource("./target/it_test/source"));
-        synchronize.setDestination(createSource("./target/it_test/destination"));
-
-        synchronizeRepository.save(synchronize);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -270,19 +292,6 @@ public class SyncApiIT extends FileTester {
 
         validateSource(synchronize.getSource(),sourceDescription, true);
 
-        synchronizeRepository.delete(synchronize);
-        fileRepository.deleteAll();
-
-        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
-        for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParent(null);
-            directoryRepository.save(nextDirectory);
-        }
-
-        directoryRepository.deleteAll();
-        sourceRepository.delete(synchronize.getSource());
-        sourceRepository.delete(synchronize.getDestination());
-
         // Update JPG so it gets an MD5
         for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
             if(nextClassification.getRegex().contains("jpg")) {
@@ -311,14 +320,6 @@ public class SyncApiIT extends FileTester {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
         copyFiles(sourceDescription, sourceDirectory);
-
-        // Create the source and synchronise entries
-        Synchronize synchronize = new Synchronize();
-        synchronize.setId(1);
-        synchronize.setSource(createSource("./target/it_test/source"));
-        synchronize.setDestination(createSource("./target/it_test/destination"));
-
-        synchronizeRepository.save(synchronize);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -353,6 +354,12 @@ public class SyncApiIT extends FileTester {
 
         sourceDescription = getTestStructure("test2_post_sync");
         validateSource(synchronize.getSource(), sourceDescription, false);
+
+        LOG.info("Check for duplicates");
+        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -360,15 +367,16 @@ public class SyncApiIT extends FileTester {
     public void gatherWithDelete() throws Exception {
         LOG.info("Delete with Gather Testing");
 
-        // Setup the source
-        Source gatherSource = createSource("./target/it_test/source");
-
         // During this test create files in the following directories
         initialiseDirectories();
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
         copyFiles(sourceDescription, sourceDirectory);
+
+        // Remove the destination source or this test.
+        synchronizeRepository.delete(this.synchronize);
+        sourceRepository.delete(this.destination);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -384,9 +392,8 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[0].problems", is(false)));
 
-        validateSource(gatherSource,sourceDescription,true);
+        validateSource(this.source,sourceDescription,true);
         Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
-
 
         //Text1.txt
         ActionConfirm deleteAction = new ActionConfirm();
@@ -415,17 +422,6 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(1)))
                 .andExpect(jsonPath("$[0].problems", is(false)));
         Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
-
-        fileRepository.deleteAll();
-
-        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
-        for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParent(null);
-            directoryRepository.save(nextDirectory);
-        }
-
-        directoryRepository.deleteAll();
-        sourceRepository.deleteAll();
     }
 
     @Test
@@ -433,11 +429,7 @@ public class SyncApiIT extends FileTester {
     public void importTest() throws Exception {
         LOG.info("Delete with Gather Testing");
 
-        // Setup the source
-        Source importSource = createSource(sourceDirectory);
-        sourceRepository.save(importSource);
-
-        // During this test create files in the following directories
+         // During this test create files in the following directories
         initialiseDirectories();
 
         List<StructureDescription> sourceDescription = getTestStructure("test6");
@@ -446,7 +438,7 @@ public class SyncApiIT extends FileTester {
         // Perform a gather.
         ImportRequest importRequest = new ImportRequest();
         importRequest.setPath(destinationDirectory);
-        importRequest.setSource(importSource.getIdAndType().getId());
+        importRequest.setSource(this.source.getIdAndType().getId());
 
         LOG.info("Gather the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
@@ -459,16 +451,5 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
-
-        fileRepository.deleteAll();
-
-        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
-        for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParent(null);
-            directoryRepository.save(nextDirectory);
-        }
-
-        directoryRepository.deleteAll();
-        sourceRepository.deleteAll();
     }
 }
