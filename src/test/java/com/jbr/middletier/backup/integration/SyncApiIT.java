@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -27,7 +28,6 @@ import org.testcontainers.containers.MySQLContainer;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.text.ParseException;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -67,6 +67,7 @@ public class SyncApiIT extends FileTester {
         }
     }
 
+    //TODO refactor to remove the need for file & directory repository etc and use the managers.
     @Autowired
     SourceRepository sourceRepository;
 
@@ -91,6 +92,9 @@ public class SyncApiIT extends FileTester {
     @Autowired
     BackupManager backupManager;
 
+    @Autowired
+    FileSystemObjectManager fileSystemObjectManager;
+
     private Location getLocation() {
         Optional<Location> location = locationRepository.findById(1);
         if(!location.isPresent())
@@ -110,22 +114,11 @@ public class SyncApiIT extends FileTester {
         return newSource;
     }
 
-    private void loadByParent(int id, List<DirectoryInfo> directorys, List<FileInfo> files) {
-        for(FileInfo nextFile: fileRepository.findByParentId(id)) {
-            files.add(nextFile);
-        }
-
-        for(DirectoryInfo next: directoryRepository.findByParentId(id)) {
-            directorys.add(next);
-            loadByParent(next.getIdAndType().getId(), directorys, files);
-        }
-    }
-
     private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
         // Get the directories and files that were found.
         List<DirectoryInfo> directories = new ArrayList<>();
         List<FileInfo> files = new ArrayList<>();
-        loadByParent(source.getIdAndType().getId(), directories, files);
+        fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
 
         // How many directories are expected?
         List<String> expectedDirectories = new ArrayList<>();
@@ -440,7 +433,7 @@ public class SyncApiIT extends FileTester {
         LOG.info("Delete with Gather Testing");
 
         // Setup the source
-        Source importSource = createSource("./target/it_test/source");
+        Source importSource = createSource(sourceDirectory);
         sourceRepository.save(importSource);
 
         // During this test create files in the following directories
@@ -451,7 +444,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         ImportRequest importRequest = new ImportRequest();
-        importRequest.setPath("./target/it_test/source");
+        importRequest.setPath(destinationDirectory);
         importRequest.setSource(importSource.getIdAndType().getId());
 
         LOG.info("Gather the data.");

@@ -79,7 +79,7 @@ abstract class FileProcessor {
         return new MD5();
     }
 
-    abstract void newFileInserted(FileInfo newFile);
+    abstract FileInfo createNewFile();
 
     private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed, GatherDataDTO gatherData) {
         // Process the children.
@@ -207,15 +207,13 @@ abstract class FileProcessor {
 
     private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) throws FileProcessException, MissingFileSystemObject {
         // If there is a database object then read it first.
-        boolean newFile = false;
         Optional<FileSystemObject> existingFile = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
             existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
         }
 
         if(!existingFile.isPresent()) {
-            existingFile = Optional.of(new FileInfo());
-            newFile = true;
+            existingFile = Optional.of(createNewFile());
         }
 
         // Get the real world object.
@@ -247,9 +245,6 @@ abstract class FileProcessor {
         }
 
         fileSystemObjectManager.save(file);
-        if(newFile) {
-            newFileInserted(file);
-        }
 
         // Store the id of this item.
         node.setDatabaseObjectId(existingFile.get());

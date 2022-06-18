@@ -84,7 +84,8 @@ public class DriveManager extends FileProcessor {
     }
 
     @Override
-    void newFileInserted(FileInfo newFile) {
-        // Do nothing extra for the file creation.
+    public FileInfo createNewFile() {
+        // Create a basic file.
+        return new FileInfo();
     }
 }

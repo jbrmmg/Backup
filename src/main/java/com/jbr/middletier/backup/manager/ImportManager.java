@@ -18,11 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.*;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -93,15 +89,19 @@ public class ImportManager extends FileProcessor {
 
         // Remove the files associated with imports - first remove files, then directories then source.
         for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
-            if(true)
-                throw new IllegalStateException("Fix this");
-//            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
-//                for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
-//                    fileRepository.delete(nextFile);
-//                }
+            List<DirectoryInfo> directories = new ArrayList<>();
+            List<FileInfo> files = new ArrayList<>();
 
-//                directoryRepository.delete(nextDirectory);
-//            }
+            fileSystemObjectManager.loadByParent(nextSource.getId(),directories,files);
+
+            for(FileInfo nextFile: files) {
+                fileSystemObjectManager.delete(nextFile);
+            }
+
+            Collections.reverse(directories);
+            for(DirectoryInfo nextDirectory: directories) {
+                fileSystemObjectManager.delete(nextDirectory);
+            }
 
             associatedFileDataManager.deleteImportSource(nextSource);
         }
@@ -246,7 +246,7 @@ public class ImportManager extends FileProcessor {
 
     private void processImport(ImportFile importFile, Source source) throws MissingFileSystemObject {
         // If this file is completed then exit.
-        if(importFile.getStatus().equalsIgnoreCase("complete")) {
+        if(importFile.getStatus().equals(ImportFileStatusType.IFS_COMPLETE)) {
             return;
         }
 
@@ -311,7 +311,7 @@ public class ImportManager extends FileProcessor {
 
             processImport(nextFile,destination.get());
 
-            nextFile.setStatus("COMPLETE");
+            nextFile.setStatus(ImportFileStatusType.IFS_COMPLETE);
             importFileRepository.save(nextFile);
         }
     }
@@ -372,12 +372,9 @@ public class ImportManager extends FileProcessor {
     }
 
     @Override
-    void newFileInserted(FileInfo newFile) {
-        ImportFile newImportFile = new ImportFile();
-        newImportFile.setStatus("READ");
-        //TODO - fix this
-//        newImportFile.setFileInfo(newFile);
-
-        importFileRepository.save(newImportFile);
+    public FileInfo createNewFile() {
+        ImportFile newFile = new ImportFile();
+        newFile.setStatus(ImportFileStatusType.IFS_READ);
+        return newFile;
     }
 }

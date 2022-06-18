@@ -78,6 +78,10 @@ public class FileSystemObjectManager {
                 directoryRepository.save((DirectoryInfo) fso);
                 break;
 
+            case FSO_IMPORT_FILE:
+                importFileRepository.save((ImportFile) fso);
+                break;
+
             default:
                 throw new IllegalStateException("Save except for File and Directory not supported");
         }
@@ -221,5 +225,16 @@ public class FileSystemObjectManager {
 
     public DbRoot createDbRoot(Source source) {
         return new DbRoot(source,fileRepository,directoryRepository);
+    }
+
+    public void loadByParent(int id, List<DirectoryInfo> directories, List<FileInfo> files) {
+        for(FileInfo nextFile: fileRepository.findByParentId(id)) {
+            files.add(nextFile);
+        }
+
+        for(DirectoryInfo next: directoryRepository.findByParentId(id)) {
+            directories.add(next);
+            loadByParent(next.getIdAndType().getId(), directories, files);
+        }
     }
 }

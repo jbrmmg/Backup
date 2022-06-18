@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.ImportFile;
+import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
@@ -73,7 +74,7 @@ public class ImportController {
         Iterable<ImportFile> result = importFileRepository.findAll();
 
         for(ImportFile nextImport: result) {
-            nextImport.setStatus("READ");
+            nextImport.setStatus(ImportFileStatusType.IFS_READ);
             importFileRepository.save(nextImport);
         }
 
