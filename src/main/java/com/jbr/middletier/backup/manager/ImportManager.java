@@ -174,9 +174,9 @@ public class ImportManager extends FileProcessor {
                 } catch (IOException e) {
                     LOG.warn("Failed to delete {}, already imported", path);
                 }
-            }
 
-            return testResult;
+                return testResult;
+            }
         }
 
         return FileTestResultType.DIFFERENT;
