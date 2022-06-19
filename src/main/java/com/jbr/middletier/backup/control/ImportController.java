@@ -25,14 +25,11 @@ public class ImportController {
     private static final Logger LOG = LoggerFactory.getLogger(ImportController.class);
 
     private final ImportManager importManager;
-    private final ImportFileRepository importFileRepository;
 
     @Contract(pure = true)
     @Autowired
-    public ImportController(ImportManager importManager,
-                            ImportFileRepository importFileRepository ) {
+    public ImportController(ImportManager importManager ) {
         this.importManager = importManager;
-        this.importFileRepository = importFileRepository;
     }
 
     @PostMapping(path="/import")
@@ -43,41 +40,30 @@ public class ImportController {
     }
 
     @DeleteMapping(path="/import")
-    public @ResponseBody OkStatus removeEntries() throws MissingFileSystemObject {
+    public @ResponseBody List<GatherDataDTO> removeEntries() throws MissingFileSystemObject {
         LOG.info("Remove entries from import table");
 
-        importManager.removeEntries();
-
-        return OkStatus.getOkStatus();
+        return importManager.removeEntries();
     }
 
     @PostMapping(path="/importprocess")
-    public @ResponseBody OkStatus importPhotoProcess() throws ImportRequestException, MissingFileSystemObject {
+    public @ResponseBody List<GatherDataDTO> importPhotoProcess() throws ImportRequestException, MissingFileSystemObject {
         LOG.info("Import - process");
 
-        importManager.importPhotoProcess();
-
-        return OkStatus.getOkStatus();
+        return importManager.importPhotoProcess();
     }
 
     @GetMapping(path="/importfiles")
     public @ResponseBody Iterable<ImportFile> getImportFiles() {
         LOG.info("Get the import files.");
 
-        return importFileRepository.findAllByOrderByIdAsc();
+        return importManager.findImportFiles();
     }
 
     @PutMapping(path="/importfiles")
     public @ResponseBody Iterable<ImportFile> resetFiles() {
         LOG.info("Get the import files.");
 
-        Iterable<ImportFile> result = importFileRepository.findAll();
-
-        for(ImportFile nextImport: result) {
-            nextImport.setStatus(ImportFileStatusType.IFS_READ);
-            importFileRepository.save(nextImport);
-        }
-
-        return importFileRepository.findAllByOrderByIdAsc();
+        return importManager.resetFiles();
     }
 }

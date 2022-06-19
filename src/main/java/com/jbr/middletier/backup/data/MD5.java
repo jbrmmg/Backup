@@ -35,11 +35,7 @@ public class MD5 {
     }
 
     public boolean isSet() {
-        if(this.md5 == null) {
-            return false;
-        }
-
-        return true;
+        return this.md5 != null;
     }
 
     @Override

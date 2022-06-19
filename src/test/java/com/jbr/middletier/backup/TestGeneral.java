@@ -149,7 +149,10 @@ public class TestGeneral extends WebTester {
         MD5 md5 = new MD5((String)null);
         Assert.assertFalse(md5.isSet());
 
-        MD5 md5b = new MD5(md5);
+        MD5 md5b = new MD5("");
+        Assert.assertFalse(md5b.isSet());
+
+        md5b = new MD5(md5);
         Assert.assertFalse(md5.isSet());
 
         MD5 md5c = new MD5("Test");
@@ -166,6 +169,7 @@ public class TestGeneral extends WebTester {
         Assert.assertFalse(md5c.compare(md5d, false));
         Assert.assertTrue(md5c.compare(md5b,true));
         Assert.assertTrue(md5b.compare(md5c,true));
+        Assert.assertFalse(md5c.compare(md5d,true));
     }
 
     @SuppressWarnings({"SimplifiableAssertion", "ConstantConditions", "EqualsBetweenInconvertibleTypes", "EqualsWithItself"})
