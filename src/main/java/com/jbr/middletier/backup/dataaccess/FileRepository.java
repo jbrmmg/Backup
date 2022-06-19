@@ -18,11 +18,11 @@ import java.util.Optional;
 public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSpecificationExecutor<FileInfo> {
 //    Optional<FileInfo> findByDirectoryInfoAndName(DirectoryInfo directoryInfo, String name);
 
-    List<FileInfo> findByName(String name);
+    Iterable<FileInfo> findByName(String name);
 
     Iterable<FileInfo> findAllByOrderByIdAsc();
 
-    List<FileInfo> findByParentId(Integer parentId);
+    Iterable<FileInfo> findByParentId(Integer parentId);
 
     /*
     @Query("SELECT new com.jbr.middletier.backup.data.SynchronizeStatus ( " +

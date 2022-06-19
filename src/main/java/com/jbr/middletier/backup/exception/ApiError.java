@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDateTime;
 
 @SuppressWarnings("unused")
-class ApiError {
+public class ApiError {
     private HttpStatus status;
     private final LocalDateTime timestamp;
     private String message;
@@ -15,18 +15,18 @@ class ApiError {
         timestamp = LocalDateTime.now();
     }
 
-    ApiError(HttpStatus status, String message, Throwable ex) {
+    public ApiError(HttpStatus status, String message, Throwable ex) {
         this();
         this.status = status;
         this.message = message;
         this.debugMessage = ex.getLocalizedMessage();
     }
 
-    LocalDateTime getTimestamp() { return this.timestamp; }
+    public LocalDateTime getTimestamp() { return this.timestamp; }
 
     HttpStatus getStatus() { return this.status; }
 
-    String getMessage() { return this.message; }
+    public String getMessage() { return this.message; }
 
-    String getDebugMessage() { return this.debugMessage; }
+    public String getDebugMessage() { return this.debugMessage; }
 }

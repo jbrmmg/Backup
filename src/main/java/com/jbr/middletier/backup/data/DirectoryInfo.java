@@ -15,8 +15,6 @@ public class DirectoryInfo extends FileSystemObject {
         super(FileSystemObjectType.FSO_DIRECTORY);
     }
 
-    public String getName() { return this.name; }
-
     public Boolean getRemoved() { return this.removed; }
 
     public void clearRemoved() { this.removed = false; }

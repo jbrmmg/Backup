@@ -4,9 +4,11 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.Classification;
+import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -75,6 +77,12 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            BackupDTO backup2 = new BackupDTO("TSTX","WhaT");
+            getMockMvc().perform(put("/jbr/ext/backup")
+                            .content(this.json(backup2))
+                            .contentType(getContentType()))
+                            .andExpect(status().isNotFound());
+
             getMockMvc().perform(get("/jbr/ext/backup")
                     .content(this.json(backup))
                     .contentType(getContentType()))
@@ -96,6 +104,16 @@ public class TestBasicCRUD extends WebTester {
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/backup")
+                            .content(this.json(backup2))
+                            .contentType(getContentType()))
+                            .andExpect(status().isNotFound());
+
+            getMockMvc().perform(post("/jbr/ext/backup/run")
+                            .content(this.json(backup2))
+                            .contentType(getContentType()))
+                    .andExpect(status().isNotFound());
 
             getMockMvc().perform(get("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -204,8 +222,8 @@ public class TestBasicCRUD extends WebTester {
              * will need update the counts.
              */
             ClassificationDTO classification = new ClassificationDTO();
-            classification.setAction("FRED");
-            classification.setOrder(10);
+            classification.setAction(ClassificationActionType.CA_BACKUP);
+            classification.setOrder(10131);
             classification.setUseMD5(true);
 
             getMockMvc().perform(post("/jbr/ext/backup/classification")
@@ -216,15 +234,17 @@ public class TestBasicCRUD extends WebTester {
 
             int id = 0;
             for(Classification next: classificationRepository.findAll()) {
-                if(next.getAction().equals("FRED")) {
+                if(next.getOrder().equals(10131)) {
                     id = next.getId();
+                    Assert.assertTrue(next.getUseMD5());
+                    Assert.assertEquals(id + "-null", next.toString());
                 }
             }
 
             classification = new ClassificationDTO();
             classification.setId(id);
             classification.setOrder(1);
-            classification.setAction("FRED2");
+            classification.setAction(ClassificationActionType.CA_BACKUP);
             classification.setUseMD5(false);
 
             LOG.info("Classification {}", classification);
@@ -234,7 +254,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount + 1)))
-                    .andExpect(jsonPath("$..action",hasItems("FRED2")));
+                    .andExpect(jsonPath("$..action",hasItems("CA_BACKUP")));
 
             getMockMvc().perform(get("/jbr/ext/backup/classification")
                     .content(this.json(classification))
@@ -302,6 +322,12 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
+            HardwareDTO hardware2 = new HardwareDTO("00:00:00:00:00:99","N");
+            getMockMvc().perform(put("/jbr/ext/hardware")
+                            .content(this.json(hardware2))
+                            .contentType(getContentType()))
+                    .andExpect(status().isNotFound());
+
             getMockMvc().perform(get("/jbr/ext/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
@@ -309,187 +335,28 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].name",is("Testing2")));
 
-
             getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:10")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().is(404));
 
-            getMockMvc().perform(delete("/jbr/ext/hardware")
-                    .content(this.json(hardware))
-                    .contentType(getContentType()))
+            getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:00")
+                            .content(this.json(hardware))
+                            .contentType(getContentType()))
                     .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/hardware")
+                            .content(this.json(hardware))
+                            .contentType(getContentType()))
+                    .andExpect(status().isOk());
+
+            getMockMvc().perform(delete("/jbr/ext/hardware")
+                            .content(this.json(hardware2))
+                            .contentType(getContentType()))
+                    .andExpect(status().isNotFound());
 
             getMockMvc().perform(get("/jbr/ext/hardware")
                     .content(this.json(hardware))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-
-        } catch (Exception ex) {
-            fail();
-        }
-    }
-
-    @Test
-    @Ignore
-    public void SourceCRUD() {
-        try {
-            LocationDTO location = new LocationDTO(1,"Test", "1MB");
-            SourceDTO source = new SourceDTO(1,"C:\\Testing");
-//            source.setType("STD");
-            source.setLocation(location);
-
-            getMockMvc().perform(get("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-
-            getMockMvc().perform(post("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(post("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().is(409));
-
-            getMockMvc().perform(get("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].path",is("C:\\Testing")));
-
-            source.setPath("C:\\Testing2");
-            getMockMvc().perform(put("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(get("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].path",is("C:\\Testing2")));
-
-            getMockMvc().perform(delete("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(get("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-
-            getMockMvc().perform(put("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().is(404));
-
-            getMockMvc().perform(delete("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().is(404));
-        } catch (Exception ex) {
-            fail();
-        }
-    }
-
-    @Test
-    @Ignore
-    public void SyncrhonizeCRUD() {
-        try {
-            LocationDTO location = new LocationDTO(1, "Test", "1MB");
-
-            SourceDTO source = new SourceDTO(1, "C:\\TestSource1");
-            source.setLocation(location);
-//            source.setType("STD");
-
-            SourceDTO destination = new SourceDTO(2,"C:\\TestSource2");
-            destination.setLocation(location);
-//            destination.setType("STD");
-
-            SynchronizeDTO syncrhonize = new SynchronizeDTO(1);
-            syncrhonize.setSource(source);
-            syncrhonize.setDestination(destination);
-
-            getMockMvc().perform(post("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(post("/jbr/ext/backup/source")
-                    .content(this.json(destination))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(get("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-
-            getMockMvc().perform(post("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(post("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().is(409));
-
-            getMockMvc().perform(put("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(get("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].id",is(1)));
-
-            getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(put("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().is(404));
-
-            getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().is(404));
-
-            getMockMvc().perform(delete("/jbr/ext/backup/source")
-                    .content(this.json(source))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(delete("/jbr/ext/backup/source")
-                    .content(this.json(destination))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk());
-
-            getMockMvc().perform(get("/jbr/ext/backup/synchronize")
-                    .content(this.json(syncrhonize))
-                    .contentType(getContentType()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-
-            getMockMvc().perform(get("/jbr/ext/backup/source")
-                    .content(this.json(syncrhonize))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));

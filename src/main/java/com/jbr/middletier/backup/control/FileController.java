@@ -1,15 +1,14 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
-import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.dto.ActionConfirmDTO;
+import com.jbr.middletier.backup.dto.DuplicateDataDTO;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
-import com.jbr.middletier.backup.manager.DriveManager;
-import com.jbr.middletier.backup.manager.DuplicateManager;
-import com.jbr.middletier.backup.manager.SynchronizeManager;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
+import com.jbr.middletier.backup.manager.*;
 import liquibase.repackaged.org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
@@ -31,60 +30,58 @@ public class FileController {
     private static final Logger LOG = LoggerFactory.getLogger(FileController.class);
 
     private final DriveManager driveManager;
-    private final FileRepository fileRepository;
-    private final SynchronizeRepository synchronizeRepository;
-    private final DirectoryRepository directoryRepository;
-    private final ActionConfirmRepository actionConfirmRepository;
+//    private final FileRepository fileRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
+//    private final DirectoryRepository directoryRepository;
+    private final ActionManager actionManager;
     private final DuplicateManager duplicateManager;
     private final SynchronizeManager synchronizeManager;
+    private final FileSystemObjectManager fileSystemObjectManager;
 
     @Contract(pure = true)
     @Autowired
     public FileController(DriveManager driverManager,
-                          FileRepository fileRepository,
-                          SynchronizeRepository synchronizeRepository,
-                          DirectoryRepository directoryRepository,
-                          ActionConfirmRepository actionConfirmRepository,
+//                          FileRepository fileRepository,
+                          AssociatedFileDataManager associatedFileDataManager,
+//                          DirectoryRepository directoryRepository,
+                          ActionManager actionManager,
                           DuplicateManager duplicateManager,
-                          SynchronizeManager synchronizeManager ) {
+                          SynchronizeManager synchronizeManager,
+                          FileSystemObjectManager fileSystemObjectManager) {
         this.driveManager = driverManager;
-        this.fileRepository = fileRepository;
-        this.synchronizeRepository = synchronizeRepository;
-        this.directoryRepository = directoryRepository;
-        this.actionConfirmRepository = actionConfirmRepository;
+        this.fileSystemObjectManager = fileSystemObjectManager;
+//        this.fileRepository = fileRepository;
+        this.associatedFileDataManager = associatedFileDataManager;
+//        this.directoryRepository = directoryRepository;
+        this.actionManager = actionManager;
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
     }
 
     @GetMapping(path="/files")
-    public @ResponseBody
-    Iterable<FileInfo> getFiles() { return fileRepository.findAllByOrderByIdAsc(); }
+    public @ResponseBody Iterable<FileSystemObject> getFiles() {
+        return fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE);
+    }
 
     @PostMapping(path="/gather")
-    public @ResponseBody OkStatus gather(@RequestBody String reason) throws IOException {
+    public @ResponseBody List<GatherDataDTO> gather(@RequestBody String reason) throws IOException {
         LOG.info("Process drive - {}", reason);
 
-        driveManager.gather();
-
-        return OkStatus.getOkStatus();
+        return driveManager.gather();
     }
 
     @PostMapping(path="/duplicate")
-    public @ResponseBody OkStatus duplicate(@RequestBody String temp) {
+    public @ResponseBody List<DuplicateDataDTO> duplicate(@RequestBody String temp) {
         LOG.info("Process drive - {}", temp);
 
-        duplicateManager.duplicateCheck();
-
-        return OkStatus.getOkStatus();
+        return duplicateManager.duplicateCheck();
     }
 
     @PostMapping(path="/sync")
-    public @ResponseBody OkStatus synchronize(@RequestBody String temp) {
+    public @ResponseBody List<SyncDataDTO> synchronize(@RequestBody String temp) {
         LOG.info("Syncronize drives - {}", temp);
 
-        synchronizeManager.synchronize();
-
-        return OkStatus.getOkStatus();
+        return synchronizeManager.synchronize();
     }
 
     @PostMapping(path="/hierarchy")
@@ -96,8 +93,8 @@ public class FileController {
             List<Integer> sourceIds = new ArrayList<>();
 
             // Level 1 - get those sources that are the left hand side of synchronisation.
-            for(Synchronize nextSynchronize: synchronizeRepository.findAll()) {
-                if(sourceIds.contains(nextSynchronize.getSource().getIdAndType())) {
+            for(Synchronize nextSynchronize: associatedFileDataManager.internalFindAllSynchronize()) {
+                if(sourceIds.contains(nextSynchronize.getSource().getIdAndType().getId())) {
                     continue;
                 }
 
@@ -152,34 +149,35 @@ public class FileController {
     }
 
     @GetMapping(path="/file")
-    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws InvalidFileIdException {
-        Optional<FileInfo> file = fileRepository.findById(id);
+    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws InvalidFileIdException, MissingFileSystemObject {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
         }
 
-        FileInfoExtra result = new FileInfoExtra(file.get());
+        FileInfo originalFile = (FileInfo)file.get();
+        FileInfoExtra result = new FileInfoExtra(originalFile);
 
         // Are there backups of this file?
-        List<FileInfo> sameName = fileRepository.findByName(file.get().getName());
+        Iterable<FileSystemObject> sameName = fileSystemObjectManager.findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
 
         // Must be the same size and md5 if present.
         List<FileInfo> backups = new ArrayList<>();
 
-        String fileMD5 = file.get().getMD5() != null ? file.get().getMD5() : "";
-
-        for(FileInfo nextSameName: sameName) {
+        for(FileSystemObject nextSameName: sameName) {
             if(nextSameName.getIdAndType().equals(file.get().getIdAndType())) {
                 continue;
             }
 
-            if(nextSameName.getSize().equals(file.get().getSize())) {
-                String nextMD6 = nextSameName.getMD5() != null ? nextSameName.getMD5() : "";
+            if( !(nextSameName instanceof FileInfo)) {
+                continue;
+            }
 
-                if(fileMD5.equals(nextMD6) || fileMD5.equals("") || nextMD6.equals("") ) {
-                    backups.add(nextSameName);
-                }
+            FileInfo nextFile = (FileInfo)nextSameName;
+
+            if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
+                backups.add(nextFile);
             }
         }
 
@@ -189,62 +187,55 @@ public class FileController {
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
-        Optional<FileInfo> file = fileRepository.findById(id);
+    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException, MissingFileSystemObject {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
         }
 
         // Is this an image file
-        if(file.get().getClassification() == null || !file.get().getClassification().getIsImage()) {
+        FileInfo loadedFile = (FileInfo)file.get();
+        if(loadedFile.getClassification() == null || !loadedFile.getClassification().getIsImage()) {
             throw new InvalidMediaTypeException("image");
         }
 
-        LOG.info("Get file: {}", file.get().getFullFilename());
-
-        File imgPath = new File(file.get().getFullFilename());
+        File imgPath = fileSystemObjectManager.getFile(loadedFile);
+        LOG.info("Get file: {}", imgPath);
 
         return Files.readAllBytes(imgPath.toPath());
     }
 
     @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
-        Optional<FileInfo> file = fileRepository.findById(id);
+    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException, MissingFileSystemObject {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
         }
 
         // Is this a video file?
-        if(file.get().getClassification() == null || !file.get().getClassification().getIsVideo()) {
+        FileInfo loadedFile = (FileInfo)file.get();
+        if(loadedFile.getClassification() == null || !loadedFile.getClassification().getIsVideo()) {
             throw new InvalidMediaTypeException("video");
         }
 
-        LOG.info("Get file: {}", file.get().getFullFilename());
-
-        File imgPath = new File(file.get().getFullFilename());
+        File imgPath = fileSystemObjectManager.getFile(loadedFile);
+        LOG.info("Get file: {}", imgPath);
 
         return Files.readAllBytes(imgPath.toPath());
     }
 
     @DeleteMapping(path="/file")
-    public @ResponseBody OkStatus deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
-        Optional<FileInfo> file = fileRepository.findById(id);
+    public @ResponseBody ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException, MissingFileSystemObject {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
         }
 
         // Create a delete request.
-        ActionConfirm actionConfirm = new ActionConfirm();
-        actionConfirm.setFileInfo(file.get());
-        actionConfirm.setAction("DELETE");
-        actionConfirm.setConfirmed(false);
-        actionConfirm.setParameterRequired(false);
-
-        actionConfirmRepository.save(actionConfirm);
-
-        return OkStatus.getOkStatus();
+        FileInfo loadedFile = (FileInfo)file.get();
+        return actionManager.createFileDeleteAction(loadedFile);
     }
 }

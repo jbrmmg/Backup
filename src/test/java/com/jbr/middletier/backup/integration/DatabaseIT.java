@@ -183,8 +183,7 @@ public class DatabaseIT {
     @Order(4)
     public void classification() {
         ClassificationDTO newDTO = new ClassificationDTO();
-        newDTO.setAction("Test");
-        newDTO.setType("File");
+        newDTO.setAction(ClassificationActionType.CA_BACKUP);
         newDTO.setImage(false);
         newDTO.setIcon("Fred");
         newDTO.setOrder(1);
@@ -199,7 +198,7 @@ public class DatabaseIT {
 
         Optional<Classification> findClassification = classificationRepository.findById(id);
         Assert.assertTrue(findClassification.isPresent());
-        Assert.assertEquals("Test", findClassification.get().getAction());
+        Assert.assertEquals("BACKUP", findClassification.get().getAction().getTypeName());
         Assert.assertEquals("Fred", findClassification.get().getIcon());
         Assert.assertEquals("x", findClassification.get().getRegex());
         Assert.assertEquals(false, findClassification.get().getIsImage());
@@ -214,17 +213,17 @@ public class DatabaseIT {
 
     @Test
     @Order(6)
-    @Ignore
     public void action_confirm() {
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");
         newFile.setSize(10);
+        newFile.clearRemoved();
 
         fileRepository.save(newFile);
-        int fileId = newFile.getIdAndType().getId();
+        Integer fileId = newFile.getIdAndType().getId();
 
         ActionConfirm actionConfirm = new ActionConfirm();
-        actionConfirm.setAction("Test");
+        actionConfirm.setAction(ActionConfirmType.AC_DELETE);
         actionConfirm.setConfirmed(true);
         actionConfirm.setFileInfo(newFile);
         actionConfirm.setFlags("x");
@@ -237,11 +236,11 @@ public class DatabaseIT {
         Optional<ActionConfirm> findActionConfirm = actionConfirmRepository.findById(id);
         Assert.assertTrue(findActionConfirm.isPresent());
 
-        Assert.assertEquals("Test", findActionConfirm.get().getAction());
+        Assert.assertEquals("DELETE", findActionConfirm.get().getAction().getTypeName());
         Assert.assertEquals("x", findActionConfirm.get().getFlags());
         Assert.assertEquals("x1", findActionConfirm.get().getParameter());
         Assert.assertEquals(true, findActionConfirm.get().getParameterRequired());
-        Assert.assertEquals(fileId, findActionConfirm.get().getPath().getParentId().getId());
+        Assert.assertEquals(fileId, findActionConfirm.get().getPath().getIdAndType().getId());
 
         findActionConfirm.get().setParameter("x2");
         actionConfirmRepository.save(findActionConfirm.get());
@@ -270,14 +269,14 @@ public class DatabaseIT {
 
         Source newSource1 = new Source();
         newSource1.setLocation(newLocation);
-        newSource1.setStatus("OK");
+        newSource1.setStatus(SourceStatusType.SST_OK);
         newSource1.setFilter("*.xml");
         newSource1.setPath("/test/directory");
         sourceRepository.save(newSource1);
 
         Source newSource2 = new Source();
         newSource2.setLocation(newLocation);
-        newSource2.setStatus("OK");
+        newSource2.setStatus(SourceStatusType.SST_OK);
         newSource2.setFilter("*.xml");
         newSource2.setPath("/test/directory2");
         sourceRepository.save(newSource2);

@@ -12,7 +12,7 @@ public class ImportFile extends FileInfo {
         super(FileSystemObjectType.FSO_IMPORT_FILE);
     }
 
-    public void setStatus(String status) { this.status = status; }
+    public void setStatus(ImportFileStatusType status) { this.status = status.getTypeName(); }
 
-    public String getStatus() { return this.status; }
+    public ImportFileStatusType getStatus() { return ImportFileStatusType.getFileStatusType(this.status); }
 }

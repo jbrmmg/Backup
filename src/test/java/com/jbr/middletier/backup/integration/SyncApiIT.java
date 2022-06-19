@@ -1,14 +1,14 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import com.jbr.middletier.backup.dto.DuplicateDataDTO;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -28,16 +28,18 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileTime;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -47,9 +49,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(initializers = {SyncApiIT.Initializer.class})
 @ActiveProfiles(value="it")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class SyncApiIT extends WebTester  {
+public class SyncApiIT extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(SyncApiIT.class);
 
+    @SuppressWarnings("rawtypes")
     @ClassRule
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
@@ -69,6 +72,7 @@ public class SyncApiIT extends WebTester  {
         }
     }
 
+    //TODO refactor to remove the need for file & directory repository etc and use the managers.
     @Autowired
     SourceRepository sourceRepository;
 
@@ -87,103 +91,35 @@ public class SyncApiIT extends WebTester  {
     @Autowired
     ClassificationRepository classificationRepository;
 
-    private void deleteDirectoryContents(Path path) throws IOException {
-        if(!Files.exists(path))
-            return;
+    @Autowired
+    ActionConfirmRepository actionConfirmRepository;
 
-        Files.walk(path)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-    }
+    @Autowired
+    BackupManager backupManager;
 
-    private static class StructureDescription {
-        public final String filename;
-        public final String directory;
-        public final String destinationName;
-        public final Date dateTime;
-        public boolean checked;
+    @Autowired
+    FileSystemObjectManager fileSystemObjectManager;
 
-        public StructureDescription(String description) throws ParseException {
-            String[] structureItems = description.split("\\s+");
+    private Source source;
+    private Source destination;
+    private Location location;
+    private Synchronize synchronize;
 
-            this.filename = structureItems[0];
-            this.directory = structureItems[1];
-            this.destinationName = structureItems[2];
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-            this.dateTime = sdf.parse(structureItems[3]);
-
-            checked = false;
-        }
-    }
-
-    private List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
-        List<StructureDescription> result = new ArrayList<>();
-
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + testName + ".structure.txt");
-        assert stream != null;
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-
-        String resource;
-        while((resource = br.readLine()) != null) {
-            result.add(new StructureDescription(resource));
-            LOG.info(resource);
-        }
-
-        return result;
-    }
-
-    private Location getLocation(Integer id) {
-        Optional<Location> location = locationRepository.findById(id);
-        if(!location.isPresent())
-            fail();
-
-        return location.get();
-    }
-
-    private Source createSource(String path, Integer locationId) {
-        Source newSource = new Source();
-        newSource.setLocation(getLocation(locationId));
-        newSource.setPath(path);
-
-        sourceRepository.save(newSource);
-
-        return newSource;
-    }
-
-    private void copyFiles(List<StructureDescription> description, String destination) throws IOException {
-        for(StructureDescription nextFile: description) {
-            Files.createDirectories(new File(destination + "/" + nextFile.directory).toPath());
-
-            InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + nextFile.filename);
-
-            if(stream != null) {
-                Path destinationFile = new File(destination + "/" + nextFile.directory + "/" + nextFile.destinationName).toPath();
-                Files.copy(stream,
-                        destinationFile,
-                        StandardCopyOption.REPLACE_EXISTING);
-
-                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(nextFile.dateTime.getTime()));
-            }
-        }
-    }
-
-    private void validateSource(Source source, List<StructureDescription> structure) {
-        // TODO - check what was gathered was expected.
+    private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
         // Get the directories and files that were found.
-        Iterable<DirectoryInfo> directories = directoryRepository.findAllByOrderByIdAsc();
-        Iterable<FileInfo> files = fileRepository.findAllByOrderByIdAsc();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
 
         // How many directories are expected?
         List<String> expectedDirectories = new ArrayList<>();
         for(StructureDescription nextFile : structure) {
-            String[] elements = nextFile.directory.split("/");
+            String[] elements = nextFile.directory.split(FileSystems.getDefault().getSeparator());
             String fullPath = elements[0];
             boolean skippedFirst = false;
             for(String nextElement: elements) {
                 if(skippedFirst) {
-                    fullPath = fullPath + "/" + nextElement;
+                    fullPath = fullPath + FileSystems.getDefault().getSeparator() + nextElement;
                 }
 
                 if(!expectedDirectories.contains(fullPath)) {
@@ -194,9 +130,7 @@ public class SyncApiIT extends WebTester  {
             }
         }
 
-        List<DirectoryInfo> dbDirectories = new ArrayList<>();
-        directories.forEach(dbDirectories::add);
-
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directories);
         Assert.assertEquals(expectedDirectories.size(), dbDirectories.size());
 
         DirectoryTree structureTree = new DirectoryTree(expectedDirectories);
@@ -217,6 +151,14 @@ public class SyncApiIT extends WebTester  {
                 if(nextFile.getName().equals(nextExpectedFile.destinationName) && nextFile.getParentId().getId() == expectedParentId) {
                     found = true;
                     Assert.assertEquals(nextExpectedFile.dateTime,nextFile.getDate());
+                    if(checkSizeAndMD5) {
+                        if(nextExpectedFile.md5 != null) {
+                            Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5().toString());
+                        }
+                        if(nextExpectedFile.fileSize != null) {
+                            Assert.assertEquals(nextExpectedFile.fileSize,nextFile.getSize());
+                        }
+                    }
                     nextExpectedFile.checked = true;
                 }
             }
@@ -226,11 +168,76 @@ public class SyncApiIT extends WebTester  {
         Assert.assertEquals(structure.size(), fileCount);
     }
 
+    @Before
+    public void setupClassification() throws IOException {
+        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
+        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, false, false, false);
+        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
+        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
+        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
+
+        // During this test create files in the following directories
+        String sourceDirectory = "./target/it_test/source";
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
+
+        String destinationDirectory = "./target/it_test/destination";
+        deleteDirectoryContents(new File(destinationDirectory).toPath());
+        Files.createDirectories(new File(destinationDirectory).toPath());
+
+        // Create the standard sources
+        Optional<Location> existingLocation = locationRepository.findById(1);
+        if(!existingLocation.isPresent())
+            fail();
+        this.location = existingLocation.get();
+        this.location.setCheckDuplicates();
+        locationRepository.save(this.location);
+
+        this.source = new Source();
+        this.source.setLocation(this.location);
+        this.source.setStatus(SourceStatusType.SST_OK);
+        this.source.setPath(sourceDirectory);
+
+        sourceRepository.save(this.source);
+
+        this.destination = new Source();
+        this.destination.setLocation(this.location);
+        this.destination.setStatus(SourceStatusType.SST_OK);
+        this.destination.setPath(destinationDirectory);
+
+        sourceRepository.save(this.destination);
+
+        // Create the source and synchronise entries
+        this.synchronize = new Synchronize();
+        synchronize.setId(1);
+        synchronize.setSource(this.source);
+        synchronize.setDestination(this.destination);
+
+        synchronizeRepository.save(synchronize);
+    }
+
+    @After
+    public void cleanUpTest() {
+        // Remove the sources, files & directories.
+        synchronizeRepository.deleteAll();
+        fileRepository.deleteAll();
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
+        for(DirectoryInfo nextDirectory : dbDirectories) {
+            nextDirectory.setParent(null);
+            directoryRepository.save(nextDirectory);
+        }
+
+        directoryRepository.deleteAll();
+        sourceRepository.deleteAll();
+    }
+
     @Test
     @Order(1)
-    public void synchronise() throws Exception {
+    public void gather() throws Exception {
         LOG.info("Synchronize Testing");
 
+        // Update JPG so it gets an MD5
         for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
             if(nextClassification.getRegex().contains("jpg")) {
                 ClassificationDTO updateClassification = new ClassificationDTO();
@@ -248,25 +255,11 @@ public class SyncApiIT extends WebTester  {
         }
 
         // During this test create files in the following directories
-        String sourceDirectory = "./target/it_test/source";
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
-
-        String destinationDirectory = "./target/it_test/destination";
-        deleteDirectoryContents(new File(destinationDirectory).toPath());
-        Files.createDirectories(new File(destinationDirectory).toPath());
+        initialiseDirectories();
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
-
-        // Create the source and synchronise entries
-        Synchronize synchronize = new Synchronize();
-        synchronize.setId(1);
-        synchronize.setSource(createSource("./target/it_test/source",1));
-        synchronize.setDestination(createSource("./target/it_test/destination",1));
-
-        synchronizeRepository.save(synchronize);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -275,10 +268,12 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription);
+        validateSource(synchronize.getSource(),sourceDescription,true);
 
         // Update the directory structure
         sourceDescription = getTestStructure("test2");
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
         copyFiles(sourceDescription, sourceDirectory);
 
         LOG.info("Gather the data.");
@@ -287,6 +282,228 @@ public class SyncApiIT extends WebTester  {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription);
+        validateSource(synchronize.getSource(),sourceDescription, true);
+
+        // Update the directory structure again.
+        sourceDescription = getTestStructure("test3");
+        deleteDirectoryContents(new File(sourceDirectory).toPath());
+        Files.createDirectories(new File(sourceDirectory).toPath());
+        copyFiles(sourceDescription, sourceDirectory);
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(synchronize.getSource(),sourceDescription, true);
+
+        // Update JPG so it gets an MD5
+        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
+            if(nextClassification.getRegex().contains("jpg")) {
+                ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setIcon(nextClassification.getIcon());
+                updateClassification.setRegex(nextClassification.getRegex());
+                updateClassification.setAction(nextClassification.getAction());
+                updateClassification.setVideo(nextClassification.getIsVideo());
+                updateClassification.setOrder(1);
+                updateClassification.setId(nextClassification.getId());
+                updateClassification.setUseMD5(false);
+
+                nextClassification.update(updateClassification);
+                classificationRepository.save(nextClassification);
+            }
+        }
+    }
+
+    @Test
+    @Order(2)
+    public void synchronize() throws Exception {
+        LOG.info("Synchronize Testing");
+        backupManager.clearMessageCache();
+
+        // Copy the resource files into the source directory
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test2");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(synchronize.getSource(),sourceDescription, false);
+
+        LOG.info("Synchronize the data.");
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesCopied", is(14)));
+
+        // Check that no errors.
+        Assert.assertEquals(1, backupManager.getMessageCache(BackupManager.webLogLevel.WARN).size());
+        Assert.assertEquals(0, backupManager.getMessageCache(BackupManager.webLogLevel.ERROR).size());
+
+        LOG.info("Gather the data again.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        sourceDescription = getTestStructure("test2_sync");
+        validateSource(synchronize.getDestination(), sourceDescription, false);
+
+        sourceDescription = getTestStructure("test2_post_sync");
+        validateSource(synchronize.getSource(), sourceDescription, false);
+
+        LOG.info("Check for duplicates");
+        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].checked", is(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[1].checked", is(1)))
+                .andExpect(jsonPath("$[1].failed", is(false)));
+    }
+
+    @Test
+    @Order(3)
+    public void gatherWithDelete() throws Exception {
+        LOG.info("Delete with Gather Testing");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Remove the destination source or this test.
+        synchronizeRepository.delete(this.synchronize);
+        sourceRepository.delete(this.destination);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
+                .andExpect(jsonPath("$[0].failed", is(false)));
+
+        validateSource(this.source,sourceDescription,true);
+        Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
+
+        //Text1.txt
+        ActionConfirm deleteAction = new ActionConfirm();
+        deleteAction.setAction(ActionConfirmType.AC_DELETE);
+        deleteAction.setConfirmed(true);
+        boolean found = false;
+        for(FileInfo nextFile : fileRepository.findAllByOrderByIdAsc()) {
+            if(nextFile.getName().equalsIgnoreCase("Text1.txt")) {
+                deleteAction.setFileInfo(nextFile);
+                found = true;
+            }
+        }
+        Assert.assertTrue(found);
+        actionConfirmRepository.save(deleteAction);
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)));
+        Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
+    }
+
+    @Test
+    @Order(4)
+    public void importTest() throws Exception {
+        LOG.info("Delete with Gather Testing");
+
+         // During this test create files in the following directories
+        initialiseDirectories();
+
+        List<StructureDescription> sourceDescription = getTestStructure("test6");
+        copyFiles(sourceDescription, destinationDirectory);
+
+        // Perform a gather.
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setPath(destinationDirectory);
+        importRequest.setSource(this.source.getIdAndType().getId());
+
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        getMockMvc().perform(get("/jbr/int/backup/importfiles")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)));
+
+        getMockMvc().perform(put("/jbr/int/backup/importfiles")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)));
+
+        getMockMvc().perform(post("/jbr/int/backup/importprocess")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)));
+
+        LOG.info("Reset the data.");
+        getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        initialiseDirectories();
+        getMockMvc().perform(delete("/jbr/int/backup/import")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(4)));
     }
 }

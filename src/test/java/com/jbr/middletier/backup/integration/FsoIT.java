@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.integration;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -103,7 +104,7 @@ public class FsoIT   {
         Source newSource = new Source();
         newSource.setPath("/test/source/path");
         newSource.setFilter("*.FRD");
-        newSource.setStatus("OK");
+        newSource.setStatus(SourceStatusType.SST_OK);
         newSource.setLocation(location.get());
 
         sourceRepository.save(newSource);
@@ -111,21 +112,22 @@ public class FsoIT   {
 
         Optional<Source> foundSource = sourceRepository.findById(newId);
         Assert.assertTrue(foundSource.isPresent());
+        Assert.assertNull(foundSource.get().getParentId());
 
         Assert.assertEquals("/test/source/path", foundSource.get().getPath());
         Assert.assertEquals("*.FRD", foundSource.get().getFilter());
-        Assert.assertEquals("OK", foundSource.get().getStatus());
+        Assert.assertEquals("OK", foundSource.get().getStatus().getTypeName());
         Assert.assertEquals(1, foundSource.get().getLocation().getId());
 
         foundSource.get().setPath("/test/source2/path");
-        foundSource.get().setStatus("ERROR");
+        foundSource.get().setStatus(SourceStatusType.SST_ERROR);
         foundSource.get().setFilter("FRD.*");
         sourceRepository.save(foundSource.get());
 
         Optional<Source> foundSource2 = sourceRepository.findById(newId);
         Assert.assertTrue(foundSource2.isPresent());
 
-        Assert.assertEquals("ERROR", foundSource2.get().getStatus());
+        Assert.assertEquals("ERROR", foundSource2.get().getStatus().getTypeName());
         Assert.assertEquals("/test/source2/path", foundSource2.get().getPath());
         Assert.assertEquals("FRD.*", foundSource2.get().getFilter());
 
@@ -146,13 +148,13 @@ public class FsoIT   {
         Source testSource = new Source();
         testSource.setPath("/test/source/path");
         testSource.setFilter("*.FRD");
-        testSource.setStatus("OK");
+        testSource.setStatus(SourceStatusType.SST_OK);
         testSource.setLocation(testLocation.get());
 
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParentId(testSource);
+        directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
         directoryInfo.clearRemoved();
 
@@ -167,11 +169,11 @@ public class FsoIT   {
         Date aDate = sdf.parse("2022-06-02 10:02:03");
 
         FileInfo fileInfo = new FileInfo();
-        fileInfo.setParentId(directoryInfo);
+        fileInfo.setParent(directoryInfo);
         fileInfo.setName("Blah");
         fileInfo.setClassification(classificationList.get(0));
         fileInfo.setDate(aDate);
-        fileInfo.setMD5("XYZ");
+        fileInfo.setMD5(new MD5("XYZ"));
         fileInfo.setSize(291L);
         fileInfo.clearRemoved();
 
@@ -185,7 +187,7 @@ public class FsoIT   {
         Assert.assertEquals("Blah", theFile.get().getName());
         Assert.assertEquals(classificationList.get(0).getId(), theFile.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile.get().getDate());
-        Assert.assertEquals("XYZ", theFile.get().getMD5());
+        Assert.assertEquals("XYZ", theFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(291L), theFile.get().getSize());
         Assert.assertEquals(false, theFile.get().getRemoved());
 
@@ -193,7 +195,7 @@ public class FsoIT   {
         theFile.get().setName("not Blah");
         theFile.get().setClassification(classificationList.get(1));
         theFile.get().setDate(aDate);
-        theFile.get().setMD5("BHS");
+        theFile.get().setMD5(new MD5("BHS"));
         theFile.get().setSize(293L);
         fileRepository.save(theFile.get());
 
@@ -204,7 +206,7 @@ public class FsoIT   {
         Assert.assertEquals("not Blah", theFile2.get().getName());
         Assert.assertEquals(classificationList.get(1).getId(), theFile2.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile2.get().getDate());
-        Assert.assertEquals("BHS", theFile2.get().getMD5());
+        Assert.assertEquals("BHS", theFile2.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(293L), theFile2.get().getSize());
 
         fileRepository.delete(theFile2.get());
@@ -217,7 +219,7 @@ public class FsoIT   {
 
     @Test
     @Order(3)
-    public void directory() {
+    public void directory() throws Exception {
         LOG.info("Test the basic directory object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -226,20 +228,20 @@ public class FsoIT   {
         Source testSource = new Source();
         testSource.setPath("/test/source/path");
         testSource.setFilter("*.FRD");
-        testSource.setStatus("OK");
+        testSource.setStatus(SourceStatusType.SST_OK);
         testSource.setLocation(testLocation.get());
 
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParentId(testSource);
+        directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
         directoryInfo.clearRemoved();
 
         directoryRepository.save(directoryInfo);
 
         DirectoryInfo directoryInfo1 = new DirectoryInfo();
-        directoryInfo1.setParentId(directoryInfo);
+        directoryInfo1.setParent(directoryInfo);
         directoryInfo1.setName("test 2");
         directoryInfo1.clearRemoved();
 
@@ -254,11 +256,11 @@ public class FsoIT   {
         Assert.assertEquals("test directory", directoryInfoList.get(0).getName());
         Assert.assertEquals("test 2", directoryInfoList.get(1).getName());
 
-        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId());
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId(), false);
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof DirectoryInfo);
 
-        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId());
+        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId(), false);
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof Source);
 
@@ -298,9 +300,10 @@ public class FsoIT   {
         IgnoreFile testIgnoreFile = new IgnoreFile();
         testIgnoreFile.setName("Ignore file");
         testIgnoreFile.setDate(aDate);
-        testIgnoreFile.setMD5("YTWVS");
+        testIgnoreFile.setMD5(new MD5("YTWVS"));
         testIgnoreFile.setSize(8310L);
         testIgnoreFile.clearRemoved();
+        testIgnoreFile.setParent(null);
 
         ignoreFileRepository.save(testIgnoreFile);
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, testIgnoreFile.getIdAndType().getType());
@@ -311,17 +314,17 @@ public class FsoIT   {
 
         Assert.assertEquals("Ignore file", findIgnoreFile.get().getName());
         Assert.assertEquals(aDate, findIgnoreFile.get().getDate());
-        Assert.assertEquals("YTWVS", findIgnoreFile.get().getMD5());
+        Assert.assertEquals("YTWVS", findIgnoreFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(8310L), findIgnoreFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, findIgnoreFile.get().getIdAndType().getType());
 
-        findIgnoreFile.get().setMD5("HYOSV");
+        findIgnoreFile.get().setMD5(new MD5("HYOSV"));
         ignoreFileRepository.save(findIgnoreFile.get());
 
         Optional<IgnoreFile> findIgnoreFile2 = ignoreFileRepository.findById(id);
         Assert.assertTrue(findIgnoreFile2.isPresent());
 
-        Assert.assertEquals("HYOSV", findIgnoreFile2.get().getMD5());
+        Assert.assertEquals("HYOSV", findIgnoreFile2.get().getMD5().toString());
 
         ignoreFileRepository.delete(findIgnoreFile2.get());
 
@@ -340,10 +343,10 @@ public class FsoIT   {
         ImportFile testImportFile = new ImportFile();
         testImportFile.setName("Ignore file");
         testImportFile.setDate(aDate);
-        testImportFile.setMD5("YTWVS");
+        testImportFile.setMD5(new MD5("YTWVS"));
         testImportFile.setSize(8310L);
         testImportFile.clearRemoved();
-        testImportFile.setStatus("BAD");
+        testImportFile.setStatus(ImportFileStatusType.IFS_READ);
 
         importFileRepository.save(testImportFile);
         Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_FILE, testImportFile.getIdAndType().getType());
@@ -354,17 +357,17 @@ public class FsoIT   {
 
         Assert.assertEquals("Ignore file", findImportFile.get().getName());
         Assert.assertEquals(aDate, findImportFile.get().getDate());
-        Assert.assertEquals("YTWVS", findImportFile.get().getMD5());
+        Assert.assertEquals("YTWVS", findImportFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(8310L), findImportFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_FILE, findImportFile.get().getIdAndType().getType());
 
-        findImportFile.get().setStatus("GOOD");
+        findImportFile.get().setStatus(ImportFileStatusType.IFS_COMPLETE);
         importFileRepository.save(findImportFile.get());
 
         Optional<ImportFile> findImportFile2 = importFileRepository.findById(id);
         Assert.assertTrue(findImportFile2.isPresent());
 
-        Assert.assertEquals("GOOD", findImportFile2.get().getStatus());
+        Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, findImportFile2.get().getStatus());
 
         importFileRepository.delete(findImportFile2.get());
 
@@ -383,40 +386,40 @@ public class FsoIT   {
         Source newSource = new Source();
         newSource.setPath("/test/source/path");
         newSource.setFilter("*.FRD");
-        newSource.setStatus("OK");
+        newSource.setStatus(SourceStatusType.SST_OK);
         newSource.setLocation(location.get());
 
         sourceRepository.save(newSource);
-        int destinationId = newSource.getIdAndType().getId();
+        Integer destinationId = newSource.getIdAndType().getId();
 
         ImportSource newImportSource = new ImportSource();
         newImportSource.setPath("/test/source/import");
         newImportSource.setFilter("*.FRD");
-        newImportSource.setStatus("OK");
+        newImportSource.setStatus(SourceStatusType.SST_OK);
         newImportSource.setLocation(location.get());
         newImportSource.setDestination(newSource);
 
         importSourceRepository.save(newImportSource);
-        int newId = newImportSource.getIdAndType().getId();
+        Integer newId = newImportSource.getIdAndType().getId();
 
         Optional<ImportSource> foundSource = importSourceRepository.findById(newId);
         Assert.assertTrue(foundSource.isPresent());
 
         Assert.assertEquals("/test/source/import", foundSource.get().getPath());
         Assert.assertEquals("*.FRD", foundSource.get().getFilter());
-        Assert.assertEquals("OK", foundSource.get().getStatus());
+        Assert.assertEquals(SourceStatusType.SST_OK, foundSource.get().getStatus());
         Assert.assertEquals(1, foundSource.get().getLocation().getId());
         Assert.assertEquals( destinationId, foundSource.get().getDestination().getIdAndType().getId());
 
         foundSource.get().setPath("/test/source2/import");
-        foundSource.get().setStatus("ERROR");
+        foundSource.get().setStatus(SourceStatusType.SST_ERROR);
         foundSource.get().setFilter("FRD.*");
         sourceRepository.save(foundSource.get());
 
         Optional<ImportSource> foundSource2 = importSourceRepository.findById(newId);
         Assert.assertTrue(foundSource2.isPresent());
 
-        Assert.assertEquals("ERROR", foundSource2.get().getStatus());
+        Assert.assertEquals(SourceStatusType.SST_ERROR, foundSource2.get().getStatus());
         Assert.assertEquals("/test/source2/import", foundSource2.get().getPath());
         Assert.assertEquals("FRD.*", foundSource2.get().getFilter());
         Assert.assertEquals( destinationId, foundSource2.get().getDestination().getIdAndType().getId());

@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
+import com.jbr.middletier.backup.data.SourceStatusType;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import org.junit.ClassRule;
@@ -72,7 +73,7 @@ public class FsoApiIT extends WebTester {
         source.setPath("/target/testfiles/gather1");
         source.setLocation(location1);
         source.setFilter("filter");
-        source.setStatus("OK");
+        source.setStatus(SourceStatusType.SST_OK);
 
         LOG.info("Create a source.");
         getMockMvc().perform(post("/jbr/ext/backup/source")
@@ -85,10 +86,10 @@ public class FsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].idAndType.id", is(1000000)))
+                .andExpect(jsonPath("$[0].id", is(1000000)))
                 .andExpect(jsonPath("$[0].path", is("/target/testfiles/gather1")))
                 .andExpect(jsonPath("$[0].filter", is("filter")))
-                .andExpect(jsonPath("$[0].status", is("OK")))
+                .andExpect(jsonPath("$[0].status").value("SST_OK"))
                 .andExpect(jsonPath("$[0].location.id", is(1)));
 
         // Perform an update.
@@ -98,7 +99,7 @@ public class FsoApiIT extends WebTester {
         source.setId(1000000);
         source.setPath("/target/testfiles/gather2");
         source.setLocation(location2);
-        source.setStatus("ERROR");
+        source.setStatus(SourceStatusType.SST_ERROR);
         source.setFilter("filter2");
 
         LOG.info("Update the source.");
@@ -112,10 +113,10 @@ public class FsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].idAndType.id", is(1000000)))
+                .andExpect(jsonPath("$[0].id", is(1000000)))
                 .andExpect(jsonPath("$[0].path", is("/target/testfiles/gather2")))
                 .andExpect(jsonPath("$[0].filter", is("filter2")))
-                .andExpect(jsonPath("$[0].status", is("ERROR")))
+                .andExpect(jsonPath("$[0].status").value("SST_ERROR"))
                 .andExpect(jsonPath("$[0].location.id", is(2)));
 
         // Create a second source.
@@ -124,7 +125,7 @@ public class FsoApiIT extends WebTester {
         source.setPath("/target/testfiles/gather3");
         source.setLocation(location1);
         source.setFilter("");
-        source.setStatus("OK");
+        source.setStatus(SourceStatusType.SST_OK);
 
         getMockMvc().perform(post("/jbr/ext/backup/source")
                         .content(this.json(source))
@@ -150,7 +151,7 @@ public class FsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].idAndType.id", is(1000001)));
+                .andExpect(jsonPath("$[0].id", is(1000001)));
 
         LOG.info("Delete the remaining source.");
         source = new SourceDTO();

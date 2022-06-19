@@ -1,23 +1,33 @@
-package com.jbr.middletier.backup;
+package com.jbr.middletier.backup.integration;
 
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.testcontainers.containers.MySQLContainer;
 
+import java.nio.file.FileSystems;
 import java.util.Optional;
 
 import static junit.framework.TestCase.assertTrue;
@@ -25,13 +35,34 @@ import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SuppressWarnings("FieldCanBeLocal")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@WebAppConfiguration
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestEmail extends WebTester  {
-    private static final Logger LOG = LoggerFactory.getLogger(TestEmail.class);
+@WebAppConfiguration
+@ContextConfiguration(initializers = {EmailApiIT.Initializer.class})
+@ActiveProfiles(value="it")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class EmailApiIT extends WebTester {
+    private static final Logger LOG = LoggerFactory.getLogger(EmailApiIT.class);
+
+    @ClassRule
+    public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
+            .withDatabaseName("integration-tests-db")
+            .withUsername("sa")
+            .withPassword("sa");
+
+    static class Initializer
+            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+        @Override
+        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + mysqlContainer.getJdbcUrl(),
+                    "spring.datasource.username=" + mysqlContainer.getUsername(),
+                    "spring.datasource.password=" + mysqlContainer.getPassword()
+            ).applyTo(configurableApplicationContext.getEnvironment());
+        }
+    }
 
     @Autowired
     ActionConfirmRepository actionConfirmRepository;
@@ -57,7 +88,6 @@ public class TestEmail extends WebTester  {
     }
 
     @Test
-    @Ignore
     public void TestEmail() {
         try {
             Optional<Location> location = locationRepository.findById(1);
@@ -66,18 +96,14 @@ public class TestEmail extends WebTester  {
             LOG.info("Location {}", location.get());
 
             Source source = new Source();
-            //TODO fix this
-//            source.setId(1);
-            source.setPath("/");
+            source.setPath(FileSystems.getDefault().getSeparator());
             source.setLocation(location.get());
             sourceRepository.save(source);
 
             LOG.info("Source {}", source);
 
             DirectoryInfo directory = new DirectoryInfo();
-            if(true)
-                throw new IllegalStateException("fix this");
-//            directory.setSource(source);
+            directory.setParent(source);
             directory.setName("");
             directory.clearRemoved();
             directoryRepository.save(directory);
@@ -86,18 +112,18 @@ public class TestEmail extends WebTester  {
 
             FileInfo file = new FileInfo();
             file.setName("Test");
-//            file.setDirectoryInfo(directory);
+            file.setParent(directory);
             file.clearRemoved();
             fileRepository.save(file);
 
             ActionConfirm action = new ActionConfirm();
-            action.setAction("Test");
+            action.setAction(ActionConfirmType.AC_DELETE);
             action.setConfirmed(false);
             action.setFileInfo(file);
             actionConfirmRepository.save(action);
 
             getMockMvc().perform(post("/jbr/int/backup/actionemail")
-                    .contentType(getContentType()))
+                            .contentType(getContentType()))
                     .andExpect(status().isOk());
 
             actionConfirmRepository.deleteAll();

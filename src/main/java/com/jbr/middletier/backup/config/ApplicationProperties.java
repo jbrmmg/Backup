@@ -80,6 +80,7 @@ public class ApplicationProperties {
     private String dbUsername;
     private String zipDirectory;
     private String webLogUrl;
+    private boolean cacheWebLog;
     private String schedule;
     private boolean enabled;
     private String gatherSchedule;
@@ -119,6 +120,10 @@ public class ApplicationProperties {
     public void setWebLogUrl(String webLogUrl) { this.webLogUrl = webLogUrl; }
 
     public String getWebLogUrl() { return this.webLogUrl; }
+
+    public void setCacheWebLog(boolean cacheWebLog) { this.cacheWebLog = cacheWebLog; }
+
+    public boolean getCacheWebLog() { return this.cacheWebLog; }
 
     public void setSchedule(String schedule) { this.schedule = schedule; }
 

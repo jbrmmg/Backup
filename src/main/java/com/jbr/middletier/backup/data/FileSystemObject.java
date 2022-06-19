@@ -42,8 +42,6 @@ public class FileSystemObject {
         return new FileSystemObjectId(this.id, FileSystemObjectType.getFileSystemObjectType(this.type));
     }
 
-    protected void setId(int id) { this.id = id; }
-
     public FileSystemObjectId getParentId() {
         if(this.parentId == null) {
             return null;
@@ -52,15 +50,22 @@ public class FileSystemObject {
         return new FileSystemObjectId(this.parentId, FileSystemObjectType.getFileSystemObjectType(this.parentType));
     }
 
-    public void setParentId(FileSystemObject parent) {
+    public void setParent(FileSystemObject parent) {
         if(parent == null) {
             this.parentId = null;
             this.parentType = null;
             return;
         }
 
-        FileSystemObjectId parentId = parent.getIdAndType();
+        setParentId(parent.getIdAndType());
+    }
+
+    public void setParentId(FileSystemObjectId parentId) {
         this.parentId = parentId.getId();
         this.parentType = parentId.getType().getTypeName();
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

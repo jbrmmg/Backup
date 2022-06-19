@@ -2,7 +2,11 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.dto.ImportSourceDTO;
+import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.exception.ImportRequestException;
+import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -27,97 +28,83 @@ public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
     private final ImportFileRepository importFileRepository;
-    private final SourceRepository sourceRepository;
-    private final ImportSourceRepository importSourceRepository;
-    private final ActionConfirmRepository actionConfirmRepository;
-    private final ClassificationRepository classificationRepository;
-    private final LocationRepository locationRepository;
     private final IgnoreFileRepository ignoreFileRepository;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
-                         SourceRepository sourceRepository,
-                         ImportSourceRepository importSourceRepository,
-                         ActionConfirmRepository actionConfirmRepository,
-                         ClassificationRepository classificationRepository,
-                         LocationRepository locationRepository,
-                         DirectoryRepository directoryRepository,
-                         FileRepository fileRepository,
+                         AssociatedFileDataManager associatedFileDataManager,
+                         FileSystemObjectManager fileSystemObjectManager,
                          IgnoreFileRepository ignoreFileRepository,
                          BackupManager backupManager,
                          ActionManager actionManager) {
-        super(directoryRepository,fileRepository,backupManager,actionManager);
+        super(backupManager,actionManager,associatedFileDataManager,fileSystemObjectManager);
         this.importFileRepository = importFileRepository;
-        this.sourceRepository = sourceRepository;
-        this.importSourceRepository = importSourceRepository;
-        this.actionConfirmRepository = actionConfirmRepository;
-        this.classificationRepository = classificationRepository;
-        this.locationRepository = locationRepository;
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
-    public void importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
-        // Get the classifications
-        Iterable<Classification> classifications = classificationRepository.findAll();
+    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
+        List<GatherDataDTO> result = new ArrayList<>();
 
         // Remove any existing import data.
         clearImports();
 
         // Check the path exists
         File importPath = new File(importRequest.getPath());
-        if(!importPath.exists()) {
+        if (!importPath.exists()) {
             throw new ImportRequestException("The path does not exist - " + importPath);
         }
 
         // Validate the source.
-        Optional<Source> source = sourceRepository.findById(importRequest.getSource());
-        if(!source.isPresent()) {
-            throw new  ImportRequestException("The source does not exist - " + importRequest.getSource());
+        Optional<Source> source = associatedFileDataManager.internalFindSourceByIdIfExists(importRequest.getSource());
+        if (!source.isPresent()) {
+            throw new ImportRequestException("The source does not exist - " + importRequest.getSource());
         }
 
         // Find the location.
-        Optional<Location> importLocation = Optional.empty();
-        for(Location nextLocation: locationRepository.findAll()) {
-            if(nextLocation.getName().equalsIgnoreCase("import")) {
-                importLocation = Optional.of(nextLocation);
-            }
-        }
-
-        if(!importLocation.isPresent()) {
+        Optional<Location> importLocation = associatedFileDataManager.internalFindImportLocationIfExists();
+        if (!importLocation.isPresent()) {
             throw new IOException("Cannot find import location.");
         }
 
         // Create a source to match this import
-        ImportSource importSource = new ImportSource(importRequest.getPath());
-        importSource.setDestination(source.get());
-        importSource.setLocation(importLocation.get());
-
-        sourceRepository.save(importSource);
+        ImportSource importSource = associatedFileDataManager.createImportSource(importRequest.getPath(), source.get(), importLocation.get());
 
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
-        updateDatabase(importSource, new ArrayList<>(), classifications, true);
+        GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
+        try {
+            updateDatabase(importSource, new ArrayList<>(), true, gatherData);
+        } catch (FileProcessException | MissingFileSystemObject e) {
+            gatherData.setProblems();
+        }
+        result.add(gatherData);
+
+        return result;
     }
 
     public void clearImports() {
-        actionConfirmRepository.clearImports(false);
+        actionManager.clearImportActions();
 
         // Clear out the imported file data.
         importFileRepository.deleteAll();
 
         // Remove the files associated with imports - first remove files, then directories then source.
-        for(ImportSource nextSource: importSourceRepository.findAll()) {
-            if(true)
-                throw new IllegalStateException("Fix this");
-//            for(DirectoryInfo nextDirectory: directoryRepository.findBySource(nextSource)) {
-//                for(FileInfo nextFile: fileRepository.findByDirectoryInfo(nextDirectory)) {
-//                    fileRepository.delete(nextFile);
-//                }
+        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
+            List<DirectoryInfo> directories = new ArrayList<>();
+            List<FileInfo> files = new ArrayList<>();
 
-//                directoryRepository.delete(nextDirectory);
-//            }
+            fileSystemObjectManager.loadByParent(nextSource.getId(),directories,files);
 
-            sourceRepository.delete(nextSource);
+            for(FileInfo nextFile: files) {
+                fileSystemObjectManager.delete(nextFile);
+            }
+
+            Collections.reverse(directories);
+            for(DirectoryInfo nextDirectory: directories) {
+                fileSystemObjectManager.delete(nextDirectory);
+            }
+
+            associatedFileDataManager.deleteImportSource(nextSource);
         }
     }
 
@@ -141,7 +128,7 @@ public class ImportManager extends FileProcessor {
             return false;
         }
 
-        if(!importFile.getClassification().getAction().equalsIgnoreCase("backup")) {
+        if(!importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
             LOG.info("{} not a backed up file, deleting", path);
             try {
                 Files.delete(path);
@@ -169,21 +156,16 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
-    private FileTestResultType processExisting(ImportFile importFile, Path path, Source source) {
-        List<FileInfo> existingFiles = fileRepository.findByName(path.getFileName().toString());
+    private FileTestResultType processExisting(ImportFile importFile, Path path, List<FileInfo> files) throws MissingFileSystemObject {
+        List<FileInfo> existingFiles = files.stream()
+                .filter(file -> file.getName().equals(importFile.getName()))
+                .collect(Collectors.toList());
 
-        for(FileInfo nextFile: existingFiles) {
+        for(FileSystemObject nextFile: existingFiles) {
             LOG.info("{}", nextFile);
 
-            // Make sure this file is from the same source.
-            if(true)
-                throw new IllegalStateException("fix this");
-//            if(nextFile.getDirectoryInfo().getSource().getId() != source.getId()) {
-//                continue;
-//            }
-
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
+            FileTestResultType testResult = fileAlreadyExists(path,(FileInfo)nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
@@ -192,18 +174,16 @@ public class ImportManager extends FileProcessor {
                 } catch (IOException e) {
                     LOG.warn("Failed to delete {}, already imported", path);
                 }
-            }
 
-            return testResult;
+                return testResult;
+            }
         }
 
         return FileTestResultType.DIFFERENT;
     }
 
     private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter) {
-        for(ActionConfirm nextConfirm: confirmedActions) {
-            actionConfirmRepository.delete(nextConfirm);
-        }
+        actionManager.deleteActions(confirmedActions);
 
         // If the parameter value is IGNORE then add this file to the ignore list.
         if(parameter.equalsIgnoreCase("ignore")) {
@@ -260,14 +240,14 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void processImport(ImportFile importFile, Source source) {
+    private void processImport(ImportFile importFile, Source source, List<FileInfo> files) throws MissingFileSystemObject {
         // If this file is completed then exit.
-        if(importFile.getStatus().equalsIgnoreCase("complete")) {
+        if(importFile.getStatus().equals(ImportFileStatusType.IFS_COMPLETE)) {
             return;
         }
 
         // Get the path to the import file.
-        Path path = new File(importFile.getFullFilename()).toPath();
+        Path path = fileSystemObjectManager.getFile(importFile).toPath();
 
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(!processClassification(importFile,path)) {
@@ -275,11 +255,10 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get details of the file to import.
-        if(importFile.getMD5() == null || importFile.getMD5().length() <= 0) {
+        if(!importFile.getMD5().isSet()) {
             importFile.setMD5(getMD5(path, importFile.getClassification()));
 
-            // TODO - fix this
-            fileRepository.save(importFile);
+            fileSystemObjectManager.save(importFile);
         }
 
         // Is this file being ignored?
@@ -288,79 +267,98 @@ public class ImportManager extends FileProcessor {
         }
 
         // Does this file already exist in the source?
-        FileTestResultType existingState = processExisting(importFile,path,source);
+        FileTestResultType existingState = processExisting(importFile,path,files);
         if(FileTestResultType.EXACT == existingState) {
             return;
         }
 
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
-        List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(importFile,"IMPORT");
+        List<ActionConfirm> confirmedActions = actionManager.getConfirmedImportActionsForFile(importFile);
         if(!confirmedActions.isEmpty()) {
             processImportActions(importFile,path,confirmedActions,source);
         } else {
             // Create an action to be confirmed.
-            ActionConfirm actionConfirm = new ActionConfirm();
-            actionConfirm.setFileInfo(importFile);
-            actionConfirm.setAction("IMPORT");
-            actionConfirm.setConfirmed(false);
-            actionConfirm.setParameterRequired(true);
-            actionConfirm.setFlags(FileTestResultType.CLOSE == existingState ? "C" : null);
-
-            actionConfirmRepository.save(actionConfirm);
+            actionManager.createFileImportAction(importFile,FileTestResultType.CLOSE == existingState ? "C" : null);
         }
     }
 
-    public void importPhotoProcess() throws ImportRequestException {
+    public List<GatherDataDTO> importPhotoProcess() throws ImportRequestException {
         LOG.info("Import Photo Process");
+        List<GatherDataDTO> result = new ArrayList<>();
 
         // Get the source.
-        Optional<ImportSource> source = Optional.empty();
-
-        for(ImportSource nextSource: importSourceRepository.findAll()) {
-            source = Optional.of(nextSource);
+        Optional<ImportSourceDTO> importSource = Optional.empty();
+        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
+            importSource = Optional.of(nextSource);
         }
 
-        if(!source.isPresent()) {
+        if(!importSource.isPresent()) {
             throw new ImportRequestException("There is no import source defined.");
         }
+        GatherDataDTO resultItem = new GatherDataDTO(importSource.get().getId());
+        result.add(resultItem);
 
-        // Get the place they are to be imported to.
-        //TODO - this can use the object already loaded.
-        Optional<Source> destination = sourceRepository.findById(source.get().getDestination().getIdAndType().getId());
-        if(!destination.isPresent()) {
-            throw new ImportRequestException("Destination for import is not found.");
+        try {
+            // Get the place they are to be imported to.
+            Optional<Source> destination = associatedFileDataManager.internalFindSourceByIdIfExists(importSource.get().getDestinationId());
+            if (!destination.isPresent()) {
+                throw new ImportRequestException("Destination for import is not found.");
+            }
+
+            // Get all the files that are in the destination source
+            List<DirectoryInfo> directories = new ArrayList<>();
+            List<FileInfo> files = new ArrayList<>();
+            fileSystemObjectManager.loadByParent(destination.get().getIdAndType().getId(), directories, files);
+
+
+            for (ImportFile nextFile : importFileRepository.findAll()) {
+                LOG.info(nextFile.getName() + " MD5: " + nextFile.getMD5());
+
+                processImport(nextFile, destination.get(), files);
+                resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
+
+                nextFile.setStatus(ImportFileStatusType.IFS_COMPLETE);
+                importFileRepository.save(nextFile);
+            }
+        } catch (Exception e) {
+            resultItem.setProblems();
         }
 
-        for(ImportFile nextFile: importFileRepository.findAll()) {
-            LOG.info(nextFile.getFullFilename());
-
-            processImport(nextFile,destination.get());
-
-            nextFile.setStatus("COMPLETE");
-            importFileRepository.save(nextFile);
-        }
+        return result;
     }
 
-    public void removeEntries() {
-        // Remove entries from import table if they are no longer present.
-        for (ImportFile nextFile : importFileRepository.findAll()) {
-            // Does this file still exist?
-            File existingFile = new File(nextFile.getFullFilename());
+    public List<GatherDataDTO> removeEntries() {
+        List<GatherDataDTO> result = new ArrayList<>();
+        GatherDataDTO resultItem = new GatherDataDTO(-1);
+        result.add(resultItem);
 
-            if(!existingFile.exists()) {
-                LOG.info("Remove this import file - {}", nextFile.getFullFilename());
-                importFileRepository.delete(nextFile);
-            } else {
-                LOG.info("Keeping {}", nextFile.getFullFilename());
+        // Remove entries from import table if they are no longer present.
+        try {
+            for (ImportFile nextFile : importFileRepository.findAll()) {
+                // Does this file still exist?
+                File existingFile = fileSystemObjectManager.getFile(nextFile);
+                resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
+
+                if (!existingFile.exists()) {
+                    LOG.info("Remove this import file - {}", existingFile);
+                    importFileRepository.delete(nextFile);
+                    resultItem.increment(GatherDataDTO.GatherDataCountType.DELETES);
+                } else {
+                    LOG.info("Keeping {}", existingFile);
+                }
             }
+        } catch(MissingFileSystemObject e) {
+            resultItem.setProblems();
         }
+
+        return result;
     }
 
 
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
-    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) {
+    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) throws MissingFileSystemObject {
         if(!path.getFileName().toString().equals(fileInfo.getName())) {
             return FileTestResultType.DIFFERENT;
         }
@@ -372,18 +370,18 @@ public class ImportManager extends FileProcessor {
         }
 
         // Check MD 5
-        if((importFile.getMD5() != null) && importFile.getMD5().length() > 0) {
-            if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
+        if((importFile.getMD5().isSet())) {
+            if(!fileInfo.getMD5().isSet()) {
                 // Source filename
-                String sourceFilename = fileInfo.getFullFilename();
+                File sourceFile = fileSystemObjectManager.getFile(fileInfo);
 
                 // Need to get the MD5.
-                fileInfo.setMD5(getMD5(new File(sourceFilename).toPath(),fileInfo.getClassification()));
+                fileInfo.setMD5(getMD5(sourceFile.toPath(),fileInfo.getClassification()));
 
-                if(fileInfo.getMD5() == null || fileInfo.getMD5().length() == 0) {
+                if(!fileInfo.getMD5().isSet()) {
                     return FileTestResultType.DIFFERENT;
                 } else {
-                    fileRepository.save(fileInfo);
+                    fileSystemObjectManager.save(fileInfo);
                 }
             }
 
@@ -397,13 +395,25 @@ public class ImportManager extends FileProcessor {
         return FileTestResultType.EXACT;
     }
 
-    @Override
-    void newFileInserted(FileInfo newFile) {
-        ImportFile newImportFile = new ImportFile();
-        newImportFile.setStatus("READ");
-        //TODO - fix this
-//        newImportFile.setFileInfo(newFile);
+    public Iterable<ImportFile> findImportFiles() {
+        return importFileRepository.findAllByOrderByIdAsc();
+    }
 
-        importFileRepository.save(newImportFile);
+    public Iterable<ImportFile> resetFiles() {
+        Iterable<ImportFile> result = importFileRepository.findAll();
+
+        for(ImportFile nextImport: result) {
+            nextImport.setStatus(ImportFileStatusType.IFS_READ);
+            importFileRepository.save(nextImport);
+        }
+
+        return findImportFiles();
+    }
+
+    @Override
+    public FileInfo createNewFile() {
+        ImportFile newFile = new ImportFile();
+        newFile.setStatus(ImportFileStatusType.IFS_READ);
+        return newFile;
     }
 }

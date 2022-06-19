@@ -32,6 +32,7 @@ backup:
   enabled: false
   service-name: middletier-backup-dbg
   web-log-url:
+  cache-web-log: false
   directory:
     date-format: yyyy-MM-dd
   review-directory: /home/jason/Working/ImportReview

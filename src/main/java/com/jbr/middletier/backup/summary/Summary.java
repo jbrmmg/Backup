@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,13 +24,13 @@ public class Summary {
     List<SourceDTO> sources;
 
     private static class SummaryInitialiser implements Runnable {
-        private final SourceRepository sourceRepository;
+        private final AssociatedFileDataManager associatedFileDataManager;
         private final DirectoryRepository directoryRepository;
         private final FileRepository fileRepository;
         private final Summary instance;
 
-        public SummaryInitialiser(Summary instance, SourceRepository sourceRepository, DirectoryRepository directoryRepository, FileRepository fileRepository) {
-            this.sourceRepository = sourceRepository;
+        public SummaryInitialiser(Summary instance, AssociatedFileDataManager associatedFileDataManager, DirectoryRepository directoryRepository, FileRepository fileRepository) {
+            this.associatedFileDataManager = associatedFileDataManager;
             this.directoryRepository = directoryRepository;
             this.fileRepository = fileRepository;
             this.instance = instance;
@@ -41,7 +42,7 @@ public class Summary {
                 instance.sources = new ArrayList<>();
 
                 // Initialise the summary object.
-                for (Source nextSource : this.sourceRepository.findAll()) {
+                for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
                     SourceDTO nextSourceDTO = nextSource.getSourceDTO();
                     instance.sources.add(nextSourceDTO);
 
@@ -70,14 +71,14 @@ public class Summary {
 
     private static Summary instance = null;
 
-    public static Summary getInstance(SourceRepository sourceRepository, DirectoryRepository directoryRepository, FileRepository fileRepository) {
+    public static Summary getInstance(AssociatedFileDataManager associatedFileDataManager, DirectoryRepository directoryRepository, FileRepository fileRepository) {
         if(instance != null) {
             return instance;
         }
 
         instance = new Summary();
 
-        SummaryInitialiser initialiser = new SummaryInitialiser(instance, sourceRepository, directoryRepository, fileRepository);
+        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager, directoryRepository, fileRepository);
         new Thread(initialiser).start();
 
         return instance;

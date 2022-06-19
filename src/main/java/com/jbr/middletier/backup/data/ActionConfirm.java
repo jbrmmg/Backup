@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 public class ActionConfirm {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "action_confirm_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @JoinColumn(name="fileId")
@@ -39,9 +39,9 @@ public class ActionConfirm {
 
     public void setFileInfo(FileInfo file) { this.fileInfo = file; }
 
-    public String getAction() { return this.action; }
+    public ActionConfirmType getAction() { return ActionConfirmType.getActionConfirmType(this.action); }
 
-    public void setAction(String action) { this.action = action; }
+    public void setAction(ActionConfirmType action) { this.action = action.getTypeName(); }
 
     public void setConfirmed(Boolean confirmed) { this.confirmed = confirmed; }
 
