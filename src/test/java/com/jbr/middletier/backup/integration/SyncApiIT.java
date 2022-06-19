@@ -4,8 +4,6 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
-import com.jbr.middletier.backup.dto.DuplicateDataDTO;
-import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.*;
@@ -102,7 +100,6 @@ public class SyncApiIT extends FileTester {
 
     private Source source;
     private Source destination;
-    private Location location;
     private Synchronize synchronize;
 
     private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
@@ -189,19 +186,19 @@ public class SyncApiIT extends FileTester {
         Optional<Location> existingLocation = locationRepository.findById(1);
         if(!existingLocation.isPresent())
             fail();
-        this.location = existingLocation.get();
-        this.location.setCheckDuplicates();
-        locationRepository.save(this.location);
+        Location location = existingLocation.get();
+        location.setCheckDuplicates();
+        locationRepository.save(location);
 
         this.source = new Source();
-        this.source.setLocation(this.location);
+        this.source.setLocation(location);
         this.source.setStatus(SourceStatusType.SST_OK);
         this.source.setPath(sourceDirectory);
 
         sourceRepository.save(this.source);
 
         this.destination = new Source();
-        this.destination.setLocation(this.location);
+        this.destination.setLocation(location);
         this.destination.setStatus(SourceStatusType.SST_OK);
         this.destination.setPath(destinationDirectory);
 
@@ -297,6 +294,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk());
 
         validateSource(synchronize.getSource(),sourceDescription, true);
+
+        // Test the get file.
+        List<FileInfo> files = new ArrayList<>();
+        fileRepository.findAll().forEach(files::add);
+        Assert.assertNotEquals(0, files.size());
+        getMockMvc().perform(get("/jbr/int/backup/file?id="+files.get(0).getIdAndType().getId())
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
 
         // Update JPG so it gets an MD5
         for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
