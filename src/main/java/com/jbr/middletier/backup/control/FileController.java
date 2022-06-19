@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
+import com.jbr.middletier.backup.dto.DuplicateDataDTO;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.SyncDataDTO;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
@@ -70,12 +71,10 @@ public class FileController {
     }
 
     @PostMapping(path="/duplicate")
-    public @ResponseBody OkStatus duplicate(@RequestBody String temp) {
+    public @ResponseBody List<DuplicateDataDTO> duplicate(@RequestBody String temp) {
         LOG.info("Process drive - {}", temp);
 
-        duplicateManager.duplicateCheck();
-
-        return OkStatus.getOkStatus();
+        return duplicateManager.duplicateCheck();
     }
 
     @PostMapping(path="/sync")

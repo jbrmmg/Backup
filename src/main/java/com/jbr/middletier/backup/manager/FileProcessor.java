@@ -108,7 +108,7 @@ abstract class FileProcessor {
                     // Remove the action.
                     actionManager.actionPerformed(next);
                     performed.add(next);
-                    gatherData.incrementDeletes();
+                    gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
                 }
             }
         }
@@ -273,19 +273,19 @@ abstract class FileProcessor {
                 switch(section) {
                     case FILE_FOR_REMOVE:
                         processFileRemoval(compareNode);
-                        gatherData.incrementFilesRemoved();
+                        gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_REMOVED);
                         break;
                     case DIRECTORY_FOR_REMOVE:
                         processDirectoryRemoval(compareNode);
-                        gatherData.incrementDirectoriesRemoved();
+                        gatherData.increment(GatherDataDTO.GatherDataCountType.DIRECTORIES_REMOVED);
                         break;
                     case DIRECTORY_FOR_INSERT:
                         processDirectoryAddUpdate(compareNode);
-                        gatherData.incrementDirectoriesInserted();
+                        gatherData.increment(GatherDataDTO.GatherDataCountType.DIRECTORIES_INSERTED);
                         break;
                     case FILE_FOR_INSERT:
                         processFileAddUpdate(compareNode, skipMD5);
-                        gatherData.incrementFilesInserted();
+                        gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
                 }
             } else if (nextNode instanceof SectionNode) {

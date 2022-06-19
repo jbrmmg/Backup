@@ -4,6 +4,8 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
+import com.jbr.middletier.backup.dto.DuplicateDataDTO;
+import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.*;
@@ -186,6 +188,8 @@ public class SyncApiIT extends FileTester {
         if(!existingLocation.isPresent())
             fail();
         this.location = existingLocation.get();
+        this.location.setCheckDuplicates();
+        locationRepository.save(this.location);
 
         this.source = new Source();
         this.source.setLocation(this.location);
@@ -359,7 +363,12 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].checked", is(1)))
+                .andExpect(jsonPath("$[0].problems", is(false)))
+                .andExpect(jsonPath("$[1].checked", is(1)))
+                .andExpect(jsonPath("$[1].problems", is(false)));
     }
 
     @Test
@@ -390,7 +399,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)))
-                .andExpect(jsonPath("$[0].problems", is(false)));
+                .andExpect(jsonPath("$[0].failed", is(false)));
 
         validateSource(this.source,sourceDescription,true);
         Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));

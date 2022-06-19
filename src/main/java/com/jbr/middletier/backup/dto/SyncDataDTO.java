@@ -1,63 +1,35 @@
 package com.jbr.middletier.backup.dto;
 
-public class SyncDataDTO {
-    private int syncId;
-    private int filesCopied;
-    private int directoriesCopied;
-    private int filesDeleted;
-    private int directoriesDeleted;
-    private boolean failed;
+@SuppressWarnings("unused")
+public class SyncDataDTO extends ProcessResultDTO {
+    public enum SyncDataCountType {
+        FILES_COPIED("filesCopied"),
+        DIRECTORIES_COPIED("directoriesCopied"),
+        FILES_DELETED("filesDeleted"),
+        DIRECTORIES_DELETED("directoriesDeleted");
 
-    public SyncDataDTO() {
-        this.syncId = -1;
-        this.filesCopied = 0;
-        this.directoriesCopied = 0;
-        this.filesDeleted = 0;
-        this.directoriesDeleted = 0;
-        this.failed = false;
+        private final String type;
+
+        SyncDataCountType(String type) {
+            this.type = type;
+        }
+
+        public String getTypeName() {
+            return this.type;
+        }
     }
 
-    public void setSyncId(int syncId) {
-        this.syncId = syncId;
+    public SyncDataDTO(int underlyingId) {
+        super(underlyingId);
+
+        // initialise counts to zero
+        getCount(SyncDataCountType.FILES_COPIED);
+        getCount(SyncDataCountType.DIRECTORIES_COPIED);
+        getCount(SyncDataCountType.FILES_DELETED);
+        getCount(SyncDataCountType.DIRECTORIES_DELETED);
     }
 
-    public int getFilesCopied() {
-        return filesCopied;
-    }
+    public void increment(SyncDataCountType countType) { increment(countType.getTypeName()); }
 
-    public int getDirectoriesCopied() {
-        return directoriesCopied;
-    }
-
-    public int getFilesDeleted() {
-        return filesDeleted;
-    }
-
-    public int getDirectoriesDeleted() {
-        return directoriesDeleted;
-    }
-
-    public void incrementFilesCopied() {
-        this.filesCopied++;
-    }
-
-    public void incrementDirectoriesCopied() {
-        this.directoriesCopied++;
-    }
-
-    public void incrementFilesDeleted() {
-        this.filesDeleted++;
-    }
-
-    public void incrementDirectoriesDeleted() {
-        this.directoriesDeleted++;
-    }
-
-    public void setFailed() {
-        this.failed = true;
-    }
-
-    public boolean getFailed() {
-        return this.failed;
-    }
+    public int getCount(SyncDataCountType countType) { return getCount(countType.getTypeName()); }
 }

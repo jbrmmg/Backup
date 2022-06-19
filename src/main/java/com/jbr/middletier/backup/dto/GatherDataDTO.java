@@ -1,77 +1,37 @@
 package com.jbr.middletier.backup.dto;
 
-public class GatherDataDTO {
-    private int sourceId;
-    private int filesInserted;
-    private int directoriesInserted;
-    private int filesRemoved;
-    private int directoriesRemoved;
-    private int deletes;
-    private boolean problems;
+@SuppressWarnings("unused")
+public class GatherDataDTO extends ProcessResultDTO {
+    public enum GatherDataCountType {
+        FILES_INSERTED("filesInserted"),
+        DIRECTORIES_INSERTED("directoriesInserted"),
+        FILES_REMOVED("filesRemoved"),
+        DIRECTORIES_REMOVED("directoriesRemoved"),
+        DELETES("deletes");
+
+        private final String type;
+
+        GatherDataCountType(String type) {
+            this.type = type;
+        }
+
+        public String getTypeName() {
+            return this.type;
+        }
+    }
 
     public GatherDataDTO(int sourceId) {
-        this.sourceId = sourceId;
-        this.filesInserted = 0;
-        this.directoriesInserted = 0;
-        this.filesRemoved = 0;
-        this.directoriesRemoved = 0;
-        this.deletes = 0;
-        this.problems = false;
+        super(sourceId);
+
+        // Initialise counts to zero.
+        getCount(GatherDataCountType.FILES_INSERTED);
+        getCount(GatherDataCountType.DIRECTORIES_INSERTED);
+        getCount(GatherDataCountType.FILES_REMOVED);
+        getCount(GatherDataCountType.DIRECTORIES_REMOVED);
+        getCount(GatherDataCountType.DELETES);
     }
 
-    public int getSourceId() {
-        return sourceId;
-    }
+    public void increment(GatherDataCountType countType) { increment(countType.getTypeName()); }
 
-    public void setSourceId(int sourceId) {
-        this.sourceId = sourceId;
-    }
-
-    public int getFilesInserted() {
-        return filesInserted;
-    }
-
-    public void incrementFilesInserted() {
-        this.filesInserted++;
-    }
-
-    public int getDirectoriesInserted() {
-        return directoriesInserted;
-    }
-
-    public void incrementDirectoriesInserted() {
-        this.directoriesInserted++;
-    }
-
-    public int getFilesRemoved() {
-        return filesRemoved;
-    }
-
-    public void incrementFilesRemoved() {
-        this.filesRemoved++;
-    }
-
-    public int getDirectoriesRemoved() {
-        return directoriesRemoved;
-    }
-
-    public void incrementDirectoriesRemoved() {
-        this.directoriesRemoved++;
-    }
-
-    public int getDeletes() {
-        return this.deletes;
-    }
-
-    public void incrementDeletes() {
-        this.deletes++;
-    }
-
-    public void setProblems() {
-        this.problems = true;
-    }
-
-    public boolean getProblems() {
-        return this.problems;
-    }
+    public int getCount(GatherDataCountType countType) { return getCount(countType.getTypeName()); }
 }

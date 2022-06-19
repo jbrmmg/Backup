@@ -47,12 +47,10 @@ public class TestGeneral extends WebTester {
     @Test
     public void TestDTOs() {
         GatherDataDTO gatherDataDTO = new GatherDataDTO(1);
-
-        gatherDataDTO.setSourceId(2);
-        Assert.assertEquals(2,gatherDataDTO.getSourceId());
+        Assert.assertEquals(1,gatherDataDTO.getUnderlyingId());
 
         gatherDataDTO.setProblems();
-        Assert.assertTrue(gatherDataDTO.getProblems());
+        Assert.assertTrue(gatherDataDTO.hasProblems());
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
         directoryInfo.setRemoved();
@@ -61,15 +59,15 @@ public class TestGeneral extends WebTester {
         SynchronizeDTO synchronizeDTO = new SynchronizeDTO(1);
         Assert.assertEquals((Integer) 1, synchronizeDTO.getId());
 
-        SyncDataDTO syncDataDTO = new SyncDataDTO();
-        syncDataDTO.incrementFilesDeleted();
-        syncDataDTO.incrementDirectoriesDeleted();
-        syncDataDTO.incrementFilesCopied();
-        syncDataDTO.incrementDirectoriesCopied();
-        Assert.assertEquals(1,syncDataDTO.getDirectoriesDeleted());
-        Assert.assertEquals(1,syncDataDTO.getFilesDeleted());
-        Assert.assertEquals(1,syncDataDTO.getDirectoriesCopied());
-        Assert.assertEquals(1,syncDataDTO.getFilesCopied());
+        SyncDataDTO syncDataDTO = new SyncDataDTO(1);
+        syncDataDTO.increment(SyncDataDTO.SyncDataCountType.FILES_DELETED);
+        syncDataDTO.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED);
+        syncDataDTO.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
+        syncDataDTO.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED);
+        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.FILES_DELETED));
+        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED));
+        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.FILES_COPIED));
+        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED));
 
         OkStatus okStatus = new OkStatus();
         okStatus.setStatus("Test");

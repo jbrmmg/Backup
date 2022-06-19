@@ -165,21 +165,20 @@ public class SynchronizeManager {
     }
 
     private SyncDataDTO processSynchronize(Synchronize nextSynchronize) {
-        SyncDataDTO result = new SyncDataDTO();
-        result.setSyncId(nextSynchronize.getId());
+        SyncDataDTO result = new SyncDataDTO(nextSynchronize.getId());
 
         try {
             backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
 
             if (nextSynchronize.getSource().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getSource().getStatus())) {
                 backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as source not OK");
-                result.setFailed();
+                result.setProblems();
                 return result;
             }
 
             if (nextSynchronize.getDestination().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getDestination().getStatus())) {
                 backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as destination not OK");
-                result.setFailed();
+                result.setProblems();
                 return result;
             }
 
@@ -198,19 +197,19 @@ public class SynchronizeManager {
                     switch (section) {
                         case FILE_FOR_REMOVE:
                             deleteFile(compareNode);
-                            result.incrementFilesDeleted();
+                            result.increment(SyncDataDTO.SyncDataCountType.FILES_DELETED);
                             break;
                         case DIRECTORY_FOR_REMOVE:
                             deleteDirectory(compareNode);
-                            result.incrementDirectoriesDeleted();
+                            result.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED);
                             break;
                         case DIRECTORY_FOR_INSERT:
                             createDestinationDirectory(compareNode, nextSynchronize.getDestination());
-                            result.incrementDirectoriesCopied();
+                            result.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED);
                             break;
                         case FILE_FOR_INSERT:
                             copyFile(compareNode, nextSynchronize.getDestination());
-                            result.incrementFilesCopied();
+                            result.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
                             break;
                     }
                 } else if (nextNode instanceof SectionNode) {
@@ -222,7 +221,7 @@ public class SynchronizeManager {
             LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
         } catch (Exception e) {
             LOG.warn("Failure in {} -> {} {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
-            result.setFailed();
+            result.setProblems();
         }
 
         return result;
