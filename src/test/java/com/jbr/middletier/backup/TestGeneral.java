@@ -83,6 +83,7 @@ public class TestGeneral extends WebTester {
         sourceDTO.incrementDirectoryCount();
         sourceDTO.increaseFileSize(10);
         sourceDTO.increaseFileSize(100);
+        sourceDTO.increaseFileSize(60);
 
         class SourceDTO2 extends  SourceDTO {
             public SourceDTO2(SourceDTO source) {

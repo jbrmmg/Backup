@@ -3,8 +3,6 @@ package com.jbr.middletier.backup.dto;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.data.SourceStatusType;
 
-import javax.validation.constraints.NotNull;
-
 @SuppressWarnings("unused")
 public class SourceDTO {
     private Integer id;
@@ -48,6 +46,10 @@ public class SourceDTO {
         setLocation(sourceDTO.getLocation());
         setStatus(sourceDTO.getStatus());
         setFilter(sourceDTO.getFilter());
+        this.directoryCount = 0;
+        this.fileCount = 0;
+        this.totalFileSize = 0;
+        this.largestFile = 0;
     }
 
     public Integer getId() {
