@@ -366,9 +366,9 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].checked", is(1)))
-                .andExpect(jsonPath("$[0].problems", is(false)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[1].checked", is(1)))
-                .andExpect(jsonPath("$[1].problems", is(false)));
+                .andExpect(jsonPath("$[1].failed", is(false)));
     }
 
     @Test
@@ -429,7 +429,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesRemoved", is(1)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(1)))
-                .andExpect(jsonPath("$[0].problems", is(false)));
+                .andExpect(jsonPath("$[0].failed", is(false)));
         Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
     }
 
