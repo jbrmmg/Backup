@@ -20,16 +20,12 @@ public class Source extends FileSystemObject {
     @Column(name="filter")
     private String filter;
 
-    @Column(name="source_type")
-    private String sourceType;
-
     protected Source(FileSystemObjectType sourceType) {
         super(sourceType);
     }
 
     public Source() {
         super(FileSystemObjectType.FSO_SOURCE);
-        this.sourceType = "STD";
         setPath("");
     }
 
@@ -43,13 +39,6 @@ public class Source extends FileSystemObject {
         update(source);
     }
 
-    public void update(SourceDTO source) {
-        setPath(source.getPath());
-        setLocation(new Location(source.getLocation()));
-        setStatus(source.getStatus());
-        setFilter(source.getFilter());
-    }
-
     public SourceDTO getSourceDTO() {
         SourceDTO result = new SourceDTO();
 
@@ -60,6 +49,13 @@ public class Source extends FileSystemObject {
         result.setPath(getPath());
 
         return result;
+    }
+
+    public void update(SourceDTO source) {
+        setPath(source.getPath());
+        setLocation(new Location(source.getLocation()));
+        setStatus(source.getStatus());
+        setFilter(source.getFilter());
     }
 
     public void setPath(@NotNull String path) { this.name = path; }

@@ -21,21 +21,6 @@ public class ImportSource extends Source {
         setPath(path);
     }
 
-    public ImportSource(ImportSourceDTO source) {
-        this();
-        update(source);
-        // TODO - fix this
-//        this.destinationId = source.getDestinationId();
-    }
-
-    public ImportSourceDTO getImportSourceDTO() {
-        ImportSourceDTO result = new ImportSourceDTO(getSourceDTO());
-        // TODO - fix this
-//        result.setDestinationId(getDestinationId());
-
-        return result;
-    }
-
     public Source getDestination() { return this.destination; }
 
     public void setDestination(Source destination) { this.destination = destination; }

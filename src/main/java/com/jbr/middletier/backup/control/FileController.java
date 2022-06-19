@@ -30,9 +30,7 @@ public class FileController {
     private static final Logger LOG = LoggerFactory.getLogger(FileController.class);
 
     private final DriveManager driveManager;
-//    private final FileRepository fileRepository;
     private final AssociatedFileDataManager associatedFileDataManager;
-//    private final DirectoryRepository directoryRepository;
     private final ActionManager actionManager;
     private final DuplicateManager duplicateManager;
     private final SynchronizeManager synchronizeManager;
@@ -41,18 +39,14 @@ public class FileController {
     @Contract(pure = true)
     @Autowired
     public FileController(DriveManager driverManager,
-//                          FileRepository fileRepository,
                           AssociatedFileDataManager associatedFileDataManager,
-//                          DirectoryRepository directoryRepository,
                           ActionManager actionManager,
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
-//        this.fileRepository = fileRepository;
         this.associatedFileDataManager = associatedFileDataManager;
-//        this.directoryRepository = directoryRepository;
         this.actionManager = actionManager;
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
