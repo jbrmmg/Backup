@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.FileBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -60,16 +62,9 @@ public class TestBackups {
     @Test
     public void TestCleanBackup() {
         try {
-            // Setup the test
-            File backupDirectory = new File(applicationProperties.getDirectory().getName());
-            if (!backupDirectory.exists() && !backupDirectory.mkdir()) {
-                LOG.warn("Cannot create the backup directory.");
-            }
-
             File testFile = new File(applicationProperties.getDirectory().getName() + "/2020-01-01");
-            if (!testFile.exists() && !testFile.mkdir()) {
-                fail();
-            }
+            Files.createDirectories(testFile.toPath());
+            Assert.assertTrue(testFile.exists());
 
             BackupDTO backupDTO = new BackupDTO("CLN","clean");
             backupDTO.setTime(GetBackupTime());
@@ -665,9 +660,8 @@ public class TestBackups {
     public void TestDatabaseAlreadyDone() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
-            if (!backupDir.exists()) {
-                assertTrue(backupDir.mkdirs());
-            }
+            Files.createDirectories(backupDir.toPath());
+            Assert.assertTrue(backupDir.exists());
 
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
