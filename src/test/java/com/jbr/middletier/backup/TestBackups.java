@@ -36,8 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -755,19 +754,26 @@ public class TestBackups {
 
     @Test
     public void testDbBackup() {
-        ApplicationProperties properties = mock(ApplicationProperties.class);
-        when(properties.getDbBackupCommand()).thenReturn("xx");
-        when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+        try {
+            ApplicationProperties properties = mock(ApplicationProperties.class);
+            when(properties.getDbBackupCommand()).thenReturn("xx");
+            when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
 
-        BackupManager manager = mock(BackupManager.class);
-        when(manager.todaysDirectory()).thenReturn("./target/it_test");
+            BackupManager manager = mock(BackupManager.class);
+            when(manager.todaysDirectory()).thenReturn("./target/it_test");
 
-        Backup backup = mock(Backup.class);
-        when(backup.getBackupName()).thenReturn("test");
-        when(backup.getArtifact()).thenReturn("blah.txt");
-        when(backup.getDirectory()).thenReturn("xx");
+            Backup backup = mock(Backup.class);
+            when(backup.getBackupName()).thenReturn("test");
+            when(backup.getArtifact()).thenReturn("blah.txt");
+            when(backup.getDirectory()).thenReturn("xx");
 
-        DatabaseBackup dbBackup = new DatabaseBackup(properties);
-        dbBackup.performBackup(manager,backup);
+            DatabaseBackup dbBackup = new DatabaseBackup(properties);
+            Assert.assertNotNull(dbBackup);
+            dbBackup.performBackup(manager, backup);
+            // Verify that the last call was maid to properties.
+            verify(properties, times(1)).getDbBackupMaxTime();
+        } catch(Exception e) {
+            Assert.fail();
+        }
     }
 }
