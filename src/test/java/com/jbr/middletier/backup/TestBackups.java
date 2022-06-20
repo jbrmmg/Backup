@@ -770,8 +770,6 @@ public class TestBackups {
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
             Assert.assertNotNull(dbBackup);
             dbBackup.performBackup(manager, backup);
-            // Verify that the last call was maid to properties.
-            verify(properties, times(1)).getDbBackupMaxTime();
         } catch(Exception e) {
             Assert.fail();
         }
