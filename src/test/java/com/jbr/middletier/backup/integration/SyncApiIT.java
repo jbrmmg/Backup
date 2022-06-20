@@ -102,69 +102,6 @@ public class SyncApiIT extends FileTester {
     private Source destination;
     private Synchronize synchronize;
 
-    private void validateSource(Source source, List<StructureDescription> structure, boolean checkSizeAndMD5) {
-        // Get the directories and files that were found.
-        List<DirectoryInfo> directories = new ArrayList<>();
-        List<FileInfo> files = new ArrayList<>();
-        fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
-
-        // How many directories are expected?
-        List<String> expectedDirectories = new ArrayList<>();
-        for(StructureDescription nextFile : structure) {
-            String[] elements = nextFile.directory.split(FileSystems.getDefault().getSeparator());
-            String fullPath = elements[0];
-            boolean skippedFirst = false;
-            for(String nextElement: elements) {
-                if(skippedFirst) {
-                    fullPath = fullPath + FileSystems.getDefault().getSeparator() + nextElement;
-                }
-
-                if(!expectedDirectories.contains(fullPath)) {
-                    expectedDirectories.add(fullPath);
-                }
-
-                skippedFirst = true;
-            }
-        }
-
-        List<DirectoryInfo> dbDirectories = new ArrayList<>(directories);
-        Assert.assertEquals(expectedDirectories.size(), dbDirectories.size());
-
-        DirectoryTree structureTree = new DirectoryTree(expectedDirectories);
-        DirectoryTree dbTree = new DirectoryTree(source, directoryRepository);
-
-        dbTree.AssertExpected(structureTree);
-
-        // Check each file that is in the database.
-        int fileCount = 0;
-        for(FileInfo nextFile : files) {
-            fileCount++;
-
-            // Find this file in the structure.
-            boolean found = false;
-            for(StructureDescription nextExpectedFile : structure) {
-                int expectedParentId = dbTree.FindDirectory(nextExpectedFile.directory);
-
-                if(nextFile.getName().equals(nextExpectedFile.destinationName) && nextFile.getParentId().getId() == expectedParentId) {
-                    found = true;
-                    Assert.assertEquals(nextExpectedFile.dateTime,nextFile.getDate());
-                    if(checkSizeAndMD5) {
-                        if(nextExpectedFile.md5 != null) {
-                            Assert.assertEquals(nextExpectedFile.md5,nextFile.getMD5().toString());
-                        }
-                        if(nextExpectedFile.fileSize != null) {
-                            Assert.assertEquals(nextExpectedFile.fileSize,nextFile.getSize());
-                        }
-                    }
-                    nextExpectedFile.checked = true;
-                }
-            }
-            Assert.assertTrue(found);
-        }
-
-        Assert.assertEquals(structure.size(), fileCount);
-    }
-
     @Before
     public void setupClassification() throws IOException {
         addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
@@ -265,7 +202,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription,true);
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription,true);
 
         // Update the directory structure
         sourceDescription = getTestStructure("test2");
@@ -279,7 +216,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription, true);
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription, true);
 
         // Update the directory structure again.
         sourceDescription = getTestStructure("test3");
@@ -293,7 +230,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription, true);
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription, true);
 
         // Test the get file.
         List<FileInfo> files = new ArrayList<>();
@@ -340,7 +277,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(synchronize.getSource(),sourceDescription, false);
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription, false);
 
         LOG.info("Synchronize the data.");
         getMockMvc().perform(post("/jbr/int/backup/sync")
@@ -362,10 +299,10 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk());
 
         sourceDescription = getTestStructure("test2_sync");
-        validateSource(synchronize.getDestination(), sourceDescription, false);
+        validateSource(fileSystemObjectManager, synchronize.getDestination(), sourceDescription, false);
 
         sourceDescription = getTestStructure("test2_post_sync");
-        validateSource(synchronize.getSource(), sourceDescription, false);
+        validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription, false);
 
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
@@ -409,7 +346,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[0].failed", is(false)));
 
-        validateSource(this.source,sourceDescription,true);
+        validateSource(fileSystemObjectManager, this.source,sourceDescription,true);
         Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
 
         //Text1.txt

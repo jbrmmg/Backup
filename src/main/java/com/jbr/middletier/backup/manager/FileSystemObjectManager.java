@@ -227,14 +227,24 @@ public class FileSystemObjectManager {
         return new DbRoot(source,fileRepository,directoryRepository);
     }
 
-    public void loadByParent(int id, List<DirectoryInfo> directories, List<FileInfo> files) {
+    public void loadFilesByParent(int id, List<FileInfo> files) {
         for(FileInfo nextFile: fileRepository.findByParentId(id)) {
             files.add(nextFile);
         }
+    }
+
+    public void loadByParent(int id, List<DirectoryInfo> directories, List<FileInfo> files) {
+        loadFilesByParent(id,files);
 
         for(DirectoryInfo next: directoryRepository.findByParentId(id)) {
             directories.add(next);
             loadByParent(next.getIdAndType().getId(), directories, files);
         }
+    }
+
+    public void loadImmediateByParent(int id, List<DirectoryInfo> directories, List<FileInfo> files) {
+        loadFilesByParent(id,files);
+
+        directories.addAll(directoryRepository.findByParentId(id));
     }
 }
