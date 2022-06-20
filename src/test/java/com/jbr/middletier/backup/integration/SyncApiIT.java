@@ -303,6 +303,13 @@ public class SyncApiIT extends FileTester {
         sourceDescription = getTestStructure("test2_post_sync");
         validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription);
 
+        LOG.info("Get the hierarchy");
+        HierarchyResponse hierarchyResponse = new HierarchyResponse();
+        getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+                        .content(this.json(hierarchyResponse))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
                         .content(this.json("Testing"))

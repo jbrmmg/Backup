@@ -9,7 +9,6 @@ import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.manager.*;
-import liquibase.repackaged.org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,40 +105,34 @@ public class FileController {
             return result;
         }
 
-        // Get the next level
-        if(true)
-            throw new IllegalStateException("fix this");
-//        result = directoryRepository.findAtLevel(lastResponse.getId(),lastResponse.getLevel() + 1,lastResponse.getPath() + "%");
+        // Get everything that has a parent of the id provided.
+        List<DirectoryInfo> directories = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
+        fileSystemObjectManager.loadImmediateByParent(lastResponse.getId(), directories, files);
 
-        // Update the display name.
-        for(HierarchyResponse nextResponse: result) {
-            String[] directories = nextResponse.getPath().split("/");
+        for(DirectoryInfo nextDirectory : directories) {
+            HierarchyResponse response = new HierarchyResponse();
+            response.setDirectory(true);
+            response.setLevel(lastResponse.getLevel() + 1);
+            response.setPath(nextDirectory.getName());
+            response.setDisplayName(nextDirectory.getName());
+            response.setUnderlyingId(nextDirectory.getIdAndType().getId());
 
-            nextResponse.setDisplayName(directories[directories.length-1]);
+            result.add(response);
         }
 
-        // Get any files that are in this directory.
-        throw new NotImplementedException("Need to change this query!");
-        /* TODO - fix this
-        Iterable<FileInfo> files = fileRepository.findByDirectoryInfo(null);
-
-        for(FileInfo nextFile: files) {
-            if(nextFile.getName().equals(".")) {
-                continue;
-            }
-
+        for(FileInfo nextFile : files) {
             HierarchyResponse response = new HierarchyResponse();
             response.setDirectory(false);
             response.setLevel(lastResponse.getLevel());
-            response.setPath(nextFile.getDirectoryInfo().getName());
+            response.setPath(nextFile.getName());
             response.setDisplayName(nextFile.getName());
-            response.setUnderlyingId(nextFile.getId());
+            response.setUnderlyingId(nextFile.getIdAndType().getId());
 
             result.add(response);
         }
 
         return result;
-         */
     }
 
     @GetMapping(path="/file")
