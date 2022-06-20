@@ -9,6 +9,7 @@ public class FileInfoExtra {
     private List<FileInfo> backups;
 
     public FileInfoExtra(FileInfo file) {
+        // TODO - this should crate FileInfoDTO as its returned externally.
         this.file = file;
         this.backups = new ArrayList<>();
     }

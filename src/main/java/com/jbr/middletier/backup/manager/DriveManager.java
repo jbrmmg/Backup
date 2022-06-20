@@ -76,6 +76,7 @@ public class DriveManager extends FileProcessor {
         // Are any files to be deleted?
         List<ActionConfirm> deleteActions = actionManager.findConfirmedDeletes();
 
+        // TODO - check that this does not process the import source!
         for(Source nextSource: associatedFileDataManager.internalFindAllSource()) {
             processSource(nextSource, deleteActions, result);
         }
