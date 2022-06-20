@@ -26,7 +26,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -105,7 +104,7 @@ public class SyncApiIT extends FileTester {
     @Before
     public void setupClassification() throws IOException {
         addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
-        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, false, false, false);
+        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, true, false, false);
         addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
         addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
         addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
@@ -202,7 +201,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription,true);
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
         // Update the directory structure
         sourceDescription = getTestStructure("test2");
@@ -216,7 +215,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription, true);
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
         // Update the directory structure again.
         sourceDescription = getTestStructure("test3");
@@ -230,7 +229,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription, true);
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
         // Test the get file.
         List<FileInfo> files = new ArrayList<>();
@@ -277,7 +276,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription, false);
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         LOG.info("Synchronize the data.");
         getMockMvc().perform(post("/jbr/int/backup/sync")
@@ -299,10 +298,10 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk());
 
         sourceDescription = getTestStructure("test2_sync");
-        validateSource(fileSystemObjectManager, synchronize.getDestination(), sourceDescription, false);
+        validateSource(fileSystemObjectManager, synchronize.getDestination(), sourceDescription);
 
         sourceDescription = getTestStructure("test2_post_sync");
-        validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription, false);
+        validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription);
 
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
@@ -346,7 +345,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[0].failed", is(false)));
 
-        validateSource(fileSystemObjectManager, this.source,sourceDescription,true);
+        validateSource(fileSystemObjectManager, this.source,sourceDescription);
         Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
 
         //Text1.txt
@@ -387,11 +386,11 @@ public class SyncApiIT extends FileTester {
         initialiseDirectories();
 
         List<StructureDescription> sourceDescription = getTestStructure("test6");
-        copyFiles(sourceDescription, destinationDirectory);
+        copyFiles(sourceDescription, importDirectory);
 
         // Perform a gather.
         ImportRequest importRequest = new ImportRequest();
-        importRequest.setPath(destinationDirectory);
+        importRequest.setPath(importDirectory);
         importRequest.setSource(this.source.getIdAndType().getId());
 
         LOG.info("Gather the data.");

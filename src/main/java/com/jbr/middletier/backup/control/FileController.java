@@ -73,7 +73,7 @@ public class FileController {
 
     @PostMapping(path="/sync")
     public @ResponseBody List<SyncDataDTO> synchronize(@RequestBody String temp) {
-        LOG.info("Syncronize drives - {}", temp);
+        LOG.info("Synchronize drives - {}", temp);
 
         return synchronizeManager.synchronize();
     }
@@ -86,7 +86,7 @@ public class FileController {
         if(lastResponse.getId() == -1) {
             List<Integer> sourceIds = new ArrayList<>();
 
-            // Level 1 - get those sources that are the left hand side of synchronisation.
+            // Level 1 - get those sources that are the left-hand side of synchronisation.
             for(Synchronize nextSynchronize: associatedFileDataManager.internalFindAllSynchronize()) {
                 if(sourceIds.contains(nextSynchronize.getSource().getIdAndType().getId())) {
                     continue;
@@ -160,11 +160,7 @@ public class FileController {
         List<FileInfo> backups = new ArrayList<>();
 
         for(FileSystemObject nextSameName: sameName) {
-            if(nextSameName.getIdAndType().equals(file.get().getIdAndType())) {
-                continue;
-            }
-
-            if( !(nextSameName instanceof FileInfo)) {
+            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo) ) {
                 continue;
             }
 

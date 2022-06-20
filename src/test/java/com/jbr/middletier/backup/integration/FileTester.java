@@ -9,7 +9,6 @@ import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Valid;
 import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -25,6 +24,7 @@ import java.util.List;
 
 public class FileTester extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FileTester.class);
+    protected static final String importDirectory = "./target/it_test/import";
     protected static final String sourceDirectory = "./target/it_test/source";
     protected static final String destinationDirectory = "./target/it_test/destination";
 
@@ -193,11 +193,10 @@ public class FileTester extends WebTester {
             } else {
                 if(null == dbId) {
                     text.append("<");
-                    overallAssert = false;
                 } else {
                     text.append(">");
-                    overallAssert = false;
                 }
+                overallAssert = false;
                 text.append(" | | ");
             }
             text.append("|");
@@ -206,15 +205,14 @@ public class FileTester extends WebTester {
         }
 
         private void outputLine() {
-            StringBuilder text = new StringBuilder();
 
-            text.append("+");
-            text.append(getString('-', highestWidth + 2));
-            text.append("+");
-            text.append(getString('-', highestWidth));
-            text.append("+-+-+-+-+");
+            String text = "+" +
+                    getString('-', highestWidth + 2) +
+                    "+" +
+                    getString('-', highestWidth) +
+                    "+-+-+-+-+";
 
-            LOG.info(text.toString());
+            LOG.info(text);
         }
 
         private void outputHeaderFooter(boolean header) {
@@ -326,9 +324,8 @@ public class FileTester extends WebTester {
     }
 
     protected void validateSource(FileSystemObjectManager fileSystemObjectManager,
-            Source source,
-            List<StructureDescription> structure,
-            boolean checkSizeAndMD5) {
+                                  Source source,
+                                  List<StructureDescription> structure) {
 
         // Create a tree of the comparison between the structure and the database.
 
@@ -393,6 +390,7 @@ public class FileTester extends WebTester {
         if(!Files.exists(path))
             return;
 
+        //noinspection ResultOfMethodCallIgnored
         Files.walk(path)
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
@@ -406,6 +404,9 @@ public class FileTester extends WebTester {
 
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
+
+        deleteDirectoryContents(new File(importDirectory).toPath());
+        Files.createDirectories(new File(importDirectory).toPath());
     }
 
     protected void addClassification(ClassificationRepository repository, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) {
