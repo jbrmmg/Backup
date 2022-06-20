@@ -21,7 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springboot.version>2.6.6</org.springboot.version>
 
-        <sonar.coverage.exclusions>**/SpringFoxConfig.*</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/SpringFoxConfig.java,**/MiddleTier.java</sonar.coverage.exclusions>
     </properties>
 
 
