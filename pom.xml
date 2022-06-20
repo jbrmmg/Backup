@@ -21,6 +21,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springboot.version>2.6.6</org.springboot.version>
 
+        <!--
+         Exclude these two classes; SpringFoxConfig because its provided by somebody else, MiddleTier because
+         its the basic class and difficult to test.
+         -->
         <sonar.coverage.exclusions>**/SpringFoxConfig.java,**/MiddleTier.java</sonar.coverage.exclusions>
     </properties>
 
