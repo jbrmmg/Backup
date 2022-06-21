@@ -480,6 +480,23 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)));
 
+        for(ActionConfirm nextAction : actionConfirmRepository.findAll()) {
+            if(nextAction.getPath().getName().equals("Document.pdf")) {
+                nextAction.setConfirmed(true);
+                nextAction.setParameter("Blah");
+            } else if (nextAction.getPath().getName().equals("Document.odt")) {
+                nextAction.setConfirmed(true);
+                nextAction.setParameter("ignore");
+            }
+        }
+
+        getMockMvc().perform(post("/jbr/int/backup/importprocess")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)));
+
         LOG.info("Reset the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))

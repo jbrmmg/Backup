@@ -106,6 +106,7 @@ public class ActionManager {
         return createAction(ActionConfirmType.AC_DELETE, file, null);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public ActionConfirmDTO createFileImportAction(FileInfo file, String flags) {
         return createAction(ActionConfirmType.AC_IMPORT, file, flags);
     }
