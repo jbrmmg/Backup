@@ -182,7 +182,7 @@ public class ImportManager extends FileProcessor {
     private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter) {
         actionManager.deleteActions(confirmedActions);
 
-        // If the parameter value is IGNORE then add this file to the ignore list.
+        // If the parameter value is IGNORE then add this file to the ignored list.
         if(parameter.equalsIgnoreCase("ignore")) {
             IgnoreFile ignoreFile = new IgnoreFile();
             ignoreFile.setDate(importFile.getDate());
@@ -310,7 +310,7 @@ public class ImportManager extends FileProcessor {
 
 
             for (ImportFile nextFile : importFileRepository.findAll()) {
-                LOG.info(nextFile.getName() + " MD5: " + nextFile.getMD5());
+                LOG.info( "{} MD5: {}", nextFile.getName(), nextFile.getMD5());
 
                 processImport(nextFile, destination.get(), files);
                 resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
