@@ -393,6 +393,7 @@ public class SyncApiIT extends FileTester {
          // During this test create files in the following directories
         initialiseDirectories();
 
+        // TODO - setup the source to perform an already exists.
         List<StructureDescription> sourceDescription = getTestStructure("test6");
         copyFiles(sourceDescription, importDirectory);
 
@@ -467,12 +468,6 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)));
 
-        getMockMvc().perform(put("/jbr/int/backup/importfiles")
-                        .content(this.json("Testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5)));
-
         getMockMvc().perform(post("/jbr/int/backup/importprocess")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -504,6 +499,8 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)));
+        //TODO - check the files in destination
+        //TODO - check the ignore files.
 
         LOG.info("Reset the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
