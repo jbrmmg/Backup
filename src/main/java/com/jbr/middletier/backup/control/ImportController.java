@@ -1,13 +1,9 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.ImportFile;
-import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.ImportRequest;
-import com.jbr.middletier.backup.data.OkStatus;
-import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.manager.ImportManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +36,14 @@ public class ImportController {
     }
 
     @DeleteMapping(path="/import")
-    public @ResponseBody List<GatherDataDTO> removeEntries() throws MissingFileSystemObject {
+    public @ResponseBody List<GatherDataDTO> removeEntries() {
         LOG.info("Remove entries from import table");
 
         return importManager.removeEntries();
     }
 
     @PostMapping(path="/importprocess")
-    public @ResponseBody List<GatherDataDTO> importPhotoProcess() throws ImportRequestException, MissingFileSystemObject {
+    public @ResponseBody List<GatherDataDTO> importPhotoProcess() throws ImportRequestException {
         LOG.info("Import - process");
 
         return importManager.importPhotoProcess();

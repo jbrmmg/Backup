@@ -384,6 +384,7 @@ public class SyncApiIT extends FileTester {
         Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(4)
     public void importTest() throws Exception {
@@ -395,11 +396,59 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test6");
         copyFiles(sourceDescription, importDirectory);
 
-        // Perform a gather.
+        // Check source does not exist
         ImportRequest importRequest = new ImportRequest();
+        importRequest.setPath(importDirectory + "x");
+        importRequest.setSource(this.source.getIdAndType().getId());
+
+        LOG.info("Gather the data.");
+        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
+
+        // Check source does not exist
+        importRequest = new ImportRequest();
+        int badId = this.source.getIdAndType().getId() + 1;
+        if(this.destination.getIdAndType().getId() == badId) {
+            badId = this.destination.getIdAndType().getId() + 1;
+        }
+        importRequest.setPath(importDirectory);
+        importRequest.setSource(badId);
+
+        LOG.info("Gather the data.");
+        error = getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("The source does not exist - " + badId, error);
+
+        // Check source does not exist
+        importRequest = new ImportRequest();
         importRequest.setPath(importDirectory);
         importRequest.setSource(this.source.getIdAndType().getId());
 
+        // Remove the import location temporarily.
+        Optional<Location> location = locationRepository.findById(4);
+        Assert.assertTrue(location.isPresent());
+        location.get().setName("Importx");
+        locationRepository.save(location.get());
+
+        LOG.info("Gather the data.");
+        error = getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Cannot find import location.", error);
+
+        location.get().setName("Import");
+        locationRepository.save(location.get());
+
+        // Perform a gather.
         LOG.info("Gather the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))

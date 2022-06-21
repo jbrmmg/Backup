@@ -63,7 +63,7 @@ public class ImportManager extends FileProcessor {
         // Find the location.
         Optional<Location> importLocation = associatedFileDataManager.internalFindImportLocationIfExists();
         if (!importLocation.isPresent()) {
-            throw new IOException("Cannot find import location.");
+            throw new ImportRequestException("Cannot find import location.");
         }
 
         // Create a source to match this import
@@ -161,11 +161,11 @@ public class ImportManager extends FileProcessor {
                 .filter(file -> file.getName().equals(importFile.getName()))
                 .collect(Collectors.toList());
 
-        for(FileSystemObject nextFile: existingFiles) {
+        for(FileInfo nextFile: existingFiles) {
             LOG.info("{}", nextFile);
 
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,(FileInfo)nextFile,importFile);
+            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
