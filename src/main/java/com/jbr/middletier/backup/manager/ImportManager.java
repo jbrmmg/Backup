@@ -85,9 +85,6 @@ public class ImportManager extends FileProcessor {
     public void clearImports() {
         actionManager.clearImportActions();
 
-        // Clear out the imported file data.
-        importFileRepository.deleteAll();
-
         // Remove the files associated with imports - first remove files, then directories then source.
         for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
             List<DirectoryInfo> directories = new ArrayList<>();

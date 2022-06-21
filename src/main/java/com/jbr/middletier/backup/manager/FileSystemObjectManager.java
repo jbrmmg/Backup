@@ -97,6 +97,10 @@ public class FileSystemObjectManager {
                 directoryRepository.delete((DirectoryInfo) fso);
                 break;
 
+            case FSO_IMPORT_FILE:
+                importFileRepository.delete((ImportFile) fso);
+                break;
+
             default:
                 throw new IllegalStateException("Delete except for File and Directory not supported");
         }
