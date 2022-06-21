@@ -481,14 +481,22 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)));
 
         for(ActionConfirm nextAction : actionConfirmRepository.findAll()) {
-            if(nextAction.getPath().getName().equals("Document.pdf")) {
+            if(nextAction.getPath().getName().equals("Statement.pdf")) {
                 nextAction.setConfirmed(true);
                 nextAction.setParameter("Blah");
-            } else if (nextAction.getPath().getName().equals("Document.odt")) {
+                actionConfirmRepository.save(nextAction);
+            } else if (nextAction.getPath().getName().equals("Letter.odt")) {
                 nextAction.setConfirmed(true);
                 nextAction.setParameter("ignore");
+                actionConfirmRepository.save(nextAction);
             }
         }
+
+        getMockMvc().perform(put("/jbr/int/backup/importfiles")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(5)));
 
         getMockMvc().perform(post("/jbr/int/backup/importprocess")
                         .content(this.json("Testing"))
@@ -503,7 +511,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].filesInserted", is(3)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
@@ -515,10 +523,10 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].filesInserted", is(3)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
-                .andExpect(jsonPath("$[0].deletes", is(4)));
+                .andExpect(jsonPath("$[0].deletes", is(3)));
     }
 }

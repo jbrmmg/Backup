@@ -189,6 +189,7 @@ public class ImportManager extends FileProcessor {
             ignoreFile.setName(importFile.getName());
             ignoreFile.setSize(importFile.getSize());
             ignoreFile.setMD5(importFile.getMD5());
+            ignoreFile.clearRemoved();
 
             ignoreFileRepository.save(ignoreFile);
 
