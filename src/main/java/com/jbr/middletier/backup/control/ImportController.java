@@ -55,7 +55,7 @@ public class ImportController {
 
     private List<ImportFileDTO> getExternalList(Iterable<ImportFile> list) {
         List<ImportFileDTO> result = new ArrayList<>();
-        for(ImportFile nextFile: importManager.findImportFiles()) {
+        for(ImportFile nextFile: list) {
             result.add(new ImportFileDTO(nextFile));
         }
 
@@ -66,9 +66,7 @@ public class ImportController {
 
     @GetMapping(path="/importfiles")
     public @ResponseBody List<ImportFileDTO> getImportFiles() {
-        //TODO - this should not return an import file
         LOG.info("Get the import files.");
-
 
         return getExternalList(importManager.findImportFiles());
     }
