@@ -411,13 +411,21 @@ public class SyncApiIT extends FileTester {
         sourceDescription = getTestStructure("test6");
         copyFiles(sourceDescription, importDirectory);
 
+        // Check that it fails if the request has not been sent
+        String error = getMockMvc().perform(post("/jbr/int/backup/importprocess")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("There is no import source defined.", error);
+
         // Set up a request with invalid path, check exception.
         ImportRequest importRequest = new ImportRequest();
         importRequest.setPath(importDirectory + "x");
         importRequest.setSource(this.source.getIdAndType().getId());
 
         LOG.info("Gather the data.");
-        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+        error = getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
