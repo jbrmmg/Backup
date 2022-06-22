@@ -353,7 +353,6 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
-
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
     private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) throws MissingFileSystemObject {
