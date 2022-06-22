@@ -18,18 +18,4 @@ public interface DirectoryRepository extends CrudRepository<DirectoryInfo, Integ
     List<DirectoryInfo> findAllByOrderByIdAsc();
 
     List<DirectoryInfo> findByParentId(Integer parentId);
-
-//    List<DirectoryInfo> findBySource(Source source);
-
-//    @Query("SELECT new com.jbr.middletier.backup.data.HierarchyResponse ( " +
-//           "d.source.id, " +
-//           "LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')), " +
-//           "d.name, " +
-//           "d.id ) " +
-//           "FROM DirectoryInfo AS d " +
-//           "WHERE d.source.id = ?1 " +
-//           "AND LENGTH(d.name) - LENGTH(REPLACE(d.name,'/','')) = ?2 " +
-//           "AND name like ?3 " +
-//           "ORDER BY d.name ")
-//    List<HierarchyResponse> findAtLevel(int source, int level, String path);
 }

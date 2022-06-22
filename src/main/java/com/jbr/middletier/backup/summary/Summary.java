@@ -1,11 +1,6 @@
 package com.jbr.middletier.backup.summary;
 
-import com.jbr.middletier.backup.data.DirectoryInfo;
-import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import org.slf4j.Logger;
@@ -16,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class Summary {
     private static final Logger LOG = LoggerFactory.getLogger(Summary.class);
 
@@ -25,14 +21,10 @@ public class Summary {
 
     private static class SummaryInitialiser implements Runnable {
         private final AssociatedFileDataManager associatedFileDataManager;
-        private final DirectoryRepository directoryRepository;
-        private final FileRepository fileRepository;
         private final Summary instance;
 
-        public SummaryInitialiser(Summary instance, AssociatedFileDataManager associatedFileDataManager, DirectoryRepository directoryRepository, FileRepository fileRepository) {
+        public SummaryInitialiser(Summary instance, AssociatedFileDataManager associatedFileDataManager) {
             this.associatedFileDataManager = associatedFileDataManager;
-            this.directoryRepository = directoryRepository;
-            this.fileRepository = fileRepository;
             this.instance = instance;
         }
 
@@ -46,19 +38,9 @@ public class Summary {
                     SourceDTO nextSourceDTO = nextSource.getSourceDTO();
                     instance.sources.add(nextSourceDTO);
 
-                    if(true)
-                        throw new IllegalStateException("Fix this");
-//                    for (DirectoryInfo nextDirectory : this.directoryRepository.findBySource(nextSource)) {
-                        nextSourceDTO.incrementDirectoryCount();
-
-//                        for (FileInfo nextFile : this.fileRepository.findByDirectoryInfo(nextDirectory)) {
-                            nextSourceDTO.incrementFileCount();
-  //                          if (nextFile.getSize() != null) {
-    //                            nextSourceDTO.increaseFileSize(nextFile.getSize());
-      //                      }
-                        }
-        //            }
-          //      }
+                    nextSourceDTO.incrementDirectoryCount();
+                    nextSourceDTO.incrementFileCount();
+                }
 
                 // Set the object to valid.
                 instance.validAt = new Date();
@@ -71,14 +53,14 @@ public class Summary {
 
     private static Summary instance = null;
 
-    public static Summary getInstance(AssociatedFileDataManager associatedFileDataManager, DirectoryRepository directoryRepository, FileRepository fileRepository) {
+    public static Summary getInstance(AssociatedFileDataManager associatedFileDataManager) {
         if(instance != null) {
             return instance;
         }
 
         instance = new Summary();
 
-        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager, directoryRepository, fileRepository);
+        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager);
         new Thread(initialiser).start();
 
         return instance;

@@ -30,6 +30,7 @@ public class SynchronizeManager {
     private final BackupManager backupManager;
     private final ActionManager actionManager;
     private final FileSystemObjectManager fileSystemObjectManager;
+    private final static String ERROR_FORMAT = "ile should be deleted - %s %s";
 
     @Autowired
     public SynchronizeManager(AssociatedFileDataManager associatedFileDataManager,
@@ -97,7 +98,7 @@ public class SynchronizeManager {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {}", file);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("File should be deleted - %s %s", dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
         }
     }
 
@@ -110,7 +111,7 @@ public class SynchronizeManager {
         DbFile dbFile = (DbFile)node.getDestination();
 
         // Delete the file specified in the node.
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted - %s %s", dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
         actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO());
     }
 
@@ -123,7 +124,7 @@ public class SynchronizeManager {
         DbDirectory dbDirectory = (DbDirectory)node.getDestination();
 
         // Delete the file specified in the node.
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted - %s %s", dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()));
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()));
         actionManager.deleteFileIfConfirmed((FileInfo)dbDirectory.getFSO());
     }
 
@@ -142,6 +143,8 @@ public class SynchronizeManager {
             case REMOVE_SOURCE:
                 removeSource(node);
                 break;
+            default:
+                // There is nothing else to process.
         }
     }
 
@@ -211,6 +214,8 @@ public class SynchronizeManager {
                             copyFile(compareNode, nextSynchronize.getDestination());
                             result.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
                             break;
+                        default:
+                            // No other types are processed.
                     }
                 } else if (nextNode instanceof SectionNode) {
                     SectionNode sectionNode = (SectionNode) nextNode;

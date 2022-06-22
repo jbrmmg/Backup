@@ -12,18 +12,18 @@ public class ProcessResultDTO {
     private final Map<String,Count> counts;
 
     private static class Count{
-        int count;
+        int countValue;
 
         public Count(int initial) {
-            this.count = initial;
+            this.countValue = initial;
         }
 
         public void increment() {
-            this.count++;
+            this.countValue++;
         }
 
         public int get() {
-            return this.count;
+            return this.countValue;
         }
     }
 

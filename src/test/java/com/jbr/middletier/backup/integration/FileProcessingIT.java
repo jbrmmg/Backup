@@ -737,6 +737,7 @@ public class FileProcessingIT extends FileTester {
         FileInfo fileInfo = new FileInfo();
         DbFile dbFile = new DbFile(null, fileInfo);
         RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
+        Assert.assertNotNull(testNode);
 
         testNode.deleteRwFile();
     }

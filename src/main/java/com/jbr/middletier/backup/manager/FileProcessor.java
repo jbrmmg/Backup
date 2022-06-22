@@ -102,14 +102,13 @@ abstract class FileProcessor {
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
-            if(next.confirmed() && compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId())) {
-                // Get details of the file that needs to be deleted.
-                if (compareNode.deleteRwFile()) {
-                    // Remove the action.
-                    actionManager.actionPerformed(next);
-                    performed.add(next);
-                    gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
-                }
+            if(next.confirmed() &&
+                    compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId()) &&
+                    compareNode.deleteRwFile() ) {
+                // Remove the action.
+                actionManager.actionPerformed(next);
+                performed.add(next);
+                gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
             }
         }
     }
@@ -128,7 +127,7 @@ abstract class FileProcessor {
         // If there are still confirmed deletes to perform then they are invalid, so delete them anyway.
         for(ActionConfirm next: deletes) {
             if(next.confirmed()) {
-                LOG.warn("Action cannot be performed: " + next);
+                LOG.warn("Action cannot be performed: {}", next);
                 actionManager.actionPerformed(next);
             }
         }
@@ -287,6 +286,8 @@ abstract class FileProcessor {
                         processFileAddUpdate(compareNode, skipMD5);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
+                    default:
+                        throw new FileProcessException("Invalid section name.");
                 }
             } else if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode)nextNode;

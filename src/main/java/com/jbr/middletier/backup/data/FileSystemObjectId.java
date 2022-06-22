@@ -30,11 +30,11 @@ public class FileSystemObjectId {
         if(getClass() != obj.getClass())
             return false;
 
-        final FileSystemObjectId id = (FileSystemObjectId)obj;
-        if(!this.type.getTypeName().equals(id.type.getTypeName()))
+        final FileSystemObjectId rhsId = (FileSystemObjectId)obj;
+        if(!this.type.getTypeName().equals(rhsId.type.getTypeName()))
             return false;
 
-        return this.id == id.id;
+        return this.id.equals(rhsId.id);
     }
 
     public Integer getId() {

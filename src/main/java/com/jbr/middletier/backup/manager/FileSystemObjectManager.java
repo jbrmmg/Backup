@@ -46,10 +46,8 @@ public class FileSystemObjectManager {
     }
 
     private Optional<FileSystemObject> processFindResult(Optional<FileSystemObject> read, FileSystemObjectId id, boolean failIfMissing) throws MissingFileSystemObject {
-        if(!read.isPresent()) {
-            if(failIfMissing) {
-                throw new MissingFileSystemObject("Not Found", id);
-            }
+        if(!read.isPresent() && failIfMissing) {
+            throw new MissingFileSystemObject("Not Found", id);
         }
 
         return read;
@@ -63,6 +61,8 @@ public class FileSystemObjectManager {
                 return copyOfList(fileRepository.findAllByOrderByIdAsc());
             case FSO_DIRECTORY:
                 return copyOfList(directoryRepository.findAllByOrderByIdAsc());
+            default:
+                // Nothing to return for the others.
         }
 
         return empty;
@@ -128,10 +128,8 @@ public class FileSystemObjectManager {
             case FSO_SOURCE:
                 return processFindResult(copyOf(associatedFileDataManager.internalFindSourceByIdIfExists(id.getId())), id, failIfMissing);
 
-            case FSO_IMAGE_FILE:
-            case FSO_VIDEO_FILE:
-                //TODO
-                break;
+            default:
+                // Nothing else is supported
         }
 
         if(failIfMissing) {
@@ -144,14 +142,13 @@ public class FileSystemObjectManager {
     public Iterable<FileSystemObject> findFileSystemObjectByName(String name, FileSystemObjectType type) {
         List<FileSystemObject> empty = new ArrayList<>();
 
+        //noinspection SwitchStatementWithTooFewBranches
         switch(type) {
             case FSO_FILE:
                 return copyOfList(fileRepository.findByName(name));
 
-            case FSO_IMAGE_FILE:
-            case FSO_VIDEO_FILE:
-                //TODO
-                break;
+            default:
+                // Nothing else is supported yet.
         }
 
         return empty;

@@ -1,29 +1,17 @@
 package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.*;
-import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.exception.MissingFileSystemObject;
-import com.jbr.middletier.backup.filetree.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Component
 public class DriveManager extends FileProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(DriveManager.class);
-
     @Autowired
     public DriveManager(AssociatedFileDataManager associatedFileDataManager,
                         BackupManager backupManager,
@@ -70,7 +58,7 @@ public class DriveManager extends FileProcessor {
         data.add(gatherData);
     }
 
-    public List<GatherDataDTO> gather() throws IOException {
+    public List<GatherDataDTO> gather() {
         List<GatherDataDTO> result = new ArrayList<>();
 
         // Are any files to be deleted?

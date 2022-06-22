@@ -147,8 +147,9 @@ public class TestFileTree {
         public boolean test() {
             childAdded(new BasicRwDirectory());
             childAdded(new BasicRwFile());
+            BasicTestNode testNode = new BasicTestNode();
             try {
-                childAdded(new BasicTestNode());
+                childAdded(testNode);
                 Assert.fail();
             } catch (IllegalStateException e) {
                 Assert.assertEquals("Real World Directory children must be Real World Directory or File.",e.getMessage());

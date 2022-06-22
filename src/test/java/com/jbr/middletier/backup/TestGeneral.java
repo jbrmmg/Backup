@@ -3,14 +3,8 @@ package com.jbr.middletier.backup;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
-import com.jbr.middletier.backup.exception.FileProcessException;
-import com.jbr.middletier.backup.exception.ImportRequestException;
-import com.jbr.middletier.backup.manager.ActionManager;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
-import com.jbr.middletier.backup.manager.ImportManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,11 +12,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
 import static org.mockito.Mockito.mock;
@@ -36,6 +25,7 @@ public class TestGeneral extends WebTester {
     public void TestDefaultProfile() {
         SpringApplication app = mock(SpringApplication.class);
 
+        Assert.assertNotNull(app);
         DefaultProfileUtil.addDefaultProfile(app);
     }
 

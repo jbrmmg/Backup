@@ -59,8 +59,8 @@ public class BackupManager {
     }
 
     public void clearMessageCache() {
-        for(webLogLevel nextLevel : this.messageCache.keySet()) {
-            this.messageCache.get(nextLevel).clear();
+        for(Map.Entry<webLogLevel, List<String>> nextEntry : this.messageCache.entrySet()) {
+            nextEntry.getValue().clear();
         }
     }
 

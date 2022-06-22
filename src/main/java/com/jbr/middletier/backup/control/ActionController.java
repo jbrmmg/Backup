@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
-import com.jbr.middletier.backup.exception.ActionNotFoundException;
 import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.summary.Summary;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -30,12 +28,10 @@ public class ActionController {
     @Autowired
     public ActionController(IgnoreFileRepository ignoreFileRepository,
                             ActionManager actionManager,
-                            AssociatedFileDataManager associatedFileDataManager,
-                            DirectoryRepository directoryRepository,
-                            FileRepository fileRepository) {
+                            AssociatedFileDataManager associatedFileDataManager) {
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionManager = actionManager;
-        this.summary = Summary.getInstance(associatedFileDataManager,directoryRepository,fileRepository);
+        this.summary = Summary.getInstance(associatedFileDataManager);
     }
 
     @GetMapping(path="/actions")

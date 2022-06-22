@@ -278,18 +278,6 @@ public class FsoIT   {
     }
 
     @Test
-    @Order(4)
-    public void imageFile() {
-        // TODO - but not immediately - this is an extension
-    }
-
-    @Test
-    @Order(5)
-    public void videoFile() {
-        // TODO - but not immediately - this is an extension
-    }
-
-    @Test
     @Order(6)
     public void ignoreFile() throws ParseException {
         LOG.info("Test the basic ignore file object");

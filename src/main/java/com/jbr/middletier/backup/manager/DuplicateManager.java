@@ -73,12 +73,12 @@ public class DuplicateManager {
                     .stream()
                     .collect(Collectors.groupingBy(FileInfo::getName, Collectors.counting()));
 
-            for (String nextName : nameCount.keySet()) {
-                if (nameCount.get(nextName) > 1) {
+            for (Map.Entry<String, Long> nextEntry : nameCount.entrySet()) {
+                if (nextEntry.getValue() > 1) {
                     // Check this name for being a duplicate.
                     checkDuplicateOfFile(files
                             .stream()
-                            .filter(file -> file.getName().equals(nextName))
+                            .filter(file -> file.getName().equals(nextEntry.getKey()))
                             .collect(Collectors.toList()),
                             data);
                     data.increment(DuplicateDataDTO.DuplicateCountType.CHECKED);
