@@ -256,9 +256,6 @@ public class ImportManager extends FileProcessor {
             importFile.setMD5(getMD5(path, importFile.getClassification()));
 
             fileSystemObjectManager.save(importFile);
-        } else {
-            // TODO - remove this
-            LOG.info("remove");
         }
 
         // Is this file being ignored?

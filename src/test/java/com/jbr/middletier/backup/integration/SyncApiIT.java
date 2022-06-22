@@ -118,6 +118,23 @@ public class SyncApiIT extends FileTester {
         addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
         addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
 
+        // Update JPG so it gets an MD5
+        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
+            if(nextClassification.getRegex().contains("jpg")) {
+                ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setIcon(nextClassification.getIcon());
+                updateClassification.setRegex(nextClassification.getRegex());
+                updateClassification.setAction(nextClassification.getAction());
+                updateClassification.setVideo(nextClassification.getIsVideo());
+                updateClassification.setOrder(1);
+                updateClassification.setId(nextClassification.getId());
+                updateClassification.setUseMD5(true);
+
+                nextClassification.update(updateClassification);
+                classificationRepository.save(nextClassification);
+            }
+        }
+
         // During this test create files in the following directories
         String sourceDirectory = "./target/it_test/source";
         deleteDirectoryContents(new File(sourceDirectory).toPath());
@@ -181,23 +198,6 @@ public class SyncApiIT extends FileTester {
     @Order(1)
     public void gather() throws Exception {
         LOG.info("Synchronize Testing");
-
-        // Update JPG so it gets an MD5
-        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
-            if(nextClassification.getRegex().contains("jpg")) {
-                ClassificationDTO updateClassification = new ClassificationDTO();
-                updateClassification.setIcon(nextClassification.getIcon());
-                updateClassification.setRegex(nextClassification.getRegex());
-                updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setVideo(nextClassification.getIsVideo());
-                updateClassification.setOrder(1);
-                updateClassification.setId(nextClassification.getId());
-                updateClassification.setUseMD5(true);
-
-                nextClassification.update(updateClassification);
-                classificationRepository.save(nextClassification);
-            }
-        }
 
         // During this test create files in the following directories
         initialiseDirectories();
