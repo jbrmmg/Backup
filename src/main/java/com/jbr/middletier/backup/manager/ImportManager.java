@@ -110,7 +110,7 @@ public class ImportManager extends FileProcessor {
         List<IgnoreFile> ignoreFiles = ignoreFileRepository.findByName(importFile.getName());
 
         for(IgnoreFile nextFile: ignoreFiles) {
-            if( !nextFile.getSize().equals(importFile.getSize()) || !nextFile.getMD5().equals(importFile.getMD5()) ) {
+            if( !nextFile.getSize().equals(importFile.getSize()) || !nextFile.getMD5().compare(importFile.getMD5(), true) ) {
                 continue;
             }
 
@@ -192,7 +192,6 @@ public class ImportManager extends FileProcessor {
             ignoreFile.clearRemoved();
 
             ignoreFileRepository.save(ignoreFile);
-
             return;
         }
 

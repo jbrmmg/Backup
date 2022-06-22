@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.dto.ImportFileDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.manager.ImportManager;
 import org.jetbrains.annotations.Contract;
@@ -13,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Comparator.comparing;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -49,17 +53,30 @@ public class ImportController {
         return importManager.importPhotoProcess();
     }
 
+    private List<ImportFileDTO> getExternalList(Iterable<ImportFile> list) {
+        List<ImportFileDTO> result = new ArrayList<>();
+        for(ImportFile nextFile: importManager.findImportFiles()) {
+            result.add(new ImportFileDTO(nextFile));
+        }
+
+        result.sort(comparing(ImportFileDTO::getFilename));
+
+        return result;
+    }
+
     @GetMapping(path="/importfiles")
-    public @ResponseBody Iterable<ImportFile> getImportFiles() {
+    public @ResponseBody List<ImportFileDTO> getImportFiles() {
+        //TODO - this should not return an import file
         LOG.info("Get the import files.");
 
-        return importManager.findImportFiles();
+
+        return getExternalList(importManager.findImportFiles());
     }
 
     @PutMapping(path="/importfiles")
-    public @ResponseBody Iterable<ImportFile> resetFiles() {
+    public @ResponseBody List<ImportFileDTO> resetFiles() {
         LOG.info("Get the import files.");
 
-        return importManager.resetFiles();
+        return getExternalList(importManager.resetFiles());
     }
 }

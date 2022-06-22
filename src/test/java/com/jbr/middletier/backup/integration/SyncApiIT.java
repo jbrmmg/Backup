@@ -74,6 +74,9 @@ public class SyncApiIT extends FileTester {
     SourceRepository sourceRepository;
 
     @Autowired
+    ImportSourceRepository importSourceRepository;
+
+    @Autowired
     SynchronizeRepository synchronizeRepository;
 
     @Autowired
@@ -84,6 +87,12 @@ public class SyncApiIT extends FileTester {
 
     @Autowired
     FileRepository fileRepository;
+
+    @Autowired
+    IgnoreFileRepository ignoreFileRepository;
+
+    @Autowired
+    ImportFileRepository importFileRepository;
 
     @Autowired
     ClassificationRepository classificationRepository;
@@ -154,6 +163,8 @@ public class SyncApiIT extends FileTester {
         // Remove the sources, files & directories.
         synchronizeRepository.deleteAll();
         fileRepository.deleteAll();
+        ignoreFileRepository.deleteAll();
+        importFileRepository.deleteAll();
 
         List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
         for(DirectoryInfo nextDirectory : dbDirectories) {
@@ -163,6 +174,7 @@ public class SyncApiIT extends FileTester {
 
         directoryRepository.deleteAll();
         sourceRepository.deleteAll();
+        importSourceRepository.deleteAll();
     }
 
     @Test
@@ -393,11 +405,10 @@ public class SyncApiIT extends FileTester {
          // During this test create files in the following directories
         initialiseDirectories();
 
-        // TODO - setup the source to perform an already exists.
         List<StructureDescription> sourceDescription = getTestStructure("test6");
         copyFiles(sourceDescription, importDirectory);
 
-        // Check source does not exist
+        // Set up a request with invalid path, check exception.
         ImportRequest importRequest = new ImportRequest();
         importRequest.setPath(importDirectory + "x");
         importRequest.setSource(this.source.getIdAndType().getId());
@@ -410,7 +421,7 @@ public class SyncApiIT extends FileTester {
                 .andReturn().getResolvedException().getMessage();
         Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
 
-        // Check source does not exist
+        // Set up a request with invalid source, check exception.
         importRequest = new ImportRequest();
         int badId = this.source.getIdAndType().getId() + 1;
         if(this.destination.getIdAndType().getId() == badId) {
@@ -427,7 +438,7 @@ public class SyncApiIT extends FileTester {
                 .andReturn().getResolvedException().getMessage();
         Assert.assertEquals("The source does not exist - " + badId, error);
 
-        // Check source does not exist
+        // Setup the correct request.
         importRequest = new ImportRequest();
         importRequest.setPath(importDirectory);
         importRequest.setSource(this.source.getIdAndType().getId());
@@ -446,10 +457,11 @@ public class SyncApiIT extends FileTester {
                 .andReturn().getResolvedException().getMessage();
         Assert.assertEquals("Cannot find import location.", error);
 
+        // Restore the location.
         location.get().setName("Import");
         locationRepository.save(location.get());
 
-        // Perform a gather.
+        // Perform the gather - should be 5 files, 1 directory.
         LOG.info("Gather the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))
@@ -462,45 +474,112 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
+        // Verify that the database matches the realworld.
+        int count = 0;
+        ImportSource importSource = null;
+        for(ImportSource nextImportSource : importSourceRepository.findAllByOrderByIdAsc()) {
+            // Only one is expected
+            count++;
+            Assert.assertEquals(1, count);
+            importSource = nextImportSource;
+        }
+        validateSource(fileSystemObjectManager, importSource, sourceDescription);
+
+        // Check that the database contains 5 files.
         getMockMvc().perform(get("/jbr/int/backup/importfiles")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5)));
+                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$[0].filename", is("Bills.ods")))
+                .andExpect(jsonPath("$[0].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[1].filename", is("GetRid.ds_store")))
+                .andExpect(jsonPath("$[1].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[2].filename", is("Letter.jpg")))
+                .andExpect(jsonPath("$[2].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[3].filename", is("Statement.jpg")))
+                .andExpect(jsonPath("$[3].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[4].filename", is("Text.txt")))
+                .andExpect(jsonPath("$[4].status", is(ImportFileStatusType.IFS_READ.toString())));
 
+        // Import these files - this should create the actions.
         getMockMvc().perform(post("/jbr/int/backup/importprocess")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].failed", is(false)));
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(5)));
 
+        // Setup the actions that will be performed.
+        count = 0;
         for(ActionConfirm nextAction : actionConfirmRepository.findAll()) {
-            if(nextAction.getPath().getName().equals("Statement.pdf")) {
+            count++;
+            if(nextAction.getPath().getName().equals("Statement.jpg")) {
                 nextAction.setConfirmed(true);
                 nextAction.setParameter("Blah");
                 actionConfirmRepository.save(nextAction);
-            } else if (nextAction.getPath().getName().equals("Letter.odt")) {
+            } else if (nextAction.getPath().getName().equals("Letter.jpg")) {
                 nextAction.setConfirmed(true);
                 nextAction.setParameter("ignore");
                 actionConfirmRepository.save(nextAction);
             }
         }
+        Assert.assertEquals(4, count);
 
+        // Remove any files from the database that have been deleted.
+        getMockMvc().perform(delete("/jbr/int/backup/import")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].deletes", is(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(5)));
+
+        // Import should now not have the deleted file.
+        sourceDescription = getTestStructure("test6_1");
+        validateSource(fileSystemObjectManager, importSource, sourceDescription);
+
+        // Reset the status of the files.
         getMockMvc().perform(put("/jbr/int/backup/importfiles")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5)));
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[0].filename", is("Bills.ods")))
+                .andExpect(jsonPath("$[0].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[1].filename", is("Letter.jpg")))
+                .andExpect(jsonPath("$[1].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[2].filename", is("Statement.jpg")))
+                .andExpect(jsonPath("$[2].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[3].filename", is("Text.txt")))
+                .andExpect(jsonPath("$[3].status", is(ImportFileStatusType.IFS_READ.toString())));
 
+        // Perform the import again - this should perform the actions.
         getMockMvc().perform(post("/jbr/int/backup/importprocess")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].failed", is(false)));
-        //TODO - check the files in destination
-        //TODO - check the ignore files.
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(4)));
+
+        // Import should still look the same.
+        validateSource(fileSystemObjectManager, importSource, sourceDescription);
+
+        // Gather the data from the source.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        // Check that the source has files.
+        sourceDescription = getTestStructure("test6_2");
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        // Reset the import again.
+        sourceDescription = getTestStructure("test6");
+        copyFiles(sourceDescription, importDirectory);
 
         LOG.info("Reset the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
@@ -508,22 +587,32 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(3)))
+                .andExpect(jsonPath("$[0].filesInserted", is(5)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
-        initialiseDirectories();
-        getMockMvc().perform(delete("/jbr/int/backup/import")
+        // Re process the imports
+        getMockMvc().perform(post("/jbr/int/backup/importprocess")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(3)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(5)));
+
+        // Reset the information.
+        initialiseDirectories();
+        getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
-                .andExpect(jsonPath("$[0].deletes", is(3)));
+                .andExpect(jsonPath("$[0].deletes", is(0)));
     }
 }
