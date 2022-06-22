@@ -405,7 +405,10 @@ public class SyncApiIT extends FileTester {
          // During this test create files in the following directories
         initialiseDirectories();
 
-        List<StructureDescription> sourceDescription = getTestStructure("test6");
+        List<StructureDescription> sourceDescription = getTestStructure("test6_src");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        sourceDescription = getTestStructure("test6");
         copyFiles(sourceDescription, importDirectory);
 
         // Set up a request with invalid path, check exception.
@@ -420,6 +423,22 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException().getMessage();
         Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
+
+        // Insert an ignore file to check it doesn't interfere.
+        IgnoreFile ignoreFile = new IgnoreFile();
+        ignoreFile.clearRemoved();
+        ignoreFile.setDate(new Date());
+        ignoreFile.setName("Text.txt");
+        ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
+        ignoreFile.setSize(523);
+        ignoreFileRepository.save(ignoreFile);
+        ignoreFile = new IgnoreFile();
+        ignoreFile.clearRemoved();
+        ignoreFile.setDate(new Date());
+        ignoreFile.setName("Text.txt");
+        ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
+        ignoreFile.setSize(12);
+        ignoreFileRepository.save(ignoreFile);
 
         // Set up a request with invalid source, check exception.
         importRequest = new ImportRequest();
@@ -438,7 +457,7 @@ public class SyncApiIT extends FileTester {
                 .andReturn().getResolvedException().getMessage();
         Assert.assertEquals("The source does not exist - " + badId, error);
 
-        // Setup the correct request.
+        // Set up the correct request.
         importRequest = new ImportRequest();
         importRequest.setPath(importDirectory);
         importRequest.setSource(this.source.getIdAndType().getId());
@@ -446,7 +465,7 @@ public class SyncApiIT extends FileTester {
         // Remove the import location temporarily.
         Optional<Location> location = locationRepository.findById(4);
         Assert.assertTrue(location.isPresent());
-        location.get().setName("Importx");
+        location.get().setName("Import x");
         locationRepository.save(location.get());
 
         LOG.info("Gather the data.");
@@ -468,13 +487,13 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(5)))
+                .andExpect(jsonPath("$[0].filesInserted", is(6)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
-        // Verify that the database matches the realworld.
+        // Verify that the database matches the real world.
         int count = 0;
         ImportSource importSource = null;
         for(ImportSource nextImportSource : importSourceRepository.findAllByOrderByIdAsc()) {
@@ -490,7 +509,7 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$", hasSize(6)))
                 .andExpect(jsonPath("$[0].filename", is("Bills.ods")))
                 .andExpect(jsonPath("$[0].status", is(ImportFileStatusType.IFS_READ.toString())))
                 .andExpect(jsonPath("$[1].filename", is("GetRid.ds_store")))
@@ -499,8 +518,10 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[2].status", is(ImportFileStatusType.IFS_READ.toString())))
                 .andExpect(jsonPath("$[3].filename", is("Statement.jpg")))
                 .andExpect(jsonPath("$[3].status", is(ImportFileStatusType.IFS_READ.toString())))
-                .andExpect(jsonPath("$[4].filename", is("Text.txt")))
-                .andExpect(jsonPath("$[4].status", is(ImportFileStatusType.IFS_READ.toString())));
+                .andExpect(jsonPath("$[4].filename", is("Text.bscf")))
+                .andExpect(jsonPath("$[4].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[5].filename", is("Text.txt")))
+                .andExpect(jsonPath("$[5].status", is(ImportFileStatusType.IFS_READ.toString())));
 
         // Import these files - this should create the actions.
         getMockMvc().perform(post("/jbr/int/backup/importprocess")
@@ -509,9 +530,9 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(5)));
+                .andExpect(jsonPath("$[0].filesInserted", is(6)));
 
-        // Setup the actions that will be performed.
+        // Set up the actions that will be performed.
         count = 0;
         for(ActionConfirm nextAction : actionConfirmRepository.findAll()) {
             count++;
@@ -534,7 +555,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].deletes", is(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(5)));
+                .andExpect(jsonPath("$[0].filesInserted", is(6)));
 
         // Import should now not have the deleted file.
         sourceDescription = getTestStructure("test6_1");
@@ -545,15 +566,17 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$", hasSize(5)))
                 .andExpect(jsonPath("$[0].filename", is("Bills.ods")))
                 .andExpect(jsonPath("$[0].status", is(ImportFileStatusType.IFS_READ.toString())))
                 .andExpect(jsonPath("$[1].filename", is("Letter.jpg")))
                 .andExpect(jsonPath("$[1].status", is(ImportFileStatusType.IFS_READ.toString())))
                 .andExpect(jsonPath("$[2].filename", is("Statement.jpg")))
                 .andExpect(jsonPath("$[2].status", is(ImportFileStatusType.IFS_READ.toString())))
-                .andExpect(jsonPath("$[3].filename", is("Text.txt")))
-                .andExpect(jsonPath("$[3].status", is(ImportFileStatusType.IFS_READ.toString())));
+                .andExpect(jsonPath("$[3].filename", is("Text.bscf")))
+                .andExpect(jsonPath("$[3].status", is(ImportFileStatusType.IFS_READ.toString())))
+                .andExpect(jsonPath("$[4].filename", is("Text.txt")))
+                .andExpect(jsonPath("$[4].status", is(ImportFileStatusType.IFS_READ.toString())));
 
         // Perform the import again - this should perform the actions.
         getMockMvc().perform(post("/jbr/int/backup/importprocess")
@@ -562,7 +585,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(4)));
+                .andExpect(jsonPath("$[0].filesInserted", is(5)));
 
         // Import should still look the same.
         validateSource(fileSystemObjectManager, importSource, sourceDescription);
@@ -587,7 +610,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(5)))
+                .andExpect(jsonPath("$[0].filesInserted", is(6)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
@@ -600,7 +623,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(5)));
+                .andExpect(jsonPath("$[0].filesInserted", is(6)));
 
         // Reset the information.
         initialiseDirectories();

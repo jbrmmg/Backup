@@ -110,7 +110,7 @@ public class ImportManager extends FileProcessor {
         List<IgnoreFile> ignoreFiles = ignoreFileRepository.findByName(importFile.getName());
 
         for(IgnoreFile nextFile: ignoreFiles) {
-            if( !nextFile.getSize().equals(importFile.getSize()) || !nextFile.getMD5().compare(importFile.getMD5(), true) ) {
+            if( !nextFile.getSize().equals(importFile.getSize()) || !nextFile.getMD5().compare(importFile.getMD5(), false) ) {
                 continue;
             }
 
@@ -256,6 +256,9 @@ public class ImportManager extends FileProcessor {
             importFile.setMD5(getMD5(path, importFile.getClassification()));
 
             fileSystemObjectManager.save(importFile);
+        } else {
+            // TODO - remove this
+            LOG.info("remove");
         }
 
         // Is this file being ignored?
@@ -355,10 +358,6 @@ public class ImportManager extends FileProcessor {
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
     private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) throws MissingFileSystemObject {
-        if(!path.getFileName().toString().equals(fileInfo.getName())) {
-            return FileTestResultType.DIFFERENT;
-        }
-
         // Check the size.
         long size = path.toFile().length();
         if(fileInfo.getSize() != size) {
