@@ -3,8 +3,10 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
+import com.jbr.middletier.backup.dto.FileInfoDTO;
 import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.summary.Summary;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -13,24 +15,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Comparator.comparing;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
 public class ActionController {
     private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
-    private final IgnoreFileRepository ignoreFileRepository;
+    private final FileSystemObjectManager fileSystemObjectManager;
     private final ActionManager actionManager;
     private final Summary summary;
 
     @Contract(pure = true)
     @Autowired
-    public ActionController(IgnoreFileRepository ignoreFileRepository,
+    public ActionController(FileSystemObjectManager fileSystemObjectManager,
                             ActionManager actionManager,
                             AssociatedFileDataManager associatedFileDataManager) {
         // TODO - test more of this.
-        this.ignoreFileRepository = ignoreFileRepository;
+        this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
         this.summary = Summary.getInstance(associatedFileDataManager);
     }
@@ -50,10 +55,18 @@ public class ActionController {
     }
 
     @GetMapping(path="/ignore")
-    public @ResponseBody Iterable<IgnoreFile> getIgnoreFiles() {
+    public @ResponseBody List<FileInfoDTO> getIgnoreFiles() {
         LOG.info("Get ignore files");
 
-        return ignoreFileRepository.findAllByOrderByIdAsc();
+        List<FileInfoDTO> result = new ArrayList<>();
+        for(FileSystemObject nextFile: fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IGNORE_FILE)) {
+            if(nextFile instanceof FileInfo) {
+                result.add(new FileInfoDTO((FileInfo)nextFile));
+            }
+        }
+
+        result.sort(comparing(FileInfoDTO::getFilename));
+        return result;
     }
 
     @PostMapping(path="/actions")

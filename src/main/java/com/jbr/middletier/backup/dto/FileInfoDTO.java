@@ -20,7 +20,7 @@ public class FileInfoDTO {
         this.date = fileInfo.getDate();
         this.size = fileInfo.getSize();
         this.md5 = fileInfo.getMD5();
-        this.parentType = fileInfo.getParentId().getType();
+        this.parentType = fileInfo.getParentId() == null ?  null : fileInfo.getParentId().getType();
     }
 
     public String getFilename() {

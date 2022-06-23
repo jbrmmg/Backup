@@ -746,6 +746,14 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(6)));
 
+        // Check the ignore files.
+        getMockMvc().perform(get("/jbr/int/backup/ignore")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].filename", is("Letter.jpg")));
+
         // Reset the information.
         initialiseDirectories();
         getMockMvc().perform(post("/jbr/int/backup/import")
@@ -835,7 +843,6 @@ public class SyncApiIT extends FileTester {
         Assert.assertEquals("File with id ("+missingId+") not found.", error);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(6)
     public void testActionApi() throws Exception {
@@ -883,5 +890,25 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].fileName", is("Testing.txt")))
                 .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_IMPORT.toString())));
+
+        ConfirmActionRequest request = new ConfirmActionRequest();
+        request.setId(actionConfirm1.getId());
+        request.setConfirm(true);
+        request.setParameter("Blha");
+        getMockMvc().perform(post("/jbr/int/backup/actions")
+                        .content(this.json(request))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(post("/jbr/int/backup/actionemail")
+                        .content(this.json(request))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/int/backup/summary")
+                        .content(this.json(request))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("valid", is(true)));
     }
 }
