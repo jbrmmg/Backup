@@ -174,19 +174,18 @@ public class TestGeneral extends WebTester {
         Assert.assertFalse(md5c.compare(md5d,true));
     }
 
-    @SuppressWarnings({"AssertBetweenInconvertibleTypes"})
     @Test
     public void TestFsoId() {
         FileSystemObjectId fsoId = new FileSystemObjectId(1,FileSystemObjectType.FSO_FILE);
         FileSystemObjectId fsoId2 = new FileSystemObjectId(2,FileSystemObjectType.FSO_FILE);
         FileSystemObjectId fsoId3 = new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY);
         FileSystemObjectId fsoId4 = new FileSystemObjectId(1,FileSystemObjectType.FSO_FILE);
+        Object testObj = "not an id";
         Assert.assertNotEquals(fsoId3.hashCode(),fsoId.hashCode());
         Assert.assertNotEquals(fsoId, fsoId2);
-        Assert.assertNotEquals("2", fsoId);
+        Assert.assertNotEquals(testObj, fsoId);
         Assert.assertNotEquals(null, fsoId);
         Assert.assertNotEquals(fsoId, fsoId3);
-        Assert.assertEquals(fsoId, fsoId);
         Assert.assertEquals(fsoId, fsoId4);
     }
 
