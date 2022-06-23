@@ -38,6 +38,8 @@ public class MD5 {
         return this.md5Value != null;
     }
 
+    public String getValue() { return this.md5Value; }
+
     @Override
     public String toString() {
         return this.md5Value == null ? "" : this.md5Value;

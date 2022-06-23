@@ -1,10 +1,7 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dto.ActionConfirmDTO;
-import com.jbr.middletier.backup.dto.DuplicateDataDTO;
-import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.dto.SyncDataDTO;
+import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.exception.MissingFileSystemObject;
@@ -22,6 +19,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.Comparator.comparing;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -53,8 +52,17 @@ public class FileController {
     }
 
     @GetMapping(path="/files")
-    public @ResponseBody Iterable<FileSystemObject> getFiles() {
-        return fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE);
+    public @ResponseBody List<FileInfoDTO> getFiles() {
+        List<FileInfoDTO> result = new ArrayList<>();
+        for(FileSystemObject nextFile: fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE)) {
+            if(nextFile instanceof FileInfo) {
+                result.add(new FileInfoDTO((FileInfo)nextFile));
+            }
+        }
+
+        result.sort(comparing(FileInfoDTO::getFilename));
+
+        return result;
     }
 
     @PostMapping(path="/gather")
@@ -162,11 +170,9 @@ public class FileController {
             FileInfo nextFile = (FileInfo)nextSameName;
 
             if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
-                backups.add(nextFile);
+                result.addFile(nextFile);
             }
         }
-
-        result.setBackups(backups);
 
         return result;
     }

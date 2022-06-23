@@ -112,6 +112,8 @@ public class SyncApiIT extends FileTester {
 
     @Before
     public void setupClassification() throws IOException {
+        backupManager.clearMessageCache();
+
         addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
         addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, true, false, false);
         addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
@@ -127,6 +129,7 @@ public class SyncApiIT extends FileTester {
                 updateClassification.setAction(nextClassification.getAction());
                 updateClassification.setVideo(nextClassification.getIsVideo());
                 updateClassification.setOrder(1);
+                updateClassification.setImage(true);
                 updateClassification.setId(nextClassification.getId());
                 updateClassification.setUseMD5(true);
 
@@ -270,11 +273,11 @@ public class SyncApiIT extends FileTester {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(2)
     public void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
-        backupManager.clearMessageCache();
 
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -315,12 +318,105 @@ public class SyncApiIT extends FileTester {
         sourceDescription = getTestStructure("test2_post_sync");
         validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription);
 
+        // Find file id's there can be used in the next test.
+        int missingId = 1;
+        int validId = -1;
+        int imageId = -1;
+        int videoId = -1;
+        List<Integer> usedIds = new ArrayList<>();
+        for(FileInfo nextFile : fileRepository.findAll()) {
+            usedIds.add(nextFile.getIdAndType().getId());
+            switch (nextFile.getName()) {
+                case "Bills.ods":
+                    validId = nextFile.getIdAndType().getId();
+                    break;
+                case "IMG_8231.jpg":
+                    imageId = nextFile.getIdAndType().getId();
+                    break;
+                case "Cycle.MOV":
+                    videoId = nextFile.getIdAndType().getId();
+                    break;
+                default:
+                    // No more options are required.
+            }
+        }
+        Assert.assertNotEquals(-1,validId);
+        while(usedIds.contains(missingId)) {
+            missingId++;
+        }
+
+        // Check get file info.
+        String error = getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+
+
+        getMockMvc().perform(get("/jbr/int/backup/file?id=" + validId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("file.filename", is("Bills.ods")))
+                .andExpect(jsonPath("backups[0].filename", is("Bills.ods")));
+
+        // Get the image file.
+        error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+
+        error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + validId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File is not of type image", error);
+
+        getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + imageId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        // Get the video file.
+        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+
+        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + validId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File is not of type video", error);
+
+        getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + videoId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
         LOG.info("Get the hierarchy");
         HierarchyResponse hierarchyResponse = new HierarchyResponse();
         getMockMvc().perform(post("/jbr/int/backup/hierarchy")
                         .content(this.json(hierarchyResponse))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
+
+        // Request another level
+        hierarchyResponse.setId(this.source.getIdAndType().getId());
+        getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+                        .content(this.json(hierarchyResponse))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].displayName", is("Photo")))
+                .andExpect(jsonPath("$[1].displayName", is("Documents")));
 
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
@@ -645,5 +741,80 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Order(5)
+    public void moreFileProcessTesting() throws Exception {
+        // Copy the resource files into the source directory
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test2");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
+
+        // Get the database files
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(14)))
+                .andExpect(jsonPath("$[0].filename", is("Backup.dxf~")))
+                .andExpect(jsonPath("$[0].type", is(FileSystemObjectType.FSO_FILE.toString())))
+                .andExpect(jsonPath("$[0].date", is("1998-04-10T10:43:00.000+00:00")))
+                .andExpect(jsonPath("$[0].size", is(12)))
+                .andExpect(jsonPath("$[0].md5.set", is(false)))
+                .andExpect(jsonPath("$[0].parentType", is(FileSystemObjectType.FSO_DIRECTORY.toString())))
+                .andExpect(jsonPath("$[1].filename", is("Bills.ods")))
+                .andExpect(jsonPath("$[2].filename", is("Cycle.MOV")))
+                .andExpect(jsonPath("$[3].filename", is("GetRid.ds_store")))
+                .andExpect(jsonPath("$[4].filename", is("IMG_2329.HEIC")))
+                .andExpect(jsonPath("$[5].filename", is("IMG_3891.jpeg")))
+                .andExpect(jsonPath("$[6].filename", is("IMG_8231.jpg")))
+                .andExpect(jsonPath("$[6].md5.set", is(true)))
+                .andExpect(jsonPath("$[6].md5.value", is("C714A0B2E792EB102F706DC2424B0083")))
+                .andExpect(jsonPath("$[7].filename", is("IMG_931d.png")))
+                .andExpect(jsonPath("$[8].filename", is("Letter.odt")))
+                .andExpect(jsonPath("$[9].filename", is("NotHere._.ds_store")))
+                .andExpect(jsonPath("$[10].filename", is("Party.mp4")))
+                .andExpect(jsonPath("$[11].filename", is("Statement.pdf")))
+                .andExpect(jsonPath("$[12].filename", is("Text.txt")))
+                .andExpect(jsonPath("$[13].filename", is("Text.txt")));
+
+        // Perform a delete.
+        int missingId = 1;
+        int validId = -1;
+        List<Integer> usedIds = new ArrayList<>();
+        for(FileInfo nextFile : fileRepository.findAll()) {
+            usedIds.add(nextFile.getIdAndType().getId());
+            if(nextFile.getName().equals("Bills.ods")) {
+                validId = nextFile.getIdAndType().getId();
+            }
+        }
+        Assert.assertNotEquals(-1,validId);
+        while(usedIds.contains(missingId)) {
+            missingId++;
+        }
+
+        getMockMvc().perform(delete("/jbr/int/backup/file?id=" + validId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("filename", is("ills.ods")));
+
+        String error = getMockMvc().perform(delete("/jbr/int/backup/file?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
     }
 }
