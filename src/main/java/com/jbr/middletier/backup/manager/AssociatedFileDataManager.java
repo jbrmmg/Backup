@@ -154,7 +154,6 @@ public class AssociatedFileDataManager {
     }
 
     public Source internalFindSourceById(Integer id) throws InvalidSourceIdException {
-        // TODO - test not present (particularly the exception).
         Optional<Source> existing = sourceRepository.findById(id);
         if(!existing.isPresent()) {
             throw new InvalidSourceIdException(id);

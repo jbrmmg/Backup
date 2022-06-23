@@ -34,7 +34,6 @@ public class ActionController {
     public ActionController(FileSystemObjectManager fileSystemObjectManager,
                             ActionManager actionManager,
                             AssociatedFileDataManager associatedFileDataManager) {
-        // TODO - test more of this.
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
         this.summary = Summary.getInstance(associatedFileDataManager);

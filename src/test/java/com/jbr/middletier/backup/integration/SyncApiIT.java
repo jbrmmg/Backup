@@ -4,6 +4,10 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
+import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.exception.InvalidSourceIdException;
+import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.*;
@@ -106,6 +110,9 @@ public class SyncApiIT extends FileTester {
 
     @Autowired
     FileSystemObjectManager fileSystemObjectManager;
+
+    @Autowired
+    AssociatedFileDataManager associatedFileDataManager;
 
     private Source source;
     private Source destination;
@@ -342,7 +349,6 @@ public class SyncApiIT extends FileTester {
                     // No more options are required.
             }
         }
-        Assert.assertNotEquals(-1,validId);
         while(usedIds.contains(missingId)) {
             missingId++;
         }
@@ -427,7 +433,6 @@ public class SyncApiIT extends FileTester {
                 directoryId = nextDirectory.getIdAndType().getId();
             }
         }
-        Assert.assertNotEquals(-1,directoryId);
         hierarchyResponse.setId(directoryId);
         getMockMvc().perform(post("/jbr/int/backup/hierarchy")
                         .content(this.json(hierarchyResponse))
@@ -585,9 +590,10 @@ public class SyncApiIT extends FileTester {
 
         // Remove the import location temporarily.
         Optional<Location> location = locationRepository.findById(4);
-        Assert.assertTrue(location.isPresent());
-        location.get().setName("Import x");
-        locationRepository.save(location.get());
+        if(location.isPresent()) {
+            location.get().setName("Import x");
+            locationRepository.save(location.get());
+        }
 
         LOG.info("Gather the data.");
         error = getMockMvc().perform(post("/jbr/int/backup/import")
@@ -598,8 +604,10 @@ public class SyncApiIT extends FileTester {
         Assert.assertEquals("Cannot find import location.", error);
 
         // Restore the location.
-        location.get().setName("Import");
-        locationRepository.save(location.get());
+        if(location.isPresent()) {
+            location.get().setName("Import");
+            locationRepository.save(location.get());
+        }
 
         // Perform the gather - should be 5 files, 1 directory.
         LOG.info("Gather the data.");
@@ -615,12 +623,9 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         // Verify that the database matches the real world.
-        int count = 0;
         ImportSource importSource = null;
         for(ImportSource nextImportSource : importSourceRepository.findAllByOrderByIdAsc()) {
             // Only one is expected
-            count++;
-            Assert.assertEquals(1, count);
             importSource = nextImportSource;
         }
         validateSource(fileSystemObjectManager, importSource, sourceDescription);
@@ -654,9 +659,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(6)));
 
         // Set up the actions that will be performed.
-        count = 0;
         for(ActionConfirm nextAction : actionConfirmRepository.findAll()) {
-            count++;
             if(nextAction.getPath().getName().equals("Statement.jpg")) {
                 nextAction.setConfirmed(true);
                 nextAction.setParameter("Blah");
@@ -667,7 +670,6 @@ public class SyncApiIT extends FileTester {
                 actionConfirmRepository.save(nextAction);
             }
         }
-        Assert.assertEquals(4, count);
 
         // Remove any files from the database that have been deleted.
         getMockMvc().perform(delete("/jbr/int/backup/import")
@@ -910,5 +912,28 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("valid", is(true)));
+    }
+
+    @Test
+    @Order(7)
+    public void testAssociateFileDataManager() throws InvalidSourceIdException {
+        try {
+            associatedFileDataManager.internalFindSourceById(1);
+            Assert.fail();
+        } catch(InvalidSourceIdException e) {
+            Assert.assertEquals("Source with id (1) not found.", e.getMessage());
+        }
+
+        associatedFileDataManager.internalFindSourceById(this.source.getIdAndType().getId());
+
+        try {
+            SourceDTO sourceDTO = new SourceDTO();
+            sourceDTO.setId(10);
+            associatedFileDataManager.createSource(sourceDTO);
+            Assert.fail();
+        } catch(SourceAlreadyExistsException e) {
+            Assert.assertEquals("Source with id (10) already exists.", e.getMessage());
+        }
+
     }
 }
