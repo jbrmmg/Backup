@@ -41,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class FsoApiIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FsoApiIT.class);
 
+    @SuppressWarnings("rawtypes")
     @ClassRule
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")

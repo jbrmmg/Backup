@@ -7,7 +7,7 @@ public abstract class FileTreeNode {
     public enum CompareStatusType { EQUAL, ADDED, REMOVED, UPDATED }
 
     // Dummy node just used to represent a missing node.
-    protected static FileTreeNode nullNode = new FileTreeNode(null) {
+    protected static final FileTreeNode nullNode = new FileTreeNode(null) {
         @Override
         public String getName() {
             return null;

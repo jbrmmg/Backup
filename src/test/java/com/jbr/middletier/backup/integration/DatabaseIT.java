@@ -41,6 +41,7 @@ import java.util.Optional;
 public class DatabaseIT {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseIT.class);
 
+    @SuppressWarnings("rawtypes")
     @ClassRule
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")

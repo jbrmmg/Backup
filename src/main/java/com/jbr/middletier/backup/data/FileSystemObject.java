@@ -3,7 +3,7 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess"})
 @Entity
 @Table(name="file_system_object")
 @Inheritance(strategy = InheritanceType.JOINED)

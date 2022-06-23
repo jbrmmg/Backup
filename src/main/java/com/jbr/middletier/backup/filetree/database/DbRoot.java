@@ -8,7 +8,7 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 
 public class DbRoot extends RootFileTreeNode {
-    private Source databaseSource;
+    private final Source databaseSource;
 
     public DbRoot(Source databaseSource, FileRepository fileRepository, DirectoryRepository directoryRepository) {
         this.databaseSource = databaseSource;

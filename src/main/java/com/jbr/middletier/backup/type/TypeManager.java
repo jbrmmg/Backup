@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
  * Created by jason on 11/02/17.
  */
 
-@SuppressWarnings("FieldCanBeLocal")
 @Component
 public class TypeManager {
 

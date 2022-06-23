@@ -11,6 +11,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertNotNull;
@@ -19,6 +20,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class WebTester {
     private MockMvc mockMvc;
+    @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
     @Autowired
@@ -52,7 +54,7 @@ public class WebTester {
     public MediaType getContentType() {
         return new MediaType(MediaType.APPLICATION_JSON.getType(),
                 MediaType.APPLICATION_JSON.getSubtype(),
-                Charset.forName("utf8"));
+                Charset.forName(StandardCharsets.UTF_8.toString()));
     }
 
     public MockMvc getMockMvc() {

@@ -15,10 +15,6 @@ public class DbCompareNode  extends FileTreeNode {
     private final DbNode source;
     private final DbNode destination;
 
-    private SubActionType getSubActionNone() {
-        return SubActionType.NONE;
-    }
-
     private SubActionType getSubActionCopy(DbNode source, DbNode destination) {
         // For copy there must be a source.
         if(source instanceof DbFile) {
@@ -52,33 +48,21 @@ public class DbCompareNode  extends FileTreeNode {
         return SubActionType.NONE;
     }
 
-    private SubActionType getSubActionRemove() {
-        return SubActionType.NONE;
-    }
-
     private SubActionType getSubActionRecreateAsFile(DbNode source, DbNode destination) {
         return getSubActionCopy(source, destination);
-    }
-
-    private SubActionType getSubActionRecreateAsDirectory() {
-        return SubActionType.NONE;
     }
 
     private SubActionType getSubAction(ActionType action, DbNode source, DbNode destination) {
         switch(action) {
             case COPY:
                 return getSubActionCopy(source,destination);
-            case REMOVE:
-                return getSubActionRemove();
             case RECREATE_AS_FILE:
                 return getSubActionRecreateAsFile(source,destination);
-            case RECREATE_AS_DIRECTORY:
-                return getSubActionRecreateAsDirectory();
             default:
                 // Nothing further, continue.
         }
 
-        return getSubActionNone();
+        return SubActionType.NONE;
     }
 
     private ActionType getAction(DbNode source, DbNode destination) {

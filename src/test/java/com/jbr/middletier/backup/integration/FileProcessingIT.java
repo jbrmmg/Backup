@@ -82,6 +82,7 @@ public class FileProcessingIT extends FileTester {
             try {
                 childAdded(nullNode);
                 Assert.fail();
+                return false;
             } catch (IllegalStateException e) {
                 Assert.assertEquals("Database Directory children must be Database Directory or File.", e.getMessage());
             }

@@ -5,11 +5,11 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class FileInfoExtra {
-    private FileInfo file;
+    private final FileInfo file;
     private List<FileInfo> backups;
 
     public FileInfoExtra(FileInfo file) {
-        // TODO - this should crate FileInfoDTO as its returned externally.
+        // TODO - this should create FileInfoDTO as its returned externally.
         this.file = file;
         this.backups = new ArrayList<>();
     }

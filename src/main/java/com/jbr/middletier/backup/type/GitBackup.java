@@ -60,7 +60,7 @@ public class GitBackup extends FileBackup {
         File destination = new File(newDirectoryPath.toString());
         FileUtils.copyDirectory(source, destination, true);
 
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath.toString(), listOfFile.getName()));
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath, listOfFile.getName()));
     }
 
     @Override

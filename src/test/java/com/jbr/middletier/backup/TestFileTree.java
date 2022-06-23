@@ -67,6 +67,7 @@ public class TestFileTree {
             try {
                 nullNode.addChild(null);
                 Assert.fail();
+                return false;
             } catch (IllegalStateException e) {
                 Assert.assertEquals("Null node - cannot add children", e.getMessage());
             }

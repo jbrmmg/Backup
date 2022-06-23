@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.integration;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
