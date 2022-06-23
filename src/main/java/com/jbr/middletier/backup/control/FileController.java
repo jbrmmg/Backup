@@ -42,7 +42,6 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager) {
-        // TODO - test more of this.
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -149,7 +148,6 @@ public class FileController {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
 
         if(!file.isPresent()) {
-            // TODO - test this exception
             throw new InvalidFileIdException(id);
         }
 
@@ -158,9 +156,6 @@ public class FileController {
 
         // Are there backups of this file?
         Iterable<FileSystemObject> sameName = fileSystemObjectManager.findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
-
-        // Must be the same size and md5 if present.
-        List<FileInfo> backups = new ArrayList<>();
 
         for(FileSystemObject nextSameName: sameName) {
             if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo) ) {
@@ -188,7 +183,6 @@ public class FileController {
         // Is this an image file
         FileInfo loadedFile = (FileInfo)file.get();
         if(loadedFile.getClassification() == null || !loadedFile.getClassification().getIsImage()) {
-            // TODO - test this exception.
             throw new InvalidMediaTypeException("image");
         }
 

@@ -420,6 +420,21 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].displayName", is("Photo")))
                 .andExpect(jsonPath("$[1].displayName", is("Documents")));
 
+        // Request another level
+        int directoryId = -1;
+        for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(this.source.getIdAndType().getId())) {
+            if(nextDirectory.getName().equals("Documents")) {
+                directoryId = nextDirectory.getIdAndType().getId();
+            }
+        }
+        Assert.assertNotEquals(-1,directoryId);
+        hierarchyResponse.setId(directoryId);
+        getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+                        .content(this.json(hierarchyResponse))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(7)));
+
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
                         .content(this.json("Testing"))
@@ -822,9 +837,14 @@ public class SyncApiIT extends FileTester {
 
     @SuppressWarnings("ConstantConditions")
     @Test
-    @Ignore
     @Order(6)
-    public void testActionApi() {
+    public void testActionApi() throws Exception {
+        // Need a file for the actions
+        FileInfo file = new FileInfo();
+        file.clearRemoved();
+        file.setName("Testing.txt");
+        fileRepository.save(file);
+
         // Setup some actions.
         ActionConfirm actionConfirm1 = new ActionConfirm();
         actionConfirm1.setAction(ActionConfirmType.AC_DELETE);
@@ -832,6 +852,7 @@ public class SyncApiIT extends FileTester {
         actionConfirm1.setFlags("C");
         actionConfirm1.setParameterRequired(true);
         actionConfirm1.setParameter("Blah");
+        actionConfirm1.setFileInfo(file);
 
         actionConfirmRepository.save(actionConfirm1);
 
@@ -841,7 +862,26 @@ public class SyncApiIT extends FileTester {
         actionConfirm2.setFlags("F");
         actionConfirm2.setParameterRequired(true);
         actionConfirm2.setParameter("Blah");
+        actionConfirm2.setFileInfo(file);
 
-        actionConfirmRepository.save(actionConfirm1);
+        actionConfirmRepository.save(actionConfirm2);
+
+        // Get the database files
+        getMockMvc().perform(get("/jbr/int/backup/actions")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].fileName", is("Testing.txt")))
+                .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_DELETE.toString())));
+
+        // Get the database files
+        getMockMvc().perform(get("/jbr/int/backup/confirmed-actions")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].fileName", is("Testing.txt")))
+                .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_IMPORT.toString())));
     }
 }
