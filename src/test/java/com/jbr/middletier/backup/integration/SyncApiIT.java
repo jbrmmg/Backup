@@ -31,6 +31,7 @@ import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -182,6 +183,7 @@ public class SyncApiIT extends FileTester {
     public void cleanUpTest() {
         // Remove the sources, files & directories.
         synchronizeRepository.deleteAll();
+        actionConfirmRepository.deleteAll();
         fileRepository.deleteAll();
         ignoreFileRepository.deleteAll();
         importFileRepository.deleteAll();
@@ -769,7 +771,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(14)))
                 .andExpect(jsonPath("$[0].filename", is("Backup.dxf~")))
                 .andExpect(jsonPath("$[0].type", is(FileSystemObjectType.FSO_FILE.toString())))
-                .andExpect(jsonPath("$[0].date", is("1998-04-10T10:43:00.000+00:00")))
+                .andExpect(jsonPath("$[0].date", startsWith("1998-04-10")))
                 .andExpect(jsonPath("$[0].size", is(12)))
                 .andExpect(jsonPath("$[0].md5.set", is(false)))
                 .andExpect(jsonPath("$[0].parentType", is(FileSystemObjectType.FSO_DIRECTORY.toString())))
@@ -808,7 +810,7 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("filename", is("ills.ods")));
+                .andExpect(jsonPath("fileName", is("Bills.ods")));
 
         String error = getMockMvc().perform(delete("/jbr/int/backup/file?id=" + missingId)
                         .content(this.json("testing"))
@@ -816,5 +818,30 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException().getMessage();
         Assert.assertEquals("File with id ("+missingId+") not found.", error);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Ignore
+    @Order(6)
+    public void testActionApi() {
+        // Setup some actions.
+        ActionConfirm actionConfirm1 = new ActionConfirm();
+        actionConfirm1.setAction(ActionConfirmType.AC_DELETE);
+        actionConfirm1.setConfirmed(false);
+        actionConfirm1.setFlags("C");
+        actionConfirm1.setParameterRequired(true);
+        actionConfirm1.setParameter("Blah");
+
+        actionConfirmRepository.save(actionConfirm1);
+
+        ActionConfirm actionConfirm2 = new ActionConfirm();
+        actionConfirm2.setAction(ActionConfirmType.AC_IMPORT);
+        actionConfirm2.setConfirmed(true);
+        actionConfirm2.setFlags("F");
+        actionConfirm2.setParameterRequired(true);
+        actionConfirm2.setParameter("Blah");
+
+        actionConfirmRepository.save(actionConfirm1);
     }
 }
