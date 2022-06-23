@@ -49,6 +49,7 @@ public class SynchronizeManager {
     }
 
     private void equalizeDate(DbCompareNode node) throws MissingFileSystemObject {
+        // TODO - test this method
         FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
         LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate().getTime(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
@@ -103,6 +104,7 @@ public class SynchronizeManager {
     }
 
     private void deleteFile(DbCompareNode node) throws MissingFileSystemObject {
+        // TODO - test this method
         if(!(node.getDestination() instanceof DbFile)) {
             LOG.warn("Delete file called, but not a file");
             return;
@@ -116,6 +118,7 @@ public class SynchronizeManager {
     }
 
     private void deleteDirectory(DbCompareNode node) throws MissingFileSystemObject {
+        // TODO - test this method.
         if(!(node.getDestination() instanceof DbDirectory)) {
             LOG.warn("Delete directory called, but not a directory");
             return;

@@ -37,6 +37,7 @@ abstract class FileProcessor {
                   ActionManager actionManager,
                   AssociatedFileDataManager associatedFileDataManager,
                   FileSystemObjectManager fileSystemObjectManager) {
+        // TODO - can more of this be tested?
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.backupManager = backupManager;
         this.actionManager = actionManager;
@@ -148,6 +149,7 @@ abstract class FileProcessor {
 
     private RwNode getRwNode(RwDbCompareNode node) throws FileProcessException {
         if(node.getRealWorldNode() == null) {
+            // TODO - test this exception
             throw new FileProcessException("Cannot add or update directory with no real world object.");
         }
 

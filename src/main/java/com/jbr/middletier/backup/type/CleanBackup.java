@@ -46,6 +46,7 @@ public class CleanBackup implements PerformBackup {
                 return true;
             }
         } catch ( ParseException ex ) {
+            // TODO - can this be tested?
             LOG.warn(String.format("Failed to convert directory name %s to a date",directory));
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory " + ex);
         }
@@ -60,6 +61,7 @@ public class CleanBackup implements PerformBackup {
             LOG.info("Deleted {}",directory);
             backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("Deleted %s",directory));
         } catch ( IOException ex ) {
+            // TODO - can this be tested?
             LOG.warn(String.format("Failed to deleted %s",directory));
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"delete directory " + ex);
         }
@@ -72,6 +74,7 @@ public class CleanBackup implements PerformBackup {
         // Remove any backup directories older than x days
         File folder = new File(applicationProperties.getDirectory().getName());
         if(!folder.exists()) {
+            // TODO - test this
             backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Backup directory does not exist.");
             throw new IllegalStateException("Backup directory does not exist.");
         }

@@ -23,6 +23,8 @@ public class GitBackup extends FileBackup {
 
     private static final String PATH_FILE_FORMAT = "%s/%s";
 
+    // TODO - increase testing on this
+
     private Path ensureBackupDirectoryExists(String todaysDirectory, String name) throws IOException {
         Path destinationPath = Paths.get(String.format(PATH_FILE_FORMAT, todaysDirectory, name));
         if (Files.notExists(destinationPath)) {

@@ -154,6 +154,7 @@ public class AssociatedFileDataManager {
     }
 
     public Source internalFindSourceById(Integer id) throws InvalidSourceIdException {
+        // TODO - test not present (particularly the exception).
         Optional<Source> existing = sourceRepository.findById(id);
         if(!existing.isPresent()) {
             throw new InvalidSourceIdException(id);
@@ -171,6 +172,7 @@ public class AssociatedFileDataManager {
     }
 
     public void createSource(SourceDTO newSource) throws SourceAlreadyExistsException {
+        // TODO - test this path (including exception)
         if(newSource.getId() != null) {
             throw new SourceAlreadyExistsException(newSource.getId());
         }
@@ -200,6 +202,7 @@ public class AssociatedFileDataManager {
             source.setStatus(status);
             sourceRepository.save(source);
         } catch(Exception ex) {
+            // TODO - can this be tested?
             LOG.warn("Failed to set source status. (ignored the error)",ex);
         }
     }
@@ -229,6 +232,7 @@ public class AssociatedFileDataManager {
     public void createSynchronize(SynchronizeDTO newSynchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(newSynchronize.getId());
         if(existing.isPresent()) {
+            // TODO - test this
             throw new SynchronizeAlreadyExistsException(newSynchronize.getId());
         }
 
@@ -246,6 +250,7 @@ public class AssociatedFileDataManager {
     public void updateSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
+            // TODO - test this
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 
@@ -261,6 +266,7 @@ public class AssociatedFileDataManager {
     public void deleteSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
+            // TODO - test this.
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 

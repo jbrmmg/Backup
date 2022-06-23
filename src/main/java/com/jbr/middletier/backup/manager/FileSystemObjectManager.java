@@ -28,6 +28,7 @@ public class FileSystemObjectManager {
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
                                    ImportFileRepository importFileRepository) {
+        // TODO - when other testing update, review that all of this is necessary.
         this.fileRepository = fileRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
@@ -47,6 +48,7 @@ public class FileSystemObjectManager {
 
     private Optional<FileSystemObject> processFindResult(Optional<FileSystemObject> read, FileSystemObjectId id, boolean failIfMissing) throws MissingFileSystemObject {
         if(!read.isPresent() && failIfMissing) {
+            // TODO - test this
             throw new MissingFileSystemObject("Not Found", id);
         }
 

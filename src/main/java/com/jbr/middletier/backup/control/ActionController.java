@@ -29,6 +29,7 @@ public class ActionController {
     public ActionController(IgnoreFileRepository ignoreFileRepository,
                             ActionManager actionManager,
                             AssociatedFileDataManager associatedFileDataManager) {
+        // TODO - test more of this.
         this.ignoreFileRepository = ignoreFileRepository;
         this.actionManager = actionManager;
         this.summary = Summary.getInstance(associatedFileDataManager);

@@ -51,6 +51,7 @@ public class ActionManager {
     }
 
     public List<ActionConfirmDTO> externalFindByConfirmed(boolean confirmed) {
+        // TODO - test this method.
         List<ActionConfirmDTO> result = new ArrayList<>();
 
         this.actionConfirmRepository.findByConfirmed(confirmed).forEach(action -> result.add(new ActionConfirmDTO(action)));
@@ -59,6 +60,7 @@ public class ActionManager {
     }
 
     public ActionConfirmDTO confirmAction(ConfirmActionRequest request) {
+        // TODO - test this method (particularly the exception).
         // Is this a valid action?
         Optional<ActionConfirm> existingAction = actionConfirmRepository.findById(request.getId());
 
@@ -86,6 +88,7 @@ public class ActionManager {
         actionConfirm.setAction(type);
         actionConfirm.setConfirmed(false);
         switch(type) {
+            // TODO - test this path
             case AC_DELETE_DUPLICATE:
             case AC_DELETE:
                 actionConfirm.setParameterRequired(false);
@@ -103,6 +106,7 @@ public class ActionManager {
     }
 
     public ActionConfirmDTO createFileDeleteAction(FileInfo file) {
+        // TODO - test this
         return createAction(ActionConfirmType.AC_DELETE, file, null);
     }
 
@@ -136,6 +140,7 @@ public class ActionManager {
     }
 
     boolean checkAction(FileInfo fileInfo, ActionConfirmType action) {
+        // TODO - test this method
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action.getTypeName());
 
         if(!confirmedActions.isEmpty()) {
@@ -165,6 +170,7 @@ public class ActionManager {
     }
 
     void deleteFileIfConfirmed(FileInfo fileInfo) throws MissingFileSystemObject {
+        // TODO - test this method
         File file = fileSystemObjectManager.getFile(fileInfo);
 
         if(file.exists() && checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
@@ -183,6 +189,7 @@ public class ActionManager {
     }
 
     public void sendActionEmail() {
+        // TODO - test more of this method
         try {
             // Only send the email if its enabled.
             if (Boolean.FALSE.equals(applicationProperties.getEmail().getEnabled())) {

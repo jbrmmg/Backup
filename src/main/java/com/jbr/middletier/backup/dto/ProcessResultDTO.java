@@ -37,6 +37,7 @@ public class ProcessResultDTO {
     }
 
     protected int getCount(String name) {
+        // TODO - test more paths
         if(counts.containsKey(name)) {
             return counts.get(name).get();
         }

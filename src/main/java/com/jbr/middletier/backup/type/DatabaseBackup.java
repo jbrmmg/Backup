@@ -25,6 +25,7 @@ public class DatabaseBackup implements PerformBackup {
 
     @Autowired
     public DatabaseBackup(ApplicationProperties applicationProperties) {
+        // TODO - perform an integration test?
         this.applicationProperties = applicationProperties;
     }
 

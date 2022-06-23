@@ -47,6 +47,7 @@ public class FileBackup implements PerformBackup {
         // Does the destination file exist?
         File destinationFile = new File(String.format(PATH_FILE_FORMAT,destinationDirectory,artifactName));
         if(destinationFile.exists()) {
+            // TODO - test this path
             LOG.info("File exists - {}/{}",destinationDirectory,artifactName);
 
             // Is it the same size?

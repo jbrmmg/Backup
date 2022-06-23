@@ -21,6 +21,7 @@ public class DriveManager extends FileProcessor {
     }
 
     private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {
+        // TODO - test more of this method
         if(nextSource.getStatus() != null && SourceStatusType.SST_GATHERING.equals(nextSource.getStatus())) {
             return;
         }

@@ -33,6 +33,8 @@ public class Summary {
             try {
                 instance.sources = new ArrayList<>();
 
+                // TODO - re-create this.
+
                 // Initialise the summary object.
                 for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
                     SourceDTO nextSourceDTO = nextSource.getSourceDTO();
