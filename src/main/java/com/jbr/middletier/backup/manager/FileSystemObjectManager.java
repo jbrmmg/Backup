@@ -142,13 +142,9 @@ public class FileSystemObjectManager {
     public Iterable<FileSystemObject> findFileSystemObjectByName(String name, FileSystemObjectType type) {
         List<FileSystemObject> empty = new ArrayList<>();
 
-        //noinspection SwitchStatementWithTooFewBranches
-        switch(type) {
-            case FSO_FILE:
-                return copyOfList(fileRepository.findByName(name));
-
-            default:
-                // Nothing else is supported yet.
+        // Only supported for files.
+        if(FileSystemObjectType.FSO_FILE.equals(type)) {
+            return copyOfList(fileRepository.findByName(name));
         }
 
         return empty;

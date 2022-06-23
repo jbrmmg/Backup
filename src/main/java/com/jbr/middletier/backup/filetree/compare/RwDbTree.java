@@ -2,13 +2,10 @@ package com.jbr.middletier.backup.filetree.compare;
 
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
-import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class RwDbTree extends CompareRoot {

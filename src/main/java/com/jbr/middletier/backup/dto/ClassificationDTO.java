@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.ClassificationActionType;
-import com.jbr.middletier.backup.data.FileInfo;
 
 @SuppressWarnings("unused")
 public class ClassificationDTO {

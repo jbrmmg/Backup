@@ -115,7 +115,7 @@ abstract class FileProcessor {
 
     private void processDeletes(RootFileTreeNode details, List<ActionConfirm> deletes, GatherDataDTO gatherData) {
         // If there are no deletes then there is nothing to do.
-        if(deletes == null || deletes.size() == 0) {
+        if(deletes == null || deletes.isEmpty()) {
             return;
         }
 

@@ -57,7 +57,7 @@ public class FileController {
     }
 
     @PostMapping(path="/gather")
-    public @ResponseBody List<GatherDataDTO> gather(@RequestBody String reason) throws IOException {
+    public @ResponseBody List<GatherDataDTO> gather(@RequestBody String reason) {
         LOG.info("Process drive - {}", reason);
 
         return driveManager.gather();

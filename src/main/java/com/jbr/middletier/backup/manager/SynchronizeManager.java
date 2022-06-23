@@ -30,7 +30,7 @@ public class SynchronizeManager {
     private final BackupManager backupManager;
     private final ActionManager actionManager;
     private final FileSystemObjectManager fileSystemObjectManager;
-    private final static String ERROR_FORMAT = "ile should be deleted - %s %s";
+    private static final String ERROR_FORMAT = "ile should be deleted - %s %s";
 
     @Autowired
     public SynchronizeManager(AssociatedFileDataManager associatedFileDataManager,

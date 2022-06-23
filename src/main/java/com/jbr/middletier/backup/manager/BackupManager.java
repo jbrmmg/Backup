@@ -29,7 +29,7 @@ public class BackupManager {
 
     private final ApplicationProperties applicationProperties;
     private final RestTemplateBuilder restTemplateBuilder;
-    private final Map<webLogLevel, List<String>> messageCache;
+    private final EnumMap<webLogLevel, List<String>> messageCache;
 
     @PostConstruct
     public void initialise() {
@@ -40,7 +40,7 @@ public class BackupManager {
                          RestTemplateBuilder restTemplateBuilder) {
         this.applicationProperties = applicationProperties;
         this.restTemplateBuilder = restTemplateBuilder;
-        this.messageCache = new HashMap<>();
+        this.messageCache = new EnumMap<>(webLogLevel.class);
     }
 
     public String todaysDirectory() {
