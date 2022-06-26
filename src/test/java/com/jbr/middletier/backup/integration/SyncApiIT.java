@@ -1200,4 +1200,235 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted", is(0)));
     }
+
+    @Test
+    @Order(18)
+    public void testSyncWithFilesRemoved() throws Exception {
+        // Check what happens when a synced directory has a file removed
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test9");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Gather the files.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
+
+        LOG.info("Synchronize the data.");
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesCopied", is(4)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(4)));
+
+        File fileToDelete = new File(sourceDirectory + "/Documents/Bills.ods");
+        Files.deleteIfExists(fileToDelete.toPath());
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+
+        // Find the action and confirm it.
+        List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
+        int count = 0;
+        int actionId = -1;
+        for(ActionConfirmDTO next : actions) {
+            count++;
+            actionId = next.getId();
+        }
+        Assert.assertEquals(1, count);
+        Assert.assertNotEquals(-1, actionId);
+
+        // Confirm the action.
+        ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
+        confirmActionRequest.setId(actionId);
+        confirmActionRequest.setParameter("");
+        confirmActionRequest.setConfirm(true);
+
+        getMockMvc().perform(post("/jbr/int/backup/actions")
+                        .content(this.json(confirmActionRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(1)));
+    }
+
+    @Test
+    @Order(19)
+    @Ignore
+    public void testSyncWithDirectoryRemoved() throws Exception {
+        // Check what happens when a synced directory has a file removed
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test10");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Gather the files.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(4)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
+
+        LOG.info("Synchronize the data.");
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesCopied", is(4)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(4)));
+
+        File fileToDelete = new File(sourceDirectory + "/Documents/Sub/Bills.ods");
+        Files.deleteIfExists(fileToDelete.toPath());
+        File directoryToDelete = new File(sourceDirectory + "/Documents/Sub");
+        Files.deleteIfExists(directoryToDelete.toPath());
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(1)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+
+        // Find the action and confirm it.
+        List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
+        int count = 0;
+        int actionId = -1;
+        for(ActionConfirmDTO next : actions) {
+            count++;
+            actionId = next.getId();
+        }
+        Assert.assertEquals(1, count);
+        Assert.assertNotEquals(-1, actionId);
+
+        // Confirm the action.
+        ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
+        confirmActionRequest.setId(actionId);
+        confirmActionRequest.setParameter("");
+        confirmActionRequest.setConfirm(true);
+
+        getMockMvc().perform(post("/jbr/int/backup/actions")
+                        .content(this.json(confirmActionRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(1)));
+    }
+
+    @Test
+    @Order(20)
+    @Ignore
+    public void testSyncFileToDirectory() {
+        Assert.fail();
+    }
+
+    @Test
+    @Order(21)
+    @Ignore
+    public void testSyncDirectoryToFile() {
+        Assert.fail();
+    }
 }

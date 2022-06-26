@@ -135,7 +135,6 @@ public class ActionManager {
     }
 
     boolean checkAction(FileInfo fileInfo, ActionConfirmType action) {
-        // TODO - test this method
         List<ActionConfirm> confirmedActions = actionConfirmRepository.findByFileInfoAndAction(fileInfo,action.getTypeName());
 
         if(!confirmedActions.isEmpty()) {

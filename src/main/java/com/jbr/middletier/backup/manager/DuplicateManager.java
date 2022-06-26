@@ -31,7 +31,6 @@ public class DuplicateManager {
     }
 
     private void processDuplicate(FileInfo potentialDuplicate, DuplicateDataDTO data) {
-        // TODO - test this method.
         if(this.actionManager.checkAction(potentialDuplicate, ActionConfirmType.AC_DELETE_DUPLICATE)) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
