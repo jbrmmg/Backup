@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.SyncDataDTO;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.DbTree;
 import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
@@ -48,7 +47,7 @@ public class SynchronizeManager {
         backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("File warning - %s/%s", node.getSource().getFSO().getName(), node.getSource().getFSO().getIdAndType()));
     }
 
-    private void equalizeDate(DbCompareNode node) throws MissingFileSystemObject {
+    private void equalizeDate(DbCompareNode node) {
         // TODO - test this method
         FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
@@ -84,7 +83,7 @@ public class SynchronizeManager {
         }
     }
 
-    private void removeSource(DbCompareNode node) throws MissingFileSystemObject {
+    private void removeSource(DbCompareNode node) {
         if(!(node.getSource() instanceof DbFile)) {
             LOG.warn("Remove Source called, but not a file");
             return;
@@ -103,7 +102,7 @@ public class SynchronizeManager {
         }
     }
 
-    private void deleteFile(DbCompareNode node) throws MissingFileSystemObject {
+    private void deleteFile(DbCompareNode node) {
         // TODO - test this method
         if(!(node.getDestination() instanceof DbFile)) {
             LOG.warn("Delete file called, but not a file");
@@ -117,7 +116,7 @@ public class SynchronizeManager {
         actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO());
     }
 
-    private void deleteDirectory(DbCompareNode node) throws MissingFileSystemObject {
+    private void deleteDirectory(DbCompareNode node) {
         // TODO - test this method.
         if(!(node.getDestination() instanceof DbDirectory)) {
             LOG.warn("Delete directory called, but not a directory");
@@ -131,7 +130,7 @@ public class SynchronizeManager {
         actionManager.deleteFileIfConfirmed((FileInfo)dbDirectory.getFSO());
     }
 
-    private void copyFile(DbCompareNode node, Source destination) throws MissingFileSystemObject {
+    private void copyFile(DbCompareNode node, Source destination) {
         // Action depends on the sub action.
         switch(node.getSubActionType()) {
             case NONE:
@@ -151,7 +150,7 @@ public class SynchronizeManager {
         }
     }
 
-    private void createDestinationDirectory(DbCompareNode node, Source destination) throws MissingFileSystemObject, IOException {
+    private void createDestinationDirectory(DbCompareNode node, Source destination) throws IOException {
         // Create the directory at the destination.
         if(!(node.getSource() instanceof DbDirectory)) {
             LOG.warn("Delete directory called, but not a directory");

@@ -218,7 +218,7 @@ public class FsoIT   {
 
     @Test
     @Order(3)
-    public void directory() throws Exception {
+    public void directory() {
         LOG.info("Test the basic directory object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -255,11 +255,11 @@ public class FsoIT   {
         Assert.assertEquals("test directory", directoryInfoList.get(0).getName());
         Assert.assertEquals("test 2", directoryInfoList.get(1).getName());
 
-        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId(), false);
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId());
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof DirectoryInfo);
 
-        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId(), false);
+        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId());
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof Source);
 

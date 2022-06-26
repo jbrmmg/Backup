@@ -4,7 +4,6 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.manager.*;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
@@ -144,8 +143,8 @@ public class FileController {
     }
 
     @GetMapping(path="/file")
-    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws InvalidFileIdException, MissingFileSystemObject {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
+    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
@@ -173,8 +172,8 @@ public class FileController {
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException, MissingFileSystemObject {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
+    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
@@ -193,8 +192,8 @@ public class FileController {
     }
 
     @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException, MissingFileSystemObject {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
+    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);
@@ -213,8 +212,8 @@ public class FileController {
     }
 
     @DeleteMapping(path="/file")
-    public @ResponseBody ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException, MissingFileSystemObject {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE), false);
+    public @ResponseBody ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(!file.isPresent()) {
             throw new InvalidFileIdException(id);

@@ -4,9 +4,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
-import com.jbr.middletier.backup.exception.FileProcessException;
 import com.jbr.middletier.backup.exception.ImportRequestException;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,11 +70,8 @@ public class ImportManager extends FileProcessor {
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
-        try {
-            updateDatabase(importSource, new ArrayList<>(), true, gatherData);
-        } catch (FileProcessException | MissingFileSystemObject e) {
-            gatherData.setProblems();
-        }
+        updateDatabase(importSource, new ArrayList<>(), true, gatherData);
+
         result.add(gatherData);
 
         return result;
@@ -153,7 +148,7 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
-    private FileTestResultType processExisting(ImportFile importFile, Path path, List<FileInfo> files) throws MissingFileSystemObject {
+    private FileTestResultType processExisting(ImportFile importFile, Path path, List<FileInfo> files) {
         List<FileInfo> existingFiles = files.stream()
                 .filter(file -> file.getName().equals(importFile.getName()))
                 .collect(Collectors.toList());
@@ -237,7 +232,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void processImport(ImportFile importFile, Source source, List<FileInfo> files) throws MissingFileSystemObject {
+    private void processImport(ImportFile importFile, Source source, List<FileInfo> files) {
         // If this file is completed then exit.
         if(importFile.getStatus().equals(ImportFileStatusType.IFS_COMPLETE)) {
             return;
@@ -331,22 +326,18 @@ public class ImportManager extends FileProcessor {
         result.add(resultItem);
 
         // Remove entries from import table if they are no longer present.
-        try {
-            for (ImportFile nextFile : importFileRepository.findAll()) {
-                // Does this file still exist?
-                File existingFile = fileSystemObjectManager.getFile(nextFile);
-                resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
+        for (ImportFile nextFile : importFileRepository.findAll()) {
+            // Does this file still exist?
+            File existingFile = fileSystemObjectManager.getFile(nextFile);
+            resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
 
-                if (!existingFile.exists()) {
-                    LOG.info("Remove this import file - {}", existingFile);
-                    importFileRepository.delete(nextFile);
-                    resultItem.increment(GatherDataDTO.GatherDataCountType.DELETES);
-                } else {
-                    LOG.info("Keeping {}", existingFile);
-                }
+            if (!existingFile.exists()) {
+                LOG.info("Remove this import file - {}", existingFile);
+                importFileRepository.delete(nextFile);
+                resultItem.increment(GatherDataDTO.GatherDataCountType.DELETES);
+            } else {
+                LOG.info("Keeping {}", existingFile);
             }
-        } catch(MissingFileSystemObject e) {
-            resultItem.setProblems();
         }
 
         return result;
@@ -354,7 +345,7 @@ public class ImportManager extends FileProcessor {
 
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
-    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) throws MissingFileSystemObject {
+    private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) {
         // TODO - can more methods be tested?
         // Check the size.
         long size = path.toFile().length();

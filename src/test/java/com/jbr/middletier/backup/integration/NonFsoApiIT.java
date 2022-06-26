@@ -122,6 +122,14 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
+        // Check can't create it again.
+        String error = getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+                        .content(this.json(newSync))
+                        .contentType(getContentType()))
+                .andExpect(status().isConflict())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Synchronize with id (1) already exists.", error);
+
         LOG.info("Get the synchronize that was created");
         getMockMvc().perform(get("/jbr/ext/backup/synchronize")
                         .contentType(getContentType()))
@@ -154,7 +162,7 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        String error = getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+        error = getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())

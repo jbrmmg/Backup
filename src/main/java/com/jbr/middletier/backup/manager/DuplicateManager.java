@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.DuplicateDataDTO;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ public class DuplicateManager {
         this.actionManager = actionManager;
     }
 
-    private void processDuplicate(FileInfo potentialDuplicate, DuplicateDataDTO data) throws MissingFileSystemObject {
+    private void processDuplicate(FileInfo potentialDuplicate, DuplicateDataDTO data) {
         // TODO - test this method.
         if(this.actionManager.checkAction(potentialDuplicate, ActionConfirmType.AC_DELETE_DUPLICATE)) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
@@ -44,12 +43,13 @@ public class DuplicateManager {
                     data.increment(DuplicateDataDTO.DuplicateCountType.DELETED);
                 } catch (IOException e) {
                     LOG.warn("Failed to delete {}",fileToDelete);
+                    data.setProblems();
                 }
             }
         }
     }
 
-    private void checkDuplicateOfFile(Iterable<FileInfo> files, DuplicateDataDTO data) throws MissingFileSystemObject {
+    private void checkDuplicateOfFile(Iterable<FileInfo> files, DuplicateDataDTO data) {
         // If files have the same size and MD5 then they are potential duplicates.
         for(FileInfo nextFile: files) {
             for(FileInfo nextFile2: files) {
@@ -64,29 +64,25 @@ public class DuplicateManager {
     }
 
     private void checkDuplicatesOnSource(Source source, DuplicateDataDTO data) {
-        try {
-            List<DirectoryInfo> directories = new ArrayList<>();
-            List<FileInfo> files = new ArrayList<>();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
 
-            fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
+        fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
 
-            Map<String, Long> nameCount = files
-                    .stream()
-                    .collect(Collectors.groupingBy(FileInfo::getName, Collectors.counting()));
+        Map<String, Long> nameCount = files
+                .stream()
+                .collect(Collectors.groupingBy(FileInfo::getName, Collectors.counting()));
 
-            for (Map.Entry<String, Long> nextEntry : nameCount.entrySet()) {
-                if (nextEntry.getValue() > 1) {
-                    // Check this name for being a duplicate.
-                    checkDuplicateOfFile(files
-                            .stream()
-                            .filter(file -> file.getName().equals(nextEntry.getKey()))
-                            .collect(Collectors.toList()),
-                            data);
-                    data.increment(DuplicateDataDTO.DuplicateCountType.CHECKED);
-                }
+        for (Map.Entry<String, Long> nextEntry : nameCount.entrySet()) {
+            if (nextEntry.getValue() > 1) {
+                // Check this name for being a duplicate.
+                checkDuplicateOfFile(files
+                        .stream()
+                        .filter(file -> file.getName().equals(nextEntry.getKey()))
+                        .collect(Collectors.toList()),
+                        data);
+                data.increment(DuplicateDataDTO.DuplicateCountType.CHECKED);
             }
-        } catch (MissingFileSystemObject e) {
-            data.setProblems();
         }
     }
 

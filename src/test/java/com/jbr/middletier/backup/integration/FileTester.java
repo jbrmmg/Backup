@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.exception.ClassificationIdException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;

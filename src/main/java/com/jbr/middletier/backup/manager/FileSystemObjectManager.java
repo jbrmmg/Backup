@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,15 +43,6 @@ public class FileSystemObjectManager {
     @SuppressWarnings("unchecked")
     static <T> Iterable<T> copyOfList(Iterable<? extends T> list) {
         return (Iterable<T>) list;
-    }
-
-    private Optional<FileSystemObject> processFindResult(Optional<FileSystemObject> read, FileSystemObjectId id, boolean failIfMissing) throws MissingFileSystemObject {
-        if(!read.isPresent() && failIfMissing) {
-            // TODO - test this
-            throw new MissingFileSystemObject("Not Found", id);
-        }
-
-        return read;
     }
 
     public Iterable<FileSystemObject> findAllByType(FileSystemObjectType type) {
@@ -128,34 +118,30 @@ public class FileSystemObjectManager {
         directoryRepository.deleteAll();
     }
 
-    public Optional<FileSystemObject> findFileSystemObject(FileSystemObjectId id, boolean failIfMissing) throws MissingFileSystemObject {
+    public Optional<FileSystemObject> findFileSystemObject(FileSystemObjectId id) {
         Optional<FileSystemObject> result = Optional.empty();
 
         switch(id.getType()) {
             case FSO_IMPORT_SOURCE:
-                return processFindResult(copyOf(associatedFileDataManager.internalFindImportSourceByIdIfExists(id.getId())), id, failIfMissing);
+                return copyOf(associatedFileDataManager.internalFindImportSourceByIdIfExists(id.getId()));
 
             case FSO_DIRECTORY:
-                return processFindResult(copyOf(directoryRepository.findById(id.getId())), id, failIfMissing);
+                return copyOf(directoryRepository.findById(id.getId()));
 
             case FSO_FILE:
-                return processFindResult(copyOf(fileRepository.findById(id.getId())), id, failIfMissing);
+                return copyOf(fileRepository.findById(id.getId()));
 
             case FSO_IGNORE_FILE:
-                return processFindResult(copyOf(ignoreFileRepository.findById(id.getId())), id, failIfMissing);
+                return copyOf(ignoreFileRepository.findById(id.getId()));
 
             case FSO_IMPORT_FILE:
-                return processFindResult(copyOf(importFileRepository.findById(id.getId())), id, failIfMissing);
+                return copyOf(importFileRepository.findById(id.getId()));
 
             case FSO_SOURCE:
-                return processFindResult(copyOf(associatedFileDataManager.internalFindSourceByIdIfExists(id.getId())), id, failIfMissing);
+                return copyOf(associatedFileDataManager.internalFindSourceByIdIfExists(id.getId()));
 
             default:
                 // Nothing else is supported
-        }
-
-        if(failIfMissing) {
-            throw new MissingFileSystemObject("Unexpected Type", id);
         }
 
         return result;
@@ -172,12 +158,12 @@ public class FileSystemObjectManager {
         return empty;
     }
 
-    private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) throws MissingFileSystemObject {
+    private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) {
         if(fso.getParentId() == null) {
             return;
         }
 
-        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId(), true);
+        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId());
         if(!parent.isPresent())
             return;
 
@@ -222,7 +208,7 @@ public class FileSystemObjectManager {
         return new File(sb.toString());
     }
 
-    public File getFile(FileSystemObject fso) throws MissingFileSystemObject {
+    public File getFile(FileSystemObject fso) {
         List<FileSystemObject> fileNameParts = new ArrayList<>();
         fileNameParts.add(fso);
 
@@ -232,7 +218,7 @@ public class FileSystemObjectManager {
         return getFileNameFromParts(fileNameParts);
     }
 
-    public File getFileAtDestination(FileSystemObject fso, Source destination) throws MissingFileSystemObject {
+    public File getFileAtDestination(FileSystemObject fso, Source destination) {
         List<FileSystemObject> fileNameParts = new ArrayList<>();
         fileNameParts.add(fso);
 

@@ -35,7 +35,7 @@ public class TestHealth extends WebTester {
     public void TestFSOFailure() {
         LOG.info("Test FSO Failure");
         try {
-            FileSystemObjectType test = FileSystemObjectType.getFileSystemObjectType("BLAH");
+            FileSystemObjectType.getFileSystemObjectType("BLAH");
             Assert.fail();
         } catch (IllegalStateException e) {
             LOG.info("This is expected");

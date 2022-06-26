@@ -2,8 +2,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.exception.FileProcessException;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,16 +41,8 @@ public class DriveManager extends FileProcessor {
 
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
-            associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to gather " + e);
-            gatherData.setProblems();
-        } catch (FileProcessException e) {
-            associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to update database as part of gather " + e);
-            gatherData.setProblems();
-        } catch (MissingFileSystemObject e) {
-            associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Missing File execption in gather " + e);
+            associatedFileDataManager.updateSourceStatus(nextSource, SourceStatusType.SST_ERROR);
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR, "Failed to gather " + e);
             gatherData.setProblems();
         }
 

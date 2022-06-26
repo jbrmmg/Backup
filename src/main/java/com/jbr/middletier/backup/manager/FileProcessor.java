@@ -2,8 +2,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.exception.FileProcessException;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import com.jbr.middletier.backup.filetree.*;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
@@ -134,36 +132,36 @@ abstract class FileProcessor {
         }
     }
 
-    private void processFileRemoval(RwDbCompareNode node) throws MissingFileSystemObject {
+    private void processFileRemoval(RwDbCompareNode node) {
         // Delete this file from the database.
-        Optional<FileSystemObject> existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
+        Optional<FileSystemObject> existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
 
         existingFile.ifPresent(fileSystemObjectManager::delete);
     }
 
-    private void processDirectoryRemoval(RwDbCompareNode node) throws MissingFileSystemObject {
-        Optional<FileSystemObject> existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
+    private void processDirectoryRemoval(RwDbCompareNode node) {
+        Optional<FileSystemObject> existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
 
         existingDirectory.ifPresent(fileSystemObjectManager::delete);
     }
 
-    private RwNode getRwNode(RwDbCompareNode node) throws FileProcessException {
+    private RwNode getRwNode(RwDbCompareNode node) {
         if(node.getRealWorldNode() == null) {
             // TODO - test this exception
-            throw new FileProcessException("Cannot add or update directory with no real world object.");
+            throw new NullPointerException("NPE - Cannot add or update directory with no real world object.");
         }
 
         return node.getRealWorldNode();
     }
 
-    private FileSystemObjectId getParentIt(RwDbCompareNode node) throws FileProcessException {
+    private FileSystemObjectId getParentIt(RwDbCompareNode node) {
         FileTreeNode parentNode = node.getParent();
         FileSystemObjectId parentId = null;
         if(parentNode instanceof RwDbCompareNode) {
             RwDbCompareNode rwDbParentNode = (RwDbCompareNode)parentNode;
 
             if(rwDbParentNode.getDatabaseObjectId() == null) {
-                throw new FileProcessException("Cannot add or update directory with no known parent.");
+                throw new NullPointerException("NPE: cannot add or update directory with no known parent.");
             }
 
             parentId = rwDbParentNode.getDatabaseObjectId();
@@ -174,17 +172,17 @@ abstract class FileProcessor {
         }
 
         if(parentId == null) {
-            throw new FileProcessException("Unable to determine the directory parent id.");
+            throw new NullPointerException("NPE: Unable to determine the directory parent id.");
         }
 
         return parentId;
     }
 
-    private void processDirectoryAddUpdate(RwDbCompareNode node) throws FileProcessException, MissingFileSystemObject {
+    private void processDirectoryAddUpdate(RwDbCompareNode node) {
         // If there is a database object then read it first.
         Optional<FileSystemObject> existingDirectory = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
-            existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
+            existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
         }
 
         if(!existingDirectory.isPresent()) {
@@ -206,11 +204,11 @@ abstract class FileProcessor {
         node.setDatabaseObjectId(directory);
     }
 
-    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) throws FileProcessException, MissingFileSystemObject {
+    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) {
         // If there is a database object then read it first.
         Optional<FileSystemObject> existingFile = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
-            existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId(), false);
+            existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
         }
 
         if(!existingFile.isPresent()) {
@@ -251,7 +249,7 @@ abstract class FileProcessor {
         node.setDatabaseObjectId(existingFile.get());
     }
 
-    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException, FileProcessException, MissingFileSystemObject {
+    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException {
         // Read the files structure from the real world.
         RwRoot realWorld = new RwRoot(source.getPath(), backupManager);
         realWorld.removeFilteredChildren(source.getFilter());
@@ -289,7 +287,8 @@ abstract class FileProcessor {
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
                     default:
-                        throw new FileProcessException("Invalid section name.");
+                        LOG.warn("Unexpected section type.");
+                        gatherData.setProblems();
                 }
             } else if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode)nextNode;

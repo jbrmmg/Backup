@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.data.MD5;
 
 import java.util.Date;
 
+@SuppressWarnings("unused")
 public class FileInfoDTO {
     private final String filename;
     private final FileSystemObjectType type;

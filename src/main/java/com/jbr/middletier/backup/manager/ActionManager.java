@@ -5,7 +5,6 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
-import com.jbr.middletier.backup.exception.MissingFileSystemObject;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,7 +164,7 @@ public class ActionManager {
         return false;
     }
 
-    void deleteFileIfConfirmed(FileInfo fileInfo) throws MissingFileSystemObject {
+    void deleteFileIfConfirmed(FileInfo fileInfo) {
         // TODO - test this method
         File file = fileSystemObjectManager.getFile(fileInfo);
 
