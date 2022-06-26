@@ -1,21 +1,28 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
+import com.jbr.middletier.backup.manager.BackupManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.web.client.RestTemplate;
+import org.testcontainers.shaded.org.hamcrest.CoreMatchers;
 
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -197,5 +204,54 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("",hierarchyResponse.getDisplayName());
         Assert.assertEquals("/",hierarchyResponse.getPath());
         Assert.assertTrue(hierarchyResponse.getDirectory());
+    }
+
+    @Test
+    public void WebLogTest() {
+        ApplicationProperties testProperties = mock(ApplicationProperties.class);
+        when(testProperties.getWebLogUrl()).thenReturn("http://test");
+
+        Answer<Boolean> infoCheck = invocationOnMock -> {
+            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
+            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"INFO\""));
+            return false;
+        };
+        RestTemplate testRestTemplate = mock(RestTemplate.class, infoCheck);
+
+        RestTemplateBuilder testRestTemplateBuilder = mock(RestTemplateBuilder.class);
+        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
+
+        BackupManager testBackup = new BackupManager(testProperties,testRestTemplateBuilder);
+        testBackup.postWebLog(BackupManager.webLogLevel.INFO, "Test Info");
+
+        Answer<Boolean> debugCheck = invocationOnMock -> {
+            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
+            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"DEBUG\""));
+            return false;
+        };
+        testRestTemplate = mock(RestTemplate.class, debugCheck);
+        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
+
+        testBackup.postWebLog(BackupManager.webLogLevel.DEBUG, "Test Info");
+
+        Answer<Boolean> warnCheck = invocationOnMock -> {
+            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
+            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"WARN\""));
+            return false;
+        };
+        testRestTemplate = mock(RestTemplate.class, warnCheck);
+        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
+
+        testBackup.postWebLog(BackupManager.webLogLevel.WARN, "Test Info");
+
+        Answer<Boolean> errorCheck = invocationOnMock -> {
+            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
+            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"ERROR\""));
+            return false;
+        };
+        testRestTemplate = mock(RestTemplate.class, errorCheck);
+        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
+
+        testBackup.postWebLog(BackupManager.webLogLevel.ERROR, "Test Info");
     }
 }
