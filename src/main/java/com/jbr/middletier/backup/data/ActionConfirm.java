@@ -70,7 +70,7 @@ public class ActionConfirm {
                 "," +
                 this.confirmed.toString() +
                 "," +
-                this.parameterRequired.toString() +
+                (this.parameterRequired == null ? "" : this.parameterRequired.toString()) +
                 "," +
                 this.parameter +
                 "," +

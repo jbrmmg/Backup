@@ -6,10 +6,7 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
@@ -121,6 +118,7 @@ public class EmailApiIT extends WebTester {
             action.setAction(ActionConfirmType.AC_DELETE);
             action.setConfirmed(false);
             action.setFileInfo(file);
+            Assert.assertTrue(action.toString().startsWith("Action Confirmed [null]"));
             actionConfirmRepository.save(action);
 
             getMockMvc().perform(post("/jbr/int/backup/actionemail")
