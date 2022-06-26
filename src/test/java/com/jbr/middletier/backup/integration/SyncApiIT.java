@@ -2,11 +2,9 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.dataaccess.*;
-import com.jbr.middletier.backup.dto.ClassificationDTO;
-import com.jbr.middletier.backup.dto.SourceDTO;
-import com.jbr.middletier.backup.exception.InvalidSourceIdException;
-import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
+import com.jbr.middletier.backup.dto.*;
+import com.jbr.middletier.backup.exception.*;
+import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
@@ -74,36 +72,6 @@ public class SyncApiIT extends FileTester {
         }
     }
 
-    //TODO refactor to remove the need for file & directory repository etc and use the managers.
-    @Autowired
-    SourceRepository sourceRepository;
-
-    @Autowired
-    ImportSourceRepository importSourceRepository;
-
-    @Autowired
-    SynchronizeRepository synchronizeRepository;
-
-    @Autowired
-    LocationRepository locationRepository;
-
-    @Autowired
-    DirectoryRepository directoryRepository;
-
-    @Autowired
-    FileRepository fileRepository;
-
-    @Autowired
-    IgnoreFileRepository ignoreFileRepository;
-
-    @Autowired
-    ImportFileRepository importFileRepository;
-
-    @Autowired
-    ClassificationRepository classificationRepository;
-
-    @Autowired
-    ActionConfirmRepository actionConfirmRepository;
 
     @Autowired
     BackupManager backupManager;
@@ -114,35 +82,37 @@ public class SyncApiIT extends FileTester {
     @Autowired
     AssociatedFileDataManager associatedFileDataManager;
 
+    @Autowired
+    ActionManager actionManager;
+
     private Source source;
     private Source destination;
     private Synchronize synchronize;
 
     @Before
-    public void setupClassification() throws IOException {
+    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, InvalidSourceIdException, SynchronizeAlreadyExistsException, ClassificationIdException {
         backupManager.clearMessageCache();
 
-        addClassification(classificationRepository,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
-        addClassification(classificationRepository,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, true, false, false);
-        addClassification(classificationRepository,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
-        addClassification(classificationRepository,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
-        addClassification(classificationRepository,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
+        addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
+        addClassification(associatedFileDataManager,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, true, false, false);
+        addClassification(associatedFileDataManager,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
+        addClassification(associatedFileDataManager,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
+        addClassification(associatedFileDataManager,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
 
         // Update JPG so it gets an MD5
-        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
+        for(Classification nextClassification : associatedFileDataManager.internalFindAllClassification()) {
             if(nextClassification.getRegex().contains("jpg")) {
                 ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setId(nextClassification.getId());
                 updateClassification.setIcon(nextClassification.getIcon());
                 updateClassification.setRegex(nextClassification.getRegex());
                 updateClassification.setAction(nextClassification.getAction());
                 updateClassification.setVideo(nextClassification.getIsVideo());
                 updateClassification.setOrder(1);
                 updateClassification.setImage(true);
-                updateClassification.setId(nextClassification.getId());
                 updateClassification.setUseMD5(true);
 
-                nextClassification.update(updateClassification);
-                classificationRepository.save(nextClassification);
+                associatedFileDataManager.updateClassification(updateClassification);
             }
         }
 
@@ -156,54 +126,45 @@ public class SyncApiIT extends FileTester {
         Files.createDirectories(new File(destinationDirectory).toPath());
 
         // Create the standard sources
-        Optional<Location> existingLocation = locationRepository.findById(1);
+        Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
         if(!existingLocation.isPresent())
             fail();
-        Location location = existingLocation.get();
-        location.setCheckDuplicates();
-        locationRepository.save(location);
 
-        this.source = new Source();
-        this.source.setLocation(location);
-        this.source.setStatus(SourceStatusType.SST_OK);
-        this.source.setPath(sourceDirectory);
+        LocationDTO location = new LocationDTO(existingLocation.get());
+        location.setCheckDuplicates(true);
+        associatedFileDataManager.updateLocation(location);
 
-        sourceRepository.save(this.source);
+        SourceDTO sourceDTO = new SourceDTO();
+        sourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setPath(sourceDirectory);
 
-        this.destination = new Source();
-        this.destination.setLocation(location);
-        this.destination.setStatus(SourceStatusType.SST_OK);
-        this.destination.setPath(destinationDirectory);
+        this.source = associatedFileDataManager.createSource(sourceDTO);
 
-        sourceRepository.save(this.destination);
+        sourceDTO = new SourceDTO();
+        sourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setPath(destinationDirectory);
+
+        this.destination = associatedFileDataManager.createSource(sourceDTO);
 
         // Create the source and synchronise entries
-        this.synchronize = new Synchronize();
-        synchronize.setId(1);
-        synchronize.setSource(this.source);
-        synchronize.setDestination(this.destination);
+        SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
+        synchronizeDTO.setId(1);
+        synchronizeDTO.setSource(new SourceDTO(this.source));
+        synchronizeDTO.setDestination(new SourceDTO(this.destination));
 
-        synchronizeRepository.save(synchronize);
+        this.synchronize = associatedFileDataManager.createSynchronize(synchronizeDTO);
     }
 
     @After
     public void cleanUpTest() {
         // Remove the sources, files & directories.
-        synchronizeRepository.deleteAll();
-        actionConfirmRepository.deleteAll();
-        fileRepository.deleteAll();
-        ignoreFileRepository.deleteAll();
-        importFileRepository.deleteAll();
-
-        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
-        for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParent(null);
-            directoryRepository.save(nextDirectory);
-        }
-
-        directoryRepository.deleteAll();
-        sourceRepository.deleteAll();
-        importSourceRepository.deleteAll();
+        associatedFileDataManager.deleteAllSynchronize();
+        actionManager.deleteAllActions();
+        fileSystemObjectManager.deleteAllFileObjects();
+        associatedFileDataManager.deleteAllImportSource();
+        associatedFileDataManager.deleteAllSource();
     }
 
     @Test
@@ -256,35 +217,85 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
         // Test the get file.
-        List<FileInfo> files = new ArrayList<>();
-        fileRepository.findAll().forEach(files::add);
+        List<FileSystemObject> files = new ArrayList<>();
+        fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE).forEach(files::add);
         Assert.assertNotEquals(0, files.size());
         getMockMvc().perform(get("/jbr/int/backup/file?id="+files.get(0).getIdAndType().getId())
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
-
-        // Update JPG so it gets an MD5
-        for(Classification nextClassification : classificationRepository.findAllByOrderByIdAsc()) {
-            if(nextClassification.getRegex().contains("jpg")) {
-                ClassificationDTO updateClassification = new ClassificationDTO();
-                updateClassification.setIcon(nextClassification.getIcon());
-                updateClassification.setRegex(nextClassification.getRegex());
-                updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setVideo(nextClassification.getIsVideo());
-                updateClassification.setOrder(1);
-                updateClassification.setId(nextClassification.getId());
-                updateClassification.setUseMD5(false);
-
-                nextClassification.update(updateClassification);
-                classificationRepository.save(nextClassification);
-            }
-        }
     }
 
     @SuppressWarnings("ConstantConditions")
     @Test
     @Order(2)
+    public void getFileInvalidId() throws Exception {
+        // Check that the various get file URL's will fail for invalid id.
+        int missingId = 1;
+        String error = getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+
+        error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+
+        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Order(3)
+    public void getFileInvalidType() throws Exception {
+        // Copy the resource files into the source directory
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test2");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        List<FileInfo> files = new ArrayList<>();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(synchronize.getSource().getIdAndType().getId(), directories, files);
+        Optional<FileInfo> testFile = Optional.empty();
+        for(FileInfo nextFile : files) {
+            if(nextFile.getName().equals("Bills.ods")) {
+                testFile = Optional.of(nextFile);
+            }
+        }
+        Assert.assertTrue(testFile.isPresent());
+
+        String error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + testFile.get().getIdAndType().getId())
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File is not of type image", error);
+
+        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + testFile.get().getIdAndType().getId())
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("File is not of type video", error);
+    }
+
+    @Test
+    @Order(4)
     public void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
 
@@ -333,7 +344,10 @@ public class SyncApiIT extends FileTester {
         int imageId = -1;
         int videoId = -1;
         List<Integer> usedIds = new ArrayList<>();
-        for(FileInfo nextFile : fileRepository.findAll()) {
+        List<FileInfo> files = new ArrayList<>();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(synchronize.getSource().getIdAndType().getId(), directories, files);
+        for(FileInfo nextFile : files) {
             usedIds.add(nextFile.getIdAndType().getId());
             switch (nextFile.getName()) {
                 case "Bills.ods":
@@ -354,14 +368,6 @@ public class SyncApiIT extends FileTester {
         }
 
         // Check get file info.
-        String error = getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
-                        .content(this.json("testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
-
-
         getMockMvc().perform(get("/jbr/int/backup/file?id=" + validId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
@@ -370,40 +376,12 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("backups[0].filename", is("Bills.ods")));
 
         // Get the image file.
-        error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
-                        .content(this.json("testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
-
-        error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + validId)
-                        .content(this.json("testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isBadRequest())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("File is not of type image", error);
-
         getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + imageId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         // Get the video file.
-        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
-                        .content(this.json("testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
-
-        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + validId)
-                        .content(this.json("testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isBadRequest())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("File is not of type video", error);
-
         getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + videoId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
@@ -428,7 +406,10 @@ public class SyncApiIT extends FileTester {
 
         // Request another level
         int directoryId = -1;
-        for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(this.source.getIdAndType().getId())) {
+        files = new ArrayList<>();
+        directories = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(this.source.getIdAndType().getId(), directories, files);
+        for(DirectoryInfo nextDirectory : directories) {
             if(nextDirectory.getName().equals("Documents")) {
                 directoryId = nextDirectory.getIdAndType().getId();
             }
@@ -453,7 +434,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(3)
+    @Order(5)
     public void gatherWithDelete() throws Exception {
         LOG.info("Delete with Gather Testing");
 
@@ -465,8 +446,8 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, sourceDirectory);
 
         // Remove the destination source or this test.
-        synchronizeRepository.delete(this.synchronize);
-        sourceRepository.delete(this.destination);
+        associatedFileDataManager.internalDeleteSynchronize(this.synchronize);
+        associatedFileDataManager.internalDeleteSource(this.destination);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -485,19 +466,22 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager, this.source,sourceDescription);
         Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
 
-        //Text1.txt
-        ActionConfirm deleteAction = new ActionConfirm();
-        deleteAction.setAction(ActionConfirmType.AC_DELETE);
-        deleteAction.setConfirmed(true);
-        boolean found = false;
-        for(FileInfo nextFile : fileRepository.findAllByOrderByIdAsc()) {
+        Optional<FileInfo> deleteFile = Optional.empty();
+        List<FileInfo> files = new ArrayList<>();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(this.source.getIdAndType().getId(),directories,files);
+        for(FileInfo nextFile : files) {
             if(nextFile.getName().equalsIgnoreCase("Text1.txt")) {
-                deleteAction.setFileInfo(nextFile);
-                found = true;
+                deleteFile = Optional.of(nextFile);
             }
         }
-        Assert.assertTrue(found);
-        actionConfirmRepository.save(deleteAction);
+        Assert.assertTrue(deleteFile.isPresent());
+        ActionConfirmDTO action =  actionManager.createFileDeleteAction(deleteFile.get());
+        ConfirmActionRequest confirmRequest = new ConfirmActionRequest();
+        confirmRequest.setId(action.getId());
+        confirmRequest.setConfirm(true);
+        confirmRequest.setParameter("");
+        actionManager.confirmAction(confirmRequest);
 
         LOG.info("Gather the data.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -516,7 +500,98 @@ public class SyncApiIT extends FileTester {
 
     @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(4)
+    @Order(6)
+    public void importTestInvalidSource() throws Exception {
+        initialiseDirectories();
+
+        // Set up a request with invalid source, check exception.
+        ImportRequest importRequest = new ImportRequest();
+        int badId = this.source.getIdAndType().getId() + 1;
+        if(this.destination.getIdAndType().getId() == badId) {
+            badId = this.destination.getIdAndType().getId() + 1;
+        }
+        importRequest.setPath(importDirectory);
+        importRequest.setSource(badId);
+
+        LOG.info("Gather the data.");
+        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("The source does not exist - " + badId, error);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Order(7)
+    public void importTestInvalidPath() throws Exception {
+        initialiseDirectories();
+
+        // Set up a request with invalid path, check exception.
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setPath(importDirectory + "x");
+        importRequest.setSource(this.source.getIdAndType().getId());
+
+        LOG.info("Gather the data.");
+        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Order(8)
+    public void importTestNotSetup() throws Exception {
+        initialiseDirectories();
+
+        // Check that it fails if the request has not been sent
+        String error = getMockMvc().perform(post("/jbr/int/backup/importprocess")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("There is no import source defined.", error);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Order(9)
+    public void importTestNoImportLocation() throws Exception {
+        initialiseDirectories();
+
+        // Set up the correct request.
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setPath(importDirectory);
+        importRequest.setSource(this.source.getIdAndType().getId());
+
+        // Remove the import location temporarily.
+        Optional<Location> location = associatedFileDataManager.findLocationById(4);
+        if(location.isPresent()) {
+            location.get().setName("Import x");
+            associatedFileDataManager.updateLocation(new LocationDTO(location.get()));
+        }
+
+        LOG.info("Gather the data.");
+        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+                        .content(this.json(importRequest))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Cannot find import location.", error);
+
+        // Restore the location.
+        if(location.isPresent()) {
+            location.get().setName("Import");
+            associatedFileDataManager.updateLocation(new LocationDTO(location.get()));
+        }
+    }
+
+    @Test
+    @Order(10)
     public void importTest() throws Exception {
         LOG.info("Delete with Gather Testing");
 
@@ -529,27 +604,6 @@ public class SyncApiIT extends FileTester {
         sourceDescription = getTestStructure("test6");
         copyFiles(sourceDescription, importDirectory);
 
-        // Check that it fails if the request has not been sent
-        String error = getMockMvc().perform(post("/jbr/int/backup/importprocess")
-                        .content(this.json("Testing"))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("There is no import source defined.", error);
-
-        // Set up a request with invalid path, check exception.
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setPath(importDirectory + "x");
-        importRequest.setSource(this.source.getIdAndType().getId());
-
-        LOG.info("Gather the data.");
-        error = getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
-
         // Insert an ignore file to check it doesn't interfere.
         IgnoreFile ignoreFile = new IgnoreFile();
         ignoreFile.clearRemoved();
@@ -557,57 +611,19 @@ public class SyncApiIT extends FileTester {
         ignoreFile.setName("Text.txt");
         ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
         ignoreFile.setSize(523);
-        ignoreFileRepository.save(ignoreFile);
+        fileSystemObjectManager.save(ignoreFile);
         ignoreFile = new IgnoreFile();
         ignoreFile.clearRemoved();
         ignoreFile.setDate(new Date());
         ignoreFile.setName("Text.txt");
         ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
         ignoreFile.setSize(12);
-        ignoreFileRepository.save(ignoreFile);
-
-        // Set up a request with invalid source, check exception.
-        importRequest = new ImportRequest();
-        int badId = this.source.getIdAndType().getId() + 1;
-        if(this.destination.getIdAndType().getId() == badId) {
-            badId = this.destination.getIdAndType().getId() + 1;
-        }
-        importRequest.setPath(importDirectory);
-        importRequest.setSource(badId);
-
-        LOG.info("Gather the data.");
-        error = getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("The source does not exist - " + badId, error);
+        fileSystemObjectManager.save(ignoreFile);
 
         // Set up the correct request.
-        importRequest = new ImportRequest();
+        ImportRequest importRequest = new ImportRequest();
         importRequest.setPath(importDirectory);
         importRequest.setSource(this.source.getIdAndType().getId());
-
-        // Remove the import location temporarily.
-        Optional<Location> location = locationRepository.findById(4);
-        if(location.isPresent()) {
-            location.get().setName("Import x");
-            locationRepository.save(location.get());
-        }
-
-        LOG.info("Gather the data.");
-        error = getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
-        Assert.assertEquals("Cannot find import location.", error);
-
-        // Restore the location.
-        if(location.isPresent()) {
-            location.get().setName("Import");
-            locationRepository.save(location.get());
-        }
 
         // Perform the gather - should be 5 files, 1 directory.
         LOG.info("Gather the data.");
@@ -624,7 +640,7 @@ public class SyncApiIT extends FileTester {
 
         // Verify that the database matches the real world.
         ImportSource importSource = null;
-        for(ImportSource nextImportSource : importSourceRepository.findAllByOrderByIdAsc()) {
+        for(ImportSource nextImportSource : associatedFileDataManager.internalFindAllImportSource()) {
             // Only one is expected
             importSource = nextImportSource;
         }
@@ -659,15 +675,17 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(6)));
 
         // Set up the actions that will be performed.
-        for(ActionConfirm nextAction : actionConfirmRepository.findAll()) {
-            if(nextAction.getPath().getName().equals("Statement.jpg")) {
-                nextAction.setConfirmed(true);
-                nextAction.setParameter("Blah");
-                actionConfirmRepository.save(nextAction);
-            } else if (nextAction.getPath().getName().equals("Letter.jpg")) {
-                nextAction.setConfirmed(true);
-                nextAction.setParameter("ignore");
-                actionConfirmRepository.save(nextAction);
+        for(ActionConfirmDTO nextAction : actionManager.externalFindByConfirmed(false)) {
+            ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
+            confirmActionRequest.setId(nextAction.getId());
+            confirmActionRequest.setConfirm(true);
+
+            if(nextAction.getFileName().equals("Statement.jpg")) {
+                confirmActionRequest.setParameter("Blah");
+                actionManager.confirmAction(confirmActionRequest);
+            } else if (nextAction.getFileName().equals("Letter.jpg")) {
+                confirmActionRequest.setParameter("ignore");
+                actionManager.confirmAction(confirmActionRequest);
             }
         }
 
@@ -772,7 +790,7 @@ public class SyncApiIT extends FileTester {
 
     @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(5)
+    @Order(11)
     public void moreFileProcessTesting() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -820,7 +838,10 @@ public class SyncApiIT extends FileTester {
         int missingId = 1;
         int validId = -1;
         List<Integer> usedIds = new ArrayList<>();
-        for(FileInfo nextFile : fileRepository.findAll()) {
+        List<FileInfo> files = new ArrayList<>();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(this.source.getIdAndType().getId(), directories, files);
+        for(FileInfo nextFile : files) {
             usedIds.add(nextFile.getIdAndType().getId());
             if(nextFile.getName().equals("Bills.ods")) {
                 validId = nextFile.getIdAndType().getId();
@@ -846,34 +867,22 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(6)
+    @Order(12)
     public void testActionApi() throws Exception {
         // Need a file for the actions
         FileInfo file = new FileInfo();
         file.clearRemoved();
         file.setName("Testing.txt");
-        fileRepository.save(file);
+        fileSystemObjectManager.save(file);
 
         // Setup some actions.
-        ActionConfirm actionConfirm1 = new ActionConfirm();
-        actionConfirm1.setAction(ActionConfirmType.AC_DELETE);
-        actionConfirm1.setConfirmed(false);
-        actionConfirm1.setFlags("C");
-        actionConfirm1.setParameterRequired(true);
-        actionConfirm1.setParameter("Blah");
-        actionConfirm1.setFileInfo(file);
+        ActionConfirmDTO deleteAction = actionManager.createFileDeleteAction(file);
+        ActionConfirmDTO importAction = actionManager.createFileImportAction(file,"C");
 
-        actionConfirmRepository.save(actionConfirm1);
-
-        ActionConfirm actionConfirm2 = new ActionConfirm();
-        actionConfirm2.setAction(ActionConfirmType.AC_IMPORT);
-        actionConfirm2.setConfirmed(true);
-        actionConfirm2.setFlags("F");
-        actionConfirm2.setParameterRequired(true);
-        actionConfirm2.setParameter("Blah");
-        actionConfirm2.setFileInfo(file);
-
-        actionConfirmRepository.save(actionConfirm2);
+        ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
+        confirmActionRequest.setId(importAction.getId());
+        confirmActionRequest.setParameter("Blah");
+        actionManager.confirmAction(confirmActionRequest);
 
         // Get the database files
         getMockMvc().perform(get("/jbr/int/backup/actions")
@@ -894,7 +903,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_IMPORT.toString())));
 
         ConfirmActionRequest request = new ConfirmActionRequest();
-        request.setId(actionConfirm1.getId());
+        request.setId(deleteAction.getId());
         request.setConfirm(true);
         request.setParameter("Blha");
         getMockMvc().perform(post("/jbr/int/backup/actions")
@@ -915,7 +924,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(7)
+    @Order(13)
     public void testAssociateFileDataManager() throws InvalidSourceIdException {
         try {
             associatedFileDataManager.internalFindSourceById(1);
@@ -934,6 +943,5 @@ public class SyncApiIT extends FileTester {
         } catch(SourceAlreadyExistsException e) {
             Assert.assertEquals("Source with id (10) already exists.", e.getMessage());
         }
-
     }
 }

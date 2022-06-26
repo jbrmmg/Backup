@@ -38,17 +38,22 @@ public class AssociatedFileDataManager {
     public List<ClassificationDTO> externalFindAllClassification() {
         List<ClassificationDTO> result = new ArrayList<>();
 
-        this.classificationRepository.findAllByOrderByIdAsc().forEach(classification -> result.add(new ClassificationDTO(classification)));
+        this.classificationRepository.findAllByOrderByOrderAsc().forEach(classification -> result.add(new ClassificationDTO(classification)));
 
         return result;
     }
 
-    public Classification classifyFile(FileInfo file) {
+    public List<Classification> internalFindAllClassification() {
         if(this.cachedClassifications == null) {
-            this.cachedClassifications = this.classificationRepository.findAllByOrderByOrderAsc();
+            this.cachedClassifications = new ArrayList<>();
+            this.classificationRepository.findAllByOrderByOrderAsc().forEach(classification -> this.cachedClassifications.add(classification));
         }
 
-        for(Classification nextClassification : this.cachedClassifications) {
+        return this.cachedClassifications;
+    }
+
+    public Classification classifyFile(FileInfo file) {
+        for(Classification nextClassification : internalFindAllClassification()) {
             if(nextClassification.fileMatches(file)) {
                 return nextClassification;
             }
@@ -62,6 +67,7 @@ public class AssociatedFileDataManager {
             throw new ClassificationIdException();
         }
 
+        this.cachedClassifications = null;
         classificationRepository.save(new Classification(newClassification));
     }
 
@@ -73,6 +79,7 @@ public class AssociatedFileDataManager {
 
         existing.get().update(classification);
 
+        this.cachedClassifications = null;
         classificationRepository.save(existing.get());
     }
 
@@ -82,6 +89,7 @@ public class AssociatedFileDataManager {
             throw new InvalidClassificationIdException(classification.getId());
         }
 
+        this.cachedClassifications = null;
         classificationRepository.deleteById(classification.getId());
     }
 
@@ -103,6 +111,10 @@ public class AssociatedFileDataManager {
         }
 
         return result;
+    }
+
+    public Optional<Location> findLocationById(int id) {
+        return locationRepository.findById(id);
     }
 
     public void createLocation(LocationDTO newLocation) throws LocationAlreadyExistsException {
@@ -141,12 +153,17 @@ public class AssociatedFileDataManager {
 
         return result;
     }
+
     public List<ImportSourceDTO> externalFindAllImportSource() {
         List<ImportSourceDTO> result = new ArrayList<>();
 
-        this.importSourceRepository.findAllByOrderByIdAsc().forEach(importSource -> result.add(new ImportSourceDTO(importSource)));
+        this.internalFindAllImportSource().forEach(importSource -> result.add(new ImportSourceDTO(importSource)));
 
         return result;
+    }
+
+    public Iterable<ImportSource> internalFindAllImportSource() {
+        return this.importSourceRepository.findAllByOrderByIdAsc();
     }
 
     public Iterable<Source> internalFindAllSource() {
@@ -170,13 +187,13 @@ public class AssociatedFileDataManager {
         return importSourceRepository.findById(id);
     }
 
-    public void createSource(SourceDTO newSource) throws SourceAlreadyExistsException {
+    public Source createSource(SourceDTO newSource) throws SourceAlreadyExistsException {
         // TODO - test this path (including exception)
         if(newSource.getId() != null) {
             throw new SourceAlreadyExistsException(newSource.getId());
         }
 
-        sourceRepository.save(new Source(newSource));
+        return sourceRepository.save(new Source(newSource));
     }
 
     public ImportSource createImportSource(String path, Source destination, Location location) {
@@ -210,10 +227,21 @@ public class AssociatedFileDataManager {
         sourceRepository.deleteById(internalFindSourceById(source.getId()).getIdAndType().getId());
     }
 
+    public void internalDeleteSource(Source source) {
+        sourceRepository.delete(source);
+    }
+
     public void deleteImportSource(ImportSourceDTO importSource) {
         importSourceRepository.deleteById(importSource.getId());
     }
 
+    public void deleteAllSource() {
+        sourceRepository.deleteAll();
+    }
+
+    public void deleteAllImportSource() {
+        importSourceRepository.deleteAll();
+    }
 
     // Synchronize - CRUD actions
     public List<SynchronizeDTO> externalFindAllSynchronize() {
@@ -228,7 +256,7 @@ public class AssociatedFileDataManager {
         return this.synchronizeRepository.findAll();
     }
 
-    public void createSynchronize(SynchronizeDTO newSynchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
+    public Synchronize createSynchronize(SynchronizeDTO newSynchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(newSynchronize.getId());
         if(existing.isPresent()) {
             // TODO - test this
@@ -243,7 +271,7 @@ public class AssociatedFileDataManager {
         newSync.setDestination(destination);
         newSync.setSource(source);
 
-        synchronizeRepository.save(newSync);
+        return synchronizeRepository.save(newSync);
     }
 
     public void updateSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
@@ -270,5 +298,13 @@ public class AssociatedFileDataManager {
         }
 
         synchronizeRepository.deleteById(existing.get().getId());
+    }
+
+    public void internalDeleteSynchronize(Synchronize synchronize) {
+        synchronizeRepository.delete(synchronize);
+    }
+
+    public void deleteAllSynchronize() {
+        synchronizeRepository.deleteAll();
     }
 }

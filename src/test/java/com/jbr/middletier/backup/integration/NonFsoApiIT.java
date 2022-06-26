@@ -320,7 +320,7 @@ public class NonFsoApiIT extends WebTester {
     public void classificationApi() throws Exception {
         ClassificationDTO classificationDTO = new ClassificationDTO();
         classificationDTO.setVideo(false);
-        classificationDTO.setOrder(1);
+        classificationDTO.setOrder(33);
         classificationDTO.setUseMD5(true);
         classificationDTO.setAction(ClassificationActionType.CA_BACKUP);
         classificationDTO.setRegex("*/sdaf");

@@ -86,8 +86,12 @@ public class FileSystemObjectManager {
                 importFileRepository.save((ImportFile) fso);
                 break;
 
+            case FSO_IGNORE_FILE:
+                ignoreFileRepository.save((IgnoreFile) fso);
+                break;
+
             default:
-                throw new IllegalStateException("Save except for File and Directory not supported");
+                throw new IllegalStateException("Save not supported for " + fso.getIdAndType().getId());
         }
     }
 
@@ -106,8 +110,22 @@ public class FileSystemObjectManager {
                 break;
 
             default:
-                throw new IllegalStateException("Delete except for File and Directory not supported");
+                throw new IllegalStateException("Delete not supported for " + fso.getIdAndType().getId());
         }
+    }
+
+    public void deleteAllFileObjects() {
+        fileRepository.deleteAll();
+        ignoreFileRepository.deleteAll();
+        importFileRepository.deleteAll();
+
+        List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
+        for(DirectoryInfo nextDirectory : dbDirectories) {
+            nextDirectory.setParent(null);
+            directoryRepository.save(nextDirectory);
+        }
+
+        directoryRepository.deleteAll();
     }
 
     public Optional<FileSystemObject> findFileSystemObject(FileSystemObjectId id, boolean failIfMissing) throws MissingFileSystemObject {
@@ -228,7 +246,7 @@ public class FileSystemObjectManager {
         return new DbRoot(source,fileRepository,directoryRepository);
     }
 
-    public void loadFilesByParent(int id, List<FileInfo> files) {
+    private void loadFilesByParent(int id, List<FileInfo> files) {
         for(FileInfo nextFile: fileRepository.findByParentId(id)) {
             files.add(nextFile);
         }

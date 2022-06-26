@@ -7,7 +7,5 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 public interface ClassificationRepository extends CrudRepository<Classification, Integer>, JpaSpecificationExecutor<Classification> {
-    Iterable<Classification> findAllByOrderByIdAsc();
-
-    List<Classification> findAllByOrderByOrderAsc();
+    Iterable<Classification> findAllByOrderByOrderAsc();
 }

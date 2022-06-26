@@ -184,6 +184,10 @@ public class ActionManager {
         }
     }
 
+    public void deleteAllActions() {
+        actionConfirmRepository.deleteAll();
+    }
+
     public void sendActionEmail() {
         // TODO - test more of this method
         try {

@@ -4,6 +4,8 @@ import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
+import com.jbr.middletier.backup.exception.ClassificationIdException;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -409,8 +411,8 @@ public class FileTester extends WebTester {
         Files.createDirectories(new File(importDirectory).toPath());
     }
 
-    protected void addClassification(ClassificationRepository repository, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) {
-        for(Classification nextClassification : repository.findAll()) {
+    protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) throws ClassificationIdException {
+        for(Classification nextClassification : associatedFileDataManager.internalFindAllClassification()) {
             if(nextClassification.getRegex().equalsIgnoreCase(regex)) {
                 return;
             }
@@ -425,7 +427,6 @@ public class FileTester extends WebTester {
         newClassificationDTO.setAction(action);
         newClassificationDTO.setUseMD5(useMD5);
 
-        Classification newClassification = new Classification(newClassificationDTO);
-        repository.save(newClassification);
+        associatedFileDataManager.createClassification(newClassificationDTO);
     }
 }
