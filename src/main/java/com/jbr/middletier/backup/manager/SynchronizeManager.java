@@ -116,7 +116,7 @@ public class SynchronizeManager {
         actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO());
     }
 
-    private void deleteDirectory(DbCompareNode node) {
+    private void deleteDirectory(DbCompareNode node) throws IOException {
         // TODO - test this method.
         if(!(node.getDestination() instanceof DbDirectory)) {
             LOG.warn("Delete directory called, but not a directory");
@@ -127,7 +127,7 @@ public class SynchronizeManager {
 
         // Delete the file specified in the node.
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()));
-        actionManager.deleteFileIfConfirmed((FileInfo)dbDirectory.getFSO());
+        actionManager.deleteDirectoryIfEmpty((DirectoryInfo) dbDirectory.getFSO());
     }
 
     private void copyFile(DbCompareNode node, Source destination) {

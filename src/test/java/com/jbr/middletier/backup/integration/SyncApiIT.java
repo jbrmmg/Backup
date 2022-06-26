@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -1310,7 +1311,7 @@ public class SyncApiIT extends FileTester {
 
     @Test
     @Order(19)
-    @Ignore
+    //@Ignore
     public void testSyncWithDirectoryRemoved() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
@@ -1350,10 +1351,8 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted", is(4)));
 
-        File fileToDelete = new File(sourceDirectory + "/Documents/Sub/Bills.ods");
-        Files.deleteIfExists(fileToDelete.toPath());
-        File directoryToDelete = new File(sourceDirectory + "/Documents/Sub");
-        Files.deleteIfExists(directoryToDelete.toPath());
+        File directoryToDelete = new File(sourceDirectory + "/Documents/sub");
+        FileUtils.deleteDirectory(directoryToDelete);
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))

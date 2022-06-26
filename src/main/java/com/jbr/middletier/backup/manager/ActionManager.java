@@ -21,11 +21,13 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class ActionManager {
@@ -171,10 +173,34 @@ public class ActionManager {
             LOG.info("Delete the file - {}", file );
             try {
                 // If the file is a folder, then delete the directory.
-                if(file.isDirectory()) {
-                    FileUtils.deleteDirectory(file.getParentFile());
-                } else {
+                if(!file.isDirectory()) {
                     Files.deleteIfExists(file.toPath());
+                }
+            } catch (IOException e) {
+                LOG.warn("Failed to delete file {}", file);
+            }
+        }
+    }
+
+    private boolean directoryIsEmpty(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> entries = Files.list(path)) {
+                return !entries.findFirst().isPresent();
+            }
+        }
+
+        return false;
+    }
+
+    void deleteDirectoryIfEmpty(DirectoryInfo directoryInfo) throws IOException {
+        File file = fileSystemObjectManager.getFile(directoryInfo);
+
+        if(file.exists() && directoryIsEmpty(file.toPath())) {
+            LOG.info("Delete the directory - {}", file );
+            try {
+                // If the file is a folder, then delete the directory.
+                if(file.isDirectory()) {
+                    FileUtils.deleteDirectory(file);
                 }
             } catch (IOException e) {
                 LOG.warn("Failed to delete file {}", file);
