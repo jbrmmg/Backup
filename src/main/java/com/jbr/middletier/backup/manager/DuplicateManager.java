@@ -57,7 +57,6 @@ public class DuplicateManager {
                     LOG.info("Duplicate - {}", nextFile);
 
                     processDuplicate(nextFile,data);
-                    processDuplicate(nextFile2,data);
                 }
             }
         }

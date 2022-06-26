@@ -35,7 +35,6 @@ abstract class FileProcessor {
                   ActionManager actionManager,
                   AssociatedFileDataManager associatedFileDataManager,
                   FileSystemObjectManager fileSystemObjectManager) {
-        // TODO - can more of this be tested?
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.backupManager = backupManager;
         this.actionManager = actionManager;

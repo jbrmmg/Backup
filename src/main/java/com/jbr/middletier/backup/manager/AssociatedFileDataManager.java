@@ -188,7 +188,6 @@ public class AssociatedFileDataManager {
     }
 
     public Source createSource(SourceDTO newSource) throws SourceAlreadyExistsException {
-        // TODO - test this path (including exception)
         if(newSource.getId() != null) {
             throw new SourceAlreadyExistsException(newSource.getId());
         }
@@ -259,7 +258,6 @@ public class AssociatedFileDataManager {
     public Synchronize createSynchronize(SynchronizeDTO newSynchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(newSynchronize.getId());
         if(existing.isPresent()) {
-            // TODO - test this
             throw new SynchronizeAlreadyExistsException(newSynchronize.getId());
         }
 
