@@ -30,6 +30,7 @@ import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -1429,5 +1430,39 @@ public class SyncApiIT extends FileTester {
     @Ignore
     public void testSyncDirectoryToFile() {
         Assert.fail();
+    }
+
+    @Test
+    @Order(22)
+    @Ignore
+    public void testSyncEqualiseDate() {
+        Assert.fail();
+    }
+
+    @Test
+    @Order(23)
+    public void testSyncSourceBusy() throws Exception {
+        // Check what happens when a synced directory has a file removed
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Insert an import source
+        associatedFileDataManager.createImportSource("Blah", this.source, this.source.getLocation());
+
+        // Remove the destination
+        associatedFileDataManager.updateSourceStatus(this.destination, SourceStatusType.SST_GATHERING);
+
+        // Gather the files.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)));
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
     }
 }
