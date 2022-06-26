@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.data.SourceStatusType;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.*;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -72,6 +73,7 @@ public class NonFsoApiIT extends WebTester {
     @Autowired
     LocationRepository locationRepository;
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(1)
     public void synchronizeApi() throws Exception {
@@ -151,6 +153,13 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
+
+        String error = getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+                        .content(this.json(newSync))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Synchronize with id (1) not found.", error);
 
         sourceRepository.delete(newSource1);
         sourceRepository.delete(newSource2);

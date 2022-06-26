@@ -944,4 +944,20 @@ public class SyncApiIT extends FileTester {
             Assert.assertEquals("Source with id (10) already exists.", e.getMessage());
         }
     }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    @Order(14)
+    public void checkActionInvalid() throws Exception {
+        ConfirmActionRequest request = new ConfirmActionRequest();
+        request.setId(1);
+        request.setConfirm(true);
+        request.setParameter("Blha");
+        String error = getMockMvc().perform(post("/jbr/int/backup/actions")
+                        .content(this.json(request))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Action 1 not found.", error);
+    }
 }
