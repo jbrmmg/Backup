@@ -923,26 +923,36 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("valid", is(true)));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     @Order(13)
-    public void testAssociateFileDataManager() throws InvalidSourceIdException {
-        try {
-            associatedFileDataManager.internalFindSourceById(1);
-            Assert.fail();
-        } catch(InvalidSourceIdException e) {
-            Assert.assertEquals("Source with id (1) not found.", e.getMessage());
-        }
+    public void testAssociateFileDataManager() throws Exception {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setName("Test");
+
+        SourceDTO sourceDTO = new SourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setPath("Test");
+        sourceDTO.setLocation(locationDTO);
+
+        String error = getMockMvc().perform(put("/jbr/ext/backup/source")
+                        .content(this.json(sourceDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isNotFound())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Source with id (1) not found.", error);
 
         associatedFileDataManager.internalFindSourceById(this.source.getIdAndType().getId());
 
-        try {
-            SourceDTO sourceDTO = new SourceDTO();
-            sourceDTO.setId(10);
-            associatedFileDataManager.createSource(sourceDTO);
-            Assert.fail();
-        } catch(SourceAlreadyExistsException e) {
-            Assert.assertEquals("Source with id (10) already exists.", e.getMessage());
-        }
+        sourceDTO = new SourceDTO();
+        sourceDTO.setId(this.source.getIdAndType().getId());
+        error = getMockMvc().perform(post("/jbr/ext/backup/source")
+                        .content(this.json(sourceDTO))
+                        .contentType(getContentType()))
+                .andExpect(status().isConflict())
+                .andReturn().getResolvedException().getMessage();
+        Assert.assertEquals("Source with id (" + sourceDTO.getId() + ") already exists.", error);
     }
 
     @SuppressWarnings("ConstantConditions")
