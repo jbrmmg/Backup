@@ -291,7 +291,6 @@ public class AssociatedFileDataManager {
     public void deleteSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
-            // TODO - test this.
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 

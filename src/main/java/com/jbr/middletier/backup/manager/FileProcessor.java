@@ -286,8 +286,7 @@ abstract class FileProcessor {
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
                     default:
-                        LOG.warn("Unexpected section type.");
-                        gatherData.setProblems();
+                        // No other options are checked.
                 }
             } else if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode)nextNode;

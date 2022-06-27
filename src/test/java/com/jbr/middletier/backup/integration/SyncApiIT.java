@@ -1419,15 +1419,47 @@ public class SyncApiIT extends FileTester {
 
     @Test
     @Order(20)
-    @Ignore
-    public void testSyncFileToDirectory() {
-        Assert.fail();
+    public void testSyncFileToDirectory() throws Exception {
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test12_2");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Gather the files.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
+
+        initialiseDirectories();
+        sourceDescription = getTestStructure("test12");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Gather the files.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(1)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
     }
 
     @Test
     @Order(21)
     public void testSyncDirectoryToFile() throws Exception {
-        // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12");
         copyFiles(sourceDescription, sourceDirectory);
