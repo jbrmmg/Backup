@@ -190,6 +190,14 @@ public class TestGeneral extends WebTester {
         Assert.assertNotEquals(null, fsoId);
         Assert.assertNotEquals(fsoId, fsoId3);
         Assert.assertEquals(fsoId, fsoId4);
+
+        @SuppressWarnings("ConstantConditions")
+        boolean test = fsoId.equals(null);
+        //noinspection ConstantConditions
+        Assert.assertFalse(test);
+
+        test = fsoId.equals(testObj);
+        Assert.assertFalse(test);
     }
 
     @Test
@@ -239,6 +247,37 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("",hierarchyResponse.getDisplayName());
         Assert.assertEquals("/",hierarchyResponse.getPath());
         Assert.assertTrue(hierarchyResponse.getDirectory());
+    }
+
+    @Test
+    public void TestLocationDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setCheckDuplicates();
+        location.setName("Test");
+        location.setSize("1G");
+
+        LocationDTO locationDTO = location.getLocationDTO();
+        Assert.assertEquals("Test", locationDTO.getName());
+    }
+
+    @Test
+    public void TestSourceDTO() {
+        Source source = new Source();
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("Test");
+        source.setFilter("Te");
+
+        Location location = new Location();
+        location.setId(1);
+        location.setCheckDuplicates();
+        location.setName("Test");
+        location.setSize("1G");
+
+        source.setLocation(location);
+
+        SourceDTO sourceDTO = source.getSourceDTO();
+        Assert.assertNotNull(sourceDTO);
     }
 
     @Test
