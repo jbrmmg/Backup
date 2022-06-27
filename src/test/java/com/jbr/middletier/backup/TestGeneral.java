@@ -10,7 +10,6 @@ import com.jbr.middletier.backup.manager.BackupManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,10 +17,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.shaded.org.hamcrest.CoreMatchers;
-
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -194,6 +190,45 @@ public class TestGeneral extends WebTester {
         Assert.assertNotEquals(null, fsoId);
         Assert.assertNotEquals(fsoId, fsoId3);
         Assert.assertEquals(fsoId, fsoId4);
+    }
+
+    @Test
+    public void TestSourceStatus() {
+        Assert.assertEquals(SourceStatusType.SST_OK, SourceStatusType.getSourceStatusType("OK"));
+        Assert.assertEquals(SourceStatusType.SST_GATHERING, SourceStatusType.getSourceStatusType("GATHERING"));
+        Assert.assertEquals(SourceStatusType.SST_ERROR, SourceStatusType.getSourceStatusType("ERROR"));
+
+        try {
+            SourceStatusType.getSourceStatusType("Blah");
+            Assert.fail();
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("Blah is not a valid Source Status Type", e.getMessage());
+        }
+    }
+
+    @Test
+    public void TestSynchronizeRecord() {
+        SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
+        synchronizeDTO.setSource(new SourceDTO());
+        synchronizeDTO.setDestination(new SourceDTO());
+
+        synchronizeDTO.getSource().setPath("Test");
+        synchronizeDTO.getSource().setLocation(new LocationDTO());
+        synchronizeDTO.getSource().getLocation().setId(1);
+        synchronizeDTO.getSource().getLocation().setName("Test");
+        synchronizeDTO.getSource().getLocation().setSize("1GB");
+        synchronizeDTO.getSource().setStatus(SourceStatusType.SST_OK);
+        synchronizeDTO.getDestination().setPath("Test");
+        synchronizeDTO.getDestination().setLocation(new LocationDTO());
+        synchronizeDTO.getDestination().getLocation().setId(1);
+        synchronizeDTO.getDestination().getLocation().setName("Test");
+        synchronizeDTO.getDestination().getLocation().setSize("1GB");
+        synchronizeDTO.getDestination().setStatus(SourceStatusType.SST_OK);
+
+        Synchronize synchronize = new Synchronize();
+        synchronize.update(synchronizeDTO);
+
+        Assert.assertEquals("Test -> Test", synchronize.toString());
     }
 
     @Test
