@@ -1433,9 +1433,51 @@ public class SyncApiIT extends FileTester {
 
     @Test
     @Order(22)
-    @Ignore
-    public void testSyncEqualiseDate() {
-        Assert.fail();
+    public void testSyncEqualiseDate() throws Exception {
+        // Check what happens when a synced directory has a file removed
+        initialiseDirectories();
+        List<StructureDescription> sourceDescription = getTestStructure("test11");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        List<StructureDescription> destinationDescription = getTestStructure("test11_dest");
+        copyFiles(destinationDescription, destinationDirectory);
+
+        // Gather the files.
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(2)));
+
+        validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
+        validateSource(fileSystemObjectManager,synchronize.getDestination(),destinationDescription);
+
+        // Perform the sync.
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(false)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+
+        //TODO - fix this - its because the date is not updated.
+//        validateSource(fileSystemObjectManager,synchronize.getDestination(),sourceDescription);
     }
 
     @Test

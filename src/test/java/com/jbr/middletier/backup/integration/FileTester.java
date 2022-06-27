@@ -45,7 +45,7 @@ public class FileTester extends WebTester {
             this.directory = structureItems[1];
             this.destinationName = structureItems[2];
             this.fileSize = (structureItems.length > 4) ? Long.parseLong(structureItems[4]) : null;
-            this.md5 = (structureItems.length > 5) ? structureItems[5] : null;
+            this.md5 = (structureItems.length > 5) ? structureItems[5] : "";
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
             this.dateTime = sdf.parse(structureItems[3]);
@@ -77,7 +77,7 @@ public class FileTester extends WebTester {
             this.dateIndicator = " ";
             this.size = null;
             this.sizeIndicator = " ";
-            this.md5 = null;
+            this.md5 = "";
             this.md5Indicator = " ";
             this.matched = false;
             this.dbId = null;
@@ -279,12 +279,13 @@ public class FileTester extends WebTester {
                     if(!childNode.directory && childNode.name.equals(nextFile.getName())) {
                         childNode.dbId = nextFile.getIdAndType().getId();
                         childNode.matched = true;
-                        childNode.date = nextFile.getDate();
                         childNode.dateIndicator = childNode.date.equals(nextFile.getDate()) ? " " : "X";
-                        childNode.size = nextFile.getSize();
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
-                        childNode.md5 = nextFile.getMD5().toString();
                         childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
+                        if(!childNode.md5.equals(nextFile.getMD5().toString())) {
+                            //TODO remove this
+                            LOG.warn("md5");
+                        }
                         matched = true;
                         break;
                     }
@@ -351,13 +352,16 @@ public class FileTester extends WebTester {
         tree.output(0);
 
         // Assert OK.
+        if(!tree.allOK()) {
+            LOG.warn("Something is different.");
+        }
         Assert.assertTrue(tree.allOK());
     }
 
     protected List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
         List<StructureDescription> result = new ArrayList<>();
 
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/" + testName + ".structure.txt");
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/structure/" + testName + ".structure.txt");
         assert stream != null;
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 

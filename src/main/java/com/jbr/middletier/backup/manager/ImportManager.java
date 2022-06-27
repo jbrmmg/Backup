@@ -70,6 +70,7 @@ public class ImportManager extends FileProcessor {
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
+        // TODO - is this correct?
         updateDatabase(importSource, new ArrayList<>(), true, gatherData);
 
         result.add(gatherData);
