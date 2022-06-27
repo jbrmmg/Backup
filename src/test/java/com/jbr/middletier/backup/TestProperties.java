@@ -2,12 +2,14 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestProperties {
     @Test
+    @DisplayName("Test the property class.")
     public void TestPropertyClass() {
         ApplicationProperties test = new ApplicationProperties();
         test.setDbBackupCommand("DBCmd");

@@ -1,9 +1,7 @@
-package com.jbr.middletier.backup;
+package com.jbr.middletier.backup.filetree;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
-import com.jbr.middletier.backup.filetree.FileTreeNode;
-import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.DbTree;
 import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
@@ -11,341 +9,58 @@ import com.jbr.middletier.backup.filetree.database.DbDirectory;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
-import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
-import com.jbr.middletier.backup.filetree.realworld.RwFile;
+import com.jbr.middletier.backup.filetree.helpers.*;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.junit.Assert;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
-import static org.mockito.Mockito.*;
+import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.DBC_NOT_EQUAL;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFileTree {
-    // The following classes help test the inner workings of the classes.
-    private static class BasicTestNode extends FileTreeNode {
-        private String name;
-
-        protected BasicTestNode() {
-            super(null);
-            this.status = CompareStatusType.ADDED;
-            this.name = null;
-        }
-
-        @Override
-        public String getName() {
-            return this.name;
-        }
-
-        @Override
-        protected void childAdded(FileTreeNode newChild) {
-
-        }
-
-        public boolean test() {
-            // Test the null node.
-            Assert.assertNull(nullNode.getName());
-
-            try {
-                nullNode.addChild(null);
-                Assert.fail();
-                return false;
-            } catch (IllegalStateException e) {
-                Assert.assertEquals("Null node - cannot add children", e.getMessage());
-            }
-
-            return true;
-        }
-
-        public boolean test2() {
-            BasicTestNode testNode = new BasicTestNode();
-            testNode.status = CompareStatusType.ADDED;
-            this.children.add(testNode);
-            return true;
-        }
-
-        public boolean test3() {
-            BasicTestNode testNode = new BasicTestNode();
-            testNode.status = CompareStatusType.EQUAL;
-            this.children.clear();
-            this.children.add(testNode);
-            return true;
-        }
-
-        public boolean test4() {
-            BasicTestNode testNode = new BasicTestNode();
-            testNode.status = CompareStatusType.EQUAL;
-            testNode.name = "Hello";
-            this.children.clear();
-            this.children.add(testNode);
-            return true;
-        }
-    }
-
-    private static class BasicTestRootNode extends RootFileTreeNode {
-
-        @Override
-        public String getName() {
-            return null;
-        }
-
-        @Override
-        protected void childAdded(FileTreeNode newChild) {
-
-        }
-    }
-
-    private static class BasicRwFile extends RwFile {
-        public BasicRwFile() {
-            super(null, new File("test").toPath());
-        }
-
-        public boolean test() {
-            try {
-                childAdded(null);
-                Assert.fail();
-            } catch(IllegalStateException e) {
-                Assert.assertEquals("Cannot add child nodes to a file node.", e.getMessage());
-            }
-
-            return true;
-        }
-
-        @Override
-        public String getName() {
-            return "test";
-        }
-    }
-
-    private static class BasicRwDirectory extends RwDirectory {
-        public BasicRwDirectory() {
-            super(null, new File("test").toPath());
-        }
-
-        @Override
-        public String getName() {
-            return "Test";
-        }
-
-        public boolean test() {
-            childAdded(new BasicRwDirectory());
-            childAdded(new BasicRwFile());
-            BasicTestNode testNode = new BasicTestNode();
-            try {
-                childAdded(testNode);
-                Assert.fail();
-            } catch (IllegalStateException e) {
-                Assert.assertEquals("Real World Directory children must be Real World Directory or File.",e.getMessage());
-            }
-
-            return true;
-        }
-    }
-
-    private static class BasicDbTree extends DbTree {
-        public BasicDbTree() {
-            super(null, null);
-        }
-
-        public boolean test() {
-            DbDirectory mockDbDirectory = mock(DbDirectory.class);
-            when(mockDbDirectory.isDirectory()).thenReturn(true);
-
-            FileTreeNode test = createCompareNode(CompareStatusType.REMOVED, null, mockDbDirectory, null);
-            Assert.assertNotNull(test);
-
-            try {
-                createCompareNode(CompareStatusType.REMOVED, null, null, null);
-                Assert.fail();
-            } catch(IllegalStateException e) {
-                Assert.assertEquals("Status is removed, but no source provided", e.getMessage());
-            }
-
-            test = createCompareNode(CompareStatusType.ADDED, null, null, mockDbDirectory);
-            Assert.assertNotNull(test);
-
-            try {
-                createCompareNode(CompareStatusType.ADDED, null, null, null);
-                Assert.fail();
-            } catch(IllegalStateException e) {
-                Assert.assertEquals("Status is added, but no destination provided", e.getMessage());
-            }
-
-            DbCompareNode node = mock(DbCompareNode.class);
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
-            when(node.isDirectory()).thenReturn(false);
-
-            List<FileTreeNode> list = new ArrayList<>();
-
-            findDeleteFiles(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY);
-            when(node.isDirectory()).thenReturn(true);
-            findDeleteFiles(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
-            when(node.isDirectory()).thenReturn(true);
-            findDeleteFiles(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
-            when(node.isDirectory()).thenReturn(false);
-            findDeleteFiles(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
-            when(node.isDirectory()).thenReturn(true);
-            findDeleteDirectories(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
-            when(node.isDirectory()).thenReturn(true);
-            findDeleteDirectories(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
-            when(node.isDirectory()).thenReturn(false);
-            findDeleteDirectories(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.RECREATE_AS_FILE);
-            when(node.isDirectory()).thenReturn(false);
-            findDeleteDirectories(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
-            when(node.isDirectory()).thenReturn(true);
-            findInsertDirectories(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY);
-            when(node.isDirectory()).thenReturn(false);
-            findInsertDirectories(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
-            when(node.isDirectory()).thenReturn(true);
-            findInsertDirectories(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
-            when(node.isDirectory()).thenReturn(false);
-            findInsertDirectories(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
-            when(node.isDirectory()).thenReturn(false);
-            findInsertFiles(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.RECREATE_AS_FILE);
-            when(node.isDirectory()).thenReturn(false);
-            findInsertFiles(node, list);
-            Assert.assertEquals(1, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.COPY);
-            when(node.isDirectory()).thenReturn(true);
-            findInsertFiles(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            when(node.getActionType()).thenReturn(DbCompareNode.ActionType.REMOVE);
-            when(node.isDirectory()).thenReturn(false);
-            findInsertFiles(node, list);
-            Assert.assertEquals(0, list.size());
-            list.clear();
-
-            return true;
-        }
-    }
-
-    private static class BasicSection extends SectionNode {
-
-        public BasicSection(SectionNodeType section) {
-            super(section);
-        }
-
-        public boolean test() {
-            childAdded(null);
-            return true;
-        }
-    }
-
-    private static class BasicDbFile extends DbFile {
-
-        public BasicDbFile() {
-            super(null, new FileInfo());
-        }
-
-        public boolean test() {
-            try {
-                childAdded(null);
-                Assert.fail();
-            } catch (IllegalStateException e) {
-                Assert.assertEquals("Cannot add child nodes to a file database node.", e.getMessage());
-            }
-
-            return true;
-        }
-    }
-
+public class TestFileTreeClasses {
     @Autowired
     BackupManager backupManager;
 
     @Test
+    @DisplayName("Tree Node - Basic Test")
     public void basicTests() {
         BasicTestNode testNode = new BasicTestNode();
         Assert.assertTrue(testNode.test());
         Assert.assertEquals(FileTreeNode.CompareStatusType.ADDED, testNode.getStatus());
 
-        Assert.assertTrue(testNode.test2());
+        testNode.test2();
         Assert.assertEquals(FileTreeNode.CompareStatusType.UPDATED, testNode.getStatus());
 
-        Assert.assertTrue(testNode.test3());
+        testNode.test3();
         Assert.assertEquals(FileTreeNode.CompareStatusType.EQUAL, testNode.getStatus());
 
-        Assert.assertTrue(testNode.test4());
+        testNode.test4();
         Assert.assertEquals("Hello", testNode.getNamedChild("Hello").getName());
         Assert.assertNull(testNode.getNamedChild("Hello2"));
         Assert.assertEquals("Hello 0", testNode.getNamedChild("Hello").toString());
     }
 
     @Test
-    public void basicTests2() {
+    @DisplayName("Tree Root Node - Basic Test")
+    public void basicRootTests() {
         BasicTestRootNode testRootNode = new BasicTestRootNode();
         Assert.assertEquals("Root: 0", testRootNode.toString());
 
@@ -359,7 +74,8 @@ public class TestFileTree {
     }
 
     @Test
-    public void basicTests3() {
+    @DisplayName("Tree Node - Section test")
+    public void basicSectionTest() {
         try {
             new RwRoot("does not exist", backupManager);
             Assert.fail();
@@ -382,7 +98,8 @@ public class TestFileTree {
     }
 
     @Test
-    public void basicTests4() {
+    @DisplayName("DB File - Compare test")
+    public void basicFileCompareTest() {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setMD5(new MD5("MATCH"));
         fileInfo.setClassification(null);
@@ -430,7 +147,8 @@ public class TestFileTree {
     }
 
     @Test
-    public void compareDbTests() {
+    @DisplayName("DB Compare - Compare test")
+    public void basicDbCompareTest() {
         FileSystemObject mockFSO = mock(FileSystemObject.class);
         when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
 
@@ -462,7 +180,8 @@ public class TestFileTree {
     }
 
     @Test
-    public void compareDbTests2() {
+    @DisplayName("DB Compare - Change file to directory")
+    public void compareFileToDirectory() {
         // Check the changing from file to directory, and vice versa
         FileSystemObject mockFSO = mock(FileSystemObject.class);
         when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
@@ -502,7 +221,8 @@ public class TestFileTree {
     }
 
     @Test
-    public void compareDbTests3() {
+    @DisplayName("DB Compare - Further testing (1)")
+    public void compareFileTest1() {
         Classification classification = mock(Classification.class);
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_FOLDER);
 
@@ -549,7 +269,8 @@ public class TestFileTree {
     }
 
     @Test
-    public void dbCompareTest() {
+    @DisplayName("DB Compare - Further testing (2)")
+    public void compareFileTest2() {
         Classification classification = mock(Classification.class);
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_BACKUP);
 
@@ -606,8 +327,12 @@ public class TestFileTree {
         result = test.getOrderedNodeList();
         Assert.assertNotNull(result);
         Assert.assertEquals(7, result.size());
+    }
 
+    @Test
+    @DisplayName("DB Tree - test db tree")
+    public void dbTreeTest() {
         BasicDbTree basicDbTree = new BasicDbTree();
-        Assert.assertTrue(basicDbTree.test());
+        basicDbTree.test();
     }
 }

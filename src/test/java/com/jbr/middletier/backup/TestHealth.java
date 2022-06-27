@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.data.Source;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ public class TestHealth extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestHealth.class);
 
     @Test
+    @DisplayName("Test the health URL")
     public void TestHealthURL() throws Exception {
         getMockMvc().perform(get("/actuator/health")
                 .contentType(getContentType()))

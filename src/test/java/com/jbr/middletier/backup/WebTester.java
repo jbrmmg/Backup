@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class WebTester {
     private MockMvc mockMvc;
+
     @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
