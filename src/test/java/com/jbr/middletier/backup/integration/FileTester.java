@@ -282,10 +282,6 @@ public class FileTester extends WebTester {
                         childNode.dateIndicator = childNode.date.equals(nextFile.getDate()) ? " " : "X";
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
                         childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
-                        if(!childNode.md5.equals(nextFile.getMD5().toString())) {
-                            //TODO remove this
-                            LOG.warn("md5");
-                        }
                         matched = true;
                         break;
                     }

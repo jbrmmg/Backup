@@ -212,8 +212,6 @@ public class FsoIT   {
 
         theFile2 = fileRepository.findById(theId);
         Assert.assertFalse(theFile2.isPresent());
-
-        // TODO - test the other find by options.
     }
 
     @Test

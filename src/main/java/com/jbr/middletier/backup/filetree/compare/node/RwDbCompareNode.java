@@ -31,6 +31,7 @@ public class RwDbCompareNode extends FileTreeNode {
         this.isDirectory = realWorldNode.isDirectory();
 
         ActionType calculatedActionType = ActionType.NONE;
+        // TODO need to handle that attributes of the file have changed.
         if(realWorldNode.isDirectory() != databaseNode.isDirectory()) {
             if(realWorldNode.isDirectory()) {
                 calculatedActionType = ActionType.RECREATE_AS_DIRECTORY;

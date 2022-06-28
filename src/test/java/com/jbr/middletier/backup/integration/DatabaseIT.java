@@ -1,10 +1,5 @@
 package com.jbr.middletier.backup.integration;
 
-/*
- * TODO - check here; also add the methods on the repository.
- * Things that need to be tested: https://jbrmmg.atlassian.net/wiki/spaces/~194851681/pages/9273345/Integration+Testing+Progress
- */
-
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;

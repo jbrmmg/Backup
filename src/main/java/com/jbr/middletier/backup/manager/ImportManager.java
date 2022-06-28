@@ -70,7 +70,7 @@ public class ImportManager extends FileProcessor {
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
-        // TODO - is this correct?
+        // TODO - is this correct? if it is then if a potential ignore file is found then the MD5 should be checked.
         updateDatabase(importSource, new ArrayList<>(), true, gatherData);
 
         result.add(gatherData);
