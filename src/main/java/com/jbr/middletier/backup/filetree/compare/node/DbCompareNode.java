@@ -77,6 +77,8 @@ public class DbCompareNode  extends FileTreeNode {
                         return "EQUAL";
                     case DBC_EQUAL_EXCEPT_DATE:
                         return "EQUAL_EXCEPT_DATE";
+                    default:
+                        // Nothing further, continue.
                 }
             }
 
@@ -84,20 +86,18 @@ public class DbCompareNode  extends FileTreeNode {
         }
 
         private static String getClassificationKey(DbNode source) {
-            if(source != null) {
-                if(source instanceof DbFile) {
-                    DbFile file = (DbFile) source;
-                    if(file.getClassification() != null) {
-                        switch (file.getClassification().getAction()) {
-                            case CA_WARN:
-                                return "WARN";
-                            case CA_IGNORE:
-                                return "IGNORE";
-                            case CA_DELETE:
-                                return "DELETE";
-                            default:
-                                // Nothing further, continue.
-                        }
+            if(source instanceof DbFile) {
+                DbFile file = (DbFile) source;
+                if(file.getClassification() != null) {
+                    switch (file.getClassification().getAction()) {
+                        case CA_WARN:
+                            return "WARN";
+                        case CA_IGNORE:
+                            return "IGNORE";
+                        case CA_DELETE:
+                            return "DELETE";
+                        default:
+                            // Nothing further, continue.
                     }
                 }
             }
@@ -131,7 +131,7 @@ public class DbCompareNode  extends FileTreeNode {
 
         ActionDecision actionDecision = new ActionDecision(source,destination);
 
-        this.isDirectory = source != null ? source.isDirectory() : destination.isDirectory();
+        this.isDirectory = source.isDirectory();
         this.actionType = actionDecision.getAction();
         this.subActionType = actionDecision.getSubAction();
         this.source = source;
