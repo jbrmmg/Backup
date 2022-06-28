@@ -210,7 +210,7 @@ public class TestGeneral extends WebTester {
             SourceStatusType.getSourceStatusType("Blah");
             Assert.fail();
         } catch (IllegalStateException e) {
-            Assert.assertEquals("Blah is not a valid Source Status Type", e.getMessage());
+            Assert.assertEquals("Blah is not a valid Source Status type", e.getMessage());
         }
     }
 
