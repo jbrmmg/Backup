@@ -6,7 +6,8 @@ import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
-import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -327,5 +328,58 @@ public class TestGeneral extends WebTester {
         when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
 
         testBackup.postWebLog(BackupManager.webLogLevel.ERROR, "Test Info");
+    }
+
+    @Test
+    public void TestCronClass() {
+        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        when(applicationProperties.getGatherEnabled()).thenReturn(true);
+
+        ActionManager actionManager = mock(ActionManager.class);
+
+        DriveManager driveManager = mock(DriveManager.class);
+
+        DuplicateManager duplicateManager = mock(DuplicateManager.class);
+
+        SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
+
+        GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
+                actionManager,
+                driveManager,
+                duplicateManager,
+                synchronizeManager);
+
+        gatherSynchronizeCtrl.gatherCron();
+        verify(actionManager, times(1)).sendActionEmail();
+        verify(driveManager, times(1)).gather();
+        verify(duplicateManager, times(1)).duplicateCheck();
+        verify(synchronizeManager, times(1)).synchronize();
+    }
+
+    @Test
+    public void TestCronClassFail() {
+        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        when(applicationProperties.getGatherEnabled()).thenReturn(true);
+
+        ActionManager actionManager = mock(ActionManager.class);
+        doThrow(new IllegalStateException()).when(actionManager).sendActionEmail();
+
+        DriveManager driveManager = mock(DriveManager.class);
+
+        DuplicateManager duplicateManager = mock(DuplicateManager.class);
+
+        SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
+
+        GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
+                actionManager,
+                driveManager,
+                duplicateManager,
+                synchronizeManager);
+
+        gatherSynchronizeCtrl.gatherCron();
+        verify(actionManager, times(1)).sendActionEmail();
+        verify(driveManager, times(0)).gather();
+        verify(duplicateManager, times(0)).duplicateCheck();
+        verify(synchronizeManager, times(0)).synchronize();
     }
 }

@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
+import com.jbr.middletier.backup.type.CleanBackup;
 import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
@@ -23,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -76,6 +78,49 @@ public class TestBackups {
             LOG.error("Test failed - ", ex);
             fail();
         }
+    }
+
+    @Test
+    public void TestCleanBackupFailure() {
+        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        ApplicationProperties.Directory directory = mock(ApplicationProperties.Directory.class);
+        when(applicationProperties.getDirectory()).thenReturn(directory);
+        when(directory.getName()).thenReturn("thisdirectorydoesnotexist");
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        Backup backup = mock(Backup.class);
+
+        CleanBackup cleanBackup = new CleanBackup(applicationProperties);
+
+        try {
+            cleanBackup.performBackup(backupManager, backup);
+            Assert.fail();
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("Backup directory does not exist.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void TestCleanBackupFailure2() throws IOException {
+        File testFile = new File(applicationProperties.getDirectory().getName() + "/20201401");
+        Files.createDirectories(testFile.toPath());
+        Assert.assertTrue(testFile.exists());
+
+        File testFile2 = new File(applicationProperties.getDirectory().getName() + "/20201401/Text.txt");
+        if(!testFile2.exists()) {
+            Files.createFile(testFile2.toPath());
+        }
+        Assert.assertTrue(testFile2.exists());
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        Backup backup = mock(Backup.class);
+
+        CleanBackup cleanBackup = new CleanBackup(applicationProperties);
+
+        cleanBackup.performBackup(backupManager, backup);
+        verify(backupManager,times(1)).postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory java.text.ParseException: Unparseable date: \"20201401\"");
     }
 
     @Test

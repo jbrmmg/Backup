@@ -14,7 +14,6 @@ import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,7 +39,6 @@ public class TestFileTreeClasses {
     BackupManager backupManager;
 
     @Test
-    @DisplayName("Tree Node - Basic Test")
     public void basicTests() {
         BasicTestNode testNode = new BasicTestNode();
         Assert.assertTrue(testNode.test());
@@ -59,7 +57,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("Tree Root Node - Basic Test")
     public void basicRootTests() {
         BasicTestRootNode testRootNode = new BasicTestRootNode();
         Assert.assertEquals("Root: 0", testRootNode.toString());
@@ -74,7 +71,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("Tree Node - Section test")
     public void basicSectionTest() {
         try {
             new RwRoot("does not exist", backupManager);
@@ -98,7 +94,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("DB File - Compare test")
     public void basicFileCompareTest() {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setMD5(new MD5("MATCH"));
@@ -147,7 +142,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("DB Compare - Compare test")
     public void basicDbCompareTest() {
         FileSystemObject mockFSO = mock(FileSystemObject.class);
         when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
@@ -180,7 +174,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("DB Compare - Change file to directory")
     public void compareFileToDirectory() {
         // Check the changing from file to directory, and vice versa
         FileSystemObject mockFSO = mock(FileSystemObject.class);
@@ -221,7 +214,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("DB Compare - Further testing (1)")
     public void compareFileTest1() {
         Classification classification = mock(Classification.class);
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_FOLDER);
@@ -269,7 +261,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("DB Compare - Further testing (2)")
     public void compareFileTest2() {
         Classification classification = mock(Classification.class);
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_BACKUP);
@@ -330,7 +321,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    @DisplayName("DB Tree - test db tree")
     public void dbTreeTest() {
         BasicDbTree basicDbTree = new BasicDbTree();
         basicDbTree.test();
