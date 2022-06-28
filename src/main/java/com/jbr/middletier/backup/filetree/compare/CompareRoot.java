@@ -13,8 +13,8 @@ public abstract class CompareRoot extends RootFileTreeNode {
     protected void performCompare(FileTreeNode result, FileTreeNode lhs, FileTreeNode rhs) {
         List<String> added = new ArrayList<>();
 
-        for(FileTreeNode nextLHS : getChildren(lhs)) {
-            for(FileTreeNode nextRHS : getChildren(rhs)) {
+        for(FileTreeNode nextLHS : lhs.getChildren()) {
+            for(FileTreeNode nextRHS : rhs.getChildren()) {
                 if(nextLHS.getName().equals(nextRHS.getName())) {
                     added.add(nextLHS.getName());
                     FileTreeNode resultNode = createCompareNode(CompareStatusType.EQUAL, result, nextLHS, nextRHS);
@@ -31,7 +31,7 @@ public abstract class CompareRoot extends RootFileTreeNode {
             }
         }
 
-        for(FileTreeNode nextRHS : getChildren(rhs)) {
+        for(FileTreeNode nextRHS : rhs.getChildren()) {
             if(!added.contains(nextRHS.getName())) {
                 added.add(nextRHS.getName());
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.ADDED, result, nullNode, nextRHS);

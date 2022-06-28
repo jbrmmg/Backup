@@ -5,10 +5,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.filetree.compare.DbTree;
 import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
 import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
-import com.jbr.middletier.backup.filetree.database.DbDirectory;
-import com.jbr.middletier.backup.filetree.database.DbFile;
-import com.jbr.middletier.backup.filetree.database.DbNode;
-import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.filetree.database.*;
 import com.jbr.middletier.backup.filetree.helpers.*;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.BackupManager;
@@ -39,16 +36,31 @@ public class TestFileTreeClasses {
     BackupManager backupManager;
 
     @Test
-    public void basicTests() {
+    public void basicTestAdded() {
         BasicTestNode testNode = new BasicTestNode();
         Assert.assertTrue(testNode.test());
         Assert.assertEquals(FileTreeNode.CompareStatusType.ADDED, testNode.getStatus());
+    }
+
+    @Test
+    public void basicTestUpdated() {
+        BasicTestNode testNode = new BasicTestNode();
 
         testNode.test2();
         Assert.assertEquals(FileTreeNode.CompareStatusType.UPDATED, testNode.getStatus());
+    }
+
+    @Test
+    public void basicTestEqual() {
+        BasicTestNode testNode = new BasicTestNode();
 
         testNode.test3();
         Assert.assertEquals(FileTreeNode.CompareStatusType.EQUAL, testNode.getStatus());
+    }
+
+    @Test
+    public void basicTestChild() {
+        BasicTestNode testNode = new BasicTestNode();
 
         testNode.test4();
         Assert.assertEquals("Hello", testNode.getNamedChild("Hello").getName());
@@ -141,123 +153,462 @@ public class TestFileTreeClasses {
         Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
     }
 
-    @Test
-    public void basicDbCompareTest() {
+    private DbCompareNode testFileFile(ClassificationActionType actionType, DbNodeCompareResultType result) {
         FileSystemObject mockFSO = mock(FileSystemObject.class);
         when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
 
-        // Directories that are equal.
-        DbNode mockSource = mock(DbDirectory.class);
-        when(mockSource.isDirectory()).thenReturn(true);
-        when(mockSource.getFSO()).thenReturn(mockFSO);
+        Classification classification = mock(Classification.class);
+        when(classification.getAction()).thenReturn(actionType);
 
-        DbNode mockDestination = mock(DbDirectory.class);
-        when(mockDestination.isDirectory()).thenReturn(true);
-        when(mockDestination.getFSO()).thenReturn(mockFSO);
-        when(mockSource.compare(mockDestination)).thenReturn(DBC_EQUAL);
+        DbFile mockFile = mock(DbFile.class);
+        DbFile mockFile2 = mock(DbFile.class);
 
-        DbCompareNode compareNode = new DbCompareNode(null, mockSource, mockDestination);
-        Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compareNode.toString());
-        Assert.assertNull(compareNode.getName());
-        Assert.assertEquals(DbCompareNode.ActionType.NONE, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.isDirectory()).thenReturn(false);
+        when(mockFile.compare(mockFile2)).thenReturn(result);
+        when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
+        when(mockFile.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
-        compareNode = new DbCompareNode(null, null, mockDestination);
-        Assert.assertEquals("REMOVE NONE FSO_FILE>1", compareNode.toString());
-        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+        when(mockFile2.getName()).thenReturn("test1");
+        when(mockFile2.isDirectory()).thenReturn(false);
+        when(mockFile2.compare(mockFile)).thenReturn(result);
+        when(mockFile2.getClassification()).thenReturn(actionType == null ? null : classification);
+        when(mockFile2.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockFile2,"children",new ArrayList<>());
 
-        compareNode = new DbCompareNode(null, mockSource, null);
-        Assert.assertEquals("COPY NONE FSO_FILE>1", compareNode.toString());
-        Assert.assertEquals(DbCompareNode.ActionType.COPY, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+
+        return new DbCompareNode(null, mockFile, mockFile2);
     }
 
     @Test
-    public void compareFileToDirectory() {
-        // Check the changing from file to directory, and vice versa
+    public void testFileFileEqualWarn() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, DBC_EQUAL);
+        Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileEqualIgnore() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, DBC_EQUAL);
+        Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileEqualDelete() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, DBC_EQUAL);
+        Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileEqualFolder() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, DBC_EQUAL);
+        Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileEqualBackup() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, DBC_EQUAL);
+        Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileEqualNull() {
+        DbCompareNode compare = testFileFile(null, DBC_EQUAL);
+        Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileExceptDateWarn() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, DBC_EQUAL_EXCEPT_DATE);
+        Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileExceptDateIgnore() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, DBC_EQUAL_EXCEPT_DATE);
+        Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileExceptDateDelete() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, DBC_EQUAL_EXCEPT_DATE);
+        Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileExceptDateFolder() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, DBC_EQUAL_EXCEPT_DATE);
+        Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileExceptDateBackup() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, DBC_EQUAL_EXCEPT_DATE);
+        Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileExceptDateNull() {
+        DbCompareNode compare = testFileFile(null, DBC_EQUAL_EXCEPT_DATE);
+        Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileNotEqualWarn() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, DBC_NOT_EQUAL);
+        Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileNotEqualIgnore() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, DBC_NOT_EQUAL);
+        Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileNotEqualDelete() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, DBC_NOT_EQUAL);
+        Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileNotEqualFolder() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, DBC_NOT_EQUAL);
+        Assert.assertEquals("COPY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileNotEqualBackup() {
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, DBC_NOT_EQUAL);
+        Assert.assertEquals("COPY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileFileNotEqualNull() {
+        DbCompareNode compare = testFileFile(null, DBC_NOT_EQUAL);
+        Assert.assertEquals("COPY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    private DbCompareNode testFileDirectory(ClassificationActionType actionType) {
         FileSystemObject mockFSO = mock(FileSystemObject.class);
         when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
 
-        DbNode mockSource = mock(DbDirectory.class);
-        when(mockSource.isDirectory()).thenReturn(true);
-        when(mockSource.getFSO()).thenReturn(mockFSO);
-
-        DbNode mockDestination = mock(DbDirectory.class);
-        when(mockDestination.isDirectory()).thenReturn(true);
-        when(mockDestination.getFSO()).thenReturn(mockFSO);
-        when(mockSource.compare(mockDestination)).thenReturn(DBC_EQUAL);
-
         Classification classification = mock(Classification.class);
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_FOLDER);
+        when(classification.getAction()).thenReturn(actionType);
 
-        DbFile mockSourceFile = mock(DbFile.class);
-        when(mockSourceFile.isDirectory()).thenReturn(false);
-        when(mockSourceFile.getClassification()).thenReturn(classification);
-        DbCompareNode compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+        DbFile mockFile = mock(DbFile.class);
+        DbDirectory mockDirectory = mock(DbDirectory.class);
 
-        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.isDirectory()).thenReturn(false);
+        when(mockFile.compare(mockDirectory)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
+        when(mockFile.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
-        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+        when(mockDirectory.getName()).thenReturn("test1");
+        when(mockDirectory.isDirectory()).thenReturn(true);
+        when(mockDirectory.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
-        mockDestination = mock(DbFile.class);
-        when(mockDestination.isDirectory()).thenReturn(false);
-        compareNode = new DbCompareNode(null, mockSource, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compareNode.getSubActionType());
+
+        return new DbCompareNode(null, mockFile, mockDirectory);
     }
 
     @Test
-    public void compareFileTest1() {
+    public void testFileDirectoryWarn() {
+        DbCompareNode compare = testFileDirectory(ClassificationActionType.CA_WARN);
+        Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileDirectoryIgnore() {
+        DbCompareNode compare = testFileDirectory(ClassificationActionType.CA_IGNORE);
+        Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileDirectoryDelete() {
+        DbCompareNode compare = testFileDirectory(ClassificationActionType.CA_DELETE);
+        Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileDirectoryFolder() {
+        DbCompareNode compare = testFileDirectory(ClassificationActionType.CA_FOLDER);
+        Assert.assertEquals("RECREATE_AS_FILE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileDirectoryBackup() {
+        DbCompareNode compare = testFileDirectory(ClassificationActionType.CA_BACKUP);
+        Assert.assertEquals("RECREATE_AS_FILE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testFileDirectoryNull() {
+        DbCompareNode compare = testFileDirectory(null);
+        Assert.assertEquals("RECREATE_AS_FILE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_FILE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    private DbCompareNode testFileNull(ClassificationActionType actionType) {
+        FileSystemObject mockFSO = mock(FileSystemObject.class);
+        when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
         Classification classification = mock(Classification.class);
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_FOLDER);
+        when(classification.getAction()).thenReturn(actionType);
 
-        DbNode mockDestination = mock(DbFile.class);
-        when(mockDestination.isDirectory()).thenReturn(false);
+        DbFile mockFile = mock(DbFile.class);
 
-        DbFile mockSourceFile = mock(DbFile.class);
-        when(mockSourceFile.isDirectory()).thenReturn(false);
-        when(mockSourceFile.getClassification()).thenReturn(classification);
+        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.isDirectory()).thenReturn(false);
+        when(mockFile.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
+        when(mockFile.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
-        // Check file comparisons.
-        when(mockSourceFile.compare(mockDestination)).thenReturn(DBC_NOT_EQUAL);
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_BACKUP);
-        DbCompareNode compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.NONE,compareNode.getSubActionType());
+        return new DbCompareNode(null, true, mockFile);
+    }
 
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_WARN);
-        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.WARN,compareNode.getSubActionType());
+    @Test
+    public void testFileNullWarn() {
+        DbCompareNode compare = testFileNull(ClassificationActionType.CA_WARN);
+        Assert.assertEquals("COPY WARN FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
+    }
 
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_IGNORE);
-        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE,compareNode.getSubActionType());
+    @Test
+    public void testFileNullIgnore() {
+        DbCompareNode compare = testFileNull(ClassificationActionType.CA_IGNORE);
+        Assert.assertEquals("COPY IGNORE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE, compare.getSubActionType());
+    }
 
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_DELETE);
-        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE,compareNode.getSubActionType());
+    @Test
+    public void testFileNullDelete() {
+        DbCompareNode compare = testFileNull(ClassificationActionType.CA_DELETE);
+        Assert.assertEquals("COPY REMOVE_SOURCE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
+    }
 
-        when(mockSourceFile.compare(mockDestination)).thenReturn(DBC_EQUAL_EXCEPT_DATE);
-        when(classification.getAction()).thenReturn(ClassificationActionType.CA_BACKUP);
-        compareNode = new DbCompareNode(null, mockSourceFile, mockDestination);
-        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE,compareNode.getSubActionType());
+    @Test
+    public void testFileNullFolder() {
+        DbCompareNode compare = testFileNull(ClassificationActionType.CA_FOLDER);
+        Assert.assertEquals("COPY NONE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
 
-        compareNode = new DbCompareNode(null, false, mockSourceFile);
-        Assert.assertEquals(DbCompareNode.ActionType.REMOVE,compareNode.getActionType());
+    @Test
+    public void testFileNullBackup() {
+        DbCompareNode compare = testFileNull(ClassificationActionType.CA_BACKUP);
+        Assert.assertEquals("COPY NONE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
 
-        compareNode = new DbCompareNode(null, true, mockSourceFile);
-        Assert.assertEquals(DbCompareNode.ActionType.COPY,compareNode.getActionType());
+    @Test
+    public void testFileNullNull() {
+        DbCompareNode compare = testFileNull(null);
+        Assert.assertEquals("COPY NONE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testDirectoryDirectory() {
+        FileSystemObject mockFSO = mock(FileSystemObject.class);
+        when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        DbDirectory mockDirectory = mock(DbDirectory.class);
+        DbDirectory mockDirectory2 = mock(DbDirectory.class);
+
+        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.isDirectory()).thenReturn(true);
+        when(mockDirectory.compare(mockDirectory2)).thenReturn(DBC_EQUAL);
+        when(mockDirectory.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
+
+        when(mockDirectory2.getName()).thenReturn("test1");
+        when(mockDirectory2.isDirectory()).thenReturn(true);
+        when(mockDirectory2.compare(mockDirectory)).thenReturn(DBC_EQUAL);
+        when(mockDirectory2.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockDirectory2,"children",new ArrayList<>());
+
+        DbCompareNode compare = new DbCompareNode(null, mockDirectory, mockDirectory2);
+        Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testDirectoryNull() {
+        FileSystemObject mockFSO = mock(FileSystemObject.class);
+        when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        DbDirectory mockDirectory = mock(DbDirectory.class);
+
+        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.isDirectory()).thenReturn(true);
+        when(mockDirectory.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
+
+        DbCompareNode compare = new DbCompareNode(null, true, mockDirectory);
+        Assert.assertEquals("COPY NONE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testDirectoryFile() {
+        FileSystemObject mockFSO = mock(FileSystemObject.class);
+        when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        DbDirectory mockDirectory = mock(DbDirectory.class);
+        DbFile mockFile = mock(DbFile.class);
+
+        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.isDirectory()).thenReturn(true);
+        when(mockDirectory.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
+
+        when(mockFile.getName()).thenReturn("test1");
+        when(mockFile.isDirectory()).thenReturn(false);
+        when(mockFile.compare(mockDirectory)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
+
+        DbCompareNode compare = new DbCompareNode(null, mockDirectory, mockFile);
+        Assert.assertEquals("RECREATE_AS_DIRECTORY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testNullFile() {
+        FileSystemObject mockFSO = mock(FileSystemObject.class);
+        when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        DbFile mockFile = mock(DbFile.class);
+
+        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.isDirectory()).thenReturn(true);
+        when(mockFile.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
+
+        DbCompareNode compare = new DbCompareNode(null, false, mockFile);
+        Assert.assertEquals("REMOVE NONE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
+    }
+
+    @Test
+    public void testNullDirectory() {
+        FileSystemObject mockFSO = mock(FileSystemObject.class);
+        when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        DbDirectory mockDirectory = mock(DbDirectory.class);
+
+        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.isDirectory()).thenReturn(true);
+        when(mockDirectory.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.getFSO()).thenReturn(mockFSO);
+        ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
+
+        DbCompareNode compare = new DbCompareNode(null, false, mockDirectory);
+        Assert.assertEquals("REMOVE NONE FSO_FILE>1", compare.toString());
+        Assert.assertNull(compare.getName());
+        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
+        Assert.assertEquals(DbCompareNode.SubActionType.NONE, compare.getSubActionType());
     }
 
     @Test
@@ -321,8 +672,116 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    public void dbTreeTest() {
+    public void dbTreeRemovedDirectory() {
         BasicDbTree basicDbTree = new BasicDbTree();
-        basicDbTree.test();
+        Assert.assertTrue(basicDbTree.testDirectoryRemoved());
+    }
+
+    @Test
+    public void dbTreeRemovedNoSourceFailure () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.testRemovedNoSourceFailure());
+    }
+
+    @Test
+    public void dbTreeDirectoryAdded () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.testDirectoryAdded());
+    }
+
+    @Test
+    public void dbTreeDeleteFileRemoveFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteFileRemoveFile());
+    }
+
+    @Test
+    public void dbTreeAddedNoDestinationFailure () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.testAddedNoDestinationFailure());
+    }
+
+    @Test
+    public void dbTreeDeleteFileRecreateAsDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteFileRecreateAsDirectory());
+    }
+
+    @Test
+    public void dbTreeDeleteFileRemovedDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteFileRemoveDirectory());
+    }
+
+    @Test
+    public void dbTreeDeleteFileCopyFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteFileCopyFile());
+    }
+
+    @Test
+    public void dbTreeDeleteDirectoryRemoveDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteDirectoryRemoveDirectory());
+    }
+
+    @Test
+    public void dbTreeDeleteDirectoryCopyDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteDirectoryCopyDirectory());
+    }
+
+    @Test
+    public void dbTreeDeleteDirectoryRemoveFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteDirectoryRemoveFile());
+    }
+
+    @Test
+    public void dbTreeDeleteDirectoryRecreateAsFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.deleteDirectoryRecreateAsFile());
+    }
+
+    @Test
+    public void dbTreeInsertDirectoryCopyDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertDirectoryCopyDirectory());
+    }
+
+    @Test
+    public void dbTreeInsertDirectoryRecreateAsDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertDirectoryRecreateAsDirectory());
+    }
+
+    @Test
+    public void dbTreeInsertDirectoryRemoveDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertDirectoryRemoveDirectory());
+    }
+
+    @Test
+    public void dbTreeInsertDirectoryCopyFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertDirectoryCopyFile());
+    }
+
+    @Test
+    public void dbTreeInsertFileRecreateAsFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertFileRecreateAsFile());
+    }
+
+    @Test
+    public void dbTreeInsertFileCopyDirectory () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertFileCopyDirectory());
+    }
+
+    @Test
+    public void dbTreeInsertFileRemoveFile () {
+        BasicDbTree basicDbTree = new BasicDbTree();
+        Assert.assertTrue(basicDbTree.insertFileRemoveFile());
     }
 }

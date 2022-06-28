@@ -3,7 +3,8 @@ package com.jbr.middletier.backup.filetree.compare.node;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbNode;
-import com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType;
+
+import java.util.*;
 
 public class DbCompareNode  extends FileTreeNode {
     public enum ActionType { NONE, COPY, REMOVE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
@@ -15,91 +16,124 @@ public class DbCompareNode  extends FileTreeNode {
     private final DbNode source;
     private final DbNode destination;
 
-    private SubActionType getSubActionCopy(DbNode source, DbNode destination) {
-        // For copy there must be a source.
-        if(source instanceof DbFile) {
-            DbFile file = (DbFile) source;
-            if(file.getClassification() != null) {
-                switch (file.getClassification().getAction()) {
-                    case CA_WARN:
-                        return SubActionType.WARN;
-                    case CA_IGNORE:
-                        return SubActionType.IGNORE;
-                    case CA_DELETE:
-                        return SubActionType.REMOVE_SOURCE;
-                    default:
-                        // Nothing further, continue.
+    static class ActionDecision {
+        private final ActionDecisionItem decision;
+        private static final Map<String,ActionDecisionItem> decisionMap;
+        static {
+            decisionMap = new HashMap<>();
+            decisionMap.put("FILE-FILE-EQUAL-WARN", new ActionDecisionItem(ActionType.REMOVE, SubActionType.WARN));
+            decisionMap.put("FILE-FILE-EQUAL-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
+            decisionMap.put("FILE-FILE-EQUAL-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
+            decisionMap.put("FILE-FILE-EQUAL-OTHER", new ActionDecisionItem(ActionType.NONE, SubActionType.NONE));
+            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-WARN", new ActionDecisionItem(ActionType.REMOVE, SubActionType.WARN));
+            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
+            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
+            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-OTHER", new ActionDecisionItem(ActionType.COPY, SubActionType.DATE_UPDATE));
+            decisionMap.put("FILE-FILE-NOT_EQUAL-WARN", new ActionDecisionItem(ActionType.REMOVE, SubActionType.WARN));
+            decisionMap.put("FILE-FILE-NOT_EQUAL-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
+            decisionMap.put("FILE-FILE-NOT_EQUAL-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
+            decisionMap.put("FILE-FILE-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.COPY, SubActionType.NONE));
+            decisionMap.put("FILE-DIRECTORY-NOT_EQUAL-WARN", new ActionDecisionItem(ActionType.REMOVE, SubActionType.WARN));
+            decisionMap.put("FILE-DIRECTORY-NOT_EQUAL-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
+            decisionMap.put("FILE-DIRECTORY-NOT_EQUAL-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
+            decisionMap.put("FILE-DIRECTORY-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.RECREATE_AS_FILE, SubActionType.NONE));
+            decisionMap.put("FILE-MISSING-NOT_EQUAL-WARN", new ActionDecisionItem(ActionType.COPY, SubActionType.WARN));
+            decisionMap.put("FILE-MISSING-NOT_EQUAL-IGNORE", new ActionDecisionItem(ActionType.COPY, SubActionType.IGNORE));
+            decisionMap.put("FILE-MISSING-NOT_EQUAL-DELETE", new ActionDecisionItem(ActionType.COPY, SubActionType.REMOVE_SOURCE));
+            decisionMap.put("FILE-MISSING-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.COPY, SubActionType.NONE));
+            decisionMap.put("DIRECTORY-DIRECTORY-EQUAL-OTHER", new ActionDecisionItem(ActionType.NONE, SubActionType.NONE));
+            decisionMap.put("DIRECTORY-MISSING-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.COPY, SubActionType.NONE));
+            decisionMap.put("DIRECTORY-FILE-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.RECREATE_AS_DIRECTORY, SubActionType.NONE));
+            decisionMap.put("MISSING-FILE-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.REMOVE, SubActionType.NONE));
+            decisionMap.put("MISSING-DIRECTORY-NOT_EQUAL-OTHER", new ActionDecisionItem(ActionType.REMOVE, SubActionType.NONE));
+        }
+
+        private static class ActionDecisionItem {
+            private final ActionType action;
+            private final SubActionType subAction;
+
+            public ActionDecisionItem(ActionType action, SubActionType subAction ) {
+                this.action = action;
+                this.subAction = subAction;
+            }
+        }
+
+        private static String getSourceKey(DbNode node) {
+            if(node != null) {
+                if(node.isDirectory()) {
+                    return "DIRECTORY";
+                }
+
+                return "FILE";
+            }
+
+            return "MISSING";
+        }
+
+        private static String getCompareKey(DbNode source, DbNode destination) {
+            if(source != null && destination != null) {
+                switch(source.compare(destination)) {
+                    case DBC_EQUAL:
+                        return "EQUAL";
+                    case DBC_EQUAL_EXCEPT_DATE:
+                        return "EQUAL_EXCEPT_DATE";
                 }
             }
+
+            return "NOT_EQUAL";
         }
 
-        // If no destination, then not sub action
-        if(destination == null) {
-            return SubActionType.NONE;
-        }
-
-        if(source instanceof DbFile) {
-            DbFile file = (DbFile) source;
-            if (file.compare(destination) == DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE) {
-                return SubActionType.DATE_UPDATE;
+        private static String getClassificationKey(DbNode source) {
+            if(source != null) {
+                if(source instanceof DbFile) {
+                    DbFile file = (DbFile) source;
+                    if(file.getClassification() != null) {
+                        switch (file.getClassification().getAction()) {
+                            case CA_WARN:
+                                return "WARN";
+                            case CA_IGNORE:
+                                return "IGNORE";
+                            case CA_DELETE:
+                                return "DELETE";
+                            default:
+                                // Nothing further, continue.
+                        }
+                    }
+                }
             }
+
+            return "OTHER";
         }
 
-        return SubActionType.NONE;
-    }
-
-    private SubActionType getSubActionRecreateAsFile(DbNode source, DbNode destination) {
-        return getSubActionCopy(source, destination);
-    }
-
-    private SubActionType getSubAction(ActionType action, DbNode source, DbNode destination) {
-        switch(action) {
-            case COPY:
-                return getSubActionCopy(source,destination);
-            case RECREATE_AS_FILE:
-                return getSubActionRecreateAsFile(source,destination);
-            default:
-                // Nothing further, continue.
+        private static String getKey(DbNode source, DbNode destination) {
+            return getSourceKey(source) + "-" +
+                    getSourceKey(destination) + "-" +
+                    getCompareKey(source,destination) + "-" +
+                    getClassificationKey(source);
         }
 
-        return SubActionType.NONE;
-    }
-
-    private ActionType getAction(DbNode source, DbNode destination) {
-        // No source - remove
-        if(source == null) {
-            return ActionType.REMOVE;
+        public ActionDecision(DbNode source, DbNode destination) {
+            // Find the required action.
+            this.decision = decisionMap.get(getKey(source,destination));
         }
 
-        // No destination - copy
-        if(destination == null) {
-            return ActionType.COPY;
+        public ActionType getAction() {
+            return this.decision.action;
         }
 
-        // There is a source and destination - compare
-        if(source.isDirectory() == destination.isDirectory()) {
-            switch(source.compare(destination)) {
-                case DBC_NOT_EQUAL:
-                case DBC_EQUAL_EXCEPT_DATE:
-                    return ActionType.COPY;
-                default:
-                    // Nothing further, continue.
-            }
-        } else if(source.isDirectory()) {
-            return ActionType.RECREATE_AS_DIRECTORY;
-        } else {
-            return ActionType.RECREATE_AS_FILE;
+        public SubActionType getSubAction() {
+            return this.decision.subAction;
         }
-
-        return ActionType.NONE;
     }
 
     public DbCompareNode(FileTreeNode parent, DbNode source, DbNode destination) {
         super(parent);
 
+        ActionDecision actionDecision = new ActionDecision(source,destination);
+
         this.isDirectory = source != null ? source.isDirectory() : destination.isDirectory();
-        this.actionType = getAction(source, destination);
-        this.subActionType = getSubAction(this.actionType, source, destination);
+        this.actionType = actionDecision.getAction();
+        this.subActionType = actionDecision.getSubAction();
         this.source = source;
         this.destination = destination;
     }
@@ -108,13 +142,17 @@ public class DbCompareNode  extends FileTreeNode {
         super(parent);
         this.isDirectory = sourceOrDestination.isDirectory();
         if(source) {
-            this.actionType = getAction(sourceOrDestination, null);
-            this.subActionType = getSubAction(this.actionType, sourceOrDestination, null);
+            ActionDecision actionDecision = new ActionDecision(sourceOrDestination,null);
+
+            this.actionType = actionDecision.getAction();
+            this.subActionType = actionDecision.getSubAction();
             this.source = sourceOrDestination;
             this.destination = null;
         } else {
-            this.actionType = getAction(null, sourceOrDestination);
-            this.subActionType = getSubAction(this.actionType,null, sourceOrDestination);
+            ActionDecision actionDecision = new ActionDecision(null, sourceOrDestination);
+
+            this.actionType = actionDecision.getAction();
+            this.subActionType = actionDecision.getSubAction();
             this.source = null;
             this.destination = sourceOrDestination;
         }

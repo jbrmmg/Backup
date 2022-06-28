@@ -114,6 +114,8 @@ public class SynchronizeManager {
         // Delete the file specified in the node.
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
         actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO());
+
+        // TODO - should also check for remove source depending on the sub action.
     }
 
     private void deleteDirectory(DbCompareNode node) throws IOException {
