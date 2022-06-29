@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -197,11 +198,11 @@ public class SynchronizeManager {
             dbTree.compare();
 
             // Process the comparison.
-            SectionNode.SectionNodeType section = SectionNode.SectionNodeType.UNKNOWN;
+            SectionNode.SectionNodeType section = null;
             for (FileTreeNode nextNode : dbTree.getOrderedNodeList()) {
                 if (nextNode instanceof DbCompareNode) {
                     DbCompareNode compareNode = (DbCompareNode) nextNode;
-                    switch (section) {
+                    switch (Objects.requireNonNull(section,"Section not initialised")) {
                         case FILE_FOR_REMOVE:
                             deleteFile(compareNode);
                             result.increment(SyncDataDTO.SyncDataCountType.FILES_DELETED);
@@ -218,10 +219,8 @@ public class SynchronizeManager {
                             copyFile(compareNode, nextSynchronize.getDestination());
                             result.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
                             break;
-                        default:
-                            // No other types are processed.
                     }
-                } else if (nextNode instanceof SectionNode) {
+                } else {
                     SectionNode sectionNode = (SectionNode) nextNode;
                     section = sectionNode.getSection();
                 }

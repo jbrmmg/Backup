@@ -18,10 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 abstract class FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
@@ -145,11 +142,7 @@ abstract class FileProcessor {
     }
 
     private RwNode getRwNode(RwDbCompareNode node) {
-        if(node.getRealWorldNode() == null) {
-            // TODO - test this exception
-            throw new NullPointerException("NPE - Cannot add or update directory with no real world object.");
-        }
-
+        Objects.requireNonNull(node.getRealWorldNode(),"NPE: Cannot add or update directory with no real world object.");
         return node.getRealWorldNode();
     }
 
@@ -159,9 +152,7 @@ abstract class FileProcessor {
         if(parentNode instanceof RwDbCompareNode) {
             RwDbCompareNode rwDbParentNode = (RwDbCompareNode)parentNode;
 
-            if(rwDbParentNode.getDatabaseObjectId() == null) {
-                throw new NullPointerException("NPE: cannot add or update directory with no known parent.");
-            }
+            Objects.requireNonNull(rwDbParentNode.getDatabaseObjectId(),"NPE: cannot add or update directory with no known parent.");
 
             parentId = rwDbParentNode.getDatabaseObjectId();
         } else if(parentNode instanceof RwDbTree) {
@@ -170,9 +161,7 @@ abstract class FileProcessor {
             parentId = rwDbSource.getDbSource().getSource().getIdAndType();
         }
 
-        if(parentId == null) {
-            throw new NullPointerException("NPE: Unable to determine the directory parent id.");
-        }
+        Objects.requireNonNull(parentId,"NPE: Unable to determine the directory parent id.");
 
         return parentId;
     }
@@ -264,11 +253,11 @@ abstract class FileProcessor {
         processDeletes(compare,deletes, gatherData);
 
         // Process the actions.
-        SectionNode.SectionNodeType section = SectionNode.SectionNodeType.UNKNOWN;
+        SectionNode.SectionNodeType section = null;
         for(FileTreeNode nextNode : compare.getOrderedNodeList()) {
             if(nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode)nextNode;
-                switch(section) {
+                switch(Objects.requireNonNull(section,"Section has not been initialised")) {
                     case FILE_FOR_REMOVE:
                         processFileRemoval(compareNode);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_REMOVED);
@@ -285,10 +274,8 @@ abstract class FileProcessor {
                         processFileAddUpdate(compareNode, skipMD5);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
-                    default:
-                        // No other options are checked.
                 }
-            } else if (nextNode instanceof SectionNode) {
+            } else {
                 SectionNode sectionNode = (SectionNode)nextNode;
                 section = sectionNode.getSection();
             }
