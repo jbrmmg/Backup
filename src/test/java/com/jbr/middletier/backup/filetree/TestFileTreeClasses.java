@@ -95,10 +95,10 @@ public class TestFileTreeClasses {
         Assert.assertTrue(testRwDbSection.test());
 
         try {
-            new BasicSection(SectionNode.SectionNodeType.UNKNOWN);
+            new BasicSection(null);
             Assert.fail();
-        } catch (IllegalStateException e) {
-            Assert.assertEquals("Cannot initialise a Rw DB Section object as unknown.", e.getMessage());
+        } catch (NullPointerException e) {
+            Assert.assertEquals("Cannot initialise a Rw DB Section with null.", e.getMessage());
         }
 
         BasicDbFile testDbFile = new BasicDbFile();
