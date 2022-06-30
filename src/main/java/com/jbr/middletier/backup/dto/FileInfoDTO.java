@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.data.MD5;
 
@@ -22,6 +23,10 @@ public class FileInfoDTO {
         this.size = fileInfo.getSize();
         this.md5 = fileInfo.getMD5();
         this.parentType = fileInfo.getParentId() == null ?  null : fileInfo.getParentId().getType();
+    }
+
+    public FileInfoDTO(FileSystemObject fso) {
+        this((FileInfo)fso);
     }
 
     public String getFilename() {
