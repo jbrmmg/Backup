@@ -30,10 +30,7 @@ public class ProcessResultDTO {
     protected void increment(String name) {
         if(counts.containsKey(name)) {
             counts.get(name).increment();
-            return;
         }
-
-        counts.put(name, new Count(1));
     }
 
     protected int getCount(String name) {

@@ -382,4 +382,31 @@ public class TestGeneral extends WebTester {
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize();
     }
+
+    @Test
+    public void TestCronClassDisabled() {
+        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        when(applicationProperties.getGatherEnabled()).thenReturn(false);
+
+        ActionManager actionManager = mock(ActionManager.class);
+        doThrow(new IllegalStateException()).when(actionManager).sendActionEmail();
+
+        DriveManager driveManager = mock(DriveManager.class);
+
+        DuplicateManager duplicateManager = mock(DuplicateManager.class);
+
+        SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
+
+        GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
+                actionManager,
+                driveManager,
+                duplicateManager,
+                synchronizeManager);
+
+        gatherSynchronizeCtrl.gatherCron();
+        verify(actionManager, times(0)).sendActionEmail();
+        verify(driveManager, times(0)).gather();
+        verify(duplicateManager, times(0)).duplicateCheck();
+        verify(synchronizeManager, times(0)).synchronize();
+    }
 }

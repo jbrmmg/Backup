@@ -53,9 +53,7 @@ public class FileController {
     public @ResponseBody List<FileInfoDTO> getFiles() {
         List<FileInfoDTO> result = new ArrayList<>();
         for(FileSystemObject nextFile: fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE)) {
-            if(nextFile instanceof FileInfo) {
-                result.add(new FileInfoDTO((FileInfo)nextFile));
-            }
+            result.add(new FileInfoDTO(nextFile));
         }
 
         result.sort(comparing(FileInfoDTO::getFilename));

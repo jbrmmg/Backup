@@ -816,4 +816,29 @@ public class TestBackups {
             Assert.fail();
         }
     }
+
+    @Test
+    public void testDbBackup2() {
+        try {
+            ApplicationProperties properties = mock(ApplicationProperties.class);
+            when(properties.getDbBackupCommand()).thenReturn("xx");
+            when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+            when(properties.getDbUsername()).thenReturn("user");
+            when(properties.getDbPassword()).thenReturn("pwd");
+
+            BackupManager manager = mock(BackupManager.class);
+            when(manager.todaysDirectory()).thenReturn("./target/it_test");
+
+            Backup backup = mock(Backup.class);
+            when(backup.getBackupName()).thenReturn("test");
+            when(backup.getArtifact()).thenReturn("blah.txt");
+            when(backup.getDirectory()).thenReturn("xx");
+
+            DatabaseBackup dbBackup = new DatabaseBackup(properties);
+            Assert.assertNotNull(dbBackup);
+            dbBackup.performBackup(manager, backup);
+        } catch(Exception e) {
+            Assert.fail();
+        }
+    }
 }
