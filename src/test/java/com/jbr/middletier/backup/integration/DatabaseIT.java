@@ -6,9 +6,6 @@ import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.dto.ClassificationDTO;
 import org.junit.*;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
@@ -32,7 +29,6 @@ import java.util.Optional;
 @WebAppConfiguration
 @ContextConfiguration(initializers = {DatabaseIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DatabaseIT {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseIT.class);
 
@@ -81,7 +77,6 @@ public class DatabaseIT {
     SourceRepository sourceRepository;
 
     @Test
-    @Order(1)
     public void hardware(){
         LOG.info("Basic test of the Hardware object");
         String id = "EF:C9:99:92:93:93";
@@ -112,7 +107,6 @@ public class DatabaseIT {
     }
 
     @Test
-    @Order(2)
     public void backup() {
         LOG.info("Basic test of the backup object");
 
@@ -149,7 +143,6 @@ public class DatabaseIT {
     }
 
     @Test
-    @Order(3)
     public void location() {
         Location newLocation = new Location();
         newLocation.setId(1000);
@@ -176,7 +169,6 @@ public class DatabaseIT {
     }
 
     @Test
-    @Order(4)
     public void classification() {
         ClassificationDTO newDTO = new ClassificationDTO();
         newDTO.setAction(ClassificationActionType.CA_BACKUP);
@@ -208,7 +200,6 @@ public class DatabaseIT {
     }
 
     @Test
-    @Order(6)
     public void action_confirm() {
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");
@@ -255,7 +246,6 @@ public class DatabaseIT {
     }
 
     @Test
-    @Order(7)
     public void synchronize() {
         Location newLocation = new Location();
         newLocation.setId(1000);

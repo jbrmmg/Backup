@@ -9,7 +9,6 @@ import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -62,7 +61,6 @@ public class FsoApiIT extends WebTester {
     }
 
     @Test
-    @Order(1)
     public void sourceAPI() throws Exception {
         LOG.info("Source API Testing");
 
@@ -81,6 +79,7 @@ public class FsoApiIT extends WebTester {
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
+        //TODO - load the source to get the id instead of assuming its 100000
 
         LOG.info("Expect that the id is 1000000 - as that is the first.");
         getMockMvc().perform(get("/jbr/ext/backup/source")

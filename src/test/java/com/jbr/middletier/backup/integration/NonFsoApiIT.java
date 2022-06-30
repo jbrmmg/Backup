@@ -13,9 +13,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
@@ -31,6 +28,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
+import java.util.Objects;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -43,7 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(initializers = {NonFsoApiIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class NonFsoApiIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FsoApiIT.class);
 
@@ -73,9 +71,7 @@ public class NonFsoApiIT extends WebTester {
     @Autowired
     LocationRepository locationRepository;
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(1)
     public void synchronizeApi() throws Exception {
         LOG.info("Synchronize API Testing");
 
@@ -123,11 +119,11 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(status().isOk());
 
         // Check can't create it again.
-        String error = getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/ext/backup/synchronize")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Synchronize with id (1) already exists.", error);
 
         LOG.info("Get the synchronize that was created");
@@ -162,11 +158,11 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        error = getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+        error = Objects.requireNonNull(getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Synchronize with id (1) not found.", error);
 
         sourceRepository.delete(newSource1);
@@ -175,7 +171,6 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    @Order(2)
     public void locationApi() throws Exception {
         LocationDTO location = new LocationDTO();
         location.setId(10);
@@ -218,7 +213,6 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    @Order(3)
     public void hardwareApi() throws Exception {
         HardwareDTO hardwareDTO = new HardwareDTO();
         hardwareDTO.setMacAddress("01:02:04:06:A2:49");
@@ -271,7 +265,6 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    @Order(4)
     public void backupApi() throws Exception {
         BackupDTO backupDTO = new BackupDTO();
         backupDTO.setId("TXST");
@@ -333,8 +326,8 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    @Order(5)
     public void classificationApi() throws Exception {
+        // TODO - do not assume the size is 33 - work it out.
         ClassificationDTO classificationDTO = new ClassificationDTO();
         classificationDTO.setVideo(false);
         classificationDTO.setOrder(33);

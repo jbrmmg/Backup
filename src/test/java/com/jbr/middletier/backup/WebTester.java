@@ -40,7 +40,7 @@ public class WebTester {
 
     @Before
     public void setup() {
-        // Setup the mock web context.
+        // Set up the mock web context.
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 

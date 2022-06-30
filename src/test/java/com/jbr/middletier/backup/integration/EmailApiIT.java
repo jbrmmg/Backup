@@ -38,7 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(initializers = {EmailApiIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EmailApiIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(EmailApiIT.class);
 
@@ -77,6 +76,7 @@ public class EmailApiIT extends WebTester {
     @Autowired
     LocationRepository locationRepository;
 
+    @SuppressWarnings("FieldCanBeLocal")
     private GreenMail testSMTP;
 
     @Before

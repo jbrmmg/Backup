@@ -19,9 +19,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +48,6 @@ import static org.mockito.Mockito.*;
 @WebAppConfiguration
 @ContextConfiguration(initializers = {FileProcessingIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FileProcessingIT extends FileTester {
     @SuppressWarnings("rawtypes")
     @ClassRule
@@ -119,7 +115,6 @@ public class FileProcessingIT extends FileTester {
     LocationRepository locationRepository;
 
     @Test
-    @Order(1)
     public void basicRealWorld() throws Exception {
         initialiseDirectories();
 
@@ -143,7 +138,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(2)
     public void basicDatabase() {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -185,7 +179,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(3)
     public void compareRwDb1() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -238,7 +231,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(4)
     public void compareRwDb2() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -296,7 +288,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(5)
     public void compareRwDb3() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -364,7 +355,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(6)
     public void compareRwDb4() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -445,7 +435,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(7)
     public void compareRwDb5() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -520,7 +509,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(8)
     public void compareRwDb6() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -596,7 +584,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(9)
     public void compareRwDb7() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
@@ -656,7 +643,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(10)
     public void checkFilter() throws Exception {
         initialiseDirectories();
 
@@ -691,7 +677,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(11)
     public void checkDbDirectoryException() {
         DirectoryInfo tempDirectory = new DirectoryInfo();
         tempDirectory.setParent(null);
@@ -718,7 +703,6 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    @Order(12)
     public void checkCompareIO() throws IOException {
         Path mockPath = mock(Path.class);
         FileSystemProvider fsProvider = mock(FileSystemProvider.class);

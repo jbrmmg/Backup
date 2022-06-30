@@ -10,9 +10,6 @@ import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
@@ -49,7 +46,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(initializers = {SyncApiIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SyncApiIT extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(SyncApiIT.class);
 
@@ -169,7 +165,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(1)
     public void gather() throws Exception {
         LOG.info("Synchronize Testing");
 
@@ -227,37 +222,33 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk());
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(2)
     public void getFileInvalidId() throws Exception {
         // Check that the various get file URL's will fail for invalid id.
         int missingId = 1;
-        String error = getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
+        String error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("File with id ("+missingId+") not found.", error);
 
-        error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
+        error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("File with id ("+missingId+") not found.", error);
 
-        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
+        error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("File with id ("+missingId+") not found.", error);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(3)
     public void getFileInvalidType() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -280,23 +271,22 @@ public class SyncApiIT extends FileTester {
         }
         Assert.assertTrue(testFile.isPresent());
 
-        String error = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + testFile.get().getIdAndType().getId())
+        String error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + testFile.get().getIdAndType().getId())
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isBadRequest())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("File is not of type image", error);
 
-        error = getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + testFile.get().getIdAndType().getId())
+        error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + testFile.get().getIdAndType().getId())
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isBadRequest())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("File is not of type video", error);
     }
 
     @Test
-    @Order(4)
     public void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
 
@@ -435,7 +425,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(5)
     public void gatherWithDelete() throws Exception {
         LOG.info("Delete with Gather Testing");
 
@@ -499,9 +488,7 @@ public class SyncApiIT extends FileTester {
         Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(6)
     public void importTestInvalidSource() throws Exception {
         initialiseDirectories();
 
@@ -515,17 +502,15 @@ public class SyncApiIT extends FileTester {
         importRequest.setSource(badId);
 
         LOG.info("Gather the data.");
-        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("The source does not exist - " + badId, error);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(7)
     public void importTestInvalidPath() throws Exception {
         initialiseDirectories();
 
@@ -535,32 +520,28 @@ public class SyncApiIT extends FileTester {
         importRequest.setSource(this.source.getIdAndType().getId());
 
         LOG.info("Gather the data.");
-        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(8)
     public void importTestNotSetup() throws Exception {
         initialiseDirectories();
 
         // Check that it fails if the request has not been sent
-        String error = getMockMvc().perform(post("/jbr/int/backup/importprocess")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/importprocess")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("There is no import source defined.", error);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(9)
     public void importTestNoImportLocation() throws Exception {
         initialiseDirectories();
 
@@ -577,11 +558,11 @@ public class SyncApiIT extends FileTester {
         }
 
         LOG.info("Gather the data.");
-        String error = getMockMvc().perform(post("/jbr/int/backup/import")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
                         .content(this.json(importRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Cannot find import location.", error);
 
         // Restore the location.
@@ -592,7 +573,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(10)
     public void importTest() throws Exception {
         LOG.info("Delete with Gather Testing");
 
@@ -789,9 +769,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(11)
     public void moreFileProcessTesting() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -859,16 +837,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("fileName", is("Bills.ods")));
 
-        String error = getMockMvc().perform(delete("/jbr/int/backup/file?id=" + missingId)
+        String error = Objects.requireNonNull(getMockMvc().perform(delete("/jbr/int/backup/file?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("File with id ("+missingId+") not found.", error);
     }
 
     @Test
-    @Order(12)
     public void testActionApi() throws Exception {
         // Need a file for the actions
         FileInfo file = new FileInfo();
@@ -924,9 +901,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("valid", is(true)));
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(13)
     public void testAssociateFileDataManager() throws Exception {
         LocationDTO locationDTO = new LocationDTO();
         locationDTO.setId(1);
@@ -937,43 +912,40 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setPath("Test");
         sourceDTO.setLocation(locationDTO);
 
-        String error = getMockMvc().perform(put("/jbr/ext/backup/source")
+        String error = Objects.requireNonNull(getMockMvc().perform(put("/jbr/ext/backup/source")
                         .content(this.json(sourceDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Source with id (1) not found.", error);
 
         associatedFileDataManager.internalFindSourceById(this.source.getIdAndType().getId());
 
         sourceDTO = new SourceDTO();
         sourceDTO.setId(this.source.getIdAndType().getId());
-        error = getMockMvc().perform(post("/jbr/ext/backup/source")
+        error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/ext/backup/source")
                         .content(this.json(sourceDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isConflict())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Source with id (" + sourceDTO.getId() + ") already exists.", error);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Test
-    @Order(14)
     public void checkActionInvalid() throws Exception {
         ConfirmActionRequest request = new ConfirmActionRequest();
         request.setId(1);
         request.setConfirm(true);
         request.setParameter("Blha");
-        String error = getMockMvc().perform(post("/jbr/int/backup/actions")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/actions")
                         .content(this.json(request))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
-                .andReturn().getResolvedException().getMessage();
+                .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Action 1 not found.", error);
     }
 
     @Test
-    @Order(15)
     public void duplicateTesting() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -1034,7 +1006,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(16)
     public void duplicateTestingWithMD5() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -1095,7 +1066,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(17)
     public void syncWithDelete() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
@@ -1203,7 +1173,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(18)
     public void testSyncWithFilesRemoved() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
@@ -1310,8 +1279,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(19)
-    //@Ignore
     public void testSyncWithDirectoryRemoved() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
@@ -1418,7 +1385,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(20)
     public void testSyncFileToDirectory() throws Exception {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12_2");
@@ -1458,7 +1424,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(21)
     public void testSyncDirectoryToFile() throws Exception {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12");
@@ -1498,7 +1463,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(22)
     public void testSyncEqualiseDate() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
@@ -1547,7 +1511,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    @Order(23)
     public void testSyncSourceBusy() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();

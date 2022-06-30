@@ -8,9 +8,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
@@ -41,7 +38,6 @@ import java.util.Optional;
 @WebAppConfiguration
 @ContextConfiguration(initializers = {FsoIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FsoIT   {
     private static final Logger LOG = LoggerFactory.getLogger(FsoIT.class);
 
@@ -93,7 +89,6 @@ public class FsoIT   {
 
 
     @Test
-    @Order(1)
     public void source() {
         LOG.info("Source Testing");
 
@@ -137,7 +132,6 @@ public class FsoIT   {
     }
 
     @Test
-    @Order(2)
     public void file() throws ParseException {
         LOG.info("Test the basic file object");
 
@@ -215,7 +209,6 @@ public class FsoIT   {
     }
 
     @Test
-    @Order(3)
     public void directory() {
         LOG.info("Test the basic directory object");
 
@@ -275,7 +268,6 @@ public class FsoIT   {
     }
 
     @Test
-    @Order(6)
     public void ignoreFile() throws ParseException {
         LOG.info("Test the basic ignore file object");
 
@@ -318,7 +310,6 @@ public class FsoIT   {
     }
 
     @Test
-    @Order(7)
     public void importFile() throws ParseException {
         LOG.info("Test the basic import file object");
 
@@ -361,7 +352,6 @@ public class FsoIT   {
     }
 
     @Test
-    @Order(8)
     public void importSource() {
         LOG.info("Test the basic import source object");
 
