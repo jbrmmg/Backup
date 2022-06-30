@@ -62,13 +62,13 @@ public class AssociatedFileDataManager {
         return null;
     }
 
-    public void createClassification(ClassificationDTO newClassification) throws ClassificationIdException {
+    public Classification createClassification(ClassificationDTO newClassification) throws ClassificationIdException {
         if(newClassification.getId() != null) {
             throw new ClassificationIdException();
         }
 
         this.cachedClassifications = null;
-        classificationRepository.save(new Classification(newClassification));
+        return classificationRepository.save(new Classification(newClassification));
     }
 
     public void updateClassification(ClassificationDTO classification) throws InvalidClassificationIdException {
@@ -117,13 +117,13 @@ public class AssociatedFileDataManager {
         return locationRepository.findById(id);
     }
 
-    public void createLocation(LocationDTO newLocation) throws LocationAlreadyExistsException {
+    public Location createLocation(LocationDTO newLocation) throws LocationAlreadyExistsException {
         Optional<Location> existing = locationRepository.findById(newLocation.getId());
         if(existing.isPresent()) {
             throw new LocationAlreadyExistsException(existing.get().getId());
         }
 
-        locationRepository.save(new Location(newLocation));
+        return locationRepository.save(new Location(newLocation));
     }
 
     public void updateLocation(LocationDTO location) throws InvalidLocationIdException {
@@ -217,7 +217,6 @@ public class AssociatedFileDataManager {
             source.setStatus(status);
             sourceRepository.save(source);
         } catch(Exception ex) {
-            // TODO - can this be tested?
             LOG.warn("Failed to set source status. (ignored the error)",ex);
         }
     }
@@ -275,7 +274,6 @@ public class AssociatedFileDataManager {
     public void updateSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
-            // TODO - test this
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 

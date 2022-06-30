@@ -143,63 +143,6 @@ public class DatabaseIT {
     }
 
     @Test
-    public void location() {
-        Location newLocation = new Location();
-        newLocation.setId(1000);
-        newLocation.setName("Test");
-        newLocation.setSize("1GB");
-
-        locationRepository.save(newLocation);
-
-        Optional<Location> findLocation = locationRepository.findById(1000);
-        Assert.assertTrue(findLocation.isPresent());
-
-        findLocation.get().setName("Test 2");
-        locationRepository.save(findLocation.get());
-
-        Optional<Location> findLocation2 = locationRepository.findById(1000);
-        Assert.assertTrue(findLocation2.isPresent());
-
-        Assert.assertEquals("Test 2", findLocation2.get().getName());
-        Assert.assertEquals("1GB", findLocation2.get().getSize());
-
-        locationRepository.delete(findLocation2.get());
-        findLocation2 = locationRepository.findById(1000);
-        Assert.assertFalse(findLocation2.isPresent());
-    }
-
-    @Test
-    public void classification() {
-        ClassificationDTO newDTO = new ClassificationDTO();
-        newDTO.setAction(ClassificationActionType.CA_BACKUP);
-        newDTO.setImage(false);
-        newDTO.setIcon("Fred");
-        newDTO.setOrder(1);
-        newDTO.setRegex("x");
-        newDTO.setUseMD5(true);
-        newDTO.setVideo(false);
-
-        Classification newClassification = new Classification(newDTO);
-        classificationRepository.save(newClassification);
-
-        int id = newClassification.getId();
-
-        Optional<Classification> findClassification = classificationRepository.findById(id);
-        Assert.assertTrue(findClassification.isPresent());
-        Assert.assertEquals("BACKUP", findClassification.get().getAction().getTypeName());
-        Assert.assertEquals("Fred", findClassification.get().getIcon());
-        Assert.assertEquals("x", findClassification.get().getRegex());
-        Assert.assertEquals(false, findClassification.get().getIsImage());
-        Assert.assertEquals(false, findClassification.get().getIsVideo());
-        Assert.assertEquals(true, findClassification.get().getUseMD5());
-
-        classificationRepository.delete(findClassification.get());
-
-        findClassification = classificationRepository.findById(id);
-        Assert.assertFalse(findClassification.isPresent());
-    }
-
-    @Test
     public void action_confirm() {
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");
@@ -243,59 +186,5 @@ public class DatabaseIT {
         Assert.assertFalse(findActionConfirm2.isPresent());
 
         fileRepository.delete(newFile);
-    }
-
-    @Test
-    public void synchronize() {
-        Location newLocation = new Location();
-        newLocation.setId(1000);
-        newLocation.setName("Test");
-        newLocation.setName("1GB");
-        locationRepository.save(newLocation);
-
-        Source newSource1 = new Source();
-        newSource1.setLocation(newLocation);
-        newSource1.setStatus(SourceStatusType.SST_OK);
-        newSource1.setFilter("*.xml");
-        newSource1.setPath("/test/directory");
-        sourceRepository.save(newSource1);
-
-        Source newSource2 = new Source();
-        newSource2.setLocation(newLocation);
-        newSource2.setStatus(SourceStatusType.SST_OK);
-        newSource2.setFilter("*.xml");
-        newSource2.setPath("/test/directory2");
-        sourceRepository.save(newSource2);
-
-        Synchronize newSync = new Synchronize();
-        newSync.setId(1000);
-        newSync.setDestination(newSource1);
-        newSync.setSource(newSource2);
-
-        synchronizeRepository.save(newSync);
-
-        Optional<Synchronize> findSync = synchronizeRepository.findById(1000);
-        Assert.assertTrue(findSync.isPresent());
-
-        Assert.assertEquals("/test/directory", findSync.get().getDestination().getPath());
-        Assert.assertEquals("/test/directory2", findSync.get().getSource().getPath());
-
-        findSync.get().setDestination(newSource2);
-        findSync.get().setSource(newSource1);
-        synchronizeRepository.save(findSync.get());
-
-        Optional<Synchronize> findSync2 = synchronizeRepository.findById(1000);
-        Assert.assertTrue(findSync2.isPresent());
-
-        Assert.assertEquals("/test/directory2", findSync2.get().getDestination().getPath());
-        Assert.assertEquals("/test/directory", findSync2.get().getSource().getPath());
-
-        synchronizeRepository.delete(findSync2.get());
-        findSync2 = synchronizeRepository.findById(1000);
-        Assert.assertFalse(findSync2.isPresent());
-
-        sourceRepository.delete(newSource1);
-        sourceRepository.delete(newSource2);
-        locationRepository.delete(newLocation);
     }
 }
