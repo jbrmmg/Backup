@@ -118,6 +118,7 @@ public class RwDbTree extends CompareRoot {
         // If this is a file, add a delete then add to the list now.
         RwDbCompareNode compareNode = (RwDbCompareNode)node;
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && !compareNode.isDirectory()) ||
+                (compareNode.getActionType().equals(RwDbCompareNode.ActionType.UPDATE) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
         }

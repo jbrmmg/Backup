@@ -1504,10 +1504,9 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(1)));
 
-        //TODO - fix this - its because the date is not updated.
-//        validateSource(fileSystemObjectManager,synchronize.getDestination(),sourceDescription);
+        validateSource(fileSystemObjectManager,synchronize.getDestination(),sourceDescription);
     }
 
     @Test

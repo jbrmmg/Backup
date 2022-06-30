@@ -347,7 +347,6 @@ public class ImportManager extends FileProcessor {
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
     private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) {
-        // TODO - can more methods be tested?
         // Check the size.
         long size = path.toFile().length();
         if(fileInfo.getSize() != size) {
