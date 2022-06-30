@@ -49,7 +49,7 @@ public class TestFsoExtra {
             int i = count.get();
             count.set(++i);
         });
-        Assert.assertEquals(count.get(),1);
+        Assert.assertEquals(1, count.get());
     }
 
     @Test
@@ -77,7 +77,7 @@ public class TestFsoExtra {
             int i = count.get();
             count.set(++i);
         });
-        Assert.assertEquals(count.get(),0);
+        Assert.assertEquals(0, count.get());
     }
 
     @Test
@@ -207,7 +207,7 @@ public class TestFsoExtra {
             int i = count.get();
             count.set(++i);
         });
-        Assert.assertEquals(count.get(),0);
+        Assert.assertEquals(0, count.get());
     }
 
     @Test

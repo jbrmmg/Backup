@@ -409,4 +409,19 @@ public class TestGeneral extends WebTester {
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize();
     }
+
+    @Test
+    public void validateFileStatusType() {
+        ImportFileStatusType type = ImportFileStatusType.getFileStatusType("COMPLETE");
+        Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, type);
+
+        type = ImportFileStatusType.getFileStatusType("READ");
+        Assert.assertEquals(ImportFileStatusType.IFS_READ, type);
+
+        try {
+            ImportFileStatusType.getFileStatusType("Blah");
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("Blah is not a valid Import File Status", e.getMessage());
+        }
+    }
 }

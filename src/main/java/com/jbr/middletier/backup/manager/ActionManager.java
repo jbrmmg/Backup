@@ -98,9 +98,7 @@ public class ActionManager {
                 break;
         }
 
-        actionConfirmRepository.save(actionConfirm);
-
-        return new ActionConfirmDTO(actionConfirm);
+        return new ActionConfirmDTO(actionConfirmRepository.save(actionConfirm));
     }
 
     public ActionConfirmDTO createFileDeleteAction(FileInfo file) {
@@ -110,6 +108,10 @@ public class ActionManager {
     @SuppressWarnings("UnusedReturnValue")
     public ActionConfirmDTO createFileImportAction(FileInfo file, String flags) {
         return createAction(ActionConfirmType.AC_IMPORT, file, flags);
+    }
+
+    public ActionConfirmDTO createFileDeleteDuplicateAction(FileInfo file) {
+        return createAction(ActionConfirmType.AC_DELETE_DUPLICATE, file, null);
     }
 
     public void actionPerformed(ActionConfirm action) {

@@ -1,13 +1,13 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.data.ActionConfirm;
-import com.jbr.middletier.backup.data.ActionConfirmType;
-import com.jbr.middletier.backup.data.ConfirmActionRequest;
-import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.config.ApplicationProperties;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.manager.ActionManager;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -29,6 +30,8 @@ import org.testcontainers.containers.MySQLContainer;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -67,6 +70,8 @@ public class ActionManagerIT {
 
     @Test
     public void actionConfirm() {
+        LOG.info("Check action confirm");
+
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");
         newFile.setSize(10);
@@ -117,5 +122,63 @@ public class ActionManagerIT {
             }
         });
         Assert.assertFalse(foundAction3.get().isPresent());
+    }
+
+    @Test
+    public void testConfirmAction() {
+        ApplicationProperties properties = mock(ApplicationProperties.class);
+        ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
+        ResourceLoader resourceLoader = mock(ResourceLoader.class);
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileInfo fileInfo = mock(FileInfo.class);
+
+        ConfirmActionRequest confirmActionRequest = mock(ConfirmActionRequest.class);
+        when(confirmActionRequest.getConfirm()).thenReturn(false);
+
+        when(fileInfo.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        ActionConfirm actionConfirm = mock(ActionConfirm.class);
+        when(actionConfirm.getAction()).thenReturn(ActionConfirmType.AC_DELETE_DUPLICATE);
+        when(actionConfirm.getPath()).thenReturn(fileInfo);
+
+        Optional<ActionConfirm> optionalAction = Optional.of(actionConfirm);
+
+        ActionManager actionManager = new ActionManager(properties,
+                actionConfirmRepository,
+                resourceLoader,
+                fileSystemObjectManager);
+
+        when(confirmActionRequest.getId()).thenReturn(1);
+
+        when(actionConfirmRepository.findById(1)).thenReturn(optionalAction);
+
+        actionManager.confirmAction(confirmActionRequest);
+        verify(actionConfirmRepository, times(1)).deleteById(1);
+    }
+
+    @Test
+    public void testConfirmActionCreate() {
+        ApplicationProperties properties = mock(ApplicationProperties.class);
+        ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
+        ResourceLoader resourceLoader = mock(ResourceLoader.class);
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        FileInfo file = mock(FileInfo.class);
+        when(file.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
+
+        ActionConfirm actionConfirm = mock(ActionConfirm.class);
+        when(actionConfirm.getId()).thenReturn(1);
+        when(actionConfirm.getPath()).thenReturn(file);
+        when(actionConfirm.getAction()).thenReturn(ActionConfirmType.AC_DELETE_DUPLICATE);
+
+        when(actionConfirmRepository.save(any(ActionConfirm.class))).thenReturn(actionConfirm);
+
+        ActionManager actionManager = new ActionManager(properties,
+                actionConfirmRepository,
+                resourceLoader,
+                fileSystemObjectManager);
+
+        ActionConfirmDTO action = actionManager.createFileDeleteDuplicateAction(file);
+        Assert.assertEquals(ActionConfirmType.AC_DELETE_DUPLICATE, action.getAction());
     }
 }
