@@ -34,15 +34,7 @@ public class RwDbCompareNode extends FileTreeNode {
         long dbTime = dbData.getDate() == null ? 0 : dbData.getDate().getTime() / 1000;
         long fileTime = fileDate.getTime() / 1000;
 
-        if(dbTime != fileTime) {
-            return true;
-        }
-
-        // TODO check the size.
-
-        // TODO if required check the MD5
-
-        return false;
+        return Math.abs(dbTime - fileTime) > 1;
     }
 
     public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode) {
