@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.type;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
+import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.BackupManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -79,7 +80,7 @@ public class ZipupBackup implements PerformBackup  {
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, Backup backup) {
+    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
         try {
             backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Zipup backup");
             String zipFilename = String.format("%s/backups.zip", applicationProperties.getZipDirectory());

@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,31 +18,26 @@ public class DuplicateManager {
     private final AssociatedFileDataManager associatedFileDataManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final ActionManager actionManager;
+    private final FileSystem fileSystem;
 
     @Autowired
     public DuplicateManager(AssociatedFileDataManager associatedFileDataManager,
                             FileSystemObjectManager fileSystemObjectManager,
-                            ActionManager actionManager) {
+                            ActionManager actionManager,
+                            FileSystem fileSystem) {
         this.associatedFileDataManager = associatedFileDataManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
+        this.fileSystem = fileSystem;
     }
 
     private void processDuplicate(FileInfo potentialDuplicate, DuplicateDataDTO data) {
         if(this.actionManager.checkAction(potentialDuplicate, ActionConfirmType.AC_DELETE_DUPLICATE)) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
+            data.increment(DuplicateDataDTO.DuplicateCountType.DELETED);
             File fileToDelete = fileSystemObjectManager.getFile(potentialDuplicate);
-            if(fileToDelete.exists()) {
-                LOG.info("Delete.");
-                try {
-                    Files.delete(fileToDelete.toPath());
-                    data.increment(DuplicateDataDTO.DuplicateCountType.DELETED);
-                } catch (IOException e) {
-                    LOG.warn("Failed to delete {}",fileToDelete);
-                    data.setProblems();
-                }
-            }
+            fileSystem.deleteFile(fileToDelete, data);
         }
     }
 

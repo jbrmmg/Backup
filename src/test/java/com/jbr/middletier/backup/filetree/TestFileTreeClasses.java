@@ -8,7 +8,7 @@ import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
 import com.jbr.middletier.backup.filetree.database.*;
 import com.jbr.middletier.backup.filetree.helpers.*;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
-import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 @WebAppConfiguration
 public class TestFileTreeClasses {
     @Autowired
-    BackupManager backupManager;
+    FileSystem fileSystem;
 
     @Test
     public void basicTestAdded() {
@@ -85,7 +85,7 @@ public class TestFileTreeClasses {
     @Test
     public void basicSectionTest() {
         try {
-            new RwRoot("does not exist", backupManager);
+            new RwRoot("does not exist", fileSystem);
             Assert.fail();
         } catch (IOException e) {
             Assert.assertEquals("does not exist", e.getMessage());

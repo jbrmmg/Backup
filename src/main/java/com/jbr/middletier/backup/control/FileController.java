@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +31,7 @@ public class FileController {
     private final DuplicateManager duplicateManager;
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
+    private final FileSystem fileSystem;
 
     @Contract(pure = true)
     @Autowired
@@ -40,13 +40,15 @@ public class FileController {
                           ActionManager actionManager,
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
-                          FileSystemObjectManager fileSystemObjectManager) {
+                          FileSystemObjectManager fileSystemObjectManager,
+                          FileSystem fileSystem) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
         this.actionManager = actionManager;
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
+        this.fileSystem = fileSystem;
     }
 
     @GetMapping(path="/files")
@@ -186,7 +188,7 @@ public class FileController {
         File imgPath = fileSystemObjectManager.getFile(loadedFile);
         LOG.info("Get file: {}", imgPath);
 
-        return Files.readAllBytes(imgPath.toPath());
+        return fileSystem.readAllBytes(imgPath);
     }
 
     @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -206,7 +208,7 @@ public class FileController {
         File imgPath = fileSystemObjectManager.getFile(loadedFile);
         LOG.info("Get file: {}", imgPath);
 
-        return Files.readAllBytes(imgPath.toPath());
+        return fileSystem.readAllBytes(imgPath);
     }
 
     @DeleteMapping(path="/file")

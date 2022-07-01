@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.manager.ActionManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -126,6 +127,7 @@ public class ActionManagerIT {
 
     @Test
     public void testConfirmAction() {
+        FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties properties = mock(ApplicationProperties.class);
         ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
         ResourceLoader resourceLoader = mock(ResourceLoader.class);
@@ -146,7 +148,7 @@ public class ActionManagerIT {
         ActionManager actionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
-                fileSystemObjectManager);
+                fileSystemObjectManager, fileSystem);
 
         when(confirmActionRequest.getId()).thenReturn(1);
 
@@ -158,6 +160,7 @@ public class ActionManagerIT {
 
     @Test
     public void testConfirmActionCreate() {
+        FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties properties = mock(ApplicationProperties.class);
         ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
         ResourceLoader resourceLoader = mock(ResourceLoader.class);
@@ -176,7 +179,7 @@ public class ActionManagerIT {
         ActionManager actionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
-                fileSystemObjectManager);
+                fileSystemObjectManager, fileSystem);
 
         ActionConfirmDTO action = actionManager.createFileDeleteDuplicateAction(file);
         Assert.assertEquals(ActionConfirmType.AC_DELETE_DUPLICATE, action.getAction());

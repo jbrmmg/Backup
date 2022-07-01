@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.dto.ImportDataDTO;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
@@ -12,14 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Component
 public class ImportManager extends FileProcessor {
@@ -34,8 +31,9 @@ public class ImportManager extends FileProcessor {
                          FileSystemObjectManager fileSystemObjectManager,
                          IgnoreFileRepository ignoreFileRepository,
                          BackupManager backupManager,
-                         ActionManager actionManager) {
-        super(backupManager,actionManager,associatedFileDataManager,fileSystemObjectManager);
+                         ActionManager actionManager,
+                         FileSystem fileSystem) {
+        super(backupManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
     }
@@ -116,40 +114,34 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    private boolean processClassification(ImportFile importFile, Path path) {
+    private boolean processClassification(ImportFile importFile, Path path, ImportDataDTO result) {
         if(importFile.getClassification() == null) {
             return false;
         }
 
         if(!importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
+            result.increment(ImportDataDTO.ImportDataCountType.NON_BACKUP_CLASSIFICATIONS);
             LOG.info("{} not a backed up file, deleting", path);
-            try {
-                Files.delete(path);
-            } catch (IOException e) {
-                LOG.warn("Failed to delete {}, not a backup classification.", path);
-            }
+            fileSystem.deleteFile(path.toFile(),result);
             return false;
         }
 
         return true;
     }
 
-    private boolean processIgnored(ImportFile importFile, Path path) {
+    private boolean processIgnored(ImportFile importFile, Path path, ImportDataDTO result) {
         if(ignoreFile(importFile)) {
+            result.increment(ImportDataDTO.ImportDataCountType.IGNORED_IMPORTS);
             // Delete the file from import.
             LOG.info("{} marked for ignore, deleting", path);
-            try {
-                Files.delete(path);
-            } catch (IOException e) {
-                LOG.warn("Failed to delete {}, ignored file.", path);
-            }
+            fileSystem.deleteFile(path.toFile(), result);
             return false;
         }
 
         return true;
     }
 
-    private FileTestResultType processExisting(ImportFile importFile, Path path, List<FileInfo> files) {
+    private FileTestResultType processExisting(ImportFile importFile, Path path, List<FileInfo> files, ImportDataDTO result) {
         List<FileInfo> existingFiles = files.stream()
                 .filter(file -> file.getName().equals(importFile.getName()))
                 .collect(Collectors.toList());
@@ -160,14 +152,11 @@ public class ImportManager extends FileProcessor {
             // Get the details of the file - size & md5.
             FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
+                result.increment(ImportDataDTO.ImportDataCountType.ALREADY_IMPORTED);
+
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
-                try {
-                    Files.delete(path);
-                } catch (IOException e) {
-                    LOG.warn("Failed to delete {}, already imported", path);
-                }
-
+                fileSystem.deleteFile(path.toFile(),result);
                 return testResult;
             }
         }
@@ -175,7 +164,7 @@ public class ImportManager extends FileProcessor {
         return FileTestResultType.DIFFERENT;
     }
 
-    private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter) {
+    private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter, ImportDataDTO result) {
         actionManager.deleteActions(confirmedActions);
 
         // If the parameter value is IGNORE then add this file to the ignored list.
@@ -187,6 +176,7 @@ public class ImportManager extends FileProcessor {
             ignoreFile.setMD5(importFile.getMD5());
             ignoreFile.clearRemoved();
 
+            result.increment(ImportDataDTO.ImportDataCountType.IGNORED);
             ignoreFileRepository.save(ignoreFile);
             return;
         }
@@ -208,17 +198,11 @@ public class ImportManager extends FileProcessor {
 
         newFilename += "/" + path.getFileName();
 
-        try {
-            LOG.info("Importing file {} to {}", path, newFilename);
-            Files.move(path,
-                    Paths.get(newFilename),
-                    REPLACE_EXISTING);
-        } catch (IOException e) {
-            LOG.error("Unable to import {}", path);
-        }
+        result.increment(ImportDataDTO.ImportDataCountType.IMPORTED);
+        fileSystem.moveFile(path.toFile(), new File(newFilename), result);
     }
 
-    private void processImportActions(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source) {
+    private void processImportActions(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, ImportDataDTO result) {
         boolean confirmed = false;
         String parameter = "";
         for(ActionConfirm nextConfirm: confirmedActions) {
@@ -229,11 +213,11 @@ public class ImportManager extends FileProcessor {
         }
 
         if(confirmed && parameter.length() > 0) {
-            processConfirmedAction(importFile,path,confirmedActions,source,parameter);
+            processConfirmedAction(importFile,path,confirmedActions,source,parameter,result);
         }
     }
 
-    private void processImport(ImportFile importFile, Source source, List<FileInfo> files) {
+    private void processImport(ImportFile importFile, Source source, List<FileInfo> files, ImportDataDTO result) {
         // If this file is completed then exit.
         if(importFile.getStatus().equals(ImportFileStatusType.IFS_COMPLETE)) {
             return;
@@ -243,24 +227,24 @@ public class ImportManager extends FileProcessor {
         Path path = fileSystemObjectManager.getFile(importFile).toPath();
 
         // What is the classification? if yes, unless this is a backup file just remove it.
-        if(!processClassification(importFile,path)) {
+        if(!processClassification(importFile,path,result)) {
             return;
         }
 
         // Get details of the file to import.
         if(!importFile.getMD5().isSet()) {
-            importFile.setMD5(getMD5(path, importFile.getClassification()));
+            importFile.setMD5(fileSystem.getClassifiedFileMD5(path, importFile.getClassification()));
 
             fileSystemObjectManager.save(importFile);
         }
 
         // Is this file being ignored?
-        if(!processIgnored(importFile,path)) {
+        if(!processIgnored(importFile,path,result)) {
             return;
         }
 
         // Does this file already exist in the source?
-        FileTestResultType existingState = processExisting(importFile,path,files);
+        FileTestResultType existingState = processExisting(importFile,path,files,result);
         if(FileTestResultType.EXACT == existingState) {
             return;
         }
@@ -269,16 +253,16 @@ public class ImportManager extends FileProcessor {
         // Photos are in <source> / <year> / <month> / <event> / filename
         List<ActionConfirm> confirmedActions = actionManager.getConfirmedImportActionsForFile(importFile);
         if(!confirmedActions.isEmpty()) {
-            processImportActions(importFile,path,confirmedActions,source);
+            processImportActions(importFile,path,confirmedActions,source,result);
         } else {
             // Create an action to be confirmed.
             actionManager.createFileImportAction(importFile,FileTestResultType.CLOSE == existingState ? "C" : null);
         }
     }
 
-    public List<GatherDataDTO> importPhotoProcess() throws ImportRequestException {
+    public List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
         LOG.info("Import Photo Process");
-        List<GatherDataDTO> result = new ArrayList<>();
+        List<ImportDataDTO> result = new ArrayList<>();
 
         // Get the source.
         Optional<ImportSourceDTO> importSource = Optional.empty();
@@ -289,7 +273,7 @@ public class ImportManager extends FileProcessor {
         if(!importSource.isPresent()) {
             throw new ImportRequestException("There is no import source defined.");
         }
-        GatherDataDTO resultItem = new GatherDataDTO(importSource.get().getId());
+        ImportDataDTO resultItem = new ImportDataDTO(importSource.get().getId());
         result.add(resultItem);
 
         try {
@@ -308,8 +292,7 @@ public class ImportManager extends FileProcessor {
             for (ImportFile nextFile : importFileRepository.findAll()) {
                 LOG.info( "{} MD5: {}", nextFile.getName(), nextFile.getMD5());
 
-                processImport(nextFile, destination.get(), files);
-                resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
+                processImport(nextFile, destination.get(), files, resultItem);
 
                 nextFile.setStatus(ImportFileStatusType.IFS_COMPLETE);
                 importFileRepository.save(nextFile);
@@ -360,7 +343,7 @@ public class ImportManager extends FileProcessor {
                 File sourceFile = fileSystemObjectManager.getFile(fileInfo);
 
                 // Need to get the MD5.
-                fileInfo.setMD5(getMD5(sourceFile.toPath(),fileInfo.getClassification()));
+                fileInfo.setMD5(fileSystem.getClassifiedFileMD5(sourceFile.toPath(),fileInfo.getClassification()));
 
                 if(!fileInfo.getMD5().isSet()) {
                     return FileTestResultType.DIFFERENT;

@@ -2,16 +2,14 @@ package com.jbr.middletier.backup.type;
 
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Created by jason on 11/02/17.
@@ -23,26 +21,24 @@ public class GitBackup extends FileBackup {
 
     private static final String PATH_FILE_FORMAT = "%s/%s";
 
-    private Path ensureBackupDirectoryExists(String todaysDirectory, String name) throws IOException {
-        Path destinationPath = Paths.get(String.format(PATH_FILE_FORMAT, todaysDirectory, name));
-        if (Files.notExists(destinationPath)) {
-            Files.createDirectory(destinationPath);
-        }
+    private Path ensureBackupDirectoryExists(FileSystem fileSystem, String todaysDirectory, String name) throws IOException {
+        File destinationPath = new File(String.format(PATH_FILE_FORMAT, todaysDirectory, name));
+        fileSystem.createDirectory(destinationPath.toPath());
 
-        return destinationPath;
+        return destinationPath.toPath();
     }
 
-    private void processFile(File listOfFile, Path destinationPath, BackupManager backupManager, Backup backup) throws IOException {
+    private void processFile(FileSystem fileSystem, File listOfFile, Path destinationPath, BackupManager backupManager, Backup backup) throws IOException {
         if (listOfFile.getName().startsWith(".")) {
             return;
         }
 
         // Copy file if not already created.
         LOG.info("File {} copy to {}", listOfFile.getName(), destinationPath);
-        performFileBackup(backupManager, backup.getDirectory(), destinationPath.toString(), listOfFile.getName(), false);
+        performFileBackup(backupManager, fileSystem, backup.getDirectory(), destinationPath.toString(), listOfFile.getName(), false);
     }
 
-    private void processDirectory(File listOfFile, Path destinationPath, BackupManager backupManager, Backup backup) throws IOException {
+    private void processDirectory(FileSystem fileSystem, File listOfFile, Path destinationPath, BackupManager backupManager, Backup backup) throws IOException {
         if (listOfFile.getName().equalsIgnoreCase("target")) {
             return;
         }
@@ -50,28 +46,25 @@ public class GitBackup extends FileBackup {
         LOG.info("DirectoryInfo {} copy to {}/{}", listOfFile.getName(), destinationPath, listOfFile.getName());
 
         // If not existing, create the directory.
-        Path newDirectoryPath = Paths.get(String.format(PATH_FILE_FORMAT, destinationPath.toString(), listOfFile.getName()));
-        if (Files.notExists(newDirectoryPath)) {
-            Files.createDirectory(newDirectoryPath);
-        }
+        Path destination = ensureBackupDirectoryExists(fileSystem, destinationPath.toString(), listOfFile.getName());
 
         // Do the copy.
         File source = new File(String.format(PATH_FILE_FORMAT, backup.getDirectory(), listOfFile.getName()));
-        File destination = new File(newDirectoryPath.toString());
-        FileUtils.copyDirectory(source, destination, true);
+        FileSystem.TemporaryResultDTO result = new FileSystem.TemporaryResultDTO();
+        fileSystem.copyDirectory(source, destination.toFile(),result);
 
         backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath, listOfFile.getName()));
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, Backup backup) {
+    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
         try {
             LOG.info("Git Backup {} {} {}", backup.getId(), backup.getBackupName(), backup.getDirectory());
 
             // Perform a git backup.
 
             // Create the backup directory if it doesn't exist.
-            Path destinationPath = ensureBackupDirectoryExists(backupManager.todaysDirectory(),backup.getBackupName());
+            Path destinationPath = ensureBackupDirectoryExists(fileSystem,backupManager.todaysDirectory(),backup.getBackupName());
 
             // Get a list of files that are in the directory.
             File folder = new File(backup.getDirectory());
@@ -88,9 +81,9 @@ public class GitBackup extends FileBackup {
 
             for (File listOfFile : listOfFiles) {
                 if (listOfFile.isFile()) {
-                    processFile(listOfFile,destinationPath,backupManager,backup);
+                    processFile(fileSystem, listOfFile, destinationPath, backupManager, backup);
                 } else if (listOfFile.isDirectory()) {
-                    processDirectory(listOfFile,destinationPath,backupManager,backup);
+                    processDirectory(fileSystem,listOfFile,destinationPath,backupManager,backup);
                 }
             }
 

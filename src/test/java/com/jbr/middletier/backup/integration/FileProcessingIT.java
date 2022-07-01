@@ -14,7 +14,7 @@ import com.jbr.middletier.backup.filetree.database.*;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
-import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
@@ -34,7 +34,6 @@ import org.testcontainers.containers.MySQLContainer;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.text.SimpleDateFormat;
@@ -101,7 +100,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Autowired
-    BackupManager backupManager;
+    FileSystem fileSystem;
 
     @Autowired
     FileRepository fileRepository;
@@ -122,7 +121,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Check that the details were read as expected.
         Assert.assertNull(rwRoot.getName());
@@ -213,7 +212,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -259,7 +258,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -322,7 +321,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -398,7 +397,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test4");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -481,7 +480,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -558,7 +557,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -578,7 +577,6 @@ public class FileProcessingIT extends FileTester {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
                 Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
                 Assert.assertTrue(compareNode.isDirectory());
-                Assert.assertFalse(compareNode.deleteRwFile());
                 compareCount++;
             } else {
                 Assert.fail();
@@ -615,7 +613,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -663,7 +661,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test5");
         copyFiles(sourceDescription, sourceDirectory);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, backupManager);
+        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         int childCount = 0;
         for(FileTreeNode nextChild : rwRoot.getChildren()) {
@@ -722,7 +720,7 @@ public class FileProcessingIT extends FileTester {
         FileSystemProvider fsProvider = mock(FileSystemProvider.class);
         doThrow(new IOException("Fail to delete")).when(fsProvider).deleteIfExists(mockPath);
 
-        FileSystem mockFS = mock(FileSystem.class);
+        java.nio.file.FileSystem mockFS = mock(java.nio.file.FileSystem.class);
         when(mockFS.provider()).thenReturn(fsProvider);
 
         when(mockPath.getFileSystem()).thenReturn(mockFS);
@@ -737,7 +735,5 @@ public class FileProcessingIT extends FileTester {
         DbFile dbFile = new DbFile(null, fileInfo);
         RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
         Assert.assertNotNull(testNode);
-
-        testNode.deleteRwFile();
     }
 }

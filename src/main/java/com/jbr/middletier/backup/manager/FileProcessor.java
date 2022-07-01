@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.filetree.*;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
@@ -14,10 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
 import java.util.*;
 
 abstract class FileProcessor {
@@ -27,51 +24,18 @@ abstract class FileProcessor {
     final BackupManager backupManager;
     final ActionManager actionManager;
     final AssociatedFileDataManager associatedFileDataManager;
+    final FileSystem fileSystem;
 
     FileProcessor(BackupManager backupManager,
                   ActionManager actionManager,
                   AssociatedFileDataManager associatedFileDataManager,
-                  FileSystemObjectManager fileSystemObjectManager) {
+                  FileSystemObjectManager fileSystemObjectManager,
+                  FileSystem fileSystem) {
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.backupManager = backupManager;
         this.actionManager = actionManager;
         this.associatedFileDataManager = associatedFileDataManager;
-    }
-
-    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-    protected MD5 getMD5(Path path, Classification classification) {
-        if(classification == null || !classification.getUseMD5()) {
-            return new MD5();
-        }
-
-        try {
-            // Calculate the MD5 for the file.
-            MessageDigest md = MessageDigest.getInstance("MD5");
-
-            try(DigestInputStream dis = new DigestInputStream(Files.newInputStream(path),md) ) {
-                //noinspection StatementWithEmptyBody
-                while (dis.read() != -1) ;
-                md = dis.getMessageDigest();
-            }
-
-            return new MD5(bytesToHex(md.digest()));
-        } catch (Exception ex) {
-            LOG.error("Failed to get MD5, ",ex);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Cannot get MD5 - " + path.toString());
-        }
-
-        return new MD5();
+        this.fileSystem = fileSystem;
     }
 
     abstract FileInfo createNewFile();
@@ -98,12 +62,16 @@ abstract class FileProcessor {
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
             if(next.confirmed() &&
-                    compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId()) &&
-                    compareNode.deleteRwFile() ) {
-                // Remove the action.
-                actionManager.actionPerformed(next);
-                performed.add(next);
-                gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
+                    compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId())) {
+                File fileToDelete = compareNode.getFileForDelete();
+                fileSystem.deleteFile(fileToDelete, gatherData);
+
+                if(!fileSystem.fileExists(fileToDelete)) {
+                    // If the file has been removed, then remove the action.
+                    actionManager.actionPerformed(next);
+                    performed.add(next);
+                    gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
+                }
             }
         }
     }
@@ -227,7 +195,7 @@ abstract class FileProcessor {
             file.setSize(rwNode.getFile().length());
             file.setDate(fileDate);
             if(!skipMD5) {
-                file.setMD5(getMD5(rwNode.getFile().toPath(), file.getClassification()));
+                file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification()));
             }
         }
 
@@ -239,7 +207,7 @@ abstract class FileProcessor {
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException {
         // Read the files structure from the real world.
-        RwRoot realWorld = new RwRoot(source.getPath(), backupManager);
+        RwRoot realWorld = new RwRoot(source.getPath(), fileSystem);
         realWorld.removeFilteredChildren(source.getFilter());
 
         // Read the same from the database.

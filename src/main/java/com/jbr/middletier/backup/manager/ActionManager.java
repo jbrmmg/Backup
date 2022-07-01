@@ -4,8 +4,8 @@ import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
+import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +20,11 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class ActionManager {
@@ -37,6 +34,7 @@ public class ActionManager {
     private final ActionConfirmRepository actionConfirmRepository;
     private final ResourceLoader resourceLoader;
     private final FileSystemObjectManager fileSystemObjectManager;
+    private final FileSystem fileSystem;
 
     private static final String END_TD = "</td>";
 
@@ -44,11 +42,12 @@ public class ActionManager {
     public ActionManager(ApplicationProperties applicationProperties,
                          ActionConfirmRepository actionConfirmRepository,
                          ResourceLoader resourceLoader,
-                         FileSystemObjectManager fileSystemObjectManager) {
+                         FileSystemObjectManager fileSystemObjectManager, FileSystem fileSystem) {
         this.applicationProperties = applicationProperties;
         this.actionConfirmRepository = actionConfirmRepository;
         this.resourceLoader = resourceLoader;
         this.fileSystemObjectManager = fileSystemObjectManager;
+        this.fileSystem = fileSystem;
     }
 
     public List<ActionConfirmDTO> externalFindByConfirmed(boolean confirmed) {
@@ -167,46 +166,10 @@ public class ActionManager {
         return false;
     }
 
-    void deleteFileIfConfirmed(FileInfo fileInfo) {
+    void deleteFileIfConfirmed(FileInfo fileInfo, ProcessResultDTO processResult) {
         // TODO - test this method
-        File file = fileSystemObjectManager.getFile(fileInfo);
-
-        if(file.exists() && checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
-            LOG.info("Delete the file - {}", file );
-            try {
-                // If the file is a folder, then delete the directory.
-                if(!file.isDirectory()) {
-                    Files.deleteIfExists(file.toPath());
-                }
-            } catch (IOException e) {
-                LOG.warn("Failed to delete file {}", file);
-            }
-        }
-    }
-
-    private boolean directoryIsEmpty(Path path) throws IOException {
-        if (Files.isDirectory(path)) {
-            try (Stream<Path> entries = Files.list(path)) {
-                return !entries.findFirst().isPresent();
-            }
-        }
-
-        return false;
-    }
-
-    void deleteDirectoryIfEmpty(DirectoryInfo directoryInfo) throws IOException {
-        File file = fileSystemObjectManager.getFile(directoryInfo);
-
-        if(file.exists() && directoryIsEmpty(file.toPath())) {
-            LOG.info("Delete the directory - {}", file );
-            try {
-                // If the file is a folder, then delete the directory.
-                if(file.isDirectory()) {
-                    FileUtils.deleteDirectory(file);
-                }
-            } catch (IOException e) {
-                LOG.warn("Failed to delete file {}", file);
-            }
+        if(checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
+            fileSystem.deleteFile(fileSystemObjectManager.getFile(fileInfo), processResult);
         }
     }
 

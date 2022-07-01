@@ -11,10 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -64,22 +62,22 @@ public class BackupManager {
         }
     }
 
-    public void initialiseDay() throws IOException {
+    public void initialiseDay(FileSystem fileSystem) throws IOException {
         LOG.info("Initialise the backup directory.");
 
-        Path directoryPath = Paths.get(this.applicationProperties.getDirectory().getName());
+        File directoryPath = new File(this.applicationProperties.getDirectory().getName());
 
         // Does the directory exist?
-        if(Files.notExists(directoryPath)) {
+        if(!fileSystem.directoryExists(directoryPath.toPath())) {
             throw new IllegalStateException(String.format("The defined directory path %s does not exist.", this.applicationProperties.getDirectory().getName()));
         }
 
         // What should today's directory be called?
-        Path todaysDirectoryPath = Paths.get(todaysDirectory());
+        File todaysDirectoryPath = new File(todaysDirectory());
 
         // If not exists, create it.
-        if(Files.notExists(todaysDirectoryPath)) {
-            Files.createDirectory(todaysDirectoryPath);
+        if(!fileSystem.directoryExists(todaysDirectoryPath.toPath())) {
+            fileSystem.createDirectory(todaysDirectoryPath.toPath());
             postWebLog(webLogLevel.INFO,"Created directory + " + todaysDirectoryPath);
         }
     }

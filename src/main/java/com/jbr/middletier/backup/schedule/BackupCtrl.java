@@ -28,22 +28,25 @@ public class BackupCtrl {
     private final BackupManager backupManager;
     private final BackupRepository backupRepository;
     private final ApplicationProperties applicationProperties;
+    private final FileSystem fileSystem;
 
     @Autowired
     public BackupCtrl(TypeManager typeManager,
                       BackupManager backupManager,
                       BackupRepository backupRepository,
-                      ApplicationProperties applicationProperties) {
+                      ApplicationProperties applicationProperties,
+                      FileSystem fileSystem) {
         this.typeManager = typeManager;
         this.backupManager = backupManager;
         this.backupRepository = backupRepository;
         this.applicationProperties = applicationProperties;
+        this.fileSystem = fileSystem;
     }
 
     private void performBackups(List<Backup> backups) {
         try {
             // Initialise the backup directory.
-            backupManager.initialiseDay();
+            backupManager.initialiseDay(fileSystem);
 
             // Process backups.
             for (Backup backup : backups) {
@@ -53,7 +56,7 @@ public class BackupCtrl {
                 PerformBackup performBackup = typeManager.getBackup(backup.getType());
 
                 // Perform the backup.
-                performBackup.performBackup(backupManager,backup);
+                performBackup.performBackup(backupManager,fileSystem,backup);
             }
         } catch (Exception ex) {
             LOG.error("Failed to perform backup",ex);

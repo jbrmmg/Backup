@@ -3,15 +3,13 @@ package com.jbr.middletier.backup.type;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -67,7 +65,7 @@ public class DatabaseBackup implements PerformBackup {
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, Backup backup) {
+    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
         try {
             backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
             LOG.info("Database Backup {} {} {} {}", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory());
@@ -75,10 +73,8 @@ public class DatabaseBackup implements PerformBackup {
             // Perform a database backup.
 
             // Create the backup directory if it doesn't exist.
-            Path destinationPath = Paths.get(String.format("%s/%s",backupManager.todaysDirectory(), backup.getBackupName()));
-            if(Files.notExists(destinationPath)) {
-                Files.createDirectory(destinationPath);
-            }
+            File destinationPath = new File(String.format("%s/%s",backupManager.todaysDirectory(), backup.getBackupName()));
+            fileSystem.createDirectory(destinationPath.toPath());
 
             // Does the destination file exist?
             File destinationFile = new File(String.format("%s/%s/%s",backupManager.todaysDirectory(),backup.getBackupName(),backup.getArtifact()));

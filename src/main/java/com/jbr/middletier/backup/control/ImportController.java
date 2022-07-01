@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
+import com.jbr.middletier.backup.dto.ImportDataDTO;
 import com.jbr.middletier.backup.dto.ImportFileDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.manager.ImportManager;
@@ -47,7 +48,7 @@ public class ImportController {
     }
 
     @PostMapping(path="/importprocess")
-    public @ResponseBody List<GatherDataDTO> importPhotoProcess() throws ImportRequestException {
+    public @ResponseBody List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
         LOG.info("Import - process");
 
         return importManager.importPhotoProcess();

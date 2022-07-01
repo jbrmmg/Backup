@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
 import com.jbr.middletier.backup.type.CleanBackup;
 import com.jbr.middletier.backup.type.DatabaseBackup;
@@ -82,6 +83,7 @@ public class TestBackups {
 
     @Test
     public void TestCleanBackupFailure() {
+        FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         ApplicationProperties.Directory directory = mock(ApplicationProperties.Directory.class);
         when(applicationProperties.getDirectory()).thenReturn(directory);
@@ -94,7 +96,7 @@ public class TestBackups {
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
 
         try {
-            cleanBackup.performBackup(backupManager, backup);
+            cleanBackup.performBackup(backupManager, fileSystem, backup);
             Assert.fail();
         } catch (IllegalStateException e) {
             Assert.assertEquals("Backup directory does not exist.", e.getMessage());
@@ -114,12 +116,13 @@ public class TestBackups {
         Assert.assertTrue(testFile2.exists());
 
         BackupManager backupManager = mock(BackupManager.class);
+        FileSystem fileSystem = mock(FileSystem.class);
 
         Backup backup = mock(Backup.class);
 
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
 
-        cleanBackup.performBackup(backupManager, backup);
+        cleanBackup.performBackup(backupManager, fileSystem, backup);
         verify(backupManager,times(1)).postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory java.text.ParseException: Unparseable date: \"20201401\"");
     }
 
@@ -234,6 +237,8 @@ public class TestBackups {
     @Test
     public void TestZipDirectoryEmpty() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (!backupDirectory.mkdirs()) {
@@ -262,7 +267,7 @@ public class TestBackups {
             Backup backup = new Backup(backupDTO);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager,backup);
+            zipupBackup.performBackup(backupManager, fileSystem,backup);
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -288,6 +293,8 @@ public class TestBackups {
     @Test
     public void TestZipBackupFail() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (backupDirectory.exists()) {
@@ -328,7 +335,7 @@ public class TestBackups {
             Backup backup = new Backup(backupDTO);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager,backup);
+            zipupBackup.performBackup(backupManager,fileSystem,backup);
 
             backupRepository.deleteAll();
 
@@ -743,6 +750,8 @@ public class TestBackups {
     @Test
     public void TestDatabaseBadConfig() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             File backupDir = new File("./target/testfiles/Backup");
             if (!backupDir.exists()) {
                 assertTrue(backupDir.mkdirs());
@@ -769,7 +778,7 @@ public class TestBackups {
 
             Backup backup = new Backup(backupDTO);
 
-            databaseBackup.performBackup(backupManager,backup);
+            databaseBackup.performBackup(backupManager, fileSystem,backup);
             applicationProperties.setDbUrl(backupDbUrl);
 
             assertFalse(expected1.exists());
@@ -785,7 +794,7 @@ public class TestBackups {
             ApplicationProperties applicationProperties = new ApplicationProperties();
             applicationProperties.setEnabled(false);
 
-            BackupCtrl backupCtrl = new BackupCtrl(null,null,null, applicationProperties);
+            BackupCtrl backupCtrl = new BackupCtrl(null, null,null, applicationProperties, null);
             backupCtrl.scheduleBackup();
 
         } catch (Exception ex) {
@@ -797,6 +806,8 @@ public class TestBackups {
     @Test
     public void testDbBackup() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             ApplicationProperties properties = mock(ApplicationProperties.class);
             when(properties.getDbBackupCommand()).thenReturn("xx");
             when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
@@ -811,7 +822,7 @@ public class TestBackups {
 
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
             Assert.assertNotNull(dbBackup);
-            dbBackup.performBackup(manager, backup);
+            dbBackup.performBackup(manager, fileSystem, backup);
         } catch(Exception e) {
             Assert.fail();
         }
@@ -820,6 +831,8 @@ public class TestBackups {
     @Test
     public void testDbBackup2() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             ApplicationProperties properties = mock(ApplicationProperties.class);
             when(properties.getDbBackupCommand()).thenReturn("xx");
             when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
@@ -836,7 +849,7 @@ public class TestBackups {
 
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
             Assert.assertNotNull(dbBackup);
-            dbBackup.performBackup(manager, backup);
+            dbBackup.performBackup(manager, fileSystem, backup);
         } catch(Exception e) {
             Assert.fail();
         }

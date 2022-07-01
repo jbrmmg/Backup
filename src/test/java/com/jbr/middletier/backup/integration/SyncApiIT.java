@@ -180,7 +180,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(1)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
@@ -194,7 +200,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(13)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(10)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
@@ -208,7 +220,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(3)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
 
@@ -258,7 +276,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(14)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         List<FileInfo> files = new ArrayList<>();
         List<DirectoryInfo> directories = new ArrayList<>();
@@ -300,7 +324,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(14)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -311,7 +341,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesCopied", is(14)));
+                .andExpect(jsonPath("$[0].filesCopied", is(11)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(11)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(1)));
 
         // Check that no errors.
         Assert.assertEquals(1, backupManager.getMessageCache(BackupManager.webLogLevel.WARN).size());
@@ -321,7 +357,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         sourceDescription = getTestStructure("test2_sync");
         validateSource(fileSystemObjectManager, synchronize.getDestination(), sourceDescription);
@@ -446,12 +488,12 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(2)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
-                .andExpect(jsonPath("$[0].deletes", is(0)))
-                .andExpect(jsonPath("$[0].failed", is(false)));
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager, this.source,sourceDescription);
         Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
@@ -653,7 +695,11 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(6)));
+                .andExpect(jsonPath("$[0].nonBackupClassification", is(1)))
+                .andExpect(jsonPath("$[0].ignoredImports", is(0)))
+                .andExpect(jsonPath("$[0].alreadyImported", is(0)))
+                .andExpect(jsonPath("$[0].ignored", is(0)))
+                .andExpect(jsonPath("$[0].imported", is(0)));
 
         // Set up the actions that will be performed.
         for(ActionConfirmDTO nextAction : actionManager.externalFindByConfirmed(false)) {
@@ -677,7 +723,11 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].deletes", is(1)))
-                .andExpect(jsonPath("$[0].filesInserted", is(6)));
+                .andExpect(jsonPath("$[0].filesInserted", is(6)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(1)));
 
         // Import should now not have the deleted file.
         sourceDescription = getTestStructure("test6_1");
@@ -707,7 +757,11 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(5)));
+                .andExpect(jsonPath("$[0].nonBackupClassification", is(0)))
+                .andExpect(jsonPath("$[0].ignoredImports", is(0)))
+                .andExpect(jsonPath("$[0].alreadyImported", is(0)))
+                .andExpect(jsonPath("$[0].ignored", is(1)))
+                .andExpect(jsonPath("$[0].imported", is(1)));
 
         // Import should still look the same.
         validateSource(fileSystemObjectManager, importSource, sourceDescription);
@@ -716,7 +770,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(3)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         // Check that the source has files.
         sourceDescription = getTestStructure("test6_2");
@@ -745,7 +805,11 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(6)));
+                .andExpect(jsonPath("$[0].nonBackupClassification", is(1)))
+                .andExpect(jsonPath("$[0].ignoredImports", is(1)))
+                .andExpect(jsonPath("$[0].alreadyImported", is(0)))
+                .andExpect(jsonPath("$[0].ignored", is(0)))
+                .andExpect(jsonPath("$[0].imported", is(0)));
 
         // Check the ignore files.
         getMockMvc().perform(get("/jbr/int/backup/ignore")
@@ -781,7 +845,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(14)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -955,7 +1025,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(3)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
@@ -1015,7 +1091,13 @@ public class SyncApiIT extends FileTester {
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(3)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
@@ -1081,8 +1163,16 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(14)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -1093,7 +1183,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesCopied", is(14)));
+                .andExpect(jsonPath("$[0].filesCopied", is(11)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(11)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(1)));
 
         // Find the file that we will delete.
         ArrayList<FileInfo> files = new ArrayList<>();
@@ -1148,7 +1244,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(2)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(11)));
+                .andExpect(jsonPath("$[1].filesInserted", is(11)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(2)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(1)));
 
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
@@ -1156,8 +1258,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesCopied", is(2)))
-                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(1)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -1165,11 +1272,17 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)));
     }
 
     @Test
@@ -1188,8 +1301,14 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(4)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -1200,7 +1319,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesCopied", is(4)));
+                .andExpect(jsonPath("$[0].filesCopied", is(4)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(1)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -1209,8 +1334,16 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(4)));
+                .andExpect(jsonPath("$[1].filesInserted", is(4)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         File fileToDelete = new File(sourceDirectory + "/Documents/Bills.ods");
         Files.deleteIfExists(fileToDelete.toPath());
@@ -1224,8 +1357,14 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(1)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
@@ -1233,7 +1372,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         // Find the action and confirm it.
         List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
@@ -1263,7 +1408,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -1273,9 +1424,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted", is(0)))
-                .andExpect(jsonPath("$[1].filesRemoved", is(1)));
+                .andExpect(jsonPath("$[1].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
     }
 
     @Test
@@ -1294,8 +1451,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(4)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -1306,7 +1470,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesCopied", is(4)));
+                .andExpect(jsonPath("$[0].filesCopied", is(4)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(2)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -1315,8 +1485,16 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(4)));
+                .andExpect(jsonPath("$[1].filesInserted", is(4)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         File directoryToDelete = new File(sourceDirectory + "/Documents/sub");
         FileUtils.deleteDirectory(directoryToDelete);
@@ -1330,8 +1508,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(1)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
@@ -1339,7 +1522,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         // Find the action and confirm it.
         List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
@@ -1369,7 +1558,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesDeleted", is(1)));
+                .andExpect(jsonPath("$[0].filesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(1)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -1378,10 +1573,16 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted", is(0)))
-                .andExpect(jsonPath("$[1].filesRemoved", is(1)));
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(1)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
     }
 
     @Test
@@ -1399,8 +1600,14 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(2)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -1417,8 +1624,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(1)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
     }
@@ -1439,7 +1653,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesInserted", is(2)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
@@ -1456,8 +1676,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(1)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(1)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(0)));
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
     }
@@ -1481,8 +1708,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(2)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(2)));
+                .andExpect(jsonPath("$[1].filesInserted", is(2)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
         validateSource(fileSystemObjectManager,synchronize.getDestination(),destinationDescription);
@@ -1493,7 +1727,14 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].failed", is(false)));
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(1)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -1503,8 +1744,15 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(0)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(1)));
+                .andExpect(jsonPath("$[1].filesInserted", is(1)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getDestination(),sourceDescription);
     }
@@ -1530,7 +1778,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(2)))
-                .andExpect(jsonPath("$[0].directoriesInserted", is(2)));
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
     }

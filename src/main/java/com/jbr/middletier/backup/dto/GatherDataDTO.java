@@ -33,5 +33,6 @@ public class GatherDataDTO extends ProcessResultDTO {
 
     public void increment(GatherDataCountType countType) { increment(countType.getTypeName()); }
 
+    @SuppressWarnings("UnusedReturnValue")
     public int getCount(GatherDataCountType countType) { return getCount(countType.getTypeName()); }
 }

@@ -8,17 +8,10 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Date;
 
 public class RwDbCompareNode extends FileTreeNode {
-    private static final Logger LOG = LoggerFactory.getLogger(RwDbCompareNode.class);
-
     public enum ActionType { NONE, INSERT, UPDATE, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
 
     private final RwNode realWorldNode;
@@ -110,22 +103,14 @@ public class RwDbCompareNode extends FileTreeNode {
         return this.isDirectory;
     }
 
-    public boolean deleteRwFile() {
+    public File getFileForDelete() {
         if( !(realWorldNode instanceof RwFile)) {
-            return false;
+            return null;
         }
 
-        boolean result = false;
         RwFile file = (RwFile)realWorldNode;
 
-        try {
-            Files.deleteIfExists(file.getFile().toPath());
-            result = true;
-        } catch (IOException e) {
-            LOG.warn("Failed to delete file {}", file.getFile());
-        }
-
         this.actionType = ActionType.DELETE;
-        return result;
+        return file.getFile();
     }
 }

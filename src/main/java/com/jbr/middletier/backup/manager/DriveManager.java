@@ -14,8 +14,9 @@ public class DriveManager extends FileProcessor {
     public DriveManager(AssociatedFileDataManager associatedFileDataManager,
                         BackupManager backupManager,
                         ActionManager actionManager,
-                        FileSystemObjectManager fileSystemObjectManager) {
-        super(backupManager,actionManager,associatedFileDataManager, fileSystemObjectManager);
+                        FileSystemObjectManager fileSystemObjectManager,
+                        FileSystem fileSystem) {
+        super(backupManager, actionManager, associatedFileDataManager, fileSystemObjectManager, fileSystem);
     }
 
     private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {

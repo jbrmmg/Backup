@@ -6,7 +6,10 @@ public class SyncDataDTO extends ProcessResultDTO {
         FILES_COPIED("filesCopied"),
         DIRECTORIES_COPIED("directoriesCopied"),
         FILES_DELETED("filesDeleted"),
-        DIRECTORIES_DELETED("directoriesDeleted");
+        DIRECTORIES_DELETED("directoriesDeleted"),
+        SOURCES_REMOVED("sourcesRemoved"),
+        DATES_UPDATED("datesUpdated"),
+        FILES_WARNED("filesWarned");
 
         private final String type;
 
@@ -27,6 +30,9 @@ public class SyncDataDTO extends ProcessResultDTO {
         getCount(SyncDataCountType.DIRECTORIES_COPIED);
         getCount(SyncDataCountType.FILES_DELETED);
         getCount(SyncDataCountType.DIRECTORIES_DELETED);
+        getCount(SyncDataCountType.SOURCES_REMOVED);
+        getCount(SyncDataCountType.DATES_UPDATED);
+        getCount(SyncDataCountType.FILES_WARNED);
     }
 
     public void increment(SyncDataCountType countType) { increment(countType.getTypeName()); }
