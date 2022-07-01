@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.filetree.*;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;

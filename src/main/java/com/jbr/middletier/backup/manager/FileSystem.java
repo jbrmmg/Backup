@@ -167,9 +167,9 @@ public class FileSystem {
     }
 
     public void walkThePath(Path path, FileWalker walker) throws IOException {
-        try {
-            Files.walk(path).forEach(walker::processNextPath);
-        } catch (IOException e) {
+        try(Stream<Path> pathStream = Files.walk(path)) {
+            pathStream.forEach(walker::processNextPath);
+        } catch(IOException e) {
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR, "Failed to walk + " + path);
             throw e;
         }
