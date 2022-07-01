@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -193,12 +194,16 @@ public class FileProcessingIT extends FileTester {
         level1.setParent(source);
         level1.setName("Documents");
         level1.clearRemoved();
+        //1998-04-10-11-43        12
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
         file.setParent(level1);
         file.setName("Backup.dxf~");
         file.clearRemoved();
+        file.setSize(12);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
+        file.setDate(sdf.parse("1998-04-10-11-43"));
         fileRepository.save(file);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -381,6 +386,9 @@ public class FileProcessingIT extends FileTester {
         file2.setParent(level1);
         file2.setName("Text1.txt");
         file2.clearRemoved();
+        file2.setSize(12);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
+        file2.setDate(sdf.parse("1998-04-10-11-43"));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -461,6 +469,9 @@ public class FileProcessingIT extends FileTester {
         file2.setParent(level1);
         file2.setName("Backup.dxf~");
         file2.clearRemoved();
+        file2.setSize(12);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
+        file2.setDate(sdf.parse("1998-04-10-11-43"));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -535,6 +546,9 @@ public class FileProcessingIT extends FileTester {
         file2.setParent(level1);
         file2.setName("Backup.dxf~");
         file2.clearRemoved();
+        file2.setSize(12);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
+        file2.setDate(sdf.parse("1998-04-10-11-43"));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
