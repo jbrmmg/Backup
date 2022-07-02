@@ -807,7 +807,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].nonBackupClassification", is(1)))
                 .andExpect(jsonPath("$[0].ignoredImports", is(1)))
-                .andExpect(jsonPath("$[0].alreadyImported", is(0)))
+                .andExpect(jsonPath("$[0].alreadyImported", is(1)))
                 .andExpect(jsonPath("$[0].ignored", is(0)))
                 .andExpect(jsonPath("$[0].imported", is(0)));
 

@@ -68,7 +68,6 @@ public class ImportManager extends FileProcessor {
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
-        // TODO - is this correct? if it is then if a potential ignore file is found then the MD5 should be checked.
         updateDatabase(importSource, new ArrayList<>(), true, gatherData);
 
         result.add(gatherData);
@@ -336,27 +335,38 @@ public class ImportManager extends FileProcessor {
             return FileTestResultType.DIFFERENT;
         }
 
-        // Check MD 5
-        if((importFile.getMD5().isSet())) {
-            if(!fileInfo.getMD5().isSet()) {
-                // Source filename
-                File sourceFile = fileSystemObjectManager.getFile(fileInfo);
+        // If the classification requires an MD5, and it's missing from one size or the other then
+        // calculate it now.
+        if(fileInfo.getClassification() != null && fileInfo.getClassification().getUseMD5()) {
+            // Check if the import file has an MD5
+            if(!importFile.getMD5().isSet()) {
+                importFile.setMD5(fileSystem.getClassifiedFileMD5(path,fileInfo.getClassification()));
 
-                // Need to get the MD5.
-                fileInfo.setMD5(fileSystem.getClassifiedFileMD5(sourceFile.toPath(),fileInfo.getClassification()));
-
-                if(!fileInfo.getMD5().isSet()) {
-                    return FileTestResultType.DIFFERENT;
+                if(importFile.getMD5().isSet()) {
+                    fileSystemObjectManager.save(importFile);
                 } else {
-                    fileSystemObjectManager.save(fileInfo);
+                    return FileTestResultType.CLOSE;
                 }
             }
 
-            if(importFile.getMD5().equals(fileInfo.getMD5())) {
-                return FileTestResultType.EXACT;
+            // Check the file.
+            if(!fileInfo.getMD5().isSet()) {
+                File sourceFile = fileSystemObjectManager.getFile(fileInfo);
+
+                fileInfo.setMD5(fileSystem.getClassifiedFileMD5(sourceFile.toPath(),fileInfo.getClassification()));
+
+                if(fileInfo.getMD5().isSet()) {
+                    fileSystemObjectManager.save((fileInfo));
+                } else {
+                    return FileTestResultType.CLOSE;
+                }
             }
 
-            return FileTestResultType.CLOSE;
+            if(importFile.getMD5().isSet() && fileInfo.getMD5().isSet()) {
+                if(!importFile.getMD5().compare(fileInfo.getMD5(),false)) {
+                    return FileTestResultType.CLOSE;
+                }
+            }
         }
 
         return FileTestResultType.EXACT;

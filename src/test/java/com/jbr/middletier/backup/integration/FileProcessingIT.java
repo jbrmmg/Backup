@@ -732,6 +732,15 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
+    public void checkDirectoryNotEmpty2() throws IOException, ParseException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        File testFile = new File(sourceDirectory + "/does not exist.txt");
+        Assert.assertFalse(fileSystem.directoryIsEmpty(testFile.toPath()));
+    }
+
+    @Test
     public void checkDeleteDoesNotExist() throws IOException, ParseException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
