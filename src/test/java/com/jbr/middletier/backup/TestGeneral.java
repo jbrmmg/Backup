@@ -6,6 +6,10 @@ import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
+import com.jbr.middletier.backup.filetree.FileTreeNode;
+import com.jbr.middletier.backup.filetree.database.DbFile;
+import com.jbr.middletier.backup.filetree.database.DbNode;
+import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import org.junit.Assert;
@@ -18,6 +22,10 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
 import static org.mockito.Mockito.*;
 
@@ -423,5 +431,200 @@ public class TestGeneral extends WebTester {
         } catch (IllegalStateException e) {
             Assert.assertEquals("Blah is not a valid Import File Status", e.getMessage());
         }
+    }
+
+    @Test
+    public void sychronizeProblem1() {
+        Source syncSource = mock(Source.class);
+        when(syncSource.getStatus()).thenReturn(null);
+        when(syncSource.getPath()).thenReturn("Source");
+
+        Source syncDestination = mock(Source.class);
+        when(syncDestination.getStatus()).thenReturn(null);
+        when(syncDestination.getPath()).thenReturn("Destination");
+
+        Synchronize synchronize = mock(Synchronize.class);
+        when(synchronize.getSource()).thenReturn(syncSource);
+        when(synchronize.getDestination()).thenReturn(syncDestination);
+        List<Synchronize> synchronizeList = new ArrayList<>();
+        synchronizeList.add(synchronize);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+                backupManager,
+                fileSystemObjectManager,
+                actionManager,
+                fileSystem);
+
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        Assert.assertEquals(1, syncData.size());
+        Assert.assertTrue(syncData.get(0).hasProblems());
+        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+    }
+
+    @Test
+    public void sychronizeProblem2() {
+        Source syncSource = mock(Source.class);
+        when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
+        when(syncSource.getPath()).thenReturn("Source");
+
+        Source syncDestination = mock(Source.class);
+        when(syncDestination.getStatus()).thenReturn(null);
+        when(syncDestination.getPath()).thenReturn("Destination");
+
+        Synchronize synchronize = mock(Synchronize.class);
+        when(synchronize.getSource()).thenReturn(syncSource);
+        when(synchronize.getDestination()).thenReturn(syncDestination);
+        List<Synchronize> synchronizeList = new ArrayList<>();
+        synchronizeList.add(synchronize);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+                backupManager,
+                fileSystemObjectManager,
+                actionManager,
+                fileSystem);
+
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        Assert.assertEquals(1, syncData.size());
+        Assert.assertTrue(syncData.get(0).hasProblems());
+        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+    }
+
+    @Test
+    public void sychronizeProblem3() {
+        Source syncSource = mock(Source.class);
+        when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
+        when(syncSource.getPath()).thenReturn("Source");
+
+        Source syncDestination = mock(Source.class);
+        when(syncDestination.getStatus()).thenReturn(null);
+        when(syncDestination.getPath()).thenReturn("Destination");
+
+        Synchronize synchronize = mock(Synchronize.class);
+        when(synchronize.getSource()).thenReturn(syncSource);
+        when(synchronize.getDestination()).thenReturn(syncDestination);
+        List<Synchronize> synchronizeList = new ArrayList<>();
+        synchronizeList.add(synchronize);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+                backupManager,
+                fileSystemObjectManager,
+                actionManager,
+                fileSystem);
+
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        Assert.assertEquals(1, syncData.size());
+        Assert.assertTrue(syncData.get(0).hasProblems());
+        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
+    }
+
+    @Test
+    public void sychronizeProblem4() {
+        Source syncSource = mock(Source.class);
+        when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
+        when(syncSource.getPath()).thenReturn("Source");
+
+        Source syncDestination = mock(Source.class);
+        when(syncDestination.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
+        when(syncDestination.getPath()).thenReturn("Destination");
+
+        Synchronize synchronize = mock(Synchronize.class);
+        when(synchronize.getSource()).thenReturn(syncSource);
+        when(synchronize.getDestination()).thenReturn(syncDestination);
+        List<Synchronize> synchronizeList = new ArrayList<>();
+        synchronizeList.add(synchronize);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+                backupManager,
+                fileSystemObjectManager,
+                actionManager,
+                fileSystem);
+
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        Assert.assertEquals(1, syncData.size());
+        Assert.assertTrue(syncData.get(0).hasProblems());
+        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
+    }
+
+    @Test
+    public void sychronizeProblem5() {
+        Source syncSource = mock(Source.class);
+        when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
+        when(syncSource.getPath()).thenReturn("Source");
+
+        Source syncDestination = mock(Source.class);
+        when(syncDestination.getStatus()).thenReturn(SourceStatusType.SST_OK);
+        when(syncDestination.getPath()).thenReturn("Destination");
+
+        Synchronize synchronize = mock(Synchronize.class);
+        when(synchronize.getSource()).thenReturn(syncSource);
+        when(synchronize.getDestination()).thenReturn(syncDestination);
+        List<Synchronize> synchronizeList = new ArrayList<>();
+        synchronizeList.add(synchronize);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        when(fileSystemObjectManager.createDbRoot(synchronize.getSource())).thenThrow(NullPointerException.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+                backupManager,
+                fileSystemObjectManager,
+                actionManager,
+                fileSystem);
+
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        Assert.assertEquals(1, syncData.size());
+        Assert.assertTrue(syncData.get(0).hasProblems());
     }
 }
