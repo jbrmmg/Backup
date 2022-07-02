@@ -50,7 +50,6 @@ public class SynchronizeManager {
     }
 
     private void equalizeDate(DbCompareNode node, SyncDataDTO result) {
-        // TODO - test this method
         result.increment(SyncDataDTO.SyncDataCountType.DATES_UPDATED);
         FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
@@ -86,23 +85,12 @@ public class SynchronizeManager {
     }
 
     private void removeSource(DbCompareNode node, SyncDataDTO result) {
-        if(!(node.getSource() instanceof DbFile)) {
-            LOG.warn("Remove Source called, but not a file");
-            return;
-        }
-
         result.increment(SyncDataDTO.SyncDataCountType.SOURCES_REMOVED);
         DbFile dbFile = (DbFile)node.getSource();
         fileSystem.deleteFile(fileSystemObjectManager.getFile(dbFile.getFSO()), result);
     }
 
     private void deleteFile(DbCompareNode node, SyncDataDTO result) {
-        // TODO - test this method
-        if(!(node.getDestination() instanceof DbFile)) {
-            LOG.warn("Delete file called, but not a file");
-            return;
-        }
-
         result.increment(SyncDataDTO.SyncDataCountType.FILES_DELETED);
         DbFile dbFile = (DbFile)node.getDestination();
 
@@ -117,12 +105,6 @@ public class SynchronizeManager {
     }
 
     private void deleteDirectory(DbCompareNode node, SyncDataDTO result) throws IOException {
-        // TODO - test this method.
-        if(!(node.getDestination() instanceof DbDirectory)) {
-            LOG.warn("Delete directory called, but not a directory");
-            return;
-        }
-
         result.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED);
         DbDirectory dbDirectory = (DbDirectory)node.getDestination();
         File directory = fileSystemObjectManager.getFile(dbDirectory.getFSO());
@@ -154,11 +136,6 @@ public class SynchronizeManager {
 
     private void createDestinationDirectory(DbCompareNode node, Source destination, SyncDataDTO result) throws IOException {
         // Create the directory at the destination.
-        if(!(node.getSource() instanceof DbDirectory)) {
-            LOG.warn("Delete directory called, but not a directory");
-            return;
-        }
-
         result.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED);
         DbDirectory dbDirectory = (DbDirectory)node.getSource();
 
