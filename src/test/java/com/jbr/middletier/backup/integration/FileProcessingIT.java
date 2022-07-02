@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
+import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.RwDbTree;
 import com.jbr.middletier.backup.filetree.compare.node.RwDbCompareNode;
@@ -15,10 +16,7 @@ import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.FileSystem;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
@@ -114,10 +113,13 @@ public class FileProcessingIT extends FileTester {
     @Autowired
     LocationRepository locationRepository;
 
+    @Before
+    public void initialise() throws IOException {
+        initialiseDirectories();
+    }
+
     @Test
     public void basicRealWorld() throws Exception {
-        initialiseDirectories();
-
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -207,8 +209,6 @@ public class FileProcessingIT extends FileTester {
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
-        initialiseDirectories();
-
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -252,8 +252,6 @@ public class FileProcessingIT extends FileTester {
         directoryRepository.save(level1);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
-
-        initialiseDirectories();
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
@@ -315,8 +313,6 @@ public class FileProcessingIT extends FileTester {
         directoryRepository.save(file);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
-
-        initialiseDirectories();
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
@@ -391,8 +387,6 @@ public class FileProcessingIT extends FileTester {
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
-
-        initialiseDirectories();
 
         List<StructureDescription> sourceDescription = getTestStructure("test4");
         copyFiles(sourceDescription, sourceDirectory);
@@ -475,8 +469,6 @@ public class FileProcessingIT extends FileTester {
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
-        initialiseDirectories();
-
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -552,8 +544,6 @@ public class FileProcessingIT extends FileTester {
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
-        initialiseDirectories();
-
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -608,8 +598,6 @@ public class FileProcessingIT extends FileTester {
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
-        initialiseDirectories();
-
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -656,8 +644,6 @@ public class FileProcessingIT extends FileTester {
 
     @Test
     public void checkFilter() throws Exception {
-        initialiseDirectories();
-
         List<StructureDescription> sourceDescription = getTestStructure("test5");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -735,5 +721,77 @@ public class FileProcessingIT extends FileTester {
         DbFile dbFile = new DbFile(null, fileInfo);
         RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
         Assert.assertNotNull(testNode);
+    }
+
+    @Test
+    public void checkDirectoryNotEmpty() throws IOException, ParseException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        Assert.assertFalse(fileSystem.directoryIsEmpty(new File(sourceDirectory).toPath()));
+    }
+
+    @Test
+    public void checkDeleteDoesNotExist() throws IOException, ParseException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        File nonExistFile = mock(File.class);
+        when(nonExistFile.exists()).thenReturn(false);
+
+        ProcessResultDTO result = mock(ProcessResultDTO.class);
+
+        fileSystem.deleteFile(nonExistFile,result);
+        verify(nonExistFile, times(1)).exists();
+        verify(result, times(0)).setProblems();
+    }
+
+    @Test
+    public void checkDeleteFileWithDirectory() throws IOException, ParseException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        File directory = mock(File.class);
+        when(directory.exists()).thenReturn(true);
+        when(directory.isDirectory()).thenReturn(true);
+
+        ProcessResultDTO result = mock(ProcessResultDTO.class);
+
+        fileSystem.deleteFile(directory,result);
+        verify(directory, times(1)).exists();
+        verify(directory, times(1)).isDirectory();
+        verify(result, times(0)).setProblems();
+    }
+
+    @Test
+    public void checkDeleteDirDoesNotExist() throws IOException, ParseException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        File nonExistFile = mock(File.class);
+        when(nonExistFile.exists()).thenReturn(false);
+
+        ProcessResultDTO result = mock(ProcessResultDTO.class);
+
+        fileSystem.deleteDirectory(nonExistFile,result);
+        verify(nonExistFile, times(1)).exists();
+        verify(result, times(0)).setProblems();
+    }
+
+    @Test
+    public void checkDeleteDirectoryWithFile() throws IOException, ParseException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        File directory = mock(File.class);
+        when(directory.exists()).thenReturn(true);
+        when(directory.isDirectory()).thenReturn(false);
+
+        ProcessResultDTO result = mock(ProcessResultDTO.class);
+
+        fileSystem.deleteDirectory(directory,result);
+        verify(directory, times(1)).exists();
+        verify(directory, times(1)).isDirectory();
+        verify(result, times(0)).setProblems();
     }
 }

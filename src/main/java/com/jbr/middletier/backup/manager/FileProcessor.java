@@ -248,12 +248,4 @@ abstract class FileProcessor {
             }
         }
     }
-
-//    protected void createDirectory(String path) {
-//        File directory = new File(path);
-//        if(!directory.exists()) {
-//            //noinspection ResultOfMethodCallIgnored
-//            directory.mkdirs();
-//        }
-//    }
 }
