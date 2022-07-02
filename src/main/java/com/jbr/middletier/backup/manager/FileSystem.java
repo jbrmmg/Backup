@@ -199,4 +199,9 @@ public class FileSystem {
     public boolean directoryExists(Path path) {
         return Files.exists(path);
     }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean setFileDateTime(File file, long time) {
+        return file.setLastModified(time);
+    }
 }

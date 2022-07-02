@@ -6,10 +6,6 @@ import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
-import com.jbr.middletier.backup.filetree.FileTreeNode;
-import com.jbr.middletier.backup.filetree.database.DbFile;
-import com.jbr.middletier.backup.filetree.database.DbNode;
-import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import org.junit.Assert;
@@ -23,6 +19,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -626,5 +624,72 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
+    }
+
+    @Test
+    public void testDriveManagerProblems() throws IOException {
+        List<Source> sources = new ArrayList<>();
+        Source source = mock(Source.class);
+        when(source.getStatus()).thenReturn(null);
+        when(source.getIdAndType()).thenReturn(new FileSystemObjectId(1,FileSystemObjectType.FSO_SOURCE));
+        when(source.getPath()).thenReturn("Test");
+        sources.add(source);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSource()).thenReturn(sources);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+        List<ActionConfirm> deletes = new ArrayList<>();
+        when(actionManager.findConfirmedDeletes()).thenReturn(deletes);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+        doThrow(new IOException("Failed")).when(fileSystem).createDirectory(any(Path.class));
+
+        DriveManager driveManager = new DriveManager(associatedFileDataManager,
+                backupManager,
+                actionManager,
+                fileSystemObjectManager,
+                fileSystem);
+
+        List<GatherDataDTO> gatherData = driveManager.gather();
+        Assert.assertEquals(1, gatherData.size());
+        Assert.assertTrue(gatherData.get(0).hasProblems());
+        verify(associatedFileDataManager, times(1)).updateSourceStatus(source,SourceStatusType.SST_ERROR);
+    }
+
+    @Test
+    public void testDriveManagerProblems2() {
+        List<Source> sources = new ArrayList<>();
+        Source source = mock(Source.class);
+        when(source.getStatus()).thenReturn(SourceStatusType.SST_GATHERING);
+        when(source.getIdAndType()).thenReturn(new FileSystemObjectId(1,FileSystemObjectType.FSO_SOURCE));
+        when(source.getPath()).thenReturn("Test");
+        sources.add(source);
+
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(associatedFileDataManager.internalFindAllSource()).thenReturn(sources);
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+
+        ActionManager actionManager = mock(ActionManager.class);
+        List<ActionConfirm> deletes = new ArrayList<>();
+        when(actionManager.findConfirmedDeletes()).thenReturn(deletes);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        DriveManager driveManager = new DriveManager(associatedFileDataManager,
+                backupManager,
+                actionManager,
+                fileSystemObjectManager,
+                fileSystem);
+
+        List<GatherDataDTO> gatherData = driveManager.gather();
+        Assert.assertEquals(0, gatherData.size());
     }
 }

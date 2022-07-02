@@ -167,7 +167,6 @@ public class ActionManager {
     }
 
     void deleteFileIfConfirmed(FileInfo fileInfo, ProcessResultDTO processResult) {
-        // TODO - test this method
         if(checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
             fileSystem.deleteFile(fileSystemObjectManager.getFile(fileInfo), processResult);
         }
@@ -178,7 +177,6 @@ public class ActionManager {
     }
 
     public void sendActionEmail() {
-        // TODO - test more of this method
         try {
             // Only send the email if its enabled.
             if (Boolean.FALSE.equals(applicationProperties.getEmail().getEnabled())) {

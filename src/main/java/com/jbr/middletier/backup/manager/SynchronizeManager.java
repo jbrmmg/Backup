@@ -56,7 +56,7 @@ public class SynchronizeManager {
         LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate().getTime(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
         // Make the date of the destination, equal to the source.
         File destinationFile = fileSystemObjectManager.getFile(node.getDestination().getFSO());
-        if(!destinationFile.setLastModified(sourceFileInfo.getDate().getTime())) {
+        if(!fileSystem.setFileDateTime(destinationFile,sourceFileInfo.getDate().getTime())) {
             LOG.warn("Failed to set the last modified date - {}", destinationFile);
             result.setProblems();
         }
@@ -76,8 +76,9 @@ public class SynchronizeManager {
             fileSystem.copyFile(sourceFile, destinationFile, result);
 
             // Set the last modified date on the copied file to be the same as the source.
-            if(!destinationFile.setLastModified(sourceFileInfo.getDate().getTime())) {
+            if(!fileSystem.setFileDateTime(destinationFile,sourceFileInfo.getDate().getTime())) {
                 LOG.warn("Failed to set the last modified date {}", destinationFile);
+                result.setProblems();
             }
         } catch(Exception ex) {
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to backup " + node.toString());

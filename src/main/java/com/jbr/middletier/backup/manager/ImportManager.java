@@ -164,7 +164,7 @@ public class ImportManager extends FileProcessor {
         return FileTestResultType.DIFFERENT;
     }
 
-    private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter, ImportDataDTO result) {
+    private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter, ImportDataDTO result) throws IOException {
         actionManager.deleteActions(confirmedActions);
 
         // If the parameter value is IGNORE then add this file to the ignored list.
@@ -194,7 +194,7 @@ public class ImportManager extends FileProcessor {
         newFilename += "/" + sdf2.format(fileDate);
         newFilename += "/" + parameter;
 
-        createDirectory(newFilename);
+        fileSystem.createDirectory(new File(newFilename).toPath());
 
         newFilename += "/" + path.getFileName();
 
@@ -202,7 +202,7 @@ public class ImportManager extends FileProcessor {
         fileSystem.moveFile(path.toFile(), new File(newFilename), result);
     }
 
-    private void processImportActions(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, ImportDataDTO result) {
+    private void processImportActions(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, ImportDataDTO result) throws IOException {
         boolean confirmed = false;
         String parameter = "";
         for(ActionConfirm nextConfirm: confirmedActions) {
@@ -217,7 +217,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void processImport(ImportFile importFile, Source source, List<FileInfo> files, ImportDataDTO result) {
+    private void processImport(ImportFile importFile, Source source, List<FileInfo> files, ImportDataDTO result) throws IOException {
         // If this file is completed then exit.
         if(importFile.getStatus().equals(ImportFileStatusType.IFS_COMPLETE)) {
             return;

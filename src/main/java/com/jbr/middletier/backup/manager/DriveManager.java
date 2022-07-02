@@ -20,24 +20,19 @@ public class DriveManager extends FileProcessor {
     }
 
     private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {
-        // TODO - test more of this method
         if(nextSource.getStatus() != null && SourceStatusType.SST_GATHERING.equals(nextSource.getStatus())) {
-            return;
-        }
-
-        if(nextSource.getClass() != Source.class) {
             return;
         }
 
         associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_GATHERING);
         backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
 
-        // If the source does not exist, create it.
-        createDirectory(nextSource.getPath());
-
         GatherDataDTO gatherData = new GatherDataDTO(nextSource.getIdAndType().getId());
 
         try {
+            // If the source does not exist, create it.
+            fileSystem.createDirectory(new File(nextSource.getPath()).toPath());
+
             updateDatabase(nextSource, deleteActions, false, gatherData);
 
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
