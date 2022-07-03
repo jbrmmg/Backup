@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import com.jbr.middletier.backup.summary.Summary;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -464,6 +466,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[1].checked", is(1)))
                 .andExpect(jsonPath("$[1].failed", is(false)));
+
+        LOG.info("Check Summary");
+        getMockMvc().perform(get("/jbr/int/backup/summary")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("valid", is(true)));
     }
 
     @Test
@@ -1787,5 +1796,43 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
+    }
+
+    @Test
+    public void testSummary() throws Exception {
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test2");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(14)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        Summary.forceInstance(associatedFileDataManager, fileSystemObjectManager);
+        Summary summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager);
+
+        Assert.assertTrue(summary.isValid());
+        List<SourceDTO> sources = summary.getSources();
+        Assert.assertEquals(2,sources.size());
+        Assert.assertEquals(14,sources.get(0).getFileCount());
+        Assert.assertEquals(11,sources.get(0).getDirectoryCount());
+        Assert.assertEquals(6622444,sources.get(0).getLargestFile());
+        Assert.assertEquals(15970561,sources.get(0).getTotalFileSize());
+        Assert.assertEquals(0,sources.get(1).getFileCount());
+        Assert.assertEquals(0,sources.get(1).getDirectoryCount());
+        Assert.assertEquals(0,sources.get(1).getLargestFile());
+        Assert.assertEquals(0,sources.get(1).getTotalFileSize());
     }
 }

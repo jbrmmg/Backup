@@ -35,7 +35,7 @@ public class ActionController {
                             AssociatedFileDataManager associatedFileDataManager) {
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
-        this.summary = Summary.getInstance(associatedFileDataManager);
+        this.summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager);
     }
 
     @GetMapping(path="/actions")
