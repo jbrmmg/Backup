@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 17
+      id: 18
       author: jason
       changes:
         # This is to update the ignore_file table to remove the auto increment on the id,
@@ -9,7 +9,7 @@ databaseChangeLog:
         - renameColumn:
             oldColumnName: id
             newColumnName: oldId
-            tableName: import_file
+            tableName: ignore_file
             columnDataType: int
 
         - addColumn:
@@ -17,36 +17,43 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
-            tableName: import_file
+            tableName: ignore_file
 
         - sql:
             sql: |
-              update import_file set id = oldId;
+              update ignore_file set id = oldId;
 
         - dropPrimaryKey:
-            tableName: import_file
+            tableName: ignore_file
 
         - addNotNullConstraint:
             columnDataType: int
             columnName: id
-            tableName: import_file
+            tableName: ignore_file
 
         - addPrimaryKey:
             columnNames: id
             constraintName:
-            tableName: import_file
+            tableName: ignore_file
 
         - dropColumn:
             columnName: oldId
-            tableName: import_file
-
-        - dropForeignKeyConstraint:
-            constraintName: fk_import_file
-            baseTableName: import_file
-            baseColumnNames: file_id
+            tableName: ignore_file
 
         - dropColumn:
-            columnName: file_id
-            tableName: import_file
+            columnName: name
+            tableName: ignore_file
 
-        # Need to copy from import_file to the file table & the fso table.
+        - dropColumn:
+            columnName: size
+            tableName: ignore_file
+
+        - dropColumn:
+            columnName: date
+            tableName: ignore_file
+
+        - dropColumn:
+            columnName: md5
+            tableName: ignore_file
+
+        # Need to copy from ignored_file to the file table & the fso table.

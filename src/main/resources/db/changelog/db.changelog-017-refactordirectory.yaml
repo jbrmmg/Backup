@@ -3,13 +3,18 @@ databaseChangeLog:
       id: 17
       author: jason
       changes:
-        # This is to update the ignore_file table to remove the auto increment on the id,
+        # This is to update the directory table to remove the auto increment on the id,
         # the id will now be generated from the file_system_object table
+
+        - dropForeignKeyConstraint:
+            constraintName: fk_source_directory
+            baseTableName: directory
+            baseColumnNames: source_id
 
         - renameColumn:
             oldColumnName: id
             newColumnName: oldId
-            tableName: ignore_file
+            tableName: directory
             columnDataType: int
 
         - addColumn:
@@ -17,43 +22,33 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
-            tableName: ignore_file
+            tableName: directory
 
         - sql:
             sql: |
-              update ignore_file set id = oldId;
+              update directory set id = oldId;
 
         - dropPrimaryKey:
-            tableName: ignore_file
+            tableName: directory
 
         - addNotNullConstraint:
             columnDataType: int
             columnName: id
-            tableName: ignore_file
+            tableName: directory
 
         - addPrimaryKey:
             columnNames: id
             constraintName:
-            tableName: ignore_file
+            tableName: directory
 
         - dropColumn:
             columnName: oldId
-            tableName: ignore_file
+            tableName: directory
 
         - dropColumn:
-            columnName: name
-            tableName: ignore_file
+            columnName: path
+            tableName: directory
 
         - dropColumn:
-            columnName: size
-            tableName: ignore_file
-
-        - dropColumn:
-            columnName: date
-            tableName: ignore_file
-
-        - dropColumn:
-            columnName: md5
-            tableName: ignore_file
-
-        # Need to copy from ignored_file to the file table & the fso table.
+            columnName: source_id
+            tableName: directory

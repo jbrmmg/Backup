@@ -1,20 +1,15 @@
 databaseChangeLog:
   - changeSet:
-      id: 16
+      id: 19
       author: jason
       changes:
-        # This is to update the directory table to remove the auto increment on the id,
+        # This is to update the ignore_file table to remove the auto increment on the id,
         # the id will now be generated from the file_system_object table
-
-        - dropForeignKeyConstraint:
-            constraintName: fk_source_directory
-            baseTableName: directory
-            baseColumnNames: source_id
 
         - renameColumn:
             oldColumnName: id
             newColumnName: oldId
-            tableName: directory
+            tableName: import_file
             columnDataType: int
 
         - addColumn:
@@ -22,33 +17,36 @@ databaseChangeLog:
               - column:
                   name: id
                   type: int
-            tableName: directory
+            tableName: import_file
 
         - sql:
             sql: |
-              update directory set id = oldId;
+              update import_file set id = oldId;
 
         - dropPrimaryKey:
-            tableName: directory
+            tableName: import_file
 
         - addNotNullConstraint:
             columnDataType: int
             columnName: id
-            tableName: directory
+            tableName: import_file
 
         - addPrimaryKey:
             columnNames: id
             constraintName:
-            tableName: directory
+            tableName: import_file
 
         - dropColumn:
             columnName: oldId
-            tableName: directory
+            tableName: import_file
+
+        - dropForeignKeyConstraint:
+            constraintName: fk_import_file
+            baseTableName: import_file
+            baseColumnNames: file_id
 
         - dropColumn:
-            columnName: path
-            tableName: directory
+            columnName: file_id
+            tableName: import_file
 
-        - dropColumn:
-            columnName: source_id
-            tableName: directory
+        # Need to copy from import_file to the file table & the fso table.

@@ -1,0 +1,3 @@
+id,path,location,status,filter,destination,source_type
+1,/source,1,OK,blah.*,,STD
+2,/destination,1,ERROR,,,STD

@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 15
+      id: 16
       author: jason
       changes:
 
@@ -13,15 +13,15 @@ databaseChangeLog:
         # This is to update the file table to remove the auto increment on the id,
         # the id will now be generated from
 
-        - dropForeignKeyConstraint:
-            constraintName: fk_action_file
-            baseTableName: action_confirm
-            baseColumnNames: file_id
+#        - dropForeignKeyConstraint:
+#            constraintName: fk_action_file
+#            baseTableName: action_confirm
+#            baseColumnNames: file_id
 
-        - dropForeignKeyConstraint:
-            constraintName: fk_import_file
-            baseTableName: import_file
-            baseColumnNames: file_id
+#        - dropForeignKeyConstraint:
+#            constraintName: fk_import_file
+#            baseTableName: import_file
+#            baseColumnNames: file_id
 
         - renameColumn:
             oldColumnName: id

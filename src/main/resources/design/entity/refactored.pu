@@ -71,7 +71,6 @@ entity source {
   location : int **//(FK2)//**
   status : varchar(15)
   filter : varchar(60)
-  source_type : varchar(3)
   --type indicator--
   //SRCE//
 }
