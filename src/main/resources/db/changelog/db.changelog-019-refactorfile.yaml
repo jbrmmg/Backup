@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 19
+      author: jason
+      changes:
+
+        # This is just to bring the database into line
+        - modifyDataType:
+            tableName: backup
+            columnName: time
+            newDataType: int
+
+        # copy the data from source table to the file_system_object.
+        - sql:
+            sql: |
+              insert into file_system_object(id,type,name,parent,parent_type)
+              select id, 'FILE', name, directory_id, 'DIRY' from file
+
+        # remove the columns not required.
+        - dropColumn:
+            columnName: directory_id
+            tableName: file
+
+        - dropColumn:
+            columnName: name
+            tableName: file

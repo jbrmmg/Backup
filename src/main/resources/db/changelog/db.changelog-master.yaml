@@ -43,19 +43,34 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-014-filesystemobject.yaml
 
   - include:
-      file: /db/changelog/db.changelog-015-refactorsource.yaml
+      file: /db/changelog/db.changelog-015-dropfk.yaml
 
   - include:
-      file: /db/changelog/db.changelog-016-refactorfile.yaml
+      file: /db/changelog/db.changelog-016-droppk.yaml
 
   - include:
-      file: /db/changelog/db.changelog-017-refactordirectory.yaml
+      file: /db/changelog/db.changelog-017-refactorsource.yaml
 
   - include:
-      file: /db/changelog/db.changelog-018-refactorignore.yaml
+      file: /db/changelog/db.changelog-018-refactordirectory.yaml
 
   - include:
-      file: /db/changelog/db.changelog-019-refactorimport.yaml
+      file: /db/changelog/db.changelog-019-refactorfile.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-020-refactorignore.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-021-refactorimport.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-022-refactoraction.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-023-createpk.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-024-createfk.yaml
 
   - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml

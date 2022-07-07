@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 21
+      author: jason
+      changes:
+        # copy the data from source table to the file_system_object.
+        - sql:
+            sql: |
+              update file_system_object
+              set type = 'IMPS'
+              where id in ( select file_id from import_file )
+
+        - sql:
+            sql: |
+              update import_file set id = file_id
+
+        # remove the columns not required.
+        - dropColumn:
+            columnName: file_id
+            tableName: import_file

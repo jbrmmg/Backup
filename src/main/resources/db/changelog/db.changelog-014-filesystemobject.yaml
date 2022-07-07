@@ -28,9 +28,11 @@ databaseChangeLog:
                   type: varchar(200)
                   constraints:
                     nullable: false
+
               - column:
                   name: parent
                   type: int
+
               - column:
                   name: parent_type
                   type: char(4)
