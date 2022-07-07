@@ -59,8 +59,8 @@ public class MigrateIT {
     AssociatedFileDataManager associatedFileDataManager;
 
     @Test
-    public void testMigrationProcess() {
-        // That we have data.
+    public void testMigrationSource() {
+        // Check that expected source and import source records are in the database.
         int count = 0;
         int importCount = 0;
         for(Source source :associatedFileDataManager.internalFindAllSource()) {
