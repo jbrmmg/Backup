@@ -6,6 +6,10 @@ databaseChangeLog:
         # copy the data from source table to the file_system_object.
         - sql:
             sql: |
+              update import_file set file_id = file_id + 20102
+
+        - sql:
+            sql: |
               update file_system_object
               set type = 'IMPS'
               where id in ( select file_id from import_file )

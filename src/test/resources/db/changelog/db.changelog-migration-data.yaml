@@ -8,10 +8,6 @@ databaseChangeLog:
             file: /db/changelog/migration-source.csv
 
         - loadData:
-            tableName: source
-            file: /db/changelog/migration-importsource.csv
-
-        - loadData:
             tableName: directory
             file: /db/changelog/migration-directory.csv
 

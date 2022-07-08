@@ -6,8 +6,18 @@ databaseChangeLog:
         # copy the data from source table to the file_system_object.
         - sql:
             sql: |
+              update ignore_file set id = id + 320103
+
+        - sql:
+            sql: |
               insert into file_system_object(id,type,name)
               select id, 'IGNO', name from ignore_file
+
+        - sql:
+            sql: |
+              insert into file(id,size,date,md5)
+              select id, size, date, md5 from ignore_file
+
 
         # remove the columns not required.
         - dropColumn:

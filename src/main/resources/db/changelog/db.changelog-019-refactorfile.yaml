@@ -13,6 +13,18 @@ databaseChangeLog:
         # copy the data from source table to the file_system_object.
         - sql:
             sql: |
+              update file set directory_id = directory_id + 101
+
+        - sql:
+            sql: |
+              update file set id = id + 20102
+
+        - sql:
+            sql: |
+              update action_confirm set file_id = file_id + 20102
+
+        - sql:
+            sql: |
               insert into file_system_object(id,type,name,parent,parent_type)
               select id, 'FILE', name, directory_id, 'DIRY' from file
 
