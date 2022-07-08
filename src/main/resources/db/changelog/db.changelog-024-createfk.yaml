@@ -12,11 +12,39 @@ databaseChangeLog:
             referencedColumnNames: id
 
         - addForeignKeyConstraint:
+              constraintName: fk_fso_directory
+              baseTableName: directory
+              baseColumnNames: id
+              referencedTableName: file_system_object
+              referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+              constraintName: fk_fso_file
+              baseTableName: file
+              baseColumnNames: id
+              referencedTableName: file_system_object
+              referencedColumnNames: id
+
+        - addForeignKeyConstraint:
             constraintName: fk_imp_source
             baseTableName: import_source
             baseColumnNames: id
             referencedTableName: source
             referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+              constraintName: fk_file_ignore_file
+              baseTableName: ignore_file
+              baseColumnNames: id
+              referencedTableName: file
+              referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+              constraintName: fk_file_import_file
+              baseTableName: import_file
+              baseColumnNames: id
+              referencedTableName: file
+              referencedColumnNames: id
 
         - addForeignKeyConstraint:
             constraintName: fk_destination_source
@@ -26,36 +54,8 @@ databaseChangeLog:
             referencedColumnNames: id
 
         - addForeignKeyConstraint:
-            constraintName: fk_fso_directory
-            baseTableName: directory
-            baseColumnNames: id
-            referencedTableName: file_system_object
-            referencedColumnNames: id
-
-        - addForeignKeyConstraint:
-            constraintName: fk_fso_file
-            baseTableName: file
-            baseColumnNames: id
-            referencedTableName: file_system_object
-            referencedColumnNames: id
-
-        - addForeignKeyConstraint:
-            constraintName: fk_file_ignore_file
-            baseTableName: ignore_file
-            baseColumnNames: id
-            referencedTableName: file
-            referencedColumnNames: id
-
-        - addForeignKeyConstraint:
-            constraintName: fk_file_import_file
-            baseTableName: import_file
-            baseColumnNames: id
-            referencedTableName: file
-            referencedColumnNames: id
-
-        - addForeignKeyConstraint:
-            constraintName: fk_file_action_confirm
-            baseTableName: action_confirm
-            baseColumnNames: file_id
-            referencedTableName: file
-            referencedColumnNames: id
+              constraintName: fk_file_action_confirm
+              baseTableName: action_confirm
+              baseColumnNames: file_id
+              referencedTableName: file
+              referencedColumnNames: id
