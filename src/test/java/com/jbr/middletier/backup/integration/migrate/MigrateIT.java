@@ -68,19 +68,19 @@ public class MigrateIT {
 
             switch(source.getIdAndType().getId()) {
                 case 1:
-                    Assert.assertEquals("/source", source.getPath());
-                    Assert.assertEquals("blah.*", source.getFilter());
+                    Assert.assertEquals("/media/Shared/Photo", source.getPath());
+                    Assert.assertEquals("d{4}$", source.getFilter());
                     Assert.assertEquals(1, (source.getLocation().getId()));
                     Assert.assertEquals(SourceStatusType.SST_OK,source.getStatus());
                     break;
                 case 2:
-                    Assert.assertEquals("/destination", source.getPath());
+                    Assert.assertEquals("/media/Backup/Photo", source.getPath());
                     Assert.assertEquals("", source.getFilter());
                     Assert.assertEquals(1, source.getLocation().getId());
                     Assert.assertEquals(SourceStatusType.SST_ERROR,source.getStatus());
                     break;
                 case 3:
-                    Assert.assertEquals("/imports", source.getPath());
+                    Assert.assertEquals("/home/jason/Pictures/Martina Single", source.getPath());
                     Assert.assertEquals("", source.getFilter());
                     Assert.assertEquals(1, source.getLocation().getId());
                     Assert.assertEquals(SourceStatusType.SST_OK,source.getStatus());
@@ -112,5 +112,10 @@ public class MigrateIT {
         } catch(Exception e) {
             Assert.assertEquals("could not execute statement; SQL [n/a]; constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement", e.getMessage());
         }
+    }
+
+    @Test
+    public void testMigrationFile() {
+
     }
 }

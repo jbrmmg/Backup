@@ -15,8 +15,8 @@ databaseChangeLog:
 
         - sql:
             sql: |
-              insert into file(id,size,date,md5)
-              select id, size, date, md5 from ignore_file
+              insert into file(id,size,date,md5,removed)
+              select id, size, date, md5, 0 from ignore_file
 
 
         # remove the columns not required.
