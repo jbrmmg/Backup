@@ -32,6 +32,7 @@ public class FileController {
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
+    private final MigrateManager migrateManager;
 
     @Contract(pure = true)
     @Autowired
@@ -41,7 +42,8 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager,
-                          FileSystem fileSystem) {
+                          FileSystem fileSystem,
+                          MigrateManager migrateManager) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -49,6 +51,7 @@ public class FileController {
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
         this.fileSystem = fileSystem;
+        this.migrateManager = migrateManager;
     }
 
     @GetMapping(path="/files")
@@ -222,5 +225,12 @@ public class FileController {
         // Create a delete request.
         FileInfo loadedFile = (FileInfo)file.get();
         return actionManager.createFileDeleteAction(loadedFile);
+    }
+
+    @PostMapping(path="/migration")
+    public @ResponseBody List<MigrateDateDTO> migrate(@RequestBody String temp) {
+        LOG.info("Process drive - {}", temp);
+
+        return migrateManager.postMigrationChecks();
     }
 }

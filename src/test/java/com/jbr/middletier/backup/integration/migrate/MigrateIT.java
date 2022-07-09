@@ -1,9 +1,11 @@
 package com.jbr.middletier.backup.integration.migrate;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.integration.SyncApiIT;
 import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
@@ -13,6 +15,8 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -24,10 +28,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -35,7 +45,9 @@ import java.util.Optional;
 @WebAppConfiguration
 @ContextConfiguration(initializers = {MigrateIT.Initializer.class})
 @ActiveProfiles(value="it-migration")
-public class MigrateIT {
+public class MigrateIT extends WebTester {
+    private static final Logger LOG = LoggerFactory.getLogger(MigrateIT.class);
+
     @SuppressWarnings("rawtypes")
     @ClassRule
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
@@ -67,6 +79,8 @@ public class MigrateIT {
 
     @Test
     public void testMigrationSource() {
+        LOG.info("Test source migration");
+
         // Check that expected source and import source records are in the database.
         int count = 0;
         int importCount = 0;
@@ -123,6 +137,8 @@ public class MigrateIT {
 
     @Test
     public void testMigrationFile() {
+        LOG.info("Test file migration");
+
         // How many files / directories are there on the
         List<DirectoryInfo> directories = new ArrayList<>();
         List<FileInfo> files = new ArrayList<>();
@@ -154,6 +170,8 @@ public class MigrateIT {
 
     @Test
     public void testIgnoreFile() {
+        LOG.info("Test ignore file migration");
+
         Iterable<FileSystemObject> ignoreFiles = fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IGNORE_FILE);
         int count = 0;
         for(FileSystemObject ignored : ignoreFiles) {
@@ -177,6 +195,8 @@ public class MigrateIT {
 
     @Test
     public void testImportFile() {
+        LOG.info("Test import file migration");
+
         Iterable<FileSystemObject> ignoreFiles = fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IMPORT_FILE);
         int count = 0;
         for(FileSystemObject ignored : ignoreFiles) {
@@ -212,6 +232,8 @@ public class MigrateIT {
 
     @Test
     public void testActions() {
+        LOG.info("Test action migration");
+
         List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
         Assert.assertEquals(2, actions.size());
 
@@ -266,5 +288,22 @@ public class MigrateIT {
         } catch(Exception e) {
             Assert.assertEquals("could not execute statement; SQL [n/a]; constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement", e.getMessage());
         }
+    }
+
+    @Test
+    public void testPostMigration() throws Exception {
+        LOG.info("Test post migration");
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/migration")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].blanksRemoved", is(0)))
+                .andExpect(jsonPath("$[0].dotFilesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].newDirectories", is(0)));
     }
 }
