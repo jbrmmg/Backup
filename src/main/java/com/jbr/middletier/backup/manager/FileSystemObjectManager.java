@@ -54,6 +54,8 @@ public class FileSystemObjectManager {
                 return copyOfList(directoryRepository.findAllByOrderByIdAsc());
             case FSO_IGNORE_FILE:
                 return copyOfList(ignoreFileRepository.findAllByOrderByIdAsc());
+            case FSO_IMPORT_FILE:
+                return copyOfList(importFileRepository.findAllByOrderByIdAsc());
             default:
                 // Nothing to return for the others.
         }

@@ -151,15 +151,16 @@ public class MigrateIT {
     public void testIgnoreFile() {
         Iterable<FileSystemObject> ignoreFiles = fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IGNORE_FILE);
         int count = 0;
-        for(FileSystemObject nextFile : ignoreFiles) {
+        for(FileSystemObject ignored : ignoreFiles) {
             count++;
         }
         Assert.assertEquals(31,count);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(24 + 20102, FileSystemObjectType.FSO_FILE));
+        Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(24 + 320103, FileSystemObjectType.FSO_IGNORE_FILE));
         Assert.assertTrue(fso.isPresent());
-        FileInfo file = (FileInfo) fso.get();
+        IgnoreFile file = (IgnoreFile) fso.get();
+        Assert.assertNotNull(file);
         Assert.assertEquals("IMG_1252.JPG", file.getName());
         Assert.assertNull(file.getParentId());
         Assert.assertNull(file.getClassification());
@@ -173,7 +174,7 @@ public class MigrateIT {
     public void testImportFile() {
         Iterable<FileSystemObject> ignoreFiles = fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IMPORT_FILE);
         int count = 0;
-        for(FileSystemObject nextFile : ignoreFiles) {
+        for(FileSystemObject ignored : ignoreFiles) {
             count++;
         }
         Assert.assertEquals(6 ,count);
@@ -181,10 +182,11 @@ public class MigrateIT {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         //12169,COMPLETE,90560
 //        90560,IMG_5739.jpg,10,5,1645188,2022-01-03 18:44:31,0,1CE144410E8E0E960938D899183A32BF,
-        Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(90560 + 320103, FileSystemObjectType.FSO_FILE));
+        Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(90560 + 20102, FileSystemObjectType.FSO_IMPORT_FILE));
         Assert.assertTrue(fso.isPresent());
-        FileInfo file = (FileInfo) fso.get();
-        Assert.assertEquals("IMG_5739.JPG", file.getName());
+        ImportFile file = (ImportFile) fso.get();
+        Assert.assertNotNull(file);
+        Assert.assertEquals("IMG_5739.jpg", file.getName());
         Assert.assertEquals(10 + 101, (long)file.getParentId().getId());
         Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
         Assert.assertEquals(5, (long)file.getClassification().getId());
@@ -192,5 +194,6 @@ public class MigrateIT {
         Assert.assertEquals("2022-01-03 18:44", sdf.format(file.getDate()));
         Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("1CE144410E8E0E960938D899183A32BF", file.getMD5().toString());
+        Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
     }
 }
