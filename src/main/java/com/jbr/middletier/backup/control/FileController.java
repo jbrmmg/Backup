@@ -75,7 +75,7 @@ public class FileController {
 
     @PostMapping(path="/duplicate")
     public @ResponseBody List<DuplicateDataDTO> duplicate(@RequestBody String temp) {
-        LOG.info("Process drive - {}", temp);
+        LOG.info("Duplicate process drive - {}", temp);
 
         return duplicateManager.duplicateCheck();
     }
@@ -229,7 +229,7 @@ public class FileController {
 
     @PostMapping(path="/migration")
     public @ResponseBody List<MigrateDateDTO> migrate(@RequestBody String temp) {
-        LOG.info("Process drive - {}", temp);
+        LOG.info("Perform the post migration process - {}", temp);
 
         return migrateManager.postMigrationChecks();
     }

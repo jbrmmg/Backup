@@ -301,9 +301,9 @@ public class MigrateIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].blanksRemoved", is(0)))
-                .andExpect(jsonPath("$[0].dotFilesRemoved", is(0)))
-                .andExpect(jsonPath("$[0].directoriesUpdated", is(0)))
-                .andExpect(jsonPath("$[0].newDirectories", is(0)));
+                .andExpect(jsonPath("$[0].blanksRemoved", is(1)))
+                .andExpect(jsonPath("$[0].dotFilesRemoved", is(9)))
+                .andExpect(jsonPath("$[0].directoriesUpdated", is(10)))
+                .andExpect(jsonPath("$[0].newDirectories", is(29)));
     }
 }
