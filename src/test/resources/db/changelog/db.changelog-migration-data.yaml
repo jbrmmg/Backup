@@ -22,3 +22,7 @@ databaseChangeLog:
         - loadData:
             tableName: import_file
             file: /db/changelog/migration-import_file.csv
+
+        - loadData:
+            tableName: action_confirm
+            file: /db/changelog/migration-action_confirm.csv

@@ -2,7 +2,9 @@ package com.jbr.middletier.backup.integration.migrate;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
@@ -59,6 +61,9 @@ public class MigrateIT {
 
     @Autowired
     AssociatedFileDataManager associatedFileDataManager;
+
+    @Autowired
+    ActionManager actionManager;
 
     @Test
     public void testMigrationSource() {
@@ -180,8 +185,6 @@ public class MigrateIT {
         Assert.assertEquals(6 ,count);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        //12169,COMPLETE,90560
-//        90560,IMG_5739.jpg,10,5,1645188,2022-01-03 18:44:31,0,1CE144410E8E0E960938D899183A32BF,
         Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(90560 + 20102, FileSystemObjectType.FSO_IMPORT_FILE));
         Assert.assertTrue(fso.isPresent());
         ImportFile file = (ImportFile) fso.get();
@@ -195,5 +198,73 @@ public class MigrateIT {
         Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("1CE144410E8E0E960938D899183A32BF", file.getMD5().toString());
         Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
+
+        // Check the FK's
+        try {
+            Optional<FileSystemObject> directory = fileSystemObjectManager.findFileSystemObject(file.getParentId());
+            Assert.assertTrue(directory.isPresent());
+            fileSystemObjectManager.delete(directory.get());
+            Assert.fail();
+        } catch(Exception e) {
+            Assert.assertEquals("could not execute statement; SQL [n/a]; constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testActions() {
+        List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
+        Assert.assertEquals(2, actions.size());
+
+        int testDeleteId = -1;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        for(ActionConfirmDTO next : actions) {
+            switch(next.getId()) {
+                case 1: {
+                    Assert.assertEquals(ActionConfirmType.AC_IMPORT, next.getAction());
+                    Optional<FileSystemObject> importFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_IMPORT_FILE));
+                    Assert.assertTrue(importFile.isPresent());
+                    ImportFile file = (ImportFile) importFile.get();
+                    Assert.assertNotNull(file);
+                    Assert.assertEquals("IMG_4060.jpg", file.getName());
+                    Assert.assertEquals(10 + 101, (long)file.getParentId().getId());
+                    Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                    Assert.assertEquals(5, (long)file.getClassification().getId());
+                    Assert.assertEquals(1570162, (long)file.getSize());
+                    Assert.assertEquals("2022-01-03 18:39", sdf.format(file.getDate()));
+                    Assert.assertFalse(file.getRemoved());
+                    Assert.assertEquals("09EC9A3FD7166D5394D916FB47B3903F", file.getMD5().toString());
+                    Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
+                    break;
+                }
+                case 2: {
+                    Assert.assertEquals(ActionConfirmType.AC_DELETE, next.getAction());
+                    Optional<FileSystemObject> optFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_FILE));
+                    Assert.assertTrue(optFile.isPresent());
+                    FileInfo file = (FileInfo) optFile.get();
+                    Assert.assertNotNull(file);
+                    testDeleteId = next.getFileId();
+                    Assert.assertEquals("Report-September-2020.pdf", file.getName());
+                    Assert.assertEquals(11 + 101, (long)file.getParentId().getId());
+                    Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                    Assert.assertEquals(4, (long)file.getClassification().getId());
+                    Assert.assertEquals(712919, (long)file.getSize());
+                    Assert.assertEquals("2020-09-30 04:00", sdf.format(file.getDate()));
+                    Assert.assertTrue(file.getRemoved());
+                    Assert.assertEquals("76EEAAC078EED94423E10495D99BBF1C", file.getMD5().toString());
+                    break;
+                }
+            }
+        }
+
+        // Check the FK's
+        try {
+            Assert.assertNotEquals(-1, testDeleteId);
+            Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(testDeleteId, FileSystemObjectType.FSO_FILE));
+            Assert.assertTrue(file.isPresent());
+            fileSystemObjectManager.delete(file.get());
+            Assert.fail();
+        } catch(Exception e) {
+            Assert.assertEquals("could not execute statement; SQL [n/a]; constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement", e.getMessage());
+        }
     }
 }
