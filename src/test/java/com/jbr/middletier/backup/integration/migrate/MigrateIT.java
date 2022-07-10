@@ -5,7 +5,6 @@ import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
-import com.jbr.middletier.backup.integration.SyncApiIT;
 import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
@@ -28,7 +27,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -231,6 +229,35 @@ public class MigrateIT extends WebTester {
     }
 
     @Test
+    public void testActionsImport() {
+        LOG.info("Test action migration");
+
+        List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
+        Assert.assertEquals(2, actions.size());
+
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        for(ActionConfirmDTO next : actions) {
+            if (next.getId() == 1) {
+                Assert.assertEquals(ActionConfirmType.AC_IMPORT, next.getAction());
+                Optional<FileSystemObject> importFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_IMPORT_FILE));
+                Assert.assertTrue(importFile.isPresent());
+                ImportFile file = (ImportFile) importFile.get();
+                Assert.assertNotNull(file);
+                Assert.assertEquals("IMG_4060.jpg", file.getName());
+                Assert.assertEquals(10 + 101, (long) file.getParentId().getId());
+                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                Assert.assertEquals(5, (long) file.getClassification().getId());
+                Assert.assertEquals(1570162, (long) file.getSize());
+                Assert.assertEquals("2022-01-03 18:39", sdf.format(file.getDate()));
+                Assert.assertFalse(file.getRemoved());
+                Assert.assertEquals("09EC9A3FD7166D5394D916FB47B3903F", file.getMD5().toString());
+                Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
+            }
+        }
+    }
+
+    @Test
     public void testActions() {
         LOG.info("Test action migration");
 
@@ -240,41 +267,21 @@ public class MigrateIT extends WebTester {
         int testDeleteId = -1;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         for(ActionConfirmDTO next : actions) {
-            switch(next.getId()) {
-                case 1: {
-                    Assert.assertEquals(ActionConfirmType.AC_IMPORT, next.getAction());
-                    Optional<FileSystemObject> importFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_IMPORT_FILE));
-                    Assert.assertTrue(importFile.isPresent());
-                    ImportFile file = (ImportFile) importFile.get();
-                    Assert.assertNotNull(file);
-                    Assert.assertEquals("IMG_4060.jpg", file.getName());
-                    Assert.assertEquals(10 + 101, (long)file.getParentId().getId());
-                    Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
-                    Assert.assertEquals(5, (long)file.getClassification().getId());
-                    Assert.assertEquals(1570162, (long)file.getSize());
-                    Assert.assertEquals("2022-01-03 18:39", sdf.format(file.getDate()));
-                    Assert.assertFalse(file.getRemoved());
-                    Assert.assertEquals("09EC9A3FD7166D5394D916FB47B3903F", file.getMD5().toString());
-                    Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
-                    break;
-                }
-                case 2: {
-                    Assert.assertEquals(ActionConfirmType.AC_DELETE, next.getAction());
-                    Optional<FileSystemObject> optFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_FILE));
-                    Assert.assertTrue(optFile.isPresent());
-                    FileInfo file = (FileInfo) optFile.get();
-                    Assert.assertNotNull(file);
-                    testDeleteId = next.getFileId();
-                    Assert.assertEquals("Report-September-2020.pdf", file.getName());
-                    Assert.assertEquals(11 + 101, (long)file.getParentId().getId());
-                    Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
-                    Assert.assertEquals(4, (long)file.getClassification().getId());
-                    Assert.assertEquals(712919, (long)file.getSize());
-                    Assert.assertEquals("2020-09-30 04:00", sdf.format(file.getDate()));
-                    Assert.assertTrue(file.getRemoved());
-                    Assert.assertEquals("76EEAAC078EED94423E10495D99BBF1C", file.getMD5().toString());
-                    break;
-                }
+            if (next.getId() == 2) {
+                Assert.assertEquals(ActionConfirmType.AC_DELETE, next.getAction());
+                Optional<FileSystemObject> optFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_FILE));
+                Assert.assertTrue(optFile.isPresent());
+                FileInfo file = (FileInfo) optFile.get();
+                Assert.assertNotNull(file);
+                testDeleteId = next.getFileId();
+                Assert.assertEquals("Report-September-2020.pdf", file.getName());
+                Assert.assertEquals(11 + 101, (long) file.getParentId().getId());
+                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                Assert.assertEquals(4, (long) file.getClassification().getId());
+                Assert.assertEquals(712919, (long) file.getSize());
+                Assert.assertEquals("2020-09-30 04:00", sdf.format(file.getDate()));
+                Assert.assertTrue(file.getRemoved());
+                Assert.assertEquals("76EEAAC078EED94423E10495D99BBF1C", file.getMD5().toString());
             }
         }
 

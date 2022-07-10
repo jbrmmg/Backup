@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -53,8 +55,8 @@ public class MigrateManager {
     }
 
     static class DirectoryLayerInfo {
-        public String newName;
-        public List<String> newLayers;
+        private final String newName;
+        private final List<String> newLayers;
 
         public DirectoryLayerInfo(String oldName) {
             newLayers = new ArrayList<>();
@@ -69,16 +71,25 @@ public class MigrateManager {
 
             newName = layers[layers.length - 1];
         }
+
+        public String getNewName() {
+            return newName;
+        }
+
+        public Collection<String> getNewLayers() {
+            return Collections.unmodifiableCollection(newLayers);
+        }
     }
 
     public void updateDirectories(MigrateDateDTO migrateDateDTO) {
         // Update directories where there are multiple
         for(FileSystemObject nextFso : fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_DIRECTORY)) {
             if(nextFso.getName().contains("/")) {
+                LOG.info("Process " + nextFso.getName());
                 DirectoryLayerInfo directoryLayerInfo = new DirectoryLayerInfo(nextFso.getName());
 
                 FileSystemObjectId previousParentId = nextFso.getParentId();
-                for(String nextLayerName : directoryLayerInfo.newLayers) {
+                for(String nextLayerName : directoryLayerInfo.getNewLayers()) {
                     DirectoryInfo newDirectory = new DirectoryInfo();
                     newDirectory.setName(nextLayerName);
                     newDirectory.setParentId(previousParentId);
@@ -91,7 +102,7 @@ public class MigrateManager {
 
                 DirectoryInfo nextFsoDirectory = (DirectoryInfo)nextFso;
                 nextFsoDirectory.setParentId(previousParentId);
-                nextFsoDirectory.setName(directoryLayerInfo.newName);
+                nextFsoDirectory.setName(directoryLayerInfo.getNewName());
                 fileSystemObjectManager.save(nextFso);
                 migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED);
             }
@@ -104,8 +115,11 @@ public class MigrateManager {
         result.add(migrateDateDTO);
 
         try {
+            LOG.info("Remove the . files");
             removeDotFiles(migrateDateDTO);
+            LOG.info("Remove the blank directories");
             removeBlankDirectories(migrateDateDTO);
+            LOG.info("Update directories");
             updateDirectories(migrateDateDTO);
         } catch(Exception e) {
             migrateDateDTO.setProblems();
