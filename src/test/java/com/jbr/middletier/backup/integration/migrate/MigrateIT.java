@@ -311,7 +311,7 @@ public class MigrateIT extends WebTester {
                 .andExpect(jsonPath("$[0].blanksRemoved", is(1)))
                 .andExpect(jsonPath("$[0].dotFilesRemoved", is(9)))
                 .andExpect(jsonPath("$[0].directoriesUpdated", is(10)))
-                .andExpect(jsonPath("$[0].newDirectories", is(29)));
+                .andExpect(jsonPath("$[0].newDirectories", is(5)));
 
         // How many files / directories are there on the
         List<DirectoryInfo> directories = new ArrayList<>();

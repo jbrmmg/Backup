@@ -85,7 +85,7 @@ public class MigrateManager {
         // Update directories where there are multiple
         for(FileSystemObject nextFso : fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_DIRECTORY)) {
             if(nextFso.getName().contains("/")) {
-                LOG.info(String.format("Process %s", nextFso.getName()));
+                LOG.info("Process {}", nextFso.getName());
                 DirectoryLayerInfo directoryLayerInfo = new DirectoryLayerInfo(nextFso.getName());
 
                 FileSystemObjectId previousParentId = nextFso.getParentId();
