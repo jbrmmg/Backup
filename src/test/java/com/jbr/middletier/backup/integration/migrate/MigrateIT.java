@@ -312,5 +312,44 @@ public class MigrateIT extends WebTester {
                 .andExpect(jsonPath("$[0].dotFilesRemoved", is(9)))
                 .andExpect(jsonPath("$[0].directoriesUpdated", is(10)))
                 .andExpect(jsonPath("$[0].newDirectories", is(29)));
+
+        // How many files / directories are there on the
+        List<DirectoryInfo> directories = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(1, directories, files);
+
+        Assert.assertEquals(39, directories.size());
+        Assert.assertEquals(657, files.size());
+
+        Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(444 + 20102, FileSystemObjectType.FSO_FILE));
+        Assert.assertTrue(fso.isPresent());
+        FileInfo file = (FileInfo) fso.get();
+        Assert.assertEquals("IMG_20160914_172148374_HDR.jpg", file.getName());
+
+        fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(6 + 101, FileSystemObjectType.FSO_DIRECTORY));
+        Assert.assertTrue(fso.isPresent());
+        DirectoryInfo directory = (DirectoryInfo) fso.get();
+        Assert.assertEquals("Day 6", directory.getName());
+
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.isPresent());
+        directory = (DirectoryInfo) fso.get();
+        Assert.assertEquals("Boom Banger", directory.getName());
+
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.isPresent());
+        directory = (DirectoryInfo) fso.get();
+        Assert.assertEquals("September", directory.getName());
+
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.isPresent());
+        directory = (DirectoryInfo) fso.get();
+        Assert.assertEquals("2016", directory.getName());
+
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.isPresent());
+        Source source = (Source) fso.get();
+        Assert.assertEquals("/media/Shared/Photo", source.getName());
+        Assert.assertNull(source.getParentId());
     }
 }
