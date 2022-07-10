@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class MigrateManager {
@@ -56,10 +53,11 @@ public class MigrateManager {
 
     static class DirectoryLayerInfo {
         private final String newName;
+        private final String parentId;
         private final List<String> newLayers;
 
-        public DirectoryLayerInfo(String oldName) {
-            newLayers = new ArrayList<>();
+        public DirectoryLayerInfo(String oldName, String parentId) {
+            this.newLayers = new ArrayList<>();
 
             String[] layers = oldName.split("/");
 
@@ -69,35 +67,75 @@ public class MigrateManager {
                 }
             }
 
-            newName = layers[layers.length - 1];
+            this.newName = layers[layers.length - 1];
+            this.parentId = parentId;
         }
 
         public String getNewName() {
             return newName;
         }
 
-        public Collection<String> getNewLayers() {
-            return Collections.unmodifiableCollection(newLayers);
+        public int getLayerCount() {
+            return newLayers.size();
+        }
+
+        public String getNameAt(int index) {
+            if(index == newLayers.size()) {
+                return this.newName;
+            }
+
+            return newLayers.get(index);
+        }
+
+        public String getPathUpTo(int index) {
+            StringBuilder result = new StringBuilder();
+
+            result.append(this.parentId);
+            result.append(":");
+            for(int i = 0; i < index; i++) {
+                if(i > 0) {
+                    result.append("/");
+                }
+                result.append(getNameAt(i));
+            }
+
+            return result.toString();
         }
     }
 
+    private DirectoryInfo addRequired(DirectoryInfo newDirectory, String pathToNew, Map<String,DirectoryInfo> alreadyAdded) {
+        if(alreadyAdded.containsKey(pathToNew)) {
+            return alreadyAdded.get(pathToNew);
+        }
+
+        alreadyAdded.put(pathToNew, newDirectory);
+        return null;
+    }
+
     public void updateDirectories(MigrateDateDTO migrateDateDTO) {
+        Map<String,DirectoryInfo> addedDirectories = new HashMap<>();
+
         // Update directories where there are multiple
         for(FileSystemObject nextFso : fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_DIRECTORY)) {
             if(nextFso.getName().contains("/")) {
                 LOG.info("Process {}", nextFso.getName());
-                DirectoryLayerInfo directoryLayerInfo = new DirectoryLayerInfo(nextFso.getName());
+                DirectoryLayerInfo directoryLayerInfo = new DirectoryLayerInfo(nextFso.getName(),nextFso.getParentId().toString());
 
                 FileSystemObjectId previousParentId = nextFso.getParentId();
-                for(String nextLayerName : directoryLayerInfo.getNewLayers()) {
+                for(int i = 0; i < directoryLayerInfo.getLayerCount(); i++) {
                     DirectoryInfo newDirectory = new DirectoryInfo();
-                    newDirectory.setName(nextLayerName);
+                    newDirectory.setName(directoryLayerInfo.getNameAt(i));
                     newDirectory.setParentId(previousParentId);
                     newDirectory.clearRemoved();
 
-                    fileSystemObjectManager.save(newDirectory);
-                    previousParentId = newDirectory.getIdAndType();
-                    migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.NEW_DIRECTORIES);
+                    DirectoryInfo existingDirectory = addRequired(newDirectory, directoryLayerInfo.getPathUpTo(i + 1), addedDirectories);
+                    if(existingDirectory == null) {
+                        fileSystemObjectManager.save(newDirectory);
+                        previousParentId = newDirectory.getIdAndType();
+                        migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.NEW_DIRECTORIES);
+                    } else {
+                        previousParentId = existingDirectory.getIdAndType();
+                    }
                 }
 
                 DirectoryInfo nextFsoDirectory = (DirectoryInfo)nextFso;

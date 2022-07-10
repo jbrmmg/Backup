@@ -318,7 +318,7 @@ public class MigrateIT extends WebTester {
         List<FileInfo> files = new ArrayList<>();
         fileSystemObjectManager.loadByParent(1, directories, files);
 
-        Assert.assertEquals(39, directories.size());
+        Assert.assertEquals(15, directories.size());
         Assert.assertEquals(657, files.size());
 
         Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(444 + 20102, FileSystemObjectType.FSO_FILE));
@@ -330,6 +330,7 @@ public class MigrateIT extends WebTester {
         Assert.assertTrue(fso.isPresent());
         DirectoryInfo directory = (DirectoryInfo) fso.get();
         Assert.assertEquals("Day 6", directory.getName());
+        FileSystemObjectId checkSameParent = fso.get().getParentId();
 
         fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
         Assert.assertTrue(fso.isPresent());
@@ -351,5 +352,11 @@ public class MigrateIT extends WebTester {
         Source source = (Source) fso.get();
         Assert.assertEquals("/media/Shared/Photo", source.getName());
         Assert.assertNull(source.getParentId());
+
+        fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(8 + 101, FileSystemObjectType.FSO_DIRECTORY));
+        Assert.assertTrue(fso.isPresent());
+        directory = (DirectoryInfo) fso.get();
+        Assert.assertEquals("Day 2", directory.getName());
+        Assert.assertEquals(checkSameParent, directory.getParentId());
     }
 }
