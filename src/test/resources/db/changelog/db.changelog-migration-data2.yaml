@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 997
+      author: jason
+      changes:
+        - loadData:
+            tableName: source
+            file: /db/changelog/migration-source2.csv
+
+        - loadData:
+            tableName: directory
+            file: /db/changelog/migration-directory2.csv
+
+        - loadData:
+            tableName: file
+            file: /db/changelog/migration-file2.csv

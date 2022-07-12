@@ -209,7 +209,7 @@ public class MigrateIT extends WebTester {
         Assert.assertNotNull(file);
         Assert.assertEquals("IMG_5739.jpg", file.getName());
         Assert.assertEquals(10 + 101, (long)file.getParentId().getId());
-        Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+        Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_SOURCE, file.getParentId().getType());
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1645188, (long)file.getSize());
         Assert.assertEquals("2022-01-03 18:44", sdf.format(file.getDate()));
@@ -246,7 +246,7 @@ public class MigrateIT extends WebTester {
                 Assert.assertNotNull(file);
                 Assert.assertEquals("IMG_4060.jpg", file.getName());
                 Assert.assertEquals(10 + 101, (long) file.getParentId().getId());
-                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_SOURCE, file.getParentId().getType());
                 Assert.assertEquals(5, (long) file.getClassification().getId());
                 Assert.assertEquals(1570162, (long) file.getSize());
                 Assert.assertEquals("2022-01-03 18:39", sdf.format(file.getDate()));

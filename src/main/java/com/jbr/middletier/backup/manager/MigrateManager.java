@@ -145,6 +145,7 @@ public class MigrateManager {
                 nextFsoDirectory.setName(directoryLayerInfo.getNewName());
                 fileSystemObjectManager.save(nextFso);
                 migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED);
+                addedDirectories.put(directoryLayerInfo.getPathUpTo(directoryLayerInfo.getLayerCount() + 1), nextFsoDirectory);
                 LOG.info("Restructured {}", nextFso);
             }
         }
