@@ -16,6 +16,9 @@ public enum SourceStatusType {
     }
 
     public static SourceStatusType getSourceStatusType(String name) {
+        if(name == null)
+            return null;
+
         for(SourceStatusType type : SourceStatusType.values()) {
             if(type.getTypeName().equalsIgnoreCase(name)) {
                 return type;
