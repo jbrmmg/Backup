@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
+    url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
     username: ${db.dev.backup.user}
     password: ${db.dev.backup.password}
 
