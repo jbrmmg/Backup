@@ -26,6 +26,7 @@ public class MigrateManager {
             if(nextFso.getName().equals(".")) {
                 migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DOT_FILES_REMOVED);
                 fileSystemObjectManager.delete(nextFso);
+                LOG.info("Remove . file {}", nextFso);
             }
         }
     }
@@ -47,6 +48,7 @@ public class MigrateManager {
                     nextFile.setParentId(nextFso.getParentId());
                 }
                 fileSystemObjectManager.delete(nextFso);
+                LOG.info("Remove blank directory {}", nextFso);
             }
         }
     }
@@ -143,6 +145,7 @@ public class MigrateManager {
                 nextFsoDirectory.setName(directoryLayerInfo.getNewName());
                 fileSystemObjectManager.save(nextFso);
                 migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED);
+                LOG.info("Restructured {}", nextFso);
             }
         }
     }

@@ -11,8 +11,14 @@ databaseChangeLog:
         - sql:
             sql: |
               update file_system_object
-              set type = 'IMPS'
+              set type = 'IMPO'
               where id in ( select file_id from import_file )
+
+        - sql:
+            sql: |
+              update file_system_object
+              set parent_type = 'IMPS'
+              where type = 'IMPO'
 
         - sql:
             sql: |

@@ -2,6 +2,8 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +12,8 @@ import java.util.*;
 
 @Component
 public class DriveManager extends FileProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(DriveManager.class);
+
     @Autowired
     public DriveManager(AssociatedFileDataManager associatedFileDataManager,
                         BackupManager backupManager,
@@ -53,6 +57,7 @@ public class DriveManager extends FileProcessor {
 
         for(Source nextSource: associatedFileDataManager.internalFindAllSource()) {
             if(nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE) {
+                LOG.info("Process Source {}", nextSource);
                 processSource(nextSource, deleteActions, result);
             }
         }

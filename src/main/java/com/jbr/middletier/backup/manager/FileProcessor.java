@@ -206,22 +206,28 @@ abstract class FileProcessor {
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException {
         // Read the files structure from the real world.
+        LOG.info("Read the real world {}", source.getPath());
         RwRoot realWorld = new RwRoot(source.getPath(), fileSystem);
         realWorld.removeFilteredChildren(source.getFilter());
 
         // Read the same from the database.
+        LOG.info("Read the database {}", source);
         DbRoot database = fileSystemObjectManager.createDbRoot(source);
 
         // Compare the real world with the database.
+        LOG.info("Perform the compare.");
         RwDbTree compare = new RwDbTree(realWorld, database);
         compare.compare();
 
         // Perform deletes
+        LOG.info("Process the deletes.");
         processDeletes(compare,deletes, gatherData);
 
         // Process the actions.
         SectionNode.SectionNodeType section = null;
-        for(FileTreeNode nextNode : compare.getOrderedNodeList()) {
+        List<FileTreeNode> orderedNodeList = compare.getOrderedNodeList();
+        LOG.info("Actions {}", orderedNodeList.size());
+        for(FileTreeNode nextNode : orderedNodeList) {
             if(nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode)nextNode;
                 switch(Objects.requireNonNull(section,"Section has not been initialised")) {
@@ -245,7 +251,9 @@ abstract class FileProcessor {
             } else {
                 SectionNode sectionNode = (SectionNode)nextNode;
                 section = sectionNode.getSection();
+                LOG.info("Check the next section {}", section);
             }
         }
+        LOG.info("Source complete.");
     }
 }
