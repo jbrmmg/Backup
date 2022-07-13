@@ -85,5 +85,13 @@ public class Migrate2IT {
 
         Assert.assertEquals(20,directories.size());
         Assert.assertEquals(0,files.size());
+
+        // Check again.
+        directories = new ArrayList<>();
+        files = new ArrayList<>();
+        fileSystemObjectManager.loadByParent(1, directories, files);
+
+        Assert.assertEquals(80,directories.size());
+        Assert.assertEquals(386,files.size());
     }
 }

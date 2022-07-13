@@ -2,11 +2,13 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.MigrateDateDTO;
+import com.jbr.middletier.backup.filetree.FileTreeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.*;
 
 @Component
@@ -53,102 +55,151 @@ public class MigrateManager {
         }
     }
 
-    static class DirectoryLayerInfo {
-        private final String newName;
-        private final String parentId;
-        private final List<String> newLayers;
+    static class DirectoryNode extends FileTreeNode {
+        private final String directoryName;
+        private DirectoryInfo dbDirectory;
 
-        public DirectoryLayerInfo(String oldName, String parentId) {
-            this.newLayers = new ArrayList<>();
+        static class DirectoryLevelHelper {
+            private final List<String> levels;
+            private int currentLevel;
 
-            String[] layers = oldName.split("/");
+            public DirectoryLevelHelper (DirectoryInfo directory) {
+                this.levels = new ArrayList<>();
+                this.currentLevel = 0;
 
-            for(int i = 0; i < layers.length - 1; i++) {
-                if(layers[i].length() > 0) {
-                    newLayers.add(layers[i]);
+                for(String nextLevel : directory.getName().split("/")) {
+                    if(nextLevel.trim().length() > 0) {
+                        levels.add(nextLevel);
+                    }
                 }
             }
 
-            this.newName = layers[layers.length - 1];
-            this.parentId = parentId;
-        }
-
-        public String getNewName() {
-            return newName;
-        }
-
-        public int getLayerCount() {
-            return newLayers.size();
-        }
-
-        public String getNameAt(int index) {
-            if(index == newLayers.size()) {
-                return this.newName;
+            public String getName() {
+                return levels.get(currentLevel);
             }
 
-            return newLayers.get(index);
-        }
-
-        public String getPathUpTo(int index) {
-            StringBuilder result = new StringBuilder();
-
-            result.append(this.parentId);
-            result.append(":");
-            for(int i = 0; i < index; i++) {
-                if(i > 0) {
-                    result.append("/");
-                }
-                result.append(getNameAt(i));
+            public void nextLevel() {
+                this.currentLevel++;
             }
 
-            return result.toString();
+            public boolean lastLevel() {
+                return this.currentLevel == this.levels.size() - 1;
+            }
+        }
+
+        protected DirectoryNode(DirectoryNode parent, String directoryName) {
+            super(parent);
+            this.directoryName = directoryName;
+        }
+
+        private DirectoryNode(DirectoryNode parent, DirectoryLevelHelper directoryLevelHelper, DirectoryInfo directory) {
+            super(parent);
+
+            this.directoryName = directoryLevelHelper.getName();
+
+            if(directoryLevelHelper.lastLevel()) {
+                this.dbDirectory = directory;
+            } else {
+                directoryLevelHelper.nextLevel();
+                addDirectory(directoryLevelHelper, directory);
+            }
+        }
+
+        @Override
+        public String getName() {
+            return this.directoryName;
+        }
+
+        @Override
+        protected void childAdded(FileTreeNode newChild) {
+            // No implementation required
+        }
+
+        private void addDirectory(DirectoryLevelHelper directoryLevelHelper, DirectoryInfo directory) {
+            DirectoryNode nextNode = (DirectoryNode) getNamedChild(directoryLevelHelper.getName());
+            if(nextNode == null) {
+                addChild(new DirectoryNode(this, directoryLevelHelper, directory));
+            } else {
+                directoryLevelHelper.nextLevel();
+                nextNode.addDirectory(directoryLevelHelper, directory);
+            }
+        }
+
+        public void addDirectory(DirectoryInfo directory) {
+            addDirectory(new DirectoryLevelHelper(directory), directory);
+        }
+
+        public DirectoryInfo getDbDirectory() {
+            return this.dbDirectory;
+        }
+
+        public DirectoryInfo getDbDirectory(FileSystemObject parent) {
+            this.dbDirectory.setName(this.directoryName);
+            if(parent != null) {
+                this.dbDirectory.setParent(parent);
+            }
+
+            return this.dbDirectory;
+        }
+
+        public void createDbDirectory() {
+            this.dbDirectory = new DirectoryInfo();
+            this.dbDirectory.clearRemoved();
         }
     }
 
-    private DirectoryInfo addRequired(DirectoryInfo newDirectory, String pathToNew, Map<String,DirectoryInfo> alreadyAdded) {
-        if(alreadyAdded.containsKey(pathToNew)) {
-            return alreadyAdded.get(pathToNew);
-        }
+    public void processTree(DirectoryNode root, MigrateDateDTO migrateDateDTO) {
+        // Process the children.
+        for(FileTreeNode nextChild : root.getChildren()) {
+            DirectoryNode nextDirectoryChild = (DirectoryNode) nextChild;
 
-        alreadyAdded.put(pathToNew, newDirectory);
-        return null;
+            // Does this have a database value?
+            if(nextDirectoryChild.getDbDirectory() == null) {
+                nextDirectoryChild.createDbDirectory();
+                migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.NEW_DIRECTORIES);
+                LOG.info("Create new directory {}", nextDirectoryChild.getName());
+            } else {
+                migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED);
+            }
+
+            fileSystemObjectManager.save(nextDirectoryChild.getDbDirectory(root.getDbDirectory()));
+
+            processTree(nextDirectoryChild, migrateDateDTO);
+        }
     }
 
     public void updateDirectories(MigrateDateDTO migrateDateDTO) {
-        Map<String,DirectoryInfo> addedDirectories = new HashMap<>();
+        Map<String,DirectoryNode> sources = new HashMap<>();
 
-        // Update directories where there are multiple
-        for(FileSystemObject nextFso : fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_DIRECTORY)) {
-            if(nextFso.getName().contains("/")) {
-                LOG.info("Process {}", nextFso.getName());
-                DirectoryLayerInfo directoryLayerInfo = new DirectoryLayerInfo(nextFso.getName(),nextFso.getParentId().toString());
+        int count = 0;
+        for(FileSystemObject nextDirectory : fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_DIRECTORY)) {
+            DirectoryInfo directory = (DirectoryInfo) nextDirectory;
 
-                FileSystemObjectId previousParentId = nextFso.getParentId();
-                for(int i = 0; i < directoryLayerInfo.getLayerCount(); i++) {
-                    DirectoryInfo newDirectory = new DirectoryInfo();
-                    newDirectory.setName(directoryLayerInfo.getNameAt(i));
-                    newDirectory.setParentId(previousParentId);
-                    newDirectory.clearRemoved();
-
-                    DirectoryInfo existingDirectory = addRequired(newDirectory, directoryLayerInfo.getPathUpTo(i + 1), addedDirectories);
-                    if(existingDirectory == null) {
-                        fileSystemObjectManager.save(newDirectory);
-                        previousParentId = newDirectory.getIdAndType();
-                        migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.NEW_DIRECTORIES);
-                    } else {
-                        previousParentId = existingDirectory.getIdAndType();
-                    }
-                }
-
-                DirectoryInfo nextFsoDirectory = (DirectoryInfo)nextFso;
-                nextFsoDirectory.setParentId(previousParentId);
-                nextFsoDirectory.setName(directoryLayerInfo.getNewName());
-                fileSystemObjectManager.save(nextFso);
-                migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED);
-                addedDirectories.put(directoryLayerInfo.getPathUpTo(directoryLayerInfo.getLayerCount() + 1), nextFsoDirectory);
-                LOG.info("Restructured {}", nextFso);
+            // Get the directory node for the source.
+            DirectoryNode rootOfSource = null;
+            if(sources.containsKey(directory.getParentId().toString())) {
+                rootOfSource = sources.get(directory.getParentId().toString());
+            } else {
+                rootOfSource = new DirectoryNode(null, directory.getParentId().toString());
+                sources.put(directory.getParentId().toString(), rootOfSource);
             }
+
+            rootOfSource.addDirectory(directory);
+            count++;
         }
+
+        LOG.info("Found {} directories", count);
+        LOG.info("Under {} sources", sources.keySet().size());
+
+        for(String nextKey : sources.keySet()) {
+            LOG.info("Process Key: {}", nextKey);
+
+            processTree(sources.get(nextKey), migrateDateDTO);
+        }
+
+        LOG.info("Completed - new     {}", migrateDateDTO.getCount(MigrateDateDTO.MigrateDataCountType.NEW_DIRECTORIES));
+        LOG.info("Completed - updated {}", migrateDateDTO.getCount(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED));
+        LOG.info("Done");
     }
 
     public List<MigrateDateDTO> postMigrationChecks() {
