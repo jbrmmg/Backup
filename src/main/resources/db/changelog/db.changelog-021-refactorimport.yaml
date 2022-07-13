@@ -16,12 +16,6 @@ databaseChangeLog:
 
         - sql:
             sql: |
-              update file_system_object
-              set parent_type = 'IMPS'
-              where type = 'IMPO'
-
-        - sql:
-            sql: |
               update import_file set id = file_id
 
         # remove the columns not required.
