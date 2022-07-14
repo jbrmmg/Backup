@@ -202,10 +202,10 @@ public class MigrateManager {
         LOG.info("Found {} directories", count);
         LOG.info("Under {} sources", sources.keySet().size());
 
-        for(String nextKey : sources.keySet()) {
-            LOG.info("Process Key: {}", nextKey);
+        for(Map.Entry<String,DirectoryNode> nextEntry : sources.entrySet()) {
+            LOG.info("Process Key: {}", nextEntry.getKey());
 
-            processTree(sources.get(nextKey), migrateDateDTO);
+            processTree(nextEntry.getValue(), migrateDateDTO);
         }
 
         LOG.info("Completed - new     {}", migrateDateDTO.getCount(MigrateDateDTO.MigrateDataCountType.NEW_DIRECTORIES));
