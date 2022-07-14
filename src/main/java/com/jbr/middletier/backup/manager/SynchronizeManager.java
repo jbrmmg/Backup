@@ -172,7 +172,9 @@ public class SynchronizeManager {
 
             // Process the comparison.
             SectionNode.SectionNodeType section = null;
-            for (FileTreeNode nextNode : dbTree.getOrderedNodeList()) {
+            List<FileTreeNode> orderedNodeList = dbTree.getOrderedNodeList();
+            LOG.info("Actions {}", orderedNodeList.size());
+            for (FileTreeNode nextNode : orderedNodeList) {
                 if (nextNode instanceof DbCompareNode) {
                     DbCompareNode compareNode = (DbCompareNode) nextNode;
                     switch (Objects.requireNonNull(section,"Section not initialised")) {
