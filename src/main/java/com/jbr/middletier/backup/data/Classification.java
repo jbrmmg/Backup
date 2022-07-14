@@ -51,7 +51,7 @@ public class Classification {
 
     public void update(ClassificationDTO source) {
         this.regex = source.getRegex();
-        this.action = source.getAction();
+        this.action = source.getAction().getTypeName();
         this.icon = source.getIcon();
         this.useMD5 = source.getUseMD5();
         this.isImage = source.getImage();
@@ -63,7 +63,7 @@ public class Classification {
 
     public String getRegex() { return this.regex; }
 
-    public String getAction() { return this.action; }
+    public ClassificationActionType getAction() { return ClassificationActionType.getClassificationActionType(this.action); }
 
     public String getIcon() { return this.icon; }
 
@@ -74,12 +74,14 @@ public class Classification {
 
     public Boolean getIsImage() { return this.isImage; }
 
-    public boolean fileMatches(FileInfo file) {
-        return file.getName().toLowerCase().matches(regex);
-    }
+    public @NotNull Integer getOrder() { return this.order; }
 
     @Override
     public String toString() {
         return id + "-" + regex;
+    }
+
+    public boolean fileMatches(FileInfo file) {
+        return file.getName().toLowerCase().matches(regex);
     }
 }

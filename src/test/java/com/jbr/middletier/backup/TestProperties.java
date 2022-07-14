@@ -2,12 +2,14 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestProperties {
     @Test
+    @DisplayName("Test the property class.")
     public void TestPropertyClass() {
         ApplicationProperties test = new ApplicationProperties();
         test.setDbBackupCommand("DBCmd");
@@ -38,8 +40,8 @@ public class TestProperties {
         assertEquals("dd/mm",test.getDirectory().getDateFormat());
         test.getDirectory().setDays(1);
         assertEquals(1,test.getDirectory().getDays());
-        test.getDirectory().setName("test");
-        assertEquals("test",test.getDirectory().getName());
+        test.getDirectory().setName("synchronise");
+        assertEquals("synchronise",test.getDirectory().getName());
         test.getDirectory().setZip("zip");
         assertEquals("zip",test.getDirectory().getZip());
         test.getEmail().setAuthenticate(true);

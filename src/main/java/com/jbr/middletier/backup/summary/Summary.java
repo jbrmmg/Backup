@@ -3,10 +3,9 @@ package com.jbr.middletier.backup.summary;
 import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +14,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class Summary {
     private static final Logger LOG = LoggerFactory.getLogger(Summary.class);
 
@@ -23,16 +23,16 @@ public class Summary {
     List<SourceDTO> sources;
 
     private static class SummaryInitialiser implements Runnable {
-        private final SourceRepository sourceRepository;
-        private final DirectoryRepository directoryRepository;
-        private final FileRepository fileRepository;
+        private final AssociatedFileDataManager associatedFileDataManager;
         private final Summary instance;
+        private final FileSystemObjectManager fileSystemObjectManager;
 
-        public SummaryInitialiser(Summary instance, SourceRepository sourceRepository, DirectoryRepository directoryRepository, FileRepository fileRepository) {
-            this.sourceRepository = sourceRepository;
-            this.directoryRepository = directoryRepository;
-            this.fileRepository = fileRepository;
+        public SummaryInitialiser(Summary instance,
+                                  AssociatedFileDataManager associatedFileDataManager,
+                                  FileSystemObjectManager fileSystemObjectManager) {
+            this.associatedFileDataManager = associatedFileDataManager;
             this.instance = instance;
+            this.fileSystemObjectManager = fileSystemObjectManager;
         }
 
         @Override
@@ -41,18 +41,19 @@ public class Summary {
                 instance.sources = new ArrayList<>();
 
                 // Initialise the summary object.
-                for (Source nextSource : this.sourceRepository.findAll()) {
+                for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
                     SourceDTO nextSourceDTO = nextSource.getSourceDTO();
                     instance.sources.add(nextSourceDTO);
 
-                    for (DirectoryInfo nextDirectory : this.directoryRepository.findBySource(nextSource)) {
-                        nextSourceDTO.incrementDirectoryCount();
+                    List<FileInfo> files = new ArrayList<>();
+                    List<DirectoryInfo> directories = new ArrayList<>();
+                    fileSystemObjectManager.loadByParent(nextSourceDTO.getId(), directories, files);
 
-                        for (FileInfo nextFile : this.fileRepository.findByDirectoryInfoId(nextDirectory.getId())) {
-                            nextSourceDTO.incrementFileCount();
-                            if (nextFile.getSize() != null) {
-                                nextSourceDTO.increaseFileSize(nextFile.getSize());
-                            }
+                    for (DirectoryInfo directory : directories) nextSourceDTO.incrementDirectoryCount();
+                    for (FileInfo file : files) {
+                        nextSourceDTO.incrementFileCount();
+                        if(file.getSize() != null) {
+                            nextSourceDTO.increaseFileSize(file.getSize());
                         }
                     }
                 }
@@ -68,17 +69,25 @@ public class Summary {
 
     private static Summary instance = null;
 
-    public static Summary getInstance(SourceRepository sourceRepository, DirectoryRepository directoryRepository, FileRepository fileRepository) {
+    public static Summary getInstance(AssociatedFileDataManager associatedFileDataManager, FileSystemObjectManager fileSystemObjectManager) {
         if(instance != null) {
             return instance;
         }
 
         instance = new Summary();
 
-        SummaryInitialiser initialiser = new SummaryInitialiser(instance, sourceRepository, directoryRepository, fileRepository);
+        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager, fileSystemObjectManager);
         new Thread(initialiser).start();
 
         return instance;
+    }
+
+    public static void forceInstance(AssociatedFileDataManager associatedFileDataManager, FileSystemObjectManager fileSystemObjectManager) {
+        instance = null;
+
+        instance = new Summary();
+        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager, fileSystemObjectManager);
+        initialiser.run();
     }
 
     private Summary() {

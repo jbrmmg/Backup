@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 18
+      author: jason
+      changes:
+        # copy the data from source table to the file_system_object.
+        - sql:
+            sql: |
+              update directory set id = id + 101
+
+        - sql:
+            sql: |
+              insert into file_system_object(id,type,name,parent,parent_type)
+              select id, 'DIRY', path, source_id, 'SRCE' from directory
+
+        # drop the columns no-longer required
+        - dropColumn:
+            columnName: path
+            tableName: directory
+
+        - dropColumn:
+            columnName: source_id
+            tableName: directory

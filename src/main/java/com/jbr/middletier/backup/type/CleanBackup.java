@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.type;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,7 @@ public class CleanBackup implements PerformBackup {
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, Backup backup) {
+    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
         backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Clean Backup.");
 
         // Remove any backup directories older than x days

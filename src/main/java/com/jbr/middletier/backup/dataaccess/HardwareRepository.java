@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 public interface HardwareRepository  extends CrudRepository<Hardware, String>, JpaSpecificationExecutor<Hardware> {
+    Iterable<Hardware> findAllByOrderByMacAddressAsc();
 }

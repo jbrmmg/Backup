@@ -11,14 +11,17 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
-class WebTester {
+public class WebTester {
     private MockMvc mockMvc;
+
+    @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
     @Autowired
@@ -37,11 +40,11 @@ class WebTester {
 
     @Before
     public void setup() {
-        // Setup the mock web context.
+        // Set up the mock web context.
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
-    String json(Object o) throws IOException {
+    public String json(Object o) throws IOException {
         MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
         //noinspection unchecked
         this.mappingJackson2HttpMessageConverter.write(
@@ -49,13 +52,13 @@ class WebTester {
         return mockHttpOutputMessage.getBodyAsString();
     }
 
-    MediaType getContentType() {
+    public MediaType getContentType() {
         return new MediaType(MediaType.APPLICATION_JSON.getType(),
                 MediaType.APPLICATION_JSON.getSubtype(),
-                Charset.forName("utf8"));
+                Charset.forName(StandardCharsets.UTF_8.toString()));
     }
 
-    MockMvc getMockMvc() {
+    public MockMvc getMockMvc() {
         return this.mockMvc;
     }
 }

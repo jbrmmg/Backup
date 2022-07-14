@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 998
+      author: jason
+      changes:
+        - loadData:
+            tableName: source
+            file: /db/changelog/migration-source.csv
+
+        - loadData:
+            tableName: directory
+            file: /db/changelog/migration-directory.csv
+
+        - loadData:
+            tableName: file
+            file: /db/changelog/migration-file.csv
+
+        - loadData:
+            tableName: ignore_file
+            file: /db/changelog/migration-ignore_file.csv
+
+        - loadData:
+            tableName: import_file
+            file: /db/changelog/migration-import_file.csv
+
+        - loadData:
+            tableName: action_confirm
+            file: /db/changelog/migration-action_confirm.csv

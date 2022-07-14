@@ -7,20 +7,8 @@ import java.util.Date;
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
 @Table(name="file")
-public class FileInfo {
-    @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(name="name")
-    @NotNull
-    private String name;
-
-    @JoinColumn(name="directoryId")
-    @ManyToOne(optional = false)
-    private DirectoryInfo directoryInfo;
-
+@Inheritance(strategy = InheritanceType.JOINED)
+public class FileInfo extends FileSystemObject {
     @JoinColumn(name="classificationId")
     @ManyToOne(optional = true)
     private Classification classification;
@@ -41,9 +29,15 @@ public class FileInfo {
     @Column(name="flags")
     private String flags;
 
-    public void setName(String name) { this.name = name; }
+    public FileInfo() {
+        super(FileSystemObjectType.FSO_FILE);
+    }
 
-    public void setDirectoryInfo(DirectoryInfo directoryInfo) { this.directoryInfo = directoryInfo; }
+    protected FileInfo(@NotNull FileSystemObjectType type) {
+        super(type);
+    }
+
+    public void setName(String name) { this.name = name; }
 
     public void setClassification(Classification classification) { this.classification = classification; }
 
@@ -51,28 +45,22 @@ public class FileInfo {
 
     public void setDate(Date date) { this.date = date; }
 
-    public void setMD5(String md5) { this.md5 = md5; }
+    public void setMD5(MD5 md5) { this.md5 = md5.toString().equals("") ? null : md5.toString(); }
 
     public void clearRemoved() { this.removed = false; }
-
-    public Integer getId() { return this.id; }
-
-    public String getName() { return this.name; }
 
     public Long getSize() { return this.size; }
 
     public Date getDate() { return this.date; }
 
-    public String getMD5() { return this.md5; }
-
-    public DirectoryInfo getDirectoryInfo() { return this.directoryInfo; }
+    public MD5 getMD5() { return new MD5(this.md5); }
 
     public Classification getClassification() { return this.classification; }
 
     public Boolean getRemoved() { return this.removed; }
 
-    public boolean duplicate(FileInfo otherFile) {
-        if(this.id.equals(otherFile.id)) {
+    public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
+        if(this.getIdAndType().equals(otherFile.getIdAndType())) {
             return false;
         }
 
@@ -87,15 +75,8 @@ public class FileInfo {
         return (this.md5 == null) || (otherFile.md5 == null) || this.md5.equals(otherFile.md5);
     }
 
-    public String getFullFilename() {
-        return directoryInfo.getSource().getPath() +
-                directoryInfo.getPath() +
-                "/" +
-                getName();
-    }
-
     @Override
     public String toString() {
-        return "FileInfo: " + id + getFullFilename() + " " + md5;
+        return "FileInfo: " + getIdAndType().toString() + " " + getName() + " " + md5;
     }
 }

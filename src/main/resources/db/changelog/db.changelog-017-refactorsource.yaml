@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 17
+      author: jason
+      changes:
+
+        # Create the import_source table.
+        - createTable:
+            tableName: import_source
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: destination
+                  type: int
+
+        # copy the data from source table to the file_system_object.
+        - sql:
+            sql: |
+              insert into file_system_object(id,type,name)
+              select id, 'SRCE', path from source where source_type = 'STD'
+
+        - sql:
+            sql: |
+              insert into file_system_object(id,type,name)
+              select id, 'IMPS', path from source where source_type = 'IMP'
+
+        - sql:
+            sql: |
+              insert into import_source(id,destination)
+              select id, destination from source where source_type = 'IMP'
+
+        # remove columns that are now in the other tables.
+        - dropColumn:
+            columnName: destination
+            tableName: source
+
+        - dropColumn:
+            columnName: path
+            tableName: source
+
+        - dropColumn:
+            columnName: source_type
+            tableName: source

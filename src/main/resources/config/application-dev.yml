@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false
+    url: ${db.dev.backup.server}?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
     username: ${db.dev.backup.user}
     password: ${db.dev.backup.password}
 
@@ -16,7 +16,7 @@ spring:
     console:
       enabled: false
 
-logging.file: /var/log/jbr/MiddleTier-Backup-DEV.log
+logging.file.name: /var/log/jbr/MiddleTier-Backup-DEV.log
 logging:
   file:
     max-history: 3

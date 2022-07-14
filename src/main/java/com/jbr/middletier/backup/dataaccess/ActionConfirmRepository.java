@@ -17,15 +17,9 @@ public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, I
 
     List<ActionConfirm> findByConfirmedAndAction(Boolean confirmed, String action);
 
-    // Mark everything as removed.
+    // Remove actions
     @Transactional
     @Modifying
-    @Query("DELETE FROM ActionConfirm WHERE action='DELETE_DUP' AND confirmed=0")
-    void clearDuplicateDelete();
-
-    // Clear imports.
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM ActionConfirm WHERE action='IMPORT' AND confirmed=0")
-    void clearImports();
+    @Query("DELETE FROM ActionConfirm WHERE action=?1 AND confirmed=?2")
+    void clearActions(String actionName, boolean confirmed);
 }

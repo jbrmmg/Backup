@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 public interface SynchronizeRepository extends CrudRepository<Synchronize, Integer>, JpaSpecificationExecutor<Synchronize> {
+    Iterable<Synchronize> findAllByOrderByIdAsc();
 }

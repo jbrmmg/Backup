@@ -11,13 +11,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.*;
 
 /**
  * Created by jason on 11/02/17.
@@ -29,6 +27,7 @@ public class BackupManager {
 
     private final ApplicationProperties applicationProperties;
     private final RestTemplateBuilder restTemplateBuilder;
+    private final EnumMap<webLogLevel, List<String>> messageCache;
 
     @PostConstruct
     public void initialise() {
@@ -39,6 +38,7 @@ public class BackupManager {
                          RestTemplateBuilder restTemplateBuilder) {
         this.applicationProperties = applicationProperties;
         this.restTemplateBuilder = restTemplateBuilder;
+        this.messageCache = new EnumMap<>(webLogLevel.class);
     }
 
     public String todaysDirectory() {
@@ -48,22 +48,36 @@ public class BackupManager {
         return String.format("%s/%s/",this.applicationProperties.getDirectory().getName(),formatter.format(calendar.getTime()));
     }
 
-    public void initialiseDay() throws IOException {
+    public List<String> getMessageCache(webLogLevel level) {
+        if(!this.messageCache.containsKey(level)) {
+            return new ArrayList<>();
+        }
+
+        return this.messageCache.get(level);
+    }
+
+    public void clearMessageCache() {
+        for(Map.Entry<webLogLevel, List<String>> nextEntry : this.messageCache.entrySet()) {
+            nextEntry.getValue().clear();
+        }
+    }
+
+    public void initialiseDay(FileSystem fileSystem) throws IOException {
         LOG.info("Initialise the backup directory.");
 
-        Path directoryPath = Paths.get(this.applicationProperties.getDirectory().getName());
+        File directoryPath = new File(this.applicationProperties.getDirectory().getName());
 
         // Does the directory exist?
-        if(Files.notExists(directoryPath)) {
+        if(!fileSystem.directoryExists(directoryPath.toPath())) {
             throw new IllegalStateException(String.format("The defined directory path %s does not exist.", this.applicationProperties.getDirectory().getName()));
         }
 
         // What should today's directory be called?
-        Path todaysDirectoryPath = Paths.get(todaysDirectory());
+        File todaysDirectoryPath = new File(todaysDirectory());
 
         // If not exists, create it.
-        if(Files.notExists(todaysDirectoryPath)) {
-            Files.createDirectory(todaysDirectoryPath);
+        if(!fileSystem.directoryExists(todaysDirectoryPath.toPath())) {
+            fileSystem.createDirectory(todaysDirectoryPath.toPath());
             postWebLog(webLogLevel.INFO,"Created directory + " + todaysDirectoryPath);
         }
     }
@@ -74,6 +88,17 @@ public class BackupManager {
         try {
             // Only perform if there is a web log URL.
             if(applicationProperties.getWebLogUrl() == null || applicationProperties.getWebLogUrl().length() == 0) {
+                // If there is no web url and required then keep a cache.
+                if(applicationProperties.getCacheWebLog()) {
+                    List<String> messages;
+                    if (!messageCache.containsKey(level)) {
+                        messages = new ArrayList<>();
+                        messageCache.put(level, messages);
+                    } else {
+                        messages = messageCache.get(level);
+                    }
+                    messages.add(message);
+                }
                 return;
             }
 

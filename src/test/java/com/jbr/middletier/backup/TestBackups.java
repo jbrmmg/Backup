@@ -6,10 +6,13 @@ import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
+import com.jbr.middletier.backup.type.CleanBackup;
 import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -32,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -56,16 +61,9 @@ public class TestBackups {
     @Test
     public void TestCleanBackup() {
         try {
-            // Setup the test
-            File backupDirectory = new File(applicationProperties.getDirectory().getName());
-            if (!backupDirectory.exists() && !backupDirectory.mkdir()) {
-                LOG.warn("Cannot create the backup directory.");
-            }
-
             File testFile = new File(applicationProperties.getDirectory().getName() + "/2020-01-01");
-            if (!testFile.exists() && !testFile.mkdir()) {
-                fail();
-            }
+            Files.createDirectories(testFile.toPath());
+            Assert.assertTrue(testFile.exists());
 
             BackupDTO backupDTO = new BackupDTO("CLN","clean");
             backupDTO.setTime(GetBackupTime());
@@ -81,6 +79,51 @@ public class TestBackups {
             LOG.error("Test failed - ", ex);
             fail();
         }
+    }
+
+    @Test
+    public void TestCleanBackupFailure() {
+        FileSystem fileSystem = mock(FileSystem.class);
+        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        ApplicationProperties.Directory directory = mock(ApplicationProperties.Directory.class);
+        when(applicationProperties.getDirectory()).thenReturn(directory);
+        when(directory.getName()).thenReturn("thisdirectorydoesnotexist");
+
+        BackupManager backupManager = mock(BackupManager.class);
+
+        Backup backup = mock(Backup.class);
+
+        CleanBackup cleanBackup = new CleanBackup(applicationProperties);
+
+        try {
+            cleanBackup.performBackup(backupManager, fileSystem, backup);
+            Assert.fail();
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("Backup directory does not exist.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void TestCleanBackupFailure2() throws IOException {
+        File testFile = new File(applicationProperties.getDirectory().getName() + "/20201401");
+        Files.createDirectories(testFile.toPath());
+        Assert.assertTrue(testFile.exists());
+
+        File testFile2 = new File(applicationProperties.getDirectory().getName() + "/20201401/Text.txt");
+        if(!testFile2.exists()) {
+            Files.createFile(testFile2.toPath());
+        }
+        Assert.assertTrue(testFile2.exists());
+
+        BackupManager backupManager = mock(BackupManager.class);
+        FileSystem fileSystem = mock(FileSystem.class);
+
+        Backup backup = mock(Backup.class);
+
+        CleanBackup cleanBackup = new CleanBackup(applicationProperties);
+
+        cleanBackup.performBackup(backupManager, fileSystem, backup);
+        verify(backupManager,times(1)).postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory java.text.ParseException: Unparseable date: \"20201401\"");
     }
 
     @Test
@@ -194,6 +237,8 @@ public class TestBackups {
     @Test
     public void TestZipDirectoryEmpty() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (!backupDirectory.mkdirs()) {
@@ -222,7 +267,7 @@ public class TestBackups {
             Backup backup = new Backup(backupDTO);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager,backup);
+            zipupBackup.performBackup(backupManager, fileSystem,backup);
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -248,6 +293,8 @@ public class TestBackups {
     @Test
     public void TestZipBackupFail() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (backupDirectory.exists()) {
@@ -288,7 +335,7 @@ public class TestBackups {
             Backup backup = new Backup(backupDTO);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager,backup);
+            zipupBackup.performBackup(backupManager,fileSystem,backup);
 
             backupRepository.deleteAll();
 
@@ -640,7 +687,7 @@ public class TestBackups {
             backupDTO.setDirectory("db:2");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
-            backupDTO.setArtifact("test");
+            backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
             Backup backup = new Backup(backupDTO);
@@ -661,9 +708,8 @@ public class TestBackups {
     public void TestDatabaseAlreadyDone() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
-            if (!backupDir.exists()) {
-                assertTrue(backupDir.mkdirs());
-            }
+            Files.createDirectories(backupDir.toPath());
+            Assert.assertTrue(backupDir.exists());
 
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
@@ -704,6 +750,8 @@ public class TestBackups {
     @Test
     public void TestDatabaseBadConfig() {
         try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
             File backupDir = new File("./target/testfiles/Backup");
             if (!backupDir.exists()) {
                 assertTrue(backupDir.mkdirs());
@@ -730,7 +778,7 @@ public class TestBackups {
 
             Backup backup = new Backup(backupDTO);
 
-            databaseBackup.performBackup(backupManager,backup);
+            databaseBackup.performBackup(backupManager, fileSystem,backup);
             applicationProperties.setDbUrl(backupDbUrl);
 
             assertFalse(expected1.exists());
@@ -746,12 +794,64 @@ public class TestBackups {
             ApplicationProperties applicationProperties = new ApplicationProperties();
             applicationProperties.setEnabled(false);
 
-            BackupCtrl backupCtrl = new BackupCtrl(null,null,null, applicationProperties);
+            BackupCtrl backupCtrl = new BackupCtrl(null, null,null, applicationProperties, null);
             backupCtrl.scheduleBackup();
 
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
+        }
+    }
+
+    @Test
+    public void testDbBackup() {
+        try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
+            ApplicationProperties properties = mock(ApplicationProperties.class);
+            when(properties.getDbBackupCommand()).thenReturn("xx");
+            when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+
+            BackupManager manager = mock(BackupManager.class);
+            when(manager.todaysDirectory()).thenReturn("./target/it_test");
+
+            Backup backup = mock(Backup.class);
+            when(backup.getBackupName()).thenReturn("test");
+            when(backup.getArtifact()).thenReturn("blah.txt");
+            when(backup.getDirectory()).thenReturn("xx");
+
+            DatabaseBackup dbBackup = new DatabaseBackup(properties);
+            Assert.assertNotNull(dbBackup);
+            dbBackup.performBackup(manager, fileSystem, backup);
+        } catch(Exception e) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testDbBackup2() {
+        try {
+            FileSystem fileSystem = mock(FileSystem.class);
+
+            ApplicationProperties properties = mock(ApplicationProperties.class);
+            when(properties.getDbBackupCommand()).thenReturn("xx");
+            when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+            when(properties.getDbUsername()).thenReturn("user");
+            when(properties.getDbPassword()).thenReturn("pwd");
+
+            BackupManager manager = mock(BackupManager.class);
+            when(manager.todaysDirectory()).thenReturn("./target/it_test");
+
+            Backup backup = mock(Backup.class);
+            when(backup.getBackupName()).thenReturn("test");
+            when(backup.getArtifact()).thenReturn("blah.txt");
+            when(backup.getDirectory()).thenReturn("xx");
+
+            DatabaseBackup dbBackup = new DatabaseBackup(properties);
+            Assert.assertNotNull(dbBackup);
+            dbBackup.performBackup(manager, fileSystem, backup);
+        } catch(Exception e) {
+            Assert.fail();
         }
     }
 }

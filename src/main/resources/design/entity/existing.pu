@@ -1,0 +1,124 @@
+@startuml
+title Original ERD
+skinparam linetype ortho
+scale 0.75
+
+entity action_confirm {
+   * **id : int <<generated>>**
+   ==
+   action : varchar(20)
+   confirmed : bit(1)
+   parameter_required : bit(1)
+   parameter : varchar(50)
+   file_id : int **//(FK1)//**
+   flags : varchar(10)
+}
+
+entity file {
+   * **id : int <<generated>>**
+   * **name : varchar(200)**
+   ==
+   directory_id : int **//(FK1)//**
+   classification_id : int **//(FK2)//**
+   size : int
+   date : datetime
+   removed : bit(1)
+   md5 : varchar(32)
+   flags : varchar(5)
+}
+
+entity directory {
+  * **id : int <<generated>>**
+  ==
+  source_id : int **//(FK1)//**
+  path : varchar(200)
+  removed : bit(1)
+}
+
+entity classification {
+  * **id : int <<generated>>**
+  ==
+  order int
+  regex : varchar(50)
+  icon : varchar(60)
+  action : varchar(20)
+  useMD5 : bit(1)
+  type : varchar(30)
+  is_image : bit(1)
+  is_video : bit(1)
+}
+
+entity backup {
+  * **id : char(4)**
+  ==
+  type : varchar(50)
+  directory : varchar(300)
+  artifact : varchar(100)
+  backupname : varchar(35)
+  filename : varchar(100)
+  time : int
+}
+
+entity hardware {
+  * **macAddress : char(17)**
+  ==
+  reservedIP : char(1)
+  IP : varchar(15)
+  name : varchar(200)
+}
+
+entity ignore_file {
+  * **id : int <<generated>>**
+  ==
+  name : varchar(100)
+  size : varchar(10)
+  date : datetime
+  md5 : varchar(32)
+}
+
+entity import_file {
+  * **id : int <<generated>>**
+  ==
+  status : varchar(20)
+  file_id : int **//(FK1)//**
+}
+
+entity location {
+  * **id : int**
+  ==
+  name : varchar(100)
+  size : varchar(10)
+  check_duplicates : bit(1)
+}
+
+entity source {
+  * **id : int**
+  ==
+  path : varchar(200)
+  location : int **//(FK1)//**
+  status : varchar(15)
+  filter : varchar(60)
+  destination : int
+  source_type : varchar(3)
+}
+
+entity synchronize {
+ * **id : int**
+ ==
+ source : int **//(FK2)//**
+ destination : int **//(FK1)//**
+}
+
+action_confirm }o--|| file           : FK1:fk_action_file
+file           }|--|| directory      : FK1:fk_directory_file
+file           }|--|| classification : FK2:fk_classification_file
+import_file    }|--|| file           : FK1:fk_import_file
+synchronize    }|--|| source         : FK1:fk_destination_synchronize
+synchronize    }|--|| source         : FK2:fk_source_synchronize
+source         |o--o{ location       : FK1:fk_location_source
+directory      |o--o{ source         : FK1:fk_source_directory
+
+backup      |o-[hidden]d-o| hardware
+hardware    |o-[hidden]d-o| ignore_file
+synchronize |o-[hidden]r-o| classification
+@enduml

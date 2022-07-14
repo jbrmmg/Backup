@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20
+      author: jason
+      changes:
+        # copy the data from source table to the file_system_object.
+        - sql:
+            sql: |
+              update ignore_file set id = id + 320103
+
+        - sql:
+            sql: |
+              insert into file_system_object(id,type,name)
+              select id, 'IGNO', name from ignore_file
+
+        - sql:
+            sql: |
+              insert into file(id,size,date,md5,removed)
+              select id, size, date, md5, 0 from ignore_file
+
+
+        # remove the columns not required.
+        - dropColumn:
+            columnName: name
+            tableName: ignore_file
+
+        - dropColumn:
+            columnName: size
+            tableName: ignore_file
+
+        - dropColumn:
+            columnName: date
+            tableName: ignore_file
+
+        - dropColumn:
+            columnName: md5
+            tableName: ignore_file

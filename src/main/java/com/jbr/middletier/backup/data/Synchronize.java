@@ -25,11 +25,6 @@ public class Synchronize {
         setId(0);
     }
 
-    public Synchronize(SynchronizeDTO source) {
-        setId(source.getId());
-        update(source);
-    }
-
     public void update(SynchronizeDTO source) {
         setSource(new Source(source.getSource()));
         setDestination(new Source(source.getDestination()));

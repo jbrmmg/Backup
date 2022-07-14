@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
+import com.jbr.middletier.backup.data.Synchronize;
+
 import javax.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")
@@ -14,6 +16,12 @@ public class SynchronizeDTO {
 
     public SynchronizeDTO(int id) {
         setId(id);
+    }
+
+    public SynchronizeDTO(Synchronize synchronize) {
+        this.id = synchronize.getId();
+        this.source = new SourceDTO(synchronize.getSource());
+        this.destination = new SourceDTO(synchronize.getDestination());
     }
 
     public Integer getId() {

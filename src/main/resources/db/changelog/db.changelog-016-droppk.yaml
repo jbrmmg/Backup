@@ -1,0 +1,104 @@
+databaseChangeLog:
+  - changeSet:
+      id: 16
+      author: jason
+      changes:
+        # Drop Directory PK
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: directory
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: directory
+
+        - sql:
+            sql: |
+              update directory set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: directory
+
+        - dropColumn:
+            columnName: oldId
+            tableName: directory
+
+        # Drop File PK
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: file
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: file
+
+        - sql:
+            sql: |
+              update file set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: file
+
+        - dropColumn:
+            columnName: oldId
+            tableName: file
+
+        # Drop IgnoreFile PK
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: ignore_file
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: ignore_file
+
+        - sql:
+            sql: |
+              update ignore_file set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: ignore_file
+
+        - dropColumn:
+            columnName: oldId
+            tableName: ignore_file
+
+        # Drop ImportFile PK
+        - renameColumn:
+            oldColumnName: id
+            newColumnName: oldId
+            tableName: import_file
+            columnDataType: int
+
+        - addColumn:
+            columns:
+              - column:
+                  name: id
+                  type: int
+            tableName: import_file
+
+        - sql:
+            sql: |
+              update import_file set id = oldId;
+
+        - dropPrimaryKey:
+            tableName: import_file
+
+        - dropColumn:
+            columnName: oldId
+            tableName: import_file

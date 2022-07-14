@@ -2,18 +2,31 @@ logging:
   level:
     ROOT: INFO
     com.jbr.middletier: DEBUG
-#    org.hibernate.type.descriptor.sql: TRACE
+    org.hibernate.type: TRACE
+    org.hibernate.SQL: DEBUG
+    liquibase: INFO
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 spring:
   liquibase:
     default-schema:
-    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    change-log: classpath:/db/changelog/db.changelog-unitmaster.yaml
     contexts: default
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
 
 backup:
   db-backup-command: sleep $$server$$ | echo Done > $$todaydir$$/$$backupname$$/$$output$$.sql
   db-backup-max-time: 8
-  web-log-url: http://localhost:10001/jbr/int/log/data
+  web-log-url:
+  cache-web-log: true
   schedule: 0 0/1 * ? * *
   gather-schedule: 0 0 0 * * ?
   gather-enabled: true

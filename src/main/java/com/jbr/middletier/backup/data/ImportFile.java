@@ -4,26 +4,15 @@ import javax.persistence.*;
 
 @Entity
 @Table(name="import_file")
-public class ImportFile {
-    @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @JoinColumn(name="fileId")
-    @ManyToOne(optional = false)
-    private FileInfo fileInfo;
-
+public class ImportFile extends FileInfo {
     @Column(name="status")
     private String status;
 
-    public Integer getId() { return this.id; }
+    public ImportFile() {
+        super(FileSystemObjectType.FSO_IMPORT_FILE);
+    }
 
-    public void setStatus(String status) { this.status = status; }
+    public void setStatus(ImportFileStatusType status) { this.status = status.getTypeName(); }
 
-    public String getStatus() { return this.status; }
-
-    public void setFileInfo(FileInfo file) { this.fileInfo = file; }
-
-    public FileInfo getFileInfo() { return this.fileInfo; }
+    public ImportFileStatusType getStatus() { return ImportFileStatusType.getFileStatusType(this.status); }
 }

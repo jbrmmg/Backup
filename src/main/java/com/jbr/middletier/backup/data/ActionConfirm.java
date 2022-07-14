@@ -39,9 +39,9 @@ public class ActionConfirm {
 
     public void setFileInfo(FileInfo file) { this.fileInfo = file; }
 
-    public String getAction() { return this.action; }
+    public ActionConfirmType getAction() { return ActionConfirmType.getActionConfirmType(this.action); }
 
-    public void setAction(String action) { this.action = action; }
+    public void setAction(ActionConfirmType action) { this.action = action.getTypeName(); }
 
     public void setConfirmed(Boolean confirmed) { this.confirmed = confirmed; }
 
@@ -58,4 +58,23 @@ public class ActionConfirm {
     public void setFlags(String flags) { this.flags = flags; }
 
     public String getFlags() { return this.flags; }
+
+    @Override
+    public String toString() {
+        return "Action Confirmed [" +
+                this.id +
+                "] (" +
+                (this.fileInfo == null ? "No File" : this.fileInfo.getIdAndType().toString()) +
+                "," +
+                this.action +
+                "," +
+                this.confirmed.toString() +
+                "," +
+                (this.parameterRequired == null ? "" : this.parameterRequired.toString()) +
+                "," +
+                this.parameter +
+                "," +
+                this.flags +
+                ")";
+    }
 }

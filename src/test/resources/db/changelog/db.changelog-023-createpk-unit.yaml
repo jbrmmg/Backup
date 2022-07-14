@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 23
+      author: jason
+      changes:
+        - addNotNullConstraint:
+            tableName: directory
+            columnName: id
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_directory
+            tableName: directory
+
+        - addNotNullConstraint:
+            tableName: file
+            columnName: id
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_file
+            tableName: file
+
+        - addNotNullConstraint:
+            tableName: ignore_file
+            columnName: id
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_ignore_file
+            tableName: ignore_file
+
+        - addNotNullConstraint:
+            tableName: import_file
+            columnName: id
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_import_file
+            tableName: import_file

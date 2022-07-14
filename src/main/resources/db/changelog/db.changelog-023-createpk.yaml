@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 23
+      author: jason
+      changes:
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_directory
+            tableName: directory
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_file
+            tableName: file
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_ignore_file
+            tableName: ignore_file
+
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: pk_import_file
+            tableName: import_file

@@ -1,262 +1,218 @@
 package com.jbr.middletier.backup.manager;
 
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.Synchronize;
-import com.jbr.middletier.backup.data.SynchronizeStatus;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.dataaccess.SynchronizeRepository;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dto.SyncDataDTO;
+import com.jbr.middletier.backup.filetree.FileTreeNode;
+import com.jbr.middletier.backup.filetree.compare.DbTree;
+import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
+import com.jbr.middletier.backup.filetree.compare.node.SectionNode;
+import com.jbr.middletier.backup.filetree.database.DbDirectory;
+import com.jbr.middletier.backup.filetree.database.DbFile;
+import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Component
 public class SynchronizeManager {
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeManager.class);
 
-    private final SynchronizeRepository synchronizeRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final BackupManager backupManager;
-    private final FileRepository fileRepository;
     private final ActionManager actionManager;
+    private final FileSystemObjectManager fileSystemObjectManager;
+    private final FileSystem fileSystem;
+    private static final String ERROR_FORMAT = "File should be deleted - %s %s";
 
     @Autowired
-    public SynchronizeManager(SynchronizeRepository synchronizeRepository,
+    public SynchronizeManager(AssociatedFileDataManager associatedFileDataManager,
                               BackupManager backupManager,
-                              FileRepository fileRepository,
-                              ActionManager actionManager) {
-        this.synchronizeRepository = synchronizeRepository;
+                              FileSystemObjectManager fileSystemObjectManager,
+                              ActionManager actionManager,
+                              FileSystem fileSystem) {
+        this.associatedFileDataManager = associatedFileDataManager;
         this.backupManager = backupManager;
-        this.fileRepository = fileRepository;
+        this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
+        this.fileSystem = fileSystem;
     }
 
-    private void removeIfBackedup(SynchronizeStatus status) {
-        // Does this exist on the remote server?
-        if(status.getDestinationFile() != null) {
-            status.setSourceFile(status.getDestinationFile());
-            delete(status,false, true);
-        }
+    private void warn(DbCompareNode node, SyncDataDTO result) {
+        result.increment(SyncDataDTO.SyncDataCountType.FILES_WARNED);
+        LOG.warn("File warning- {}/{}", node.getSource().getFSO().getName(), node.getSource().getFSO().getIdAndType());
+        backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("File warning - %s/%s", node.getSource().getFSO().getName(), node.getSource().getFSO().getIdAndType()));
     }
 
-    private void warn(SynchronizeStatus status) {
-        LOG.warn("File warning- {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
-        backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("File warning - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
-    }
+    private void equalizeDate(DbCompareNode node, SyncDataDTO result) {
+        result.increment(SyncDataDTO.SyncDataCountType.DATES_UPDATED);
+        FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
-    private void delete(SynchronizeStatus status, boolean standard, boolean classified) {
-        LOG.info("File should be deleted - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
-
-        if(!standard) {
-            LOG.info("File should be deleted (should not have been copied) - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted (should not be there) - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
-        }
-        if(!classified) {
-            LOG.info("File should be deleted (should not have been copied - unclassified) - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted (should not be there - unclassified) - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
-        }
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format("File should be deleted - %s/%s", status.getSourceDirectory().getPath(), status.getSourceFile().getName()));
-
-        actionManager.deleteFileIfConfirmed(status.getSourceFile());
-    }
-
-    private boolean copyFile(FileInfo source, FileInfo destination) {
-        if(destination == null) {
-            return true;
-        }
-
-        // If the files have an MD5 and its different then copy.
-        String sourceMD5 = "";
-        if(source.getMD5() != null) {
-            sourceMD5 = source.getMD5();
-        }
-
-        String destinationMD5 = "";
-        if(destination.getMD5() != null) {
-            destinationMD5 = destination.getMD5();
-        }
-
-        if(sourceMD5.length() > 0 && sourceMD5.equals(destinationMD5)) {
-            // MD 5 matches - do not copy
-            return false;
-        }
-
-        return !source.getSize().equals(destination.getSize());
-    }
-
-    private void equalizeDate(FileInfo source, FileInfo destination) {
-        if(destination == null) {
-            return;
-        }
-
-        // Must have an MD5
-        if(source.getMD5() == null || source.getMD5().length() == 0) {
-            return;
-        }
-
-        // Name must be equal?
-        if(!source.getName().equalsIgnoreCase(destination.getName())) {
-            return;
-        }
-
-        // Must be the same size.
-        if(!source.getSize().equals(destination.getSize())) {
-            return;
-        }
-
-        // Must have the same MD5
-        if(!source.getMD5().equals(destination.getMD5())) {
-            return;
-        }
-
-        // Dates must be different
-        if(source.getDate().compareTo(destination.getDate()) == 0) {
-            return;
-        }
-
-        LOG.info("Updating date {} - {}", source.getDate().getTime(), destination.getDate().getTime());
+        LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate().getTime(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
         // Make the date of the destination, equal to the source.
-        File destinationFile = new File( destination.getFullFilename() );
-        if(!destinationFile.setLastModified(source.getDate().getTime())) {
-            LOG.warn("Failed to set the last modified date - {}", destination.getFullFilename());
+        File destinationFile = fileSystemObjectManager.getFile(node.getDestination().getFSO());
+        if(!fileSystem.setFileDateTime(destinationFile,sourceFileInfo.getDate().getTime())) {
+            LOG.warn("Failed to set the last modified date - {}", destinationFile);
+            result.setProblems();
         }
     }
 
-    private void backup(SynchronizeStatus status) {
+    private void backup(DbCompareNode node, Source destination, SyncDataDTO result) {
         try {
-            LOG.info("Process backup - {}/{}", status.getSourceDirectory().getPath(), status.getSourceFile().getName());
+            result.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
+            FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
-            // Update the last modified time if necessary.
-            equalizeDate(status.getSourceFile(), status.getDestinationFile());
+            LOG.info("Process backup - {}", node);
 
-            // Does the file need to be copied?
-            if (copyFile(status.getSourceFile(), status.getDestinationFile())) {
-                LOG.info("Copy File - {}", status.getSourceFile());
+            File sourceFile = fileSystemObjectManager.getFile(node.getSource().getFSO());
+            File destinationFile = fileSystemObjectManager.getFileAtDestination(node.getSource().getFSO(), destination);
 
-                String sourceFilename = status.getSourceFile().getFullFilename();
-                String destinationFilename = String.format("%s/%s/%s",
-                        status.getDestination().getPath(),
-                        status.getSourceFile().getDirectoryInfo().getPath(),
-                        status.getSourceFile().getName() );
+            LOG.info("Copy file from {} to {}", sourceFile, destinationFile);
+            fileSystem.copyFile(sourceFile, destinationFile, result);
 
-                File directory = new File(String.format("%s/%s", status.getDestination().getPath(), status.getSourceFile().getDirectoryInfo().getPath()));
-                if(!directory.exists() && !directory.mkdirs() ) {
-                    LOG.warn("Make directories failed.");
-                }
-
-                LOG.info("Copy file from {} to {}", sourceFilename, destinationFilename);
-
-                Files.copy(Paths.get(sourceFilename),
-                        Paths.get(destinationFilename),
-                        REPLACE_EXISTING);
-
-                // Set the last modified date on the copied file to be the same as the source.
-                File destinationFile = new File(destinationFilename);
-                if(!destinationFile.setLastModified(status.getSourceFile().getDate().getTime())) {
-                    LOG.warn("Failed to set the last modified date {}", destinationFilename);
-                }
+            // Set the last modified date on the copied file to be the same as the source.
+            if(!fileSystem.setFileDateTime(destinationFile,sourceFileInfo.getDate().getTime())) {
+                LOG.warn("Failed to set the last modified date {}", destinationFile);
+                result.setProblems();
             }
         } catch(Exception ex) {
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to backup " + status.toString());
+            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to backup " + node.toString());
         }
     }
 
-    private void processSynchronizeStatusAtSource(SynchronizeStatus nextStatus) {
-        if(nextStatus.getClassification() == null) {
-            LOG.warn("Unknown classification on file {}", nextStatus.getSourceFile().getId());
-            return;
+    private void removeSource(DbCompareNode node, SyncDataDTO result) {
+        result.increment(SyncDataDTO.SyncDataCountType.SOURCES_REMOVED);
+        DbFile dbFile = (DbFile)node.getSource();
+        fileSystem.deleteFile(fileSystemObjectManager.getFile(dbFile.getFSO()), result);
+    }
+
+    private void deleteFile(DbCompareNode node, SyncDataDTO result) {
+        result.increment(SyncDataDTO.SyncDataCountType.FILES_DELETED);
+        DbFile dbFile = (DbFile)node.getDestination();
+
+        // Delete the file specified in the node.
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()));
+        actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO(), result);
+
+        // If there is a sub-action of remove source then that should be deleted too.
+        if(node.getSubActionType().equals(DbCompareNode.SubActionType.REMOVE_SOURCE)) {
+            removeSource(node, result);
         }
+    }
 
-        // Perform the appropriate actions
-        switch(nextStatus.getClassification().getAction()) {
-            case "BACKUP":
-                backup(nextStatus);
+    private void deleteDirectory(DbCompareNode node, SyncDataDTO result) throws IOException {
+        result.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED);
+        DbDirectory dbDirectory = (DbDirectory)node.getDestination();
+        File directory = fileSystemObjectManager.getFile(dbDirectory.getFSO());
+
+        // Delete the file specified in the node.
+        backupManager.postWebLog(BackupManager.webLogLevel.INFO,String.format(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()));
+        fileSystem.deleteDirectoryIfEmpty(directory);
+    }
+
+    private void copyFile(DbCompareNode node, Source destination, SyncDataDTO result) {
+        // Action depends on the sub action.
+        switch(node.getSubActionType()) {
+            case NONE:
+                backup(node, destination, result);
                 break;
-
-            case "IGNORE":
-                removeIfBackedup(nextStatus);
+            case DATE_UPDATE:
+                equalizeDate(node, result);
                 break;
-
-            case "DELETE":
-                delete(nextStatus,true, true);
+            case WARN:
+                warn(node, result);
                 break;
-
-            case "WARN":
-                removeIfBackedup(nextStatus);
-                warn(nextStatus);
+            case REMOVE_SOURCE:
+                removeSource(node, result);
                 break;
-
-            case "FOLDER":
-                break;
-
             default:
-                LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
-                backupManager.postWebLog(BackupManager.webLogLevel.WARN, String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
+                // There is nothing else to process.
         }
     }
 
-    private void processSynchronizeStatusAtDestination(SynchronizeStatus nextStatus) {
-        // These are files that should not exists.
-        if(nextStatus.getClassification() == null) {
-            delete(nextStatus,false, false);
-            return;
-        }
+    private void createDestinationDirectory(DbCompareNode node, Source destination, SyncDataDTO result) throws IOException {
+        // Create the directory at the destination.
+        result.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED);
+        DbDirectory dbDirectory = (DbDirectory)node.getSource();
 
-        // Perform the appropriate actions
-        switch(nextStatus.getClassification().getAction()) {
-            case "BACKUP":
-            case "IGNORE":
-            case "DELETE":
-            case "WARN":
-                delete(nextStatus,false, true);
-                break;
-
-            case "FOLDER":
-                actionManager.deleteFileIfConfirmed(nextStatus.getSourceFile());
-                break;
-
-            default:
-                LOG.warn("Unexpected action - {} {} {}", nextStatus.getClassification().getAction(), nextStatus.getSourceDirectory().getPath(), nextStatus.getSourceFile().getName());
-                backupManager.postWebLog(BackupManager.webLogLevel.WARN,String.format("Unexpected action - %s", nextStatus.getClassification().getAction()));
-        }
+        // Create this directory.
+        File directory = fileSystemObjectManager.getFileAtDestination(dbDirectory.getFSO(), destination);
+        fileSystem.createDirectory(directory.toPath());
     }
 
-    private void processSynchronize(Synchronize nextSynchronize) {
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO,"Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+    private SyncDataDTO processSynchronize(Synchronize nextSynchronize) {
+        SyncDataDTO result = new SyncDataDTO(nextSynchronize.getId());
 
-        if(nextSynchronize.getSource().getStatus() == null || !nextSynchronize.getSource().getStatus().equals("OK")) {
-            backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
-            return;
+        try {
+            backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath());
+
+            if (nextSynchronize.getSource().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getSource().getStatus())) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as source not OK");
+                result.setProblems();
+                return result;
+            }
+
+            if (nextSynchronize.getDestination().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getDestination().getStatus())) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as destination not OK");
+                result.setProblems();
+                return result;
+            }
+
+            // Compare the source and destination.
+            DbRoot source = fileSystemObjectManager.createDbRoot(nextSynchronize.getSource());
+            DbRoot destination = fileSystemObjectManager.createDbRoot(nextSynchronize.getDestination());
+
+            DbTree dbTree = new DbTree(source, destination);
+            dbTree.compare();
+
+            // Process the comparison.
+            SectionNode.SectionNodeType section = null;
+            List<FileTreeNode> orderedNodeList = dbTree.getOrderedNodeList();
+            LOG.info("Actions {}", orderedNodeList.size());
+            for (FileTreeNode nextNode : orderedNodeList) {
+                if (nextNode instanceof DbCompareNode) {
+                    DbCompareNode compareNode = (DbCompareNode) nextNode;
+                    switch (Objects.requireNonNull(section,"Section not initialised")) {
+                        case FILE_FOR_REMOVE:
+                            deleteFile(compareNode, result);
+                            break;
+                        case DIRECTORY_FOR_REMOVE:
+                            deleteDirectory(compareNode, result);
+                            break;
+                        case DIRECTORY_FOR_INSERT:
+                            createDestinationDirectory(compareNode, nextSynchronize.getDestination(), result);
+                            break;
+                        case FILE_FOR_INSERT:
+                            copyFile(compareNode, nextSynchronize.getDestination(), result);
+                            break;
+                    }
+                } else {
+                    SectionNode sectionNode = (SectionNode) nextNode;
+                    section = sectionNode.getSection();
+                }
+            }
+
+            LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
+        } catch (Exception e) {
+            LOG.warn("Failure in {} -> {} {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
+            result.setProblems();
         }
 
-        if(nextSynchronize.getDestination().getStatus() == null || !nextSynchronize.getDestination().getStatus().equals("OK")) {
-            backupManager.postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
-            return;
-        }
-
-        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeStatus(nextSynchronize.getId())) {
-            LOG.info("Synchronize Status {}", nextStatus);
-            processSynchronizeStatusAtSource(nextStatus);
-        }
-
-        for(SynchronizeStatus nextStatus: fileRepository.findSynchronizeExtraFiles(nextSynchronize.getId())) {
-            LOG.info("Synchronize Status {}", nextStatus);
-            processSynchronizeStatusAtDestination(nextStatus);
-        }
-
-        LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
+        return result;
     }
 
-    public void synchronize() {
-        Iterable<Synchronize> synchronizes = synchronizeRepository.findAll();
+    public List<SyncDataDTO> synchronize() {
+        List<SyncDataDTO> result = new ArrayList<>();
 
-        for(Synchronize nextSynchronize : synchronizes) {
-            processSynchronize(nextSynchronize);
+        for(Synchronize nextSynchronize : associatedFileDataManager.internalFindAllSynchronize()) {
+            result.add(processSynchronize(nextSynchronize));
         }
+
+        return result;
     }
 }

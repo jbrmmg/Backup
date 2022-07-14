@@ -1,0 +1,4 @@
+id,path,location,status,filter,destination,source_type
+1,/media/Shared/Photo,1,OK,d{4}$,,STD
+2,/media/Backup/Photo,1,ERROR,,,STD
+3,/home/jason/Pictures/Martina Single,1,OK,,1,IMP

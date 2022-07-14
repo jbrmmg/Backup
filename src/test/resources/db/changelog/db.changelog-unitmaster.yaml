@@ -1,0 +1,77 @@
+databaseChangeLog:
+
+  - include:
+      file: /db/changelog/db.changelog-001-backup-unit.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-002-hardware.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-003-files.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-004-classification-data.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-005-location-data.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-006-source-status.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-007-extentions.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-008-extentions-2.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-009-extentions-3.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-010-ignore.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-011-import.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-012-refactor-unit.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-013-imagetypes.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-014-filesystemobject-unit.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-015-dropfk-unit.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-016-droppk.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-017-refactorsource.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-018-refactordirectory.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-019-refactorfile.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-020-refactorignore.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-021-refactorimport.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-022-refactoraction.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-023-createpk-unit.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-024-createfk.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-999-dbgdata.yaml
+

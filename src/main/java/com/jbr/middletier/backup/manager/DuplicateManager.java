@@ -1,104 +1,96 @@
 package com.jbr.middletier.backup.manager;
 
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
-import com.jbr.middletier.backup.dataaccess.FileRepository;
-import com.jbr.middletier.backup.dataaccess.SourceRepository;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dto.DuplicateDataDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class DuplicateManager {
     private static final Logger LOG = LoggerFactory.getLogger(DuplicateManager.class);
 
-    private final ActionConfirmRepository actionConfirmRepository;
-    private final SourceRepository sourceRepository;
-    private final FileRepository fileRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
+    private final FileSystemObjectManager fileSystemObjectManager;
     private final ActionManager actionManager;
+    private final FileSystem fileSystem;
 
     @Autowired
-    public DuplicateManager(ActionConfirmRepository actionConfirmRepository,
-                            SourceRepository sourceRepository,
-                            FileRepository fileRepository,
-                            ActionManager actionManager) {
-        this.actionConfirmRepository = actionConfirmRepository;
-        this.sourceRepository = sourceRepository;
-        this.fileRepository = fileRepository;
+    public DuplicateManager(AssociatedFileDataManager associatedFileDataManager,
+                            FileSystemObjectManager fileSystemObjectManager,
+                            ActionManager actionManager,
+                            FileSystem fileSystem) {
+        this.associatedFileDataManager = associatedFileDataManager;
+        this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
+        this.fileSystem = fileSystem;
     }
 
-    private void processDuplicate(FileInfo potentialDuplicate) {
-        if(this.actionManager.checkAction(potentialDuplicate,"DELETE_DUP")) {
+    private void processDuplicate(FileInfo potentialDuplicate, DuplicateDataDTO data) {
+        if(this.actionManager.checkAction(potentialDuplicate, ActionConfirmType.AC_DELETE_DUPLICATE)) {
             LOG.info("Delete duplicate file - {}", potentialDuplicate);
 
-            String deleteFile = potentialDuplicate.getDirectoryInfo().getSource().getPath() + potentialDuplicate.getDirectoryInfo().getPath() + "/" + potentialDuplicate.getName();
-
-            File fileToDelete = new File(deleteFile);
-            if(fileToDelete.exists()) {
-                LOG.info("Delete.");
-                try {
-                    Files.delete(fileToDelete.toPath());
-                } catch (IOException e) {
-                    LOG.warn("Failed to delete {}",fileToDelete);
-                }
-            }
+            data.increment(DuplicateDataDTO.DuplicateCountType.DELETED);
+            File fileToDelete = fileSystemObjectManager.getFile(potentialDuplicate);
+            fileSystem.deleteFile(fileToDelete, data);
         }
     }
 
-    private void checkDuplicateOfFile(List<FileInfo> files, Source source) {
-        // Get list of files from the original source.
-        List<FileInfo> checkFiles = new ArrayList<>();
-
-        for(FileInfo nextFile: files) {
-            if(nextFile.getDirectoryInfo().getSource().getId() == source.getId()) {
-                checkFiles.add(nextFile);
-            }
-        }
-
-        if(checkFiles.size() <= 1) {
-            return;
-        }
-
+    private void checkDuplicateOfFile(Iterable<FileInfo> files, DuplicateDataDTO data) {
         // If files have the same size and MD5 then they are potential duplicates.
-        for(FileInfo nextFile: checkFiles) {
-            for(FileInfo nextFile2: checkFiles) {
+        for(FileInfo nextFile: files) {
+            for(FileInfo nextFile2: files) {
                 if(nextFile.duplicate(nextFile2)) {
                     LOG.info("Duplicate - {}", nextFile);
 
-                    processDuplicate(nextFile);
-                    processDuplicate(nextFile2);
+                    processDuplicate(nextFile,data);
                 }
             }
         }
     }
 
-    public void duplicateCheck() {
-        actionConfirmRepository.clearDuplicateDelete();
+    private void checkDuplicatesOnSource(Source source, DuplicateDataDTO data) {
+        List<DirectoryInfo> directories = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
 
-        Iterable<Source> sources = sourceRepository.findAll();
+        fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
 
-        // Check for duplicates in sources.
-        for(Source nextSource: sources) {
-            if(Boolean.TRUE.equals(nextSource.getLocation().getCheckDuplicates())) {
-                // Find files that have the same name and size.
-                List<String> files = fileRepository.findDuplicates(nextSource.getId());
+        Map<String, Long> nameCount = files
+                .stream()
+                .collect(Collectors.groupingBy(FileInfo::getName, Collectors.counting()));
 
-                // Are these files really duplicates.
-                for(String nextFile: files) {
-                    List<FileInfo> duplicates = fileRepository.findByName(nextFile);
-                    LOG.info("Check: {}", nextFile);
-                    checkDuplicateOfFile(duplicates, nextSource);
-                }
+        for (Map.Entry<String, Long> nextEntry : nameCount.entrySet()) {
+            if (nextEntry.getValue() > 1) {
+                // Check this name for being a duplicate.
+                checkDuplicateOfFile(files
+                        .stream()
+                        .filter(file -> file.getName().equals(nextEntry.getKey()))
+                        .collect(Collectors.toList()),
+                        data);
+                data.increment(DuplicateDataDTO.DuplicateCountType.CHECKED);
             }
         }
+    }
+
+    public List<DuplicateDataDTO> duplicateCheck() {
+        List<DuplicateDataDTO> result = new ArrayList<>();
+
+        actionManager.clearDuplicateActions();
+
+        // Check for duplicates in sources.
+        for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
+            if (Boolean.TRUE.equals(nextSource.getLocation().getCheckDuplicates())) {
+                DuplicateDataDTO duplicateDataDTO = new DuplicateDataDTO(nextSource.getIdAndType().getId());
+                result.add(duplicateDataDTO);
+                checkDuplicatesOnSource(nextSource, duplicateDataDTO);
+            }
+        }
+
+        return result;
     }
 }

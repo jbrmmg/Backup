@@ -69,6 +69,8 @@ public class Location {
 
     public void setSize(@NotNull String size) { this.size = size; }
 
+    public void setCheckDuplicates() { this.checkDuplicates = true; }
+
     @Override
     public String toString() {
         return name;

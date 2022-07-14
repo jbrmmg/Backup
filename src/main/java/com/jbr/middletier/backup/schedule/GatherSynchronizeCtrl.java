@@ -22,11 +22,11 @@ public class GatherSynchronizeCtrl {
     private final SynchronizeManager synchronizeManager;
 
     @Autowired
-    GatherSynchronizeCtrl(ApplicationProperties applicationProperties,
-                          ActionManager emailManager,
-                          DriveManager driveManager,
-                          DuplicateManager duplicateManager,
-                          SynchronizeManager synchronizeManager) {
+    public GatherSynchronizeCtrl(ApplicationProperties applicationProperties,
+                                 ActionManager emailManager,
+                                 DriveManager driveManager,
+                                 DuplicateManager duplicateManager,
+                                 SynchronizeManager synchronizeManager) {
         this.applicationProperties = applicationProperties;
         this.emailManager = emailManager;
         this.driveManager = driveManager;
