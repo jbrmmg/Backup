@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
 import java.util.*;
 
 @Component
@@ -57,6 +55,7 @@ public class MigrateManager {
 
     static class DirectoryNode extends FileTreeNode {
         private final String directoryName;
+        private final FileSystemObjectId sourceId;
         private DirectoryInfo dbDirectory;
 
         static class DirectoryLevelHelper {
@@ -87,15 +86,17 @@ public class MigrateManager {
             }
         }
 
-        protected DirectoryNode(DirectoryNode parent, String directoryName) {
+        protected DirectoryNode(DirectoryNode parent, FileSystemObjectId sourceId) {
             super(parent);
-            this.directoryName = directoryName;
+            this.directoryName = sourceId.toString();
+            this.sourceId = sourceId;
         }
 
         private DirectoryNode(DirectoryNode parent, DirectoryLevelHelper directoryLevelHelper, DirectoryInfo directory) {
             super(parent);
 
             this.directoryName = directoryLevelHelper.getName();
+            this.sourceId = parent.getSourceId();
 
             if(directoryLevelHelper.lastLevel()) {
                 this.dbDirectory = directory;
@@ -133,13 +134,23 @@ public class MigrateManager {
             return this.dbDirectory;
         }
 
-        public DirectoryInfo getDbDirectory(FileSystemObject parent) {
+        public FileSystemObjectId getSourceId() {
+            return this.sourceId;
+        }
+
+        public DirectoryInfo getDbDirectory(FileSystemObjectId parentId) {
             this.dbDirectory.setName(this.directoryName);
-            if(parent != null) {
-                this.dbDirectory.setParent(parent);
-            }
+            this.dbDirectory.setParentId(parentId);
 
             return this.dbDirectory;
+        }
+
+        public FileSystemObjectId getIdForParent() {
+            if(this.dbDirectory != null) {
+                return this.dbDirectory.getIdAndType();
+            }
+
+            return this.sourceId;
         }
 
         public void createDbDirectory() {
@@ -162,7 +173,7 @@ public class MigrateManager {
                 migrateDateDTO.increment(MigrateDateDTO.MigrateDataCountType.DIRECTORIES_UPDATED);
             }
 
-            fileSystemObjectManager.save(nextDirectoryChild.getDbDirectory(root.getDbDirectory()));
+            fileSystemObjectManager.save(nextDirectoryChild.getDbDirectory(root.getIdForParent()));
 
             processTree(nextDirectoryChild, migrateDateDTO);
         }
@@ -176,11 +187,11 @@ public class MigrateManager {
             DirectoryInfo directory = (DirectoryInfo) nextDirectory;
 
             // Get the directory node for the source.
-            DirectoryNode rootOfSource = null;
+            DirectoryNode rootOfSource;
             if(sources.containsKey(directory.getParentId().toString())) {
                 rootOfSource = sources.get(directory.getParentId().toString());
             } else {
-                rootOfSource = new DirectoryNode(null, directory.getParentId().toString());
+                rootOfSource = new DirectoryNode(null, directory.getParentId());
                 sources.put(directory.getParentId().toString(), rootOfSource);
             }
 
