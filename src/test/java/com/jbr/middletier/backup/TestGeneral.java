@@ -123,7 +123,7 @@ public class TestGeneral extends WebTester {
         when(actionConfirm.getParameterRequired()).thenReturn(false);
         when(actionConfirm.confirmed()).thenReturn(false);
         ActionConfirmDTO actionConfirmDTO = new ActionConfirmDTO(actionConfirm);
-        Assert.assertEquals(ActionConfirmType.AC_IMPORT,actionConfirmDTO.getAction());
+        Assert.assertEquals("IMPORT",actionConfirmDTO.getAction());
         Assert.assertEquals(1,actionConfirmDTO.getId());
         Assert.assertEquals("flag",actionConfirmDTO.getFlags());
         Assert.assertEquals("n",actionConfirmDTO.getParameter());
@@ -253,7 +253,6 @@ public class TestGeneral extends WebTester {
     public void TestHierarchyResponse() {
         HierarchyResponse hierarchyResponse = new HierarchyResponse();
         Assert.assertEquals(-1,hierarchyResponse.getId());
-        Assert.assertEquals(0,hierarchyResponse.getLevel());
         Assert.assertEquals("",hierarchyResponse.getDisplayName());
         Assert.assertEquals("/",hierarchyResponse.getPath());
         Assert.assertTrue(hierarchyResponse.getDirectory());
