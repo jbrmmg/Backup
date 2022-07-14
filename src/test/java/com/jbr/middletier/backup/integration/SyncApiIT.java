@@ -30,9 +30,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -435,8 +433,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].displayName", is("Photo")))
-                .andExpect(jsonPath("$[1].displayName", is("Documents")));
+                .andExpect(jsonPath("$[*].displayName", containsInAnyOrder("Photo", "Documents")));
 
         // Request another level
         int directoryId = -1;
