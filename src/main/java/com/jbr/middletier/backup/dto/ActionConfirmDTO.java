@@ -24,7 +24,7 @@ public class ActionConfirmDTO {
         this.parameter = data.getParameter();
         this.flags = data.getFlags();
         this.confirmed = data.confirmed();
-        if(data.getPath() != null && data.getPath().getClassification() != null) {
+        if(data.getPath().getClassification() != null) {
             this.isImage = data.getPath().getClassification().getIsImage();
             this.isVideo = data.getPath().getClassification().getIsVideo();
         } else {

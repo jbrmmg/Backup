@@ -239,7 +239,7 @@ public class MigrateIT extends WebTester {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         for(ActionConfirmDTO next : actions) {
             if (next.getId() == 1) {
-                Assert.assertEquals(ActionConfirmType.AC_IMPORT, next.getAction());
+                Assert.assertEquals(ActionConfirmType.AC_IMPORT.getTypeName(), next.getAction());
                 Optional<FileSystemObject> importFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_IMPORT_FILE));
                 Assert.assertTrue(importFile.isPresent());
                 ImportFile file = (ImportFile) importFile.get();
@@ -268,7 +268,7 @@ public class MigrateIT extends WebTester {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         for(ActionConfirmDTO next : actions) {
             if (next.getId() == 2) {
-                Assert.assertEquals(ActionConfirmType.AC_DELETE, next.getAction());
+                Assert.assertEquals(ActionConfirmType.AC_DELETE.getTypeName(), next.getAction());
                 Optional<FileSystemObject> optFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getFileId(), FileSystemObjectType.FSO_FILE));
                 Assert.assertTrue(optFile.isPresent());
                 FileInfo file = (FileInfo) optFile.get();
