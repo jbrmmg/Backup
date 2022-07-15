@@ -28,6 +28,8 @@ import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.hamcrest.Matchers.*;
@@ -622,6 +624,7 @@ public class SyncApiIT extends FileTester {
     @Test
     public void importTest() throws Exception {
         LOG.info("Delete with Gather Testing");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
          // During this test create files in the following directories
         initialiseDirectories();
@@ -635,14 +638,14 @@ public class SyncApiIT extends FileTester {
         // Insert an ignore file to check it doesn't interfere.
         IgnoreFile ignoreFile = new IgnoreFile();
         ignoreFile.clearRemoved();
-        ignoreFile.setDate(new Date());
+        ignoreFile.setDate(LocalDateTime.parse("2022-05-01-23-27",formatter));
         ignoreFile.setName("Text.txt");
         ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
         ignoreFile.setSize(523);
         fileSystemObjectManager.save(ignoreFile);
         ignoreFile = new IgnoreFile();
         ignoreFile.clearRemoved();
-        ignoreFile.setDate(new Date());
+        ignoreFile.setDate(LocalDateTime.parse("2022-05-01-23-27",formatter));
         ignoreFile.setName("Text.txt");
         ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
         ignoreFile.setSize(12);

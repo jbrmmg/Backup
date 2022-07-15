@@ -2,7 +2,8 @@ package com.jbr.middletier.backup.data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.time.LocalDateTime;
+//import java.util.Date;
 
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
 @Entity
@@ -14,7 +15,7 @@ public class FileInfo extends FileSystemObject {
     private Classification classification;
 
     @Column(name="date")
-    private Date date;
+    private LocalDateTime date;
 
     @Column(name="size")
     private Long size;
@@ -43,7 +44,7 @@ public class FileInfo extends FileSystemObject {
 
     public void setSize(long size) { this.size = size; }
 
-    public void setDate(Date date) { this.date = date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
 
     public void setMD5(MD5 md5) { this.md5 = md5.toString().equals("") ? null : md5.toString(); }
 
@@ -51,7 +52,7 @@ public class FileInfo extends FileSystemObject {
 
     public Long getSize() { return this.size; }
 
-    public Date getDate() { return this.date; }
+    public LocalDateTime getDate() { return this.date; }
 
     public MD5 getMD5() { return new MD5(this.md5); }
 

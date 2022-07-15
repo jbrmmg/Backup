@@ -123,7 +123,7 @@ public class TestBackups {
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
 
         cleanBackup.performBackup(backupManager, fileSystem, backup);
-        verify(backupManager,times(1)).postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory java.text.ParseException: Unparseable date: \"20201401\"");
+        verify(backupManager,times(1)).postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory java.time.format.DateTimeParseException: Text '20201401' could not be parsed at index 0");
     }
 
     @Test

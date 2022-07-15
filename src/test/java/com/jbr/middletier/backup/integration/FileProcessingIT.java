@@ -35,7 +35,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -182,6 +183,8 @@ public class FileProcessingIT extends FileTester {
 
     @Test
     public void compareRwDb1() throws Exception {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
+
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
 
@@ -203,8 +206,7 @@ public class FileProcessingIT extends FileTester {
         file.setName("Backup.dxf~");
         file.clearRemoved();
         file.setSize(12);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-        file.setDate(sdf.parse("1998-04-10-11-43"));
+        file.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -356,6 +358,8 @@ public class FileProcessingIT extends FileTester {
 
     @Test
     public void compareRwDb4() throws Exception {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
+
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
 
@@ -382,8 +386,7 @@ public class FileProcessingIT extends FileTester {
         file2.setName("Text1.txt");
         file2.clearRemoved();
         file2.setSize(12);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-        file2.setDate(sdf.parse("1998-04-10-11-43"));
+        file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -437,6 +440,8 @@ public class FileProcessingIT extends FileTester {
 
     @Test
     public void compareRwDb5() throws Exception {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
+
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
 
@@ -463,8 +468,7 @@ public class FileProcessingIT extends FileTester {
         file2.setName("Backup.dxf~");
         file2.clearRemoved();
         file2.setSize(12);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-        file2.setDate(sdf.parse("1998-04-10-11-43"));
+        file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -512,6 +516,8 @@ public class FileProcessingIT extends FileTester {
 
     @Test
     public void compareRwDb6() throws Exception {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
+
         Optional<Location> location = locationRepository.findById(1);
         Assert.assertTrue(location.isPresent());
 
@@ -538,8 +544,7 @@ public class FileProcessingIT extends FileTester {
         file2.setName("Backup.dxf~");
         file2.clearRemoved();
         file2.setSize(12);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-        file2.setDate(sdf.parse("1998-04-10-11-43"));
+        file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);

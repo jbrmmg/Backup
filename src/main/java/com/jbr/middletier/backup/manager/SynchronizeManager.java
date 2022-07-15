@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,10 +55,11 @@ public class SynchronizeManager {
         result.increment(SyncDataDTO.SyncDataCountType.DATES_UPDATED);
         FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
-        LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate().getTime(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
+        LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate().toString(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
         // Make the date of the destination, equal to the source.
         File destinationFile = fileSystemObjectManager.getFile(node.getDestination().getFSO());
-        if(!fileSystem.setFileDateTime(destinationFile,sourceFileInfo.getDate().getTime())) {
+        ZonedDateTime zonedFileTime = sourceFileInfo.getDate().atZone(ZoneId.systemDefault());
+        if(!fileSystem.setFileDateTime(destinationFile,zonedFileTime.toInstant().toEpochMilli())) {
             LOG.warn("Failed to set the last modified date - {}", destinationFile);
             result.setProblems();
         }
@@ -76,7 +79,8 @@ public class SynchronizeManager {
             fileSystem.copyFile(sourceFile, destinationFile, result);
 
             // Set the last modified date on the copied file to be the same as the source.
-            if(!fileSystem.setFileDateTime(destinationFile,sourceFileInfo.getDate().getTime())) {
+            ZonedDateTime zonedFileTime = sourceFileInfo.getDate().atZone(ZoneId.systemDefault());
+            if(!fileSystem.setFileDateTime(destinationFile,zonedFileTime.toInstant().toEpochMilli())) {
                 LOG.warn("Failed to set the last modified date {}", destinationFile);
                 result.setProblems();
             }

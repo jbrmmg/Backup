@@ -17,10 +17,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 public class FileTester extends WebTester {
@@ -34,7 +36,7 @@ public class FileTester extends WebTester {
         public final String directory;
         public final String destinationName;
         public final String md5;
-        public final Date dateTime;
+        public final LocalDateTime dateTime;
         public final Long fileSize;
         public boolean checked;
 
@@ -47,8 +49,8 @@ public class FileTester extends WebTester {
             this.fileSize = (structureItems.length > 4) ? Long.parseLong(structureItems[4]) : null;
             this.md5 = (structureItems.length > 5) ? structureItems[5] : "";
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
-            this.dateTime = sdf.parse(structureItems[3]);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
+            this.dateTime = LocalDateTime.parse(structureItems[3],formatter);
 
             checked = false;
         }
@@ -58,7 +60,7 @@ public class FileTester extends WebTester {
         public final String name;
         public final List<ValidateNode> children;
         public final boolean directory;
-        public Date date;
+        public LocalDateTime date;
         public String dateIndicator;
         public Long size;
         public String sizeIndicator;
@@ -382,7 +384,8 @@ public class FileTester extends WebTester {
                         destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
 
-                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(nextFile.dateTime.getTime()));
+                ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneId.systemDefault());
+                Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(zonedFileTime.toInstant().toEpochMilli()));
             }
         }
     }
