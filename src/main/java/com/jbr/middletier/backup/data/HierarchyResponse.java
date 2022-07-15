@@ -3,37 +3,24 @@ package com.jbr.middletier.backup.data;
 @SuppressWarnings("unused")
 public class HierarchyResponse {
     private int id;
-    private int level;
     private String displayName;
     private String name;
     private boolean directory;
+    private boolean backup;
     private int underlyingId;
 
     public HierarchyResponse() {
         this.id = -1;
-        this.level = 0;
         this.name = "/";
         this.displayName = "";
         this.directory = true;
+        this.backup = false;
         this.underlyingId = -1;
-    }
-
-    public HierarchyResponse (int id, int level, String name, int underlyingId) {
-        this.id = id;
-        this.level = level;
-        this.name = name;
-        this.displayName = "";
-        this.directory = true;
-        this.underlyingId = underlyingId;
     }
 
     public void setId(int id) { this.id = id; }
 
     public int getId() { return this.id; }
-
-    public void setLevel(int level) { this.level = level; }
-
-    public int getLevel() { return this.level; }
 
     public void setDisplayName(String displayName) { this.displayName = displayName; }
 
@@ -50,4 +37,8 @@ public class HierarchyResponse {
     public void setUnderlyingId(int underlyingId) { this.underlyingId = underlyingId; }
 
     public int getUnderlyingId() { return this.underlyingId; }
+
+    public void setBackup(boolean backup) { this.backup = backup; }
+
+    public boolean getBackup() { return this.backup; }
 }

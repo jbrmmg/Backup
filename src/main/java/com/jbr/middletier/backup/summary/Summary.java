@@ -2,17 +2,16 @@ package com.jbr.middletier.backup.summary;
 
 import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.ImportSource;
 import com.jbr.middletier.backup.data.Source;
+import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class Summary {
@@ -43,7 +42,16 @@ public class Summary {
                 // Initialise the summary object.
                 for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
                     SourceDTO nextSourceDTO = nextSource.getSourceDTO();
-                    instance.sources.add(nextSourceDTO);
+
+                    // Check to see if there is an import source.
+                    Optional<ImportSource> importSource = associatedFileDataManager.internalFindImportSourceByIdIfExists(nextSourceDTO.getId());
+                    if(importSource.isPresent()) {
+                        ImportSourceDTO importSourceDTO = new ImportSourceDTO(importSource.get());
+                        nextSourceDTO = importSourceDTO;
+                        instance.sources.add(importSourceDTO);
+                    } else {
+                        instance.sources.add(nextSourceDTO);
+                    }
 
                     List<FileInfo> files = new ArrayList<>();
                     List<DirectoryInfo> directories = new ArrayList<>();

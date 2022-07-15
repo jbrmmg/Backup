@@ -103,7 +103,11 @@ public class FileController {
 
                 // Generate the response.
                 sourceIds.add(nextSynchronize.getSource().getIdAndType().getId());
-                HierarchyResponse response = new HierarchyResponse(nextSynchronize.getSource().getIdAndType().getId(),0,"/",-1);
+                HierarchyResponse response = new HierarchyResponse();
+                response.setId(nextSynchronize.getSource().getIdAndType().getId());
+                response.setDirectory(true);
+                response.setDisplayName("/");
+                response.setUnderlyingId(nextSynchronize.getSource().getIdAndType().getId());
 
                 String[] directories = nextSynchronize.getSource().getPath().split("/");
 
@@ -115,15 +119,30 @@ public class FileController {
             return result;
         }
 
+        // First item is the backup.
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
+
+        HierarchyResponse response = new HierarchyResponse();
+        if(parent.isPresent() && parent.get().getParentId() != null) {
+            response.setId(parent.get().getParentId().getId());
+        } else {
+            response.setId(-1);
+        }
+        response.setDirectory(true);
+        response.setUnderlyingId(lastResponse.getId());
+        response.setBackup(true);
+
+        result.add(response);
+
         // Get everything that has a parent of the id provided.
         List<DirectoryInfo> directories = new ArrayList<>();
         List<FileInfo> files = new ArrayList<>();
         fileSystemObjectManager.loadImmediateByParent(lastResponse.getId(), directories, files);
 
         for(DirectoryInfo nextDirectory : directories) {
-            HierarchyResponse response = new HierarchyResponse();
+            response = new HierarchyResponse();
+            response.setId(nextDirectory.getIdAndType().getId());
             response.setDirectory(true);
-            response.setLevel(lastResponse.getLevel() + 1);
             response.setPath(nextDirectory.getName());
             response.setDisplayName(nextDirectory.getName());
             response.setUnderlyingId(nextDirectory.getIdAndType().getId());
@@ -132,9 +151,9 @@ public class FileController {
         }
 
         for(FileInfo nextFile : files) {
-            HierarchyResponse response = new HierarchyResponse();
+            response = new HierarchyResponse();
+            response.setId(nextFile.getIdAndType().getId());
             response.setDirectory(false);
-            response.setLevel(lastResponse.getLevel());
             response.setPath(nextFile.getName());
             response.setDisplayName(nextFile.getName());
             response.setUnderlyingId(nextFile.getIdAndType().getId());
@@ -154,7 +173,8 @@ public class FileController {
         }
 
         FileInfo originalFile = (FileInfo)file.get();
-        FileInfoExtra result = new FileInfoExtra(originalFile);
+        File associatedFile = fileSystemObjectManager.getFile(originalFile);
+        FileInfoExtra result = new FileInfoExtra(originalFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
 
         // Are there backups of this file?
         Iterable<FileSystemObject> sameName = fileSystemObjectManager.findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
@@ -167,7 +187,8 @@ public class FileController {
             FileInfo nextFile = (FileInfo)nextSameName;
 
             if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
-                result.addFile(nextFile);
+                associatedFile = fileSystemObjectManager.getFile(nextFile);
+                result.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
             }
         }
 

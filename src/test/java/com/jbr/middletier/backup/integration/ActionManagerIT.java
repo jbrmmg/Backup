@@ -91,7 +91,7 @@ public class ActionManagerIT {
         });
         Assert.assertTrue(foundAction.get().isPresent());
 
-        Assert.assertEquals("DELETE", foundAction.get().get().getAction().getTypeName());
+        Assert.assertEquals("DELETE", foundAction.get().get().getAction());
         Assert.assertNull(foundAction.get().get().getFlags());
         Assert.assertNull(foundAction.get().get().getParameter());
         Assert.assertEquals(false, foundAction.get().get().getParameterRequired());
@@ -182,6 +182,6 @@ public class ActionManagerIT {
                 fileSystemObjectManager, fileSystem);
 
         ActionConfirmDTO action = actionManager.createFileDeleteDuplicateAction(file);
-        Assert.assertEquals(ActionConfirmType.AC_DELETE_DUPLICATE, action.getAction());
+        Assert.assertEquals("DELETE_DUP", action.getAction());
     }
 }

@@ -404,8 +404,8 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("file.filename", is("Bills.ods")))
-                .andExpect(jsonPath("backups[0].filename", is("Bills.ods")));
+                .andExpect(jsonPath("file.name", is("Bills.ods")))
+                .andExpect(jsonPath("backups[0].name", is("Bills.ods")));
 
         // Get the image file.
         getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + imageId)
@@ -432,8 +432,8 @@ public class SyncApiIT extends FileTester {
                         .content(this.json(hierarchyResponse))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].displayName", containsInAnyOrder("Photo", "Documents")));
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[*].displayName", containsInAnyOrder("", "Photo", "Documents")));
 
         // Request another level
         int directoryId = -1;
@@ -450,7 +450,7 @@ public class SyncApiIT extends FileTester {
                         .content(this.json(hierarchyResponse))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(7)));
+                .andExpect(jsonPath("$", hasSize(8)));
 
         LOG.info("Check for duplicates");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
@@ -944,7 +944,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].fileName", is("Testing.txt")))
-                .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_DELETE.toString())));
+                .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_DELETE.getTypeName())));
 
         // Get the database files
         getMockMvc().perform(get("/jbr/int/backup/confirmed-actions")
@@ -953,7 +953,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].fileName", is("Testing.txt")))
-                .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_IMPORT.toString())));
+                .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_IMPORT.getTypeName())));
 
         ConfirmActionRequest request = new ConfirmActionRequest();
         request.setId(deleteAction.getId());
