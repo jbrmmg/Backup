@@ -28,6 +28,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -136,6 +137,7 @@ public class MigrateIT extends WebTester {
     @Test
     public void testMigrationFile() {
         LOG.info("Test file migration");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         // How many files / directories are there on the
         List<DirectoryInfo> directories = new ArrayList<>();
@@ -152,7 +154,6 @@ public class MigrateIT extends WebTester {
         Assert.assertEquals("/2016/September/Boom Banger/Day 6", directory.getName());
         Assert.assertFalse(directory.getRemoved());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(625 + 20102, FileSystemObjectType.FSO_FILE));
         Assert.assertTrue(fso.isPresent());
         FileInfo file = (FileInfo) fso.get();
@@ -161,7 +162,7 @@ public class MigrateIT extends WebTester {
         Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1702065, (long)file.getSize());
-        Assert.assertEquals("2016-10-01 15:30", sdf.format(file.getDate()));
+        Assert.assertEquals("2016-10-01 15:30", formatter.format(file.getDate()));
         Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("F75A4959EC58FA4F30877900B88C3340", file.getMD5().toString());
     }
@@ -169,6 +170,7 @@ public class MigrateIT extends WebTester {
     @Test
     public void testIgnoreFile() {
         LOG.info("Test ignore file migration");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         Iterable<FileSystemObject> ignoreFiles = fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IGNORE_FILE);
         int count = 0;
@@ -177,7 +179,6 @@ public class MigrateIT extends WebTester {
         }
         Assert.assertEquals(31,count);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(24 + 320103, FileSystemObjectType.FSO_IGNORE_FILE));
         Assert.assertTrue(fso.isPresent());
         IgnoreFile file = (IgnoreFile) fso.get();
@@ -186,7 +187,7 @@ public class MigrateIT extends WebTester {
         Assert.assertNull(file.getParentId());
         Assert.assertNull(file.getClassification());
         Assert.assertEquals(670911, (long)file.getSize());
-        Assert.assertEquals("2019-05-26 00:06", sdf.format(file.getDate()));
+        Assert.assertEquals("2019-05-26 00:06", formatter.format(file.getDate()));
         Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("FE0F70C0583A6189679377495516652D", file.getMD5().toString());
     }
@@ -194,6 +195,7 @@ public class MigrateIT extends WebTester {
     @Test
     public void testImportFile() {
         LOG.info("Test import file migration");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         Iterable<FileSystemObject> ignoreFiles = fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IMPORT_FILE);
         int count = 0;
@@ -202,7 +204,6 @@ public class MigrateIT extends WebTester {
         }
         Assert.assertEquals(6 ,count);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(90560 + 20102, FileSystemObjectType.FSO_IMPORT_FILE));
         Assert.assertTrue(fso.isPresent());
         ImportFile file = (ImportFile) fso.get();
@@ -212,7 +213,7 @@ public class MigrateIT extends WebTester {
         Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1645188, (long)file.getSize());
-        Assert.assertEquals("2022-01-03 18:44", sdf.format(file.getDate()));
+        Assert.assertEquals("2022-01-03 18:44", formatter.format(file.getDate()));
         Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("1CE144410E8E0E960938D899183A32BF", file.getMD5().toString());
         Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
@@ -231,12 +232,11 @@ public class MigrateIT extends WebTester {
     @Test
     public void testActionsImport() {
         LOG.info("Test action migration");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
         Assert.assertEquals(2, actions.size());
 
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         for(ActionConfirmDTO next : actions) {
             if (next.getId() == 1) {
                 Assert.assertEquals(ActionConfirmType.AC_IMPORT.getTypeName(), next.getAction());
@@ -249,7 +249,7 @@ public class MigrateIT extends WebTester {
                 Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
                 Assert.assertEquals(5, (long) file.getClassification().getId());
                 Assert.assertEquals(1570162, (long) file.getSize());
-                Assert.assertEquals("2022-01-03 18:39", sdf.format(file.getDate()));
+                Assert.assertEquals("2022-01-03 18:39", formatter.format(file.getDate()));
                 Assert.assertFalse(file.getRemoved());
                 Assert.assertEquals("09EC9A3FD7166D5394D916FB47B3903F", file.getMD5().toString());
                 Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
@@ -260,12 +260,12 @@ public class MigrateIT extends WebTester {
     @Test
     public void testActions() {
         LOG.info("Test action migration");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
         Assert.assertEquals(2, actions.size());
 
         int testDeleteId = -1;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         for(ActionConfirmDTO next : actions) {
             if (next.getId() == 2) {
                 Assert.assertEquals(ActionConfirmType.AC_DELETE.getTypeName(), next.getAction());
@@ -279,7 +279,7 @@ public class MigrateIT extends WebTester {
                 Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
                 Assert.assertEquals(4, (long) file.getClassification().getId());
                 Assert.assertEquals(712919, (long) file.getSize());
-                Assert.assertEquals("2020-09-30 04:00", sdf.format(file.getDate()));
+                Assert.assertEquals("2020-09-30 04:00", formatter.format(file.getDate()));
                 Assert.assertTrue(file.getRemoved());
                 Assert.assertEquals("76EEAAC078EED94423E10495D99BBF1C", file.getMD5().toString());
             }

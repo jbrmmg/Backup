@@ -25,9 +25,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -158,8 +158,8 @@ public class FsoIT   {
         classifications.forEach(classificationList::add);
         Assert.assertTrue(classificationList.size() > 2);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        Date aDate = sdf.parse("2022-06-02 10:02:03");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
+        LocalDateTime aDate =  LocalDateTime.parse("2022-06-02 10:02:03", formatter);
 
         FileInfo fileInfo = new FileInfo();
         fileInfo.setParent(directoryInfo);
@@ -184,7 +184,7 @@ public class FsoIT   {
         Assert.assertEquals(Long.valueOf(291L), theFile.get().getSize());
         Assert.assertEquals(false, theFile.get().getRemoved());
 
-        aDate = sdf.parse("2022-06-02 11:03:10");
+        aDate = LocalDateTime.parse("2022-06-02 11:03:10", formatter);
         theFile.get().setName("not Blah");
         theFile.get().setClassification(classificationList.get(1));
         theFile.get().setDate(aDate);
@@ -268,11 +268,11 @@ public class FsoIT   {
     }
 
     @Test
-    public void ignoreFile() throws ParseException {
+    public void ignoreFile() {
         LOG.info("Test the basic ignore file object");
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        Date aDate = sdf.parse("2022-04-21 14:12:07");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
+        LocalDateTime aDate =  LocalDateTime.parse("2022-04-21 14:12:07", formatter);
 
         IgnoreFile testIgnoreFile = new IgnoreFile();
         testIgnoreFile.setName("Ignore file");
@@ -310,11 +310,11 @@ public class FsoIT   {
     }
 
     @Test
-    public void importFile() throws ParseException {
+    public void importFile() {
         LOG.info("Test the basic import file object");
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        Date aDate = sdf.parse("2022-04-21 14:12:07");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
+        LocalDateTime aDate =  LocalDateTime.parse("2022-04-21 14:12:07", formatter);
 
         ImportFile testImportFile = new ImportFile();
         testImportFile.setName("Ignore file");

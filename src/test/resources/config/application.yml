@@ -36,7 +36,7 @@ backup:
     name: ./target/testfiles/Backup
     days: 10
     zip: ./target/testfiles/BackupDevZip
-    date-format: yyyy-MM-dd
+    date-format: uuuu-MM-dd
   zip-directory: ./target/testfiles/BackupDevZip
   db-url: 20:test:20
   email:

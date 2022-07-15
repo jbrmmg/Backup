@@ -19,8 +19,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
@@ -107,12 +108,14 @@ public class TestFileTreeClasses {
 
     @Test
     public void basicFileCompareTest() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
+
         FileInfo fileInfo = new FileInfo();
         fileInfo.setMD5(new MD5("MATCH"));
         fileInfo.setClassification(null);
         fileInfo.setName("Test");
         fileInfo.setSize(291);
-        fileInfo.setDate(new Date(10));
+        fileInfo.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));
         DbFile dbFile = new DbFile(null, fileInfo);
         Assert.assertNull(dbFile.getClassification());
         Assert.assertNotNull(dbFile.getFSO());
@@ -128,12 +131,12 @@ public class TestFileTreeClasses {
         fileInfo2.setClassification(null);
         fileInfo2.setName("Test");
         fileInfo2.setSize(291);
-        fileInfo2.setDate(new Date(20));
+        fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
 
         dbFile2 = new DbFile(null, fileInfo2);
         Assert.assertEquals(DBC_EQUAL_EXCEPT_DATE, dbFile.compare(dbFile2));
 
-        fileInfo2.setDate(new Date(10));
+        fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));
         Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile2));
 
         fileInfo2.setMD5(new MD5("NOMATCH"));
@@ -148,7 +151,7 @@ public class TestFileTreeClasses {
         Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
 
         fileInfo2.setSize(291);
-        fileInfo2.setDate(new Date(20));
+        fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
         fileInfo2.setMD5(new MD5("NOMATCH"));
         Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
     }

@@ -14,6 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 abstract class FileProcessor {
@@ -186,11 +190,14 @@ abstract class FileProcessor {
             }
         }
 
-        Date fileDate = new Date(rwNode.getFile().lastModified());
-        long dbTime = file.getDate() == null ? 0 : file.getDate().getTime() / 1000;
-        long fileTime = fileDate.getTime() / 1000;
+        LocalDateTime fileDate = Instant.ofEpochMilli(rwNode.getFile().lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-        if((file.getSize() == null) || (file.getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(dbTime - fileTime) > 1)) {
+        long timeDifference = 100;
+        if(file.getDate() != null) {
+            timeDifference = ChronoUnit.SECONDS.between(fileDate, file.getDate());
+        }
+
+        if((file.getSize() == null) || (file.getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(timeDifference) > 1)) {
             file.setSize(rwNode.getFile().length());
             file.setDate(fileDate);
             if(!skipMD5) {

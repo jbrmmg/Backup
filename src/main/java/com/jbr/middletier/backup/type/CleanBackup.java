@@ -11,11 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * Created by jason on 12/02/17.
@@ -33,20 +31,18 @@ public class CleanBackup implements PerformBackup {
 
     private boolean shouldDirectoryBeDeleted(BackupManager backupManager,String directory) {
         try {
-            DateFormat formatter = new SimpleDateFormat(applicationProperties.getDirectory().getDateFormat());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(applicationProperties.getDirectory().getDateFormat());
 
             // Convert the directory name to a date.
-            Date directoryDate = formatter.parse(directory);
+            LocalDate directoryDate = LocalDate.parse(directory, formatter);
+            LocalDate maxDaysAgo = LocalDate.now().minusDays(applicationProperties.getDirectory().getDays());
 
-            ZonedDateTime now = ZonedDateTime.now();
-            ZonedDateTime maxDaysAgo = now.plusDays(-1L * applicationProperties.getDirectory().getDays());
-
-            if (directoryDate.toInstant().isBefore(maxDaysAgo.toInstant())) {
+            if (directoryDate.isBefore(maxDaysAgo)) {
                 // Delete this directory.
                 LOG.info("Delete directory {}", directory);
                 return true;
             }
-        } catch ( ParseException ex ) {
+        } catch ( DateTimeParseException ex ) {
             LOG.warn(String.format("Failed to convert directory name %s to a date",directory));
             backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory " + ex);
         }

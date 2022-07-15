@@ -5,13 +5,13 @@ import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.data.MD5;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @SuppressWarnings("unused")
 public class FileInfoDTO {
     private final String filename;
     private final FileSystemObjectType type;
-    private final Date date;
+    private final LocalDateTime date;
     private final Long size;
     private final MD5 md5;
     private final FileSystemObjectType parentType;
@@ -37,7 +37,7 @@ public class FileInfoDTO {
         return type;
     }
 
-    public Date getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 

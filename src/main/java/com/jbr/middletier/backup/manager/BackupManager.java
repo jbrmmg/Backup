@@ -13,8 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -42,10 +42,10 @@ public class BackupManager {
     }
 
     public String todaysDirectory() {
-        DateFormat formatter = new SimpleDateFormat(this.applicationProperties.getDirectory().getDateFormat());
-        Calendar calendar = Calendar.getInstance();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.applicationProperties.getDirectory().getDateFormat());
+        LocalDate today = LocalDate.now();
 
-        return String.format("%s/%s/",this.applicationProperties.getDirectory().getName(),formatter.format(calendar.getTime()));
+        return String.format("%s/%s/",this.applicationProperties.getDirectory().getName(),formatter.format(today));
     }
 
     public List<String> getMessageCache(webLogLevel level) {

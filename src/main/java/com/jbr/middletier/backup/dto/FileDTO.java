@@ -2,7 +2,7 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.FileInfo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @SuppressWarnings("unused")
 public class FileDTO {
@@ -10,7 +10,7 @@ public class FileDTO {
     private String name;
     private String fullFilename;
     private long size;
-    private Date date;
+    private LocalDateTime date;
     private String md5;
     private boolean isImage;
     private boolean isVideo;
@@ -64,11 +64,11 @@ public class FileDTO {
         this.size = size;
     }
 
-    public Date getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDateTime date) {
         this.date = date;
     }
 

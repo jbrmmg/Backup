@@ -6,6 +6,9 @@ import com.jbr.middletier.backup.data.FileSystemObject;
 import com.jbr.middletier.backup.data.FileSystemObjectId;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 public class DbFile extends DbNode {
     private final FileInfo fileInfo;
 
@@ -39,6 +42,10 @@ public class DbFile extends DbNode {
         return fileInfo.getIdAndType();
     }
 
+    private static boolean datesDiffer(LocalDateTime lhs, LocalDateTime rhs) {
+        return Math.abs(ChronoUnit.SECONDS.between(lhs,rhs)) > 5;
+    }
+
     @Override
     public DbNodeCompareResultType compare(DbNode rhs) {
         if(rhs == this)
@@ -56,7 +63,7 @@ public class DbFile extends DbNode {
         if(!this.fileInfo.getSize().equals(rhsFile.fileInfo.getSize()))
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
 
-        if(!this.fileInfo.getDate().equals(rhsFile.fileInfo.getDate())) {
+        if(datesDiffer(this.fileInfo.getDate(),rhsFile.fileInfo.getDate())) {
             if(this.fileInfo.getMD5().compare(rhsFile.fileInfo.getMD5(),false)) {
                 return DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE;
             } else {

@@ -9,7 +9,10 @@ import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import java.io.File;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 public class RwDbCompareNode extends FileTreeNode {
     public enum ActionType { NONE, INSERT, UPDATE, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
@@ -21,11 +24,14 @@ public class RwDbCompareNode extends FileTreeNode {
 
     private boolean updateRequired(FileInfo dbData, File rwFile) {
         // Check date.
-        Date fileDate = new Date(rwFile.lastModified());
-        long dbTime = dbData.getDate() == null ? 0 : dbData.getDate().getTime() / 1000;
-        long fileTime = fileDate.getTime() / 1000;
+        LocalDateTime fileDate = Instant.ofEpochMilli(rwFile.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-        return Math.abs(dbTime - fileTime) > 1;
+        long timeDifference = 100;
+        if(dbData.getDate() != null) {
+            timeDifference = ChronoUnit.SECONDS.between(fileDate, dbData.getDate());
+        }
+
+        return Math.abs(timeDifference) > 5000;
     }
 
     public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode) {
