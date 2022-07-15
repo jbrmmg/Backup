@@ -120,21 +120,19 @@ public class FileController {
         }
 
         // First item is the backup.
-        {
-            Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
 
-            HierarchyResponse response = new HierarchyResponse();
-            if(parent.isPresent() && parent.get().getParentId() != null) {
-                response.setId(parent.get().getParentId().getId());
-            } else {
-                response.setId(-1);
-            }
-            response.setDirectory(true);
-            response.setUnderlyingId(lastResponse.getId());
-            response.setBackup(true);
-
-            result.add(response);
+        HierarchyResponse response = new HierarchyResponse();
+        if(parent.isPresent() && parent.get().getParentId() != null) {
+            response.setId(parent.get().getParentId().getId());
+        } else {
+            response.setId(-1);
         }
+        response.setDirectory(true);
+        response.setUnderlyingId(lastResponse.getId());
+        response.setBackup(true);
+
+        result.add(response);
 
         // Get everything that has a parent of the id provided.
         List<DirectoryInfo> directories = new ArrayList<>();
@@ -142,7 +140,7 @@ public class FileController {
         fileSystemObjectManager.loadImmediateByParent(lastResponse.getId(), directories, files);
 
         for(DirectoryInfo nextDirectory : directories) {
-            HierarchyResponse response = new HierarchyResponse();
+            response = new HierarchyResponse();
             response.setId(nextDirectory.getIdAndType().getId());
             response.setDirectory(true);
             response.setPath(nextDirectory.getName());
@@ -153,7 +151,7 @@ public class FileController {
         }
 
         for(FileInfo nextFile : files) {
-            HierarchyResponse response = new HierarchyResponse();
+            response = new HierarchyResponse();
             response.setId(nextFile.getIdAndType().getId());
             response.setDirectory(false);
             response.setPath(nextFile.getName());
