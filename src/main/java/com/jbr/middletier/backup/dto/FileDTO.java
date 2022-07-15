@@ -4,8 +4,6 @@ import com.jbr.middletier.backup.data.FileInfo;
 
 import java.time.LocalDateTime;
 
-//import java.util.Date;
-
 @SuppressWarnings("unused")
 public class FileDTO {
     private int id;

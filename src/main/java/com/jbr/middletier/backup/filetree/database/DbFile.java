@@ -9,8 +9,6 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-//import java.util.Date;
-
 public class DbFile extends DbNode {
     private final FileInfo fileInfo;
 

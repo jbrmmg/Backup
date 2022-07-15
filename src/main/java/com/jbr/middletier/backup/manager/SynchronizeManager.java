@@ -55,7 +55,7 @@ public class SynchronizeManager {
         result.increment(SyncDataDTO.SyncDataCountType.DATES_UPDATED);
         FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
 
-        LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate().toString(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
+        LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
         // Make the date of the destination, equal to the source.
         File destinationFile = fileSystemObjectManager.getFile(node.getDestination().getFSO());
         ZonedDateTime zonedFileTime = sourceFileInfo.getDate().atZone(ZoneId.systemDefault());

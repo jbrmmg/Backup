@@ -7,8 +7,6 @@ import com.jbr.middletier.backup.data.MD5;
 
 import java.time.LocalDateTime;
 
-//import java.util.Date;
-
 @SuppressWarnings("unused")
 public class FileInfoDTO {
     private final String filename;
