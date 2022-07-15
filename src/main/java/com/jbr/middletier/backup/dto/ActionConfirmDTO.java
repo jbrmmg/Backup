@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.ActionConfirm;
-import com.jbr.middletier.backup.data.ActionConfirmType;
 
 @SuppressWarnings("unused")
 public class ActionConfirmDTO {
@@ -25,8 +24,13 @@ public class ActionConfirmDTO {
         this.parameter = data.getParameter();
         this.flags = data.getFlags();
         this.confirmed = data.confirmed();
-        this.isImage = data.getPath().getClassification().getIsImage();
-        this.isVideo = data.getPath().getClassification().getIsVideo();
+        if(data.getPath() != null && data.getPath().getClassification() != null) {
+            this.isImage = data.getPath().getClassification().getIsImage();
+            this.isVideo = data.getPath().getClassification().getIsVideo();
+        } else {
+            this.isImage = false;
+            this.isVideo = false;
+        }
     }
 
     public int getId() {
