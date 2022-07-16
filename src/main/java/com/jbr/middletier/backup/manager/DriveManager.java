@@ -62,6 +62,12 @@ public class DriveManager extends FileProcessor {
             }
         }
 
+        // If there are still deletes to process then it means they are invalid, remove them.
+        for(ActionConfirm next : actionManager.findConfirmedDeletes()) {
+            LOG.warn("Action cannot be performed: {}", next);
+            actionManager.actionPerformed(next);
+        }
+
         return result;
     }
 
