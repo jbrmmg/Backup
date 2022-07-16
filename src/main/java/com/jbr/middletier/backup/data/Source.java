@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.dto.SourceDTO;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.io.File;
 
 @SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
@@ -19,6 +20,9 @@ public class Source extends FileSystemObject {
 
     @Column(name="filter")
     private String filter;
+
+    @Column(name="mount_check")
+    private String mountCheck;
 
     protected Source(FileSystemObjectType sourceType) {
         super(sourceType);
@@ -47,6 +51,7 @@ public class Source extends FileSystemObject {
         result.setFilter(getFilter());
         result.setStatus(getStatus());
         result.setPath(getPath());
+        result.setMountCheck(getMountCheck() == null ? null : getMountCheck().toString());
 
         return result;
     }
@@ -56,6 +61,7 @@ public class Source extends FileSystemObject {
         setLocation(new Location(source.getLocation()));
         setStatus(source.getStatus());
         setFilter(source.getFilter());
+        setMountCheck(source.getMountCheck());
     }
 
     public void setPath(@NotNull String path) { this.name = path; }
@@ -73,6 +79,18 @@ public class Source extends FileSystemObject {
     public Location getLocation() { return this.location; }
 
     public void setLocation(Location location) { this.location = location; }
+
+    public File getMountCheck() {
+        if(this.mountCheck == null) {
+            return null;
+        }
+
+        return new File(this.mountCheck);
+    }
+
+    public void setMountCheck(String mountCheck) {
+        this.mountCheck = mountCheck;
+    }
 
     @Override
     public String toString() {

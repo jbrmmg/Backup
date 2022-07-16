@@ -10,6 +10,7 @@ public class SourceDTO {
     private LocationDTO location;
     private SourceStatusType status;
     private String filter;
+    private String mountCheck;
     private int directoryCount;
     private int fileCount;
     private long totalFileSize;
@@ -22,6 +23,7 @@ public class SourceDTO {
         this.fileCount = 0;
         this.totalFileSize = 0;
         this.largestFile = 0;
+        this.mountCheck = null;
     }
 
     public SourceDTO(Source source) {
@@ -31,6 +33,7 @@ public class SourceDTO {
         setLocation(new LocationDTO(source.getLocation()));
         setStatus(source.getStatus());
         setFilter(source.getFilter());
+        setMountCheck(source.getMountCheck() == null ? null : source.getMountCheck().toString());
     }
 
     public SourceDTO(int id, String path) {
@@ -46,6 +49,7 @@ public class SourceDTO {
         setLocation(sourceDTO.getLocation());
         setStatus(sourceDTO.getStatus());
         setFilter(sourceDTO.getFilter());
+        setMountCheck(sourceDTO.getMountCheck());
         this.directoryCount = 0;
         this.fileCount = 0;
         this.totalFileSize = 0;
@@ -90,6 +94,14 @@ public class SourceDTO {
 
     public void setFilter(String filter) {
         this.filter = filter;
+    }
+
+    public String getMountCheck() {
+        return mountCheck;
+    }
+
+    public void setMountCheck(String mountCheck) {
+        this.mountCheck = mountCheck;
     }
 
     public int getDirectoryCount() {

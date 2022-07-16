@@ -204,4 +204,19 @@ public class FileSystem {
     public boolean setFileDateTime(File file, long time) {
         return file.setLastModified(time);
     }
+
+    public boolean validateMountCheck(File file) {
+        if(file == null) {
+            LOG.warn("Mount check - skipped");
+            return true;
+        }
+
+        if(Files.exists(file.toPath())) {
+            return true;
+        }
+
+        LOG.warn("Mount check - missing {}", file);
+
+        return false;
+    }
 }

@@ -147,7 +147,6 @@ abstract class FileProcessor {
         DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
         directory.setName(rwNode.getName());
         directory.setParentId(getParentIt(node));
-        directory.clearRemoved();
 
         fileSystemObjectManager.save(directory);
 
@@ -172,7 +171,6 @@ abstract class FileProcessor {
         FileInfo file = (FileInfo) existingFile.get();
         file.setName(rwNode.getName());
         file.setParentId(getParentIt(node));
-        file.clearRemoved();
 
         if(file.getClassification() == null) {
             Classification newClassification = associatedFileDataManager.classifyFile(file);

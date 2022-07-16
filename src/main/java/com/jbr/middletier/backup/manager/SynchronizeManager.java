@@ -167,6 +167,18 @@ public class SynchronizeManager {
                 return result;
             }
 
+            if(!fileSystem.validateMountCheck(nextSynchronize.getSource().getMountCheck())) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as source mount check failed");
+                result.setProblems();
+                return result;
+            }
+
+            if(!fileSystem.validateMountCheck(nextSynchronize.getDestination().getMountCheck())) {
+                backupManager.postWebLog(BackupManager.webLogLevel.WARN, "Skipping as destination mount check failed.");
+                result.setProblems();
+                return result;
+            }
+
             // Compare the source and destination.
             DbRoot source = fileSystemObjectManager.createDbRoot(nextSynchronize.getSource());
             DbRoot destination = fileSystemObjectManager.createDbRoot(nextSynchronize.getDestination());

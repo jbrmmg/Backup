@@ -7,8 +7,6 @@ import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import org.junit.*;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
@@ -103,7 +101,6 @@ public class EmailApiIT extends WebTester {
             DirectoryInfo directory = new DirectoryInfo();
             directory.setParent(source);
             directory.setName("");
-            directory.clearRemoved();
             directoryRepository.save(directory);
 
             LOG.info("Directory Info {}", directory);
@@ -111,7 +108,6 @@ public class EmailApiIT extends WebTester {
             FileInfo file = new FileInfo();
             file.setName("Test");
             file.setParent(directory);
-            file.clearRemoved();
             fileRepository.save(file);
 
             ActionConfirm action = new ActionConfirm();

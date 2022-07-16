@@ -155,7 +155,6 @@ public class MigrateManager {
 
         public void createDbDirectory() {
             this.dbDirectory = new DirectoryInfo();
-            this.dbDirectory.clearRemoved();
         }
     }
 

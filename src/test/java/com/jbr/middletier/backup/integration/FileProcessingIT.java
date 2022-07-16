@@ -154,13 +154,11 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
         file.setParent(level1);
         file.setName("testFile.txt");
-        file.clearRemoved();
         fileRepository.save(file);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -197,14 +195,12 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         //1998-04-10-11-43        12
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
         file.setParent(level1);
         file.setName("Backup.dxf~");
-        file.clearRemoved();
         file.setSize(12);
         file.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file);
@@ -250,7 +246,6 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         directoryRepository.save(level1);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -305,13 +300,11 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         directoryRepository.save(level1);
 
         DirectoryInfo file = new DirectoryInfo();
         file.setParent(level1);
         file.setName("Backup.dxf~");
-        file.clearRemoved();
         directoryRepository.save(file);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -372,19 +365,16 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
         file.setParent(level1);
         file.setName("Backup");
-        file.clearRemoved();
         fileRepository.save(file);
 
         FileInfo file2 = new FileInfo();
         file2.setParent(level1);
         file2.setName("Text1.txt");
-        file2.clearRemoved();
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file2);
@@ -454,19 +444,16 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
         file.setParent(level1);
         file.setName("Deleted.txt");
-        file.clearRemoved();
         fileRepository.save(file);
 
         FileInfo file2 = new FileInfo();
         file2.setParent(level1);
         file2.setName("Backup.dxf~");
-        file2.clearRemoved();
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file2);
@@ -530,19 +517,16 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo level1 = new DirectoryInfo();
         level1.setParent(source);
         level1.setName("Documents");
-        level1.clearRemoved();
         directoryRepository.save(level1);
 
         DirectoryInfo extraDirectory = new DirectoryInfo();
         extraDirectory.setParent(level1);
         extraDirectory.setName("Deleted");
-        extraDirectory.clearRemoved();
         directoryRepository.save(extraDirectory);
 
         FileInfo file2 = new FileInfo();
         file2.setParent(level1);
         file2.setName("Backup.dxf~");
-        file2.clearRemoved();
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
         fileRepository.save(file2);
@@ -684,13 +668,11 @@ public class FileProcessingIT extends FileTester {
         DirectoryInfo tempDirectory = new DirectoryInfo();
         tempDirectory.setParent(null);
         tempDirectory.setName("Documents");
-        tempDirectory.clearRemoved();
         directoryRepository.save(tempDirectory);
 
         DirectoryInfo tempDirectory2 = new DirectoryInfo();
         tempDirectory2.setParent(null);
         tempDirectory2.setName("Documents");
-        tempDirectory2.clearRemoved();
         directoryRepository.save(tempDirectory2);
 
         BasicDbDirectory testDbDirectory = new BasicDbDirectory(tempDirectory, fileRepository, directoryRepository);
@@ -729,7 +711,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDirectoryNotEmpty() throws IOException, ParseException {
+    public void checkDirectoryNotEmpty() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -737,7 +719,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDirectoryNotEmpty2() throws IOException, ParseException {
+    public void checkDirectoryNotEmpty2() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -746,7 +728,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteDoesNotExist() throws IOException, ParseException {
+    public void checkDeleteDoesNotExist() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -761,7 +743,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteFileWithDirectory() throws IOException, ParseException {
+    public void checkDeleteFileWithDirectory() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -778,7 +760,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteDirDoesNotExist() throws IOException, ParseException {
+    public void checkDeleteDirDoesNotExist() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -793,7 +775,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteDirectoryWithFile() throws IOException, ParseException {
+    public void checkDeleteDirectoryWithFile() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
