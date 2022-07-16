@@ -20,15 +20,22 @@ public class RwRoot extends RootFileTreeNode {
             if (path.getNameCount() > this.rootOfRealWorld.getNameCount()) {
                 FileTreeNode nextIterator = this;
 
-                for (int directoryIdx = rootOfRealWorld.getNameCount(); directoryIdx < path.getNameCount() - 1; directoryIdx++) {
+                boolean skip = false;
+                for (int directoryIdx = rootOfRealWorld.getNameCount(); directoryIdx < path.getNameCount() - 1 && !skip; directoryIdx++) {
                     nextIterator = nextIterator.getNamedChild(path.getName(directoryIdx).toString());
+
+                    skip = (nextIterator == null);
                 }
 
                 // Is this a directory?
-                if (fileSystem.isDirectory(path)) {
-                    nextIterator.addChild(new RwDirectory(nextIterator, path));
-                } else {
-                    nextIterator.addChild(new RwFile(nextIterator, path));
+                if(!skip) {
+                    if (fileSystem.isDirectory(path)) {
+                        if (!path.getFileName().toString().startsWith(".")) {
+                            nextIterator.addChild(new RwDirectory(nextIterator, path));
+                        }
+                    } else {
+                        nextIterator.addChild(new RwFile(nextIterator, path));
+                    }
                 }
             }
         });

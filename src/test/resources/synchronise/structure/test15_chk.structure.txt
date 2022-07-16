@@ -1,0 +1,13 @@
+Text.txt        Documents                   Backup.dxf~         1998-04-10-11-43   12
+Text.txt        Documents                   GetRid.ds_store     1985-05-11-15-44   12         8D4F46976377897DFADF214D0526CF56
+Text.txt        Documents                   NotHere._.ds_store  1968-05-24-07-11   12
+Text.txt        Documents                   Text.txt            2013-05-12-14-24   12
+Text2.txt       Documents/Backup            Text.txt            2019-05-18-17-56   17
+SpreadSheet.ods Documents                   Bills.ods           2003-05-12-05-00   7749
+Document.odt    Documents                   Letter.odt          2007-05-20-19-02   8429
+Document.pdf    Documents                   Statement.pdf       2012-12-25-06-30   8862
+Photo.HEIC      Photo/2013/July/Birthday    IMG_2329.HEIC       2012-07-19-17-14   554512
+Party.mp4       Photo/2012/July/Birthday    Party.mp4           2012-07-19-17-11   1191706
+Photo.HEIC      Photo/2012/July/Birthday    IMG_2329.HEIC       2012-07-19-17-14   554512
+Photo.jpg       Photo/2012/June/Zoo         IMG_3891.jpeg       2012-06-03-11-11   1102542
+Photo.png       Photo/2012/June/Zoo         IMG_931d.png        2012-06-03-11-19   6622444

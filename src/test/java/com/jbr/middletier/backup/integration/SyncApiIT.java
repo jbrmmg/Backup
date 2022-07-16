@@ -242,6 +242,34 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
+    public void gatherIgnore() throws Exception {
+        LOG.info("Synchronize Testing");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test15");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(13)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        sourceDescription = getTestStructure("test15_chk");
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
+    }
+
+    @Test
     public void getFileInvalidId() throws Exception {
         // Check that the various get file URL's will fail for invalid id.
         int missingId = 1;
