@@ -224,6 +224,8 @@ public class ActionManager {
             properties.put("mail.smtp.starttls.enable", "true");
             properties.put("mail.smtp.host", applicationProperties.getEmail().getHost());
             properties.put("mail.smtp.port", applicationProperties.getEmail().getPort().toString());
+            properties.put("mail.smtp.starttls.required", "true");
+            properties.put("mail.smtp.ssl.protocols", "TLSv1.2");
 
             Session session = Session.getInstance(properties,
                     new javax.mail.Authenticator() {
