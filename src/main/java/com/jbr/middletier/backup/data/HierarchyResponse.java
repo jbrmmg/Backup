@@ -1,5 +1,9 @@
 package com.jbr.middletier.backup.data;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
 @SuppressWarnings("unused")
 public class HierarchyResponse {
     private int id;
@@ -41,4 +45,43 @@ public class HierarchyResponse {
     public void setBackup(boolean backup) { this.backup = backup; }
 
     public boolean getBackup() { return this.backup; }
+
+    public int getOrderingIndex() {
+        int result = 0;
+        if(this.directory && this.displayName.trim().length() == 0)
+            return result;
+
+        List<String> orderValues = Arrays.asList("January","February","March","April","May","June","July","August","September","October","November","December");
+        for(String nextOrderValue : orderValues) {
+            result++;
+            if(this.directory && this.displayName.trim().equalsIgnoreCase(nextOrderValue)) {
+                return result;
+            }
+        }
+
+        result++;
+        if(this.directory)
+            return result;
+
+        result++;
+        return result;
+    }
+
+    public int getNumericValue() {
+        int result = 0;
+
+        try {
+            if(this.directory) {
+                result = Integer.parseInt(this.displayName.trim());
+            }
+        } catch (NumberFormatException e) {
+            // Ignore this error.
+        }
+
+        return result * -1;
+    }
+
+    public String getCompareName() {
+        return this.displayName.trim().toLowerCase(Locale.ROOT);
+    }
 }
