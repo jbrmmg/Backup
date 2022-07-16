@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -40,7 +39,7 @@ public class FileTester extends WebTester {
         public final Long fileSize;
         public boolean checked;
 
-        public StructureDescription(String description) throws ParseException {
+        public StructureDescription(String description) {
             String[] structureItems = description.split("\\s+");
 
             this.filename = structureItems[0];
@@ -356,7 +355,7 @@ public class FileTester extends WebTester {
         Assert.assertTrue(tree.allOK());
     }
 
-    protected List<StructureDescription> getTestStructure(String testName) throws IOException, ParseException {
+    protected List<StructureDescription> getTestStructure(String testName) throws IOException {
         List<StructureDescription> result = new ArrayList<>();
 
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("synchronise/structure/" + testName + ".structure.txt");

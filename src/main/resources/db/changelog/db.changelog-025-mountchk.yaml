@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 25
+      author: jason
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: mount_check
+                  type: varchar(100)
+            tableName: source
+
+        - dropColumn:
+            columnName: removed
+            tableName: file
+
+        - dropColumn:
+            columnName: removed
+            tableName: directory
+
+        - modifyDataType:
+            tableName: file_system_object
+            columnName: name
+            newDataType: varchar(100)

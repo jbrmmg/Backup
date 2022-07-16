@@ -6,7 +6,6 @@ import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
-import com.jbr.middletier.backup.integration.FileTester;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import org.junit.Assert;
@@ -20,10 +19,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,10 +62,6 @@ public class TestGeneral extends WebTester {
 
         gatherDataDTO.setProblems();
         Assert.assertTrue(gatherDataDTO.hasProblems());
-
-        DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setRemoved();
-        Assert.assertTrue(directoryInfo.getRemoved());
 
         SynchronizeDTO synchronizeDTO = new SynchronizeDTO(1);
         Assert.assertEquals((Integer) 1, synchronizeDTO.getId());
@@ -635,6 +628,7 @@ public class TestGeneral extends WebTester {
         when(source.getStatus()).thenReturn(null);
         when(source.getIdAndType()).thenReturn(new FileSystemObjectId(1,FileSystemObjectType.FSO_SOURCE));
         when(source.getPath()).thenReturn("Test");
+        when(source.getMountCheck()).thenReturn(null);
         sources.add(source);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -649,6 +643,7 @@ public class TestGeneral extends WebTester {
         when(actionManager.findConfirmedDeletes()).thenReturn(deletes);
 
         FileSystem fileSystem = mock(FileSystem.class);
+        when(fileSystem.validateMountCheck(null)).thenReturn(true);
         doThrow(new IOException("Failed")).when(fileSystem).createDirectory(any(Path.class));
 
         DriveManager driveManager = new DriveManager(associatedFileDataManager,
@@ -692,6 +687,7 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<GatherDataDTO> gatherData = driveManager.gather();
-        Assert.assertEquals(0, gatherData.size());
+        Assert.assertEquals(1, gatherData.size());
+        Assert.assertTrue(gatherData.get(0).hasProblems());
     }
 }

@@ -23,8 +23,22 @@ public class DriveManager extends FileProcessor {
         super(backupManager, actionManager, associatedFileDataManager, fileSystemObjectManager, fileSystem);
     }
 
+    private static void addProblem(Source nextSource, List<GatherDataDTO> data) {
+        GatherDataDTO gatherData = new GatherDataDTO(nextSource.getIdAndType().getId());
+        gatherData.setProblems();
+        data.add(gatherData);
+    }
+
     private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {
         if(nextSource.getStatus() != null && SourceStatusType.SST_GATHERING.equals(nextSource.getStatus())) {
+            LOG.warn("Source {} skiped due to status issue.", nextSource.getPath());
+            addProblem(nextSource,data);
+            return;
+        }
+
+        if(!fileSystem.validateMountCheck(nextSource.getMountCheck())) {
+            LOG.warn("Source {} mount check failed.", nextSource.getMountCheck());
+            addProblem(nextSource,data);
             return;
         }
 

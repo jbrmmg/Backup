@@ -242,6 +242,34 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
+    public void gatherIgnore() throws Exception {
+        LOG.info("Synchronize Testing");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test15");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(13)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(11)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        sourceDescription = getTestStructure("test15_chk");
+        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
+    }
+
+    @Test
     public void getFileInvalidId() throws Exception {
         // Check that the various get file URL's will fail for invalid id.
         int missingId = 1;
@@ -637,14 +665,12 @@ public class SyncApiIT extends FileTester {
 
         // Insert an ignore file to check it doesn't interfere.
         IgnoreFile ignoreFile = new IgnoreFile();
-        ignoreFile.clearRemoved();
         ignoreFile.setDate(LocalDateTime.parse("2022-05-01-23-27",formatter));
         ignoreFile.setName("Text.txt");
         ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
         ignoreFile.setSize(523);
         fileSystemObjectManager.save(ignoreFile);
         ignoreFile = new IgnoreFile();
-        ignoreFile.clearRemoved();
         ignoreFile.setDate(LocalDateTime.parse("2022-05-01-23-27",formatter));
         ignoreFile.setName("Text.txt");
         ignoreFile.setMD5(new MD5("C714A0B2E792EB102F706DC2424BAA83"));
@@ -927,7 +953,6 @@ public class SyncApiIT extends FileTester {
     public void testActionApi() throws Exception {
         // Need a file for the actions
         FileInfo file = new FileInfo();
-        file.clearRemoved();
         file.setName("Testing.txt");
         fileSystemObjectManager.save(file);
 
@@ -1783,16 +1808,19 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].failed", is(false)))
-                .andExpect(jsonPath("$[0].filesInserted", is(2)))
-                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].failed", is(false)))
                 .andExpect(jsonPath("$[0].filesInserted", is(2)))
                 .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
                 .andExpect(jsonPath("$[0].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
-                .andExpect(jsonPath("$[0].deletes", is(0)));
+                .andExpect(jsonPath("$[0].deletes", is(0)))
+                .andExpect(jsonPath("$[1].failed", is(true)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
+                .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[1].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[1].deletes", is(0)));
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
     }
@@ -1833,5 +1861,162 @@ public class SyncApiIT extends FileTester {
         Assert.assertEquals(0,sources.get(1).getDirectoryCount());
         Assert.assertEquals(0,sources.get(1).getLargestFile());
         Assert.assertEquals(0,sources.get(1).getTotalFileSize());
+    }
+
+    @Test
+    public void gatherMountCheck() throws Exception {
+        LOG.info("Mount check testing");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+        this.source.setMountCheck("./target/it_test/import/thisfileismissing.txt");
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(true)))
+                .andExpect(jsonPath("$[0].filesInserted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(0)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        this.source.setMountCheck(null);
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+    }
+
+    @Test
+    public void syncMountCheck() throws Exception {
+        LOG.info("Mount check testing");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        this.source.setMountCheck("./target/it_test/import/thisfileismissing.txt");
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+
+        // Perform the sync.
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(true)))
+                .andExpect(jsonPath("$[0].filesCopied", is(0)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(0)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
+
+        this.source.setMountCheck(null);
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+    }
+
+    @Test
+    public void gatherMountCheckPositive() throws Exception {
+        LOG.info("Mount check testing");
+
+        initialiseDirectories();
+        File checkMountFile = new File("./target/it_test/import/mountcheck.txt");
+        Files.createFile(checkMountFile.toPath());
+
+        // During this test create files in the following directories
+        this.source.setMountCheck(checkMountFile.toString());
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        this.source.setMountCheck(null);
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+    }
+
+    @Test
+    public void syncMountCheckPositive() throws Exception {
+        LOG.info("Mount check testing");
+
+        // During this test create files in the following directories
+        initialiseDirectories();
+        File checkMountFile = new File("./target/it_test/import/mountcheck.txt");
+        Files.createFile(checkMountFile.toPath());
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test4");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        // Perform a gather.
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesInserted", is(2)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(2)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        this.source.setMountCheck(checkMountFile.toString());
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+
+        // Perform the sync.
+        getMockMvc().perform(post("/jbr/int/backup/sync")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].failed", is(false)))
+                .andExpect(jsonPath("$[0].filesCopied", is(2)))
+                .andExpect(jsonPath("$[0].directoriesCopied", is(2)))
+                .andExpect(jsonPath("$[0].filesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
+                .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
+                .andExpect(jsonPath("$[0].filesWarned", is(0)));
+
+        this.source.setMountCheck(null);
+        associatedFileDataManager.updateSource(this.source.getSourceDTO());
     }
 }

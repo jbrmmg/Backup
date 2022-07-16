@@ -19,10 +19,6 @@ public class FileInfo extends FileSystemObject {
     @Column(name="size")
     private Long size;
 
-    @Column(name="removed")
-    @NotNull
-    private Boolean removed;
-
     @Column(name="md5")
     private String md5;
 
@@ -47,8 +43,6 @@ public class FileInfo extends FileSystemObject {
 
     public void setMD5(MD5 md5) { this.md5 = md5.toString().equals("") ? null : md5.toString(); }
 
-    public void clearRemoved() { this.removed = false; }
-
     public Long getSize() { return this.size; }
 
     public LocalDateTime getDate() { return this.date; }
@@ -56,8 +50,6 @@ public class FileInfo extends FileSystemObject {
     public MD5 getMD5() { return new MD5(this.md5); }
 
     public Classification getClassification() { return this.classification; }
-
-    public Boolean getRemoved() { return this.removed; }
 
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
         if(this.getIdAndType().equals(otherFile.getIdAndType())) {

@@ -166,7 +166,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void basicImportTest() throws IOException, ParseException, ImportRequestException {
+    public void basicImportTest() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -206,7 +206,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void gatherTestIgnore() throws IOException, ParseException, ImportRequestException {
+    public void gatherTestIgnore() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
@@ -244,7 +244,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testNonBackup() throws IOException, ParseException, ImportRequestException {
+    public void testNonBackup() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, sourceDirectory);
 

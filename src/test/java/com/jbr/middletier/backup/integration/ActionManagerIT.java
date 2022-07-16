@@ -76,7 +76,6 @@ public class ActionManagerIT {
         FileInfo newFile = new FileInfo();
         newFile.setName("Test File");
         newFile.setSize(10);
-        newFile.clearRemoved();
 
         fileRepository.save(newFile);
         int fileId = newFile.getIdAndType().getId();

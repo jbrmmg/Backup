@@ -149,7 +149,6 @@ public class FsoIT   {
         DirectoryInfo directoryInfo = new DirectoryInfo();
         directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
-        directoryInfo.clearRemoved();
 
         directoryRepository.save(directoryInfo);
 
@@ -168,7 +167,6 @@ public class FsoIT   {
         fileInfo.setDate(aDate);
         fileInfo.setMD5(new MD5("XYZ"));
         fileInfo.setSize(291L);
-        fileInfo.clearRemoved();
 
         fileRepository.save(fileInfo);
         int theId = fileInfo.getIdAndType().getId();
@@ -182,7 +180,6 @@ public class FsoIT   {
         Assert.assertEquals(aDate, theFile.get().getDate());
         Assert.assertEquals("XYZ", theFile.get().getMD5().toString());
         Assert.assertEquals(Long.valueOf(291L), theFile.get().getSize());
-        Assert.assertEquals(false, theFile.get().getRemoved());
 
         aDate = LocalDateTime.parse("2022-06-02 11:03:10", formatter);
         theFile.get().setName("not Blah");
@@ -226,18 +223,13 @@ public class FsoIT   {
         DirectoryInfo directoryInfo = new DirectoryInfo();
         directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
-        directoryInfo.clearRemoved();
 
         directoryRepository.save(directoryInfo);
 
         DirectoryInfo directoryInfo1 = new DirectoryInfo();
         directoryInfo1.setParent(directoryInfo);
         directoryInfo1.setName("test 2");
-        directoryInfo1.clearRemoved();
 
-        directoryRepository.save(directoryInfo1);
-
-        directoryInfo1.setRemoved();
         directoryRepository.save(directoryInfo1);
 
         List<DirectoryInfo> directoryInfoList = directoryRepository.findAllByOrderByIdAsc();
@@ -279,7 +271,6 @@ public class FsoIT   {
         testIgnoreFile.setDate(aDate);
         testIgnoreFile.setMD5(new MD5("YTWVS"));
         testIgnoreFile.setSize(8310L);
-        testIgnoreFile.clearRemoved();
         testIgnoreFile.setParent(null);
 
         ignoreFileRepository.save(testIgnoreFile);
@@ -321,7 +312,6 @@ public class FsoIT   {
         testImportFile.setDate(aDate);
         testImportFile.setMD5(new MD5("YTWVS"));
         testImportFile.setSize(8310L);
-        testImportFile.clearRemoved();
         testImportFile.setStatus(ImportFileStatusType.IFS_READ);
 
         importFileRepository.save(testImportFile);

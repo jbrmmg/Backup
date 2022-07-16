@@ -152,7 +152,6 @@ public class MigrateIT extends WebTester {
         Assert.assertTrue(fso.isPresent());
         DirectoryInfo directory = (DirectoryInfo) fso.get();
         Assert.assertEquals("/2016/September/Boom Banger/Day 6", directory.getName());
-        Assert.assertFalse(directory.getRemoved());
 
         fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(625 + 20102, FileSystemObjectType.FSO_FILE));
         Assert.assertTrue(fso.isPresent());
@@ -163,7 +162,6 @@ public class MigrateIT extends WebTester {
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1702065, (long)file.getSize());
         Assert.assertEquals("2016-10-01 15:30", formatter.format(file.getDate()));
-        Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("F75A4959EC58FA4F30877900B88C3340", file.getMD5().toString());
     }
 
@@ -188,7 +186,6 @@ public class MigrateIT extends WebTester {
         Assert.assertNull(file.getClassification());
         Assert.assertEquals(670911, (long)file.getSize());
         Assert.assertEquals("2019-05-26 00:06", formatter.format(file.getDate()));
-        Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("FE0F70C0583A6189679377495516652D", file.getMD5().toString());
     }
 
@@ -214,7 +211,6 @@ public class MigrateIT extends WebTester {
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1645188, (long)file.getSize());
         Assert.assertEquals("2022-01-03 18:44", formatter.format(file.getDate()));
-        Assert.assertFalse(file.getRemoved());
         Assert.assertEquals("1CE144410E8E0E960938D899183A32BF", file.getMD5().toString());
         Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
 
@@ -250,7 +246,6 @@ public class MigrateIT extends WebTester {
                 Assert.assertEquals(5, (long) file.getClassification().getId());
                 Assert.assertEquals(1570162, (long) file.getSize());
                 Assert.assertEquals("2022-01-03 18:39", formatter.format(file.getDate()));
-                Assert.assertFalse(file.getRemoved());
                 Assert.assertEquals("09EC9A3FD7166D5394D916FB47B3903F", file.getMD5().toString());
                 Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, file.getStatus());
             }
@@ -280,7 +275,6 @@ public class MigrateIT extends WebTester {
                 Assert.assertEquals(4, (long) file.getClassification().getId());
                 Assert.assertEquals(712919, (long) file.getSize());
                 Assert.assertEquals("2020-09-30 04:00", formatter.format(file.getDate()));
-                Assert.assertTrue(file.getRemoved());
                 Assert.assertEquals("76EEAAC078EED94423E10495D99BBF1C", file.getMD5().toString());
             }
         }

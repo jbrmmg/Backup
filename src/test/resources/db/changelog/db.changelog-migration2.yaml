@@ -76,6 +76,9 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-024-createfk.yaml
 
   - include:
+      file: /db/changelog/db.changelog-025-mountchk.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
 
   - include:
