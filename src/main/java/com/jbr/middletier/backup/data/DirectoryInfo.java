@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.data;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")
 @Entity
