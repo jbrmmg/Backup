@@ -89,14 +89,6 @@ abstract class FileProcessor {
 
         processDeletesIteratively(details,deletes,performedActions, gatherData);
         deletes.removeAll(performedActions);
-
-        // If there are still confirmed deletes to perform then they are invalid, so delete them anyway.
-        for(ActionConfirm next: deletes) {
-            if(next.confirmed()) {
-                LOG.warn("Action cannot be performed: {}", next);
-                actionManager.actionPerformed(next);
-            }
-        }
     }
 
     private void processFileRemoval(RwDbCompareNode node) {
