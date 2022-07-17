@@ -34,6 +34,7 @@ public class ActionManager {
     private final ActionConfirmRepository actionConfirmRepository;
     private final ResourceLoader resourceLoader;
     private final FileSystemObjectManager fileSystemObjectManager;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final FileSystem fileSystem;
 
     private static final String END_TD = "</td>";
@@ -42,11 +43,14 @@ public class ActionManager {
     public ActionManager(ApplicationProperties applicationProperties,
                          ActionConfirmRepository actionConfirmRepository,
                          ResourceLoader resourceLoader,
-                         FileSystemObjectManager fileSystemObjectManager, FileSystem fileSystem) {
+                         FileSystemObjectManager fileSystemObjectManager,
+                         AssociatedFileDataManager associatedFileDataManager,
+                         FileSystem fileSystem) {
         this.applicationProperties = applicationProperties;
         this.actionConfirmRepository = actionConfirmRepository;
         this.resourceLoader = resourceLoader;
         this.fileSystemObjectManager = fileSystemObjectManager;
+        this.associatedFileDataManager = associatedFileDataManager;
         this.fileSystem = fileSystem;
     }
 
@@ -176,12 +180,30 @@ public class ActionManager {
         actionConfirmRepository.deleteAll();
     }
 
+    private boolean sourcesMounted() {
+        for(Source nextSource : associatedFileDataManager.internalFindAllSource()) {
+            if(nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE) {
+                if(!fileSystem.validateMountCheck(nextSource.getMountCheck())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     public void sendActionEmail() {
         try {
             // Only send the email if its enabled.
             if (Boolean.FALSE.equals(applicationProperties.getEmail().getEnabled())) {
                 LOG.warn("Email disabled, not sending.");
                 return;
+            }
+
+            // Check that all the sources are mounted OK.
+            String subject = "Backup actions.";
+            if(!sourcesMounted()) {
+                subject += " (Check Sources Mounted)";
             }
 
             // Get a list of unconfirmed actions.
@@ -239,7 +261,7 @@ public class ActionManager {
 
             message.setFrom(new InternetAddress(applicationProperties.getEmail().getFrom()));
             message.addRecipients(Message.RecipientType.TO, InternetAddress.parse(applicationProperties.getEmail().getTo()));
-            message.setSubject("Backup actions.");
+            message.setSubject(subject);
 
             message.setContent(template.replace("<!-- TABLEROWS -->", emailText.toString()), "text/html");
 
