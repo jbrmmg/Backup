@@ -182,10 +182,9 @@ public class ActionManager {
 
     private boolean sourcesMounted() {
         for(Source nextSource : associatedFileDataManager.internalFindAllSource()) {
-            if(nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE) {
-                if(!fileSystem.validateMountCheck(nextSource.getMountCheck())) {
-                    return false;
-                }
+            if((nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE)
+                    && (!fileSystem.validateMountCheck(nextSource.getMountCheck()))) {
+                return false;
             }
         }
 
