@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.manager.ActionManager;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import org.junit.Assert;
@@ -132,6 +133,7 @@ public class ActionManagerIT {
         ResourceLoader resourceLoader = mock(ResourceLoader.class);
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
         FileInfo fileInfo = mock(FileInfo.class);
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
 
         ConfirmActionRequest confirmActionRequest = mock(ConfirmActionRequest.class);
         when(confirmActionRequest.getConfirm()).thenReturn(false);
@@ -147,7 +149,7 @@ public class ActionManagerIT {
         ActionManager actionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
-                fileSystemObjectManager, fileSystem);
+                fileSystemObjectManager, associatedFileDataManager, fileSystem);
 
         when(confirmActionRequest.getId()).thenReturn(1);
 
@@ -164,6 +166,7 @@ public class ActionManagerIT {
         ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
         ResourceLoader resourceLoader = mock(ResourceLoader.class);
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
 
         FileInfo file = mock(FileInfo.class);
         when(file.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
@@ -178,7 +181,7 @@ public class ActionManagerIT {
         ActionManager actionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
-                fileSystemObjectManager, fileSystem);
+                fileSystemObjectManager, associatedFileDataManager, fileSystem);
 
         ActionConfirmDTO action = actionManager.createFileDeleteDuplicateAction(file);
         Assert.assertEquals("DELETE_DUP", action.getAction());
