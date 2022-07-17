@@ -182,15 +182,19 @@ public class ImportManager extends FileProcessor {
         // The file can be copied.
         String newFilename = source.getPath();
 
-        // Use the date of the file.
-        Date fileDate = new Date(path.toFile().lastModified());
+        if(parameter.equalsIgnoreCase("<recipe>")) {
+            newFilename += "/0000/recipe";
+        } else {
+            // Use the date of the file.
+            Date fileDate = new Date(path.toFile().lastModified());
 
-        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
-        SimpleDateFormat sdf2 = new SimpleDateFormat("MMMM");
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("MMMM");
 
-        newFilename += "/" + sdf1.format(fileDate);
-        newFilename += "/" + sdf2.format(fileDate);
-        newFilename += "/" + parameter;
+            newFilename += "/" + sdf1.format(fileDate);
+            newFilename += "/" + sdf2.format(fileDate);
+            newFilename += "/" + parameter;
+        }
 
         fileSystem.createDirectory(new File(newFilename).toPath());
 
