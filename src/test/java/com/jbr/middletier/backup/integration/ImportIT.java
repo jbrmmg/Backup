@@ -144,7 +144,7 @@ public class ImportIT extends FileTester {
         });
     }
 
-    private void confirmActionsIgnore(String filename) {
+    private void confirmActionsIgnoreOrRecipe(String filename, boolean ignore) {
         AtomicInteger id = new AtomicInteger(-1);
 
         fileSystemObjectManager.findFileSystemObjectByName(filename, FileSystemObjectType.FSO_IMPORT_FILE)
@@ -156,7 +156,7 @@ public class ImportIT extends FileTester {
                 ConfirmActionRequest request = new ConfirmActionRequest();
                 request.setId(action.getId());
                 request.setConfirm(true);
-                request.setParameter("ignore");
+                request.setParameter(ignore ? "ignore" : "<recipe>");
                 actionManager.confirmAction(request);
             }
         });
@@ -221,8 +221,8 @@ public class ImportIT extends FileTester {
         List<ImportDataDTO> importResult = importManager.importPhotoProcess();
         checkImport(importResult, 0, 0, 0, 0, 0);
 
-        confirmActionsIgnore("IMG_8233.jpg");
-        confirmActionsIgnore("IMG_8234.jpg");
+        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", true);
+        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", true);
         confirmActions();
 
         importManager.resetFiles();
@@ -258,5 +258,37 @@ public class ImportIT extends FileTester {
 
         List<ImportDataDTO> importResult = importManager.importPhotoProcess();
         checkImport(importResult, 0, 0, 0, 0, 1);
+    }
+
+    @Test
+    public void testRecipe() throws IOException, ImportRequestException {
+        List<StructureDescription> sourceDescription = getTestStructure("test1");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        List<StructureDescription> importDesciption = getTestStructure("test14_1");
+        copyFiles(importDesciption, importDirectory);
+
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setSource(this.source.getIdAndType().getId());
+        importRequest.setPath(importDirectory);
+        List<GatherDataDTO> result = importManager.importPhoto(importRequest);
+        checkGather(result, 5, 0);
+
+        List<ImportDataDTO> importResult = importManager.importPhotoProcess();
+        checkImport(importResult, 0, 0, 0, 0, 0);
+
+        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", false);
+        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", false);
+        confirmActions();
+
+        importManager.resetFiles();
+        importResult = importManager.importPhotoProcess();
+        checkImport(importResult, 5, 0, 0, 0, 0);
+
+        sourceDescription = getTestStructure("test14_recipe");
+        driveManager.gather();
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        actionManager.clearImportActions();
     }
 }
