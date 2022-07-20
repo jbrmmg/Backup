@@ -3,18 +3,33 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffField;
+import org.apache.commons.imaging.formats.tiff.constants.GpsTagConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -218,5 +233,31 @@ public class FileSystem {
         LOG.warn("Mount check - missing {}", file);
 
         return false;
+    }
+
+    public FileSystemImageData readImageMetaData(File file) {
+        try {
+            ImageMetadata metadata = Imaging.getMetadata(file);
+
+            if(metadata instanceof JpegImageMetadata) {
+                JpegImageMetadata jpegImageMetadata = (JpegImageMetadata)metadata;
+
+                FileSystemImageData fileSystemImageData = new FileSystemImageData(jpegImageMetadata);
+                LOG.info("Blah {}", fileSystemImageData.getDateTime());
+                return fileSystemImageData;
+            }
+        }
+        catch (Exception e) {
+            LOG.error("Failed",e);
+        }
+
+        return null;
+    }
+
+    public Set<String> listFilesInDirectory(String directory) {
+        return Stream.of(new File(directory).listFiles())
+                .filter(file -> !file.isDirectory())
+                .map(File::getName)
+                .collect(Collectors.toSet());
     }
 }

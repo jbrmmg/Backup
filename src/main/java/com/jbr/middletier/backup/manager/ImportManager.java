@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportDataDTO;
+import com.jbr.middletier.backup.dto.ImportProcessDTO;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
@@ -15,7 +16,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -391,5 +395,134 @@ public class ImportManager extends FileProcessor {
         ImportFile newFile = new ImportFile();
         newFile.setStatus(ImportFileStatusType.IFS_READ);
         return newFile;
+    }
+
+    private String getDestinationFilename(String filename) {
+        if(getFileType(filename) == ProcessType.MOV) {
+            return filename.replace(".MOV", ".mp4");
+        }
+
+        return filename;
+    }
+
+    private enum ProcessType { JPG, MOV, OTHER }
+
+    private ProcessType getFileType(String filename) {
+        if(filename.endsWith(".MOV")) {
+            return ProcessType.MOV;
+        }
+
+        if(filename.endsWith(".jpg") || filename.endsWith(".JPG")) {
+            return ProcessType.JPG;
+        }
+
+        return ProcessType.OTHER;
+    }
+
+    private void copyJpgFile(String source, String filename, String destination, ImportProcessDTO data) {
+        File imageFile = new File(source + "/" + filename);
+        FileSystemImageData imageData = fileSystem.readImageMetaData(imageFile);
+
+        File destinationImageFile = new File(destination + "/" + filename);
+        fileSystem.copyFile(imageFile, destinationImageFile, data);
+
+        ZonedDateTime zonedFileTime = imageData.getDateTime().atZone(ZoneId.systemDefault());
+        fileSystem.setFileDateTime(destinationImageFile, zonedFileTime.toInstant().toEpochMilli());
+    }
+
+    private void copyMovFile(String source, String filename, String destination, ImportProcessDTO data) {
+        try {
+            File movFile = new File(source + "/" + filename);
+            File mp4File = new File(destination + "/" + filename.replace(".MOV", ".mp4"));
+
+            long fileTime = movFile.lastModified();
+
+            String copyCommand = "ffmpeg -i %%INPUT%% -qscale 0 %%OUTPUT%%";
+            copyCommand = copyCommand.replace("%%INPUT%%", movFile.toString().replace(" ", "\\ "));
+            copyCommand = copyCommand.replace("%%OUTPUT%%", mp4File.toString().replace(" ", "\\ "));
+
+            LOG.info("Command: {}", copyCommand);
+
+            String[] cmd = new String[]{"bash", "-c", copyCommand};
+            final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)
+                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                    .start();
+
+            backupProcess.waitFor(30 * 60 * 60, TimeUnit.SECONDS);
+            backupProcess.destroyForcibly();
+
+            fileSystem.setFileDateTime(mp4File, fileTime);
+        } catch (Exception e) {
+            LOG.error("Failed to copy MOV file", e);
+            data.setProblems();
+        }
+    }
+
+    private void copyFile(String source, String filename, String destination, ImportProcessDTO data) {
+        fileSystem.copyFile(new File(source + "/" + filename),
+                new File(destination + "/" + filename),
+                data);
+    }
+
+    private void processFile(String source, String filename, String destination, ImportProcessDTO data) {
+        String destinationFilename = getDestinationFilename(filename);
+
+        // If the destination already exists then we are done.
+        if(fileSystem.fileExists(new File(destination + "/" + destinationFilename))) {
+            return;
+        }
+
+        // File types handled:
+        // jpg - set date time from meta data.
+        // MOV - reformat as mp4
+        // all else, just copy.
+        switch(getFileType(filename)) {
+            case JPG:
+                copyJpgFile(source, filename, destination, data);
+                break;
+            case MOV:
+                copyMovFile(source, filename, destination, data);
+                break;
+            case OTHER:
+                copyFile(source, filename, destination, data);
+                break;
+        }
+    }
+
+    public List<ImportProcessDTO> importProcessPhoto(ImportProcessRequest importProcessRequest) {
+        List<ImportProcessDTO> result = new ArrayList<>();
+        ImportProcessDTO resultCount = new ImportProcessDTO();
+        result.add(resultCount);
+
+        try {
+            LOG.info("Process Files from {}", importProcessRequest.getSource());
+            LOG.info("Into {}", importProcessRequest.getDestination());
+
+            // Setup the files.
+            File source = new File(importProcessRequest.getSource());
+            File destination = new File(importProcessRequest.getDestination());
+
+            // Check that the source exists.
+            if(!fileSystem.directoryExists(source.toPath())) {
+                throw new IllegalStateException(importProcessRequest.getSource() + " does not exist.");
+            }
+
+            // Check that the destination exists.
+            if(!fileSystem.directoryExists(destination.toPath())) {
+                throw new IllegalStateException(importProcessRequest.getDestination() + " does not exist.");
+            }
+
+            for(String nextFilename : fileSystem.listFilesInDirectory(importProcessRequest.getSource())) {
+                processFile(importProcessRequest.getSource(),
+                        nextFilename,
+                        importProcessRequest.getDestination(),
+                        resultCount );
+            }
+        } catch (Exception e) {
+            resultCount.setProblems();
+            LOG.error("Problems",e);
+        }
+
+        return result;
     }
 }

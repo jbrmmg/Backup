@@ -1,10 +1,12 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.ImportFile;
+import com.jbr.middletier.backup.data.ImportProcessRequest;
 import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportDataDTO;
 import com.jbr.middletier.backup.dto.ImportFileDTO;
+import com.jbr.middletier.backup.dto.ImportProcessDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.manager.ImportManager;
 import org.jetbrains.annotations.Contract;
@@ -38,6 +40,13 @@ public class ImportController {
         LOG.info("Import - {}", importRequest.getPath());
 
         return importManager.importPhoto(importRequest);
+    }
+
+    @PostMapping(path="/convert")
+    public @ResponseBody List<ImportProcessDTO> processImports(@NotNull @RequestBody ImportProcessRequest importProcessRequest) {
+        LOG.info("Import proces - from {} to {}", importProcessRequest.getSource(), importProcessRequest.getDestination());
+
+        return importManager.importProcessPhoto(importProcessRequest);
     }
 
     @DeleteMapping(path="/import")
