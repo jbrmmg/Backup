@@ -409,8 +409,8 @@ public class FileTester extends WebTester {
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
 
-        deleteDirectoryContents(new File(importDirectory).toPath());
-        Files.createDirectories(new File(importDirectory).toPath());
+        deleteDirectoryContents(new File(preImportDirectory).toPath());
+        Files.createDirectories(new File(preImportDirectory).toPath());
 
         deleteDirectoryContents(new File(importDirectory).toPath());
         Files.createDirectories(new File(importDirectory).toPath());

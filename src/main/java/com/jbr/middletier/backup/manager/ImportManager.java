@@ -420,10 +420,10 @@ public class ImportManager extends FileProcessor {
     }
 
     private void copyJpgFile(String source, String filename, String destination, ImportProcessDTO data) {
-        File imageFile = new File(source + "/" + filename);
+        File imageFile = new File(source,filename);
         FileSystemImageData imageData = fileSystem.readImageMetaData(imageFile);
 
-        File destinationImageFile = new File(destination + "/" + filename);
+        File destinationImageFile = new File(destination, filename);
         fileSystem.copyFile(imageFile, destinationImageFile, data);
 
         ZonedDateTime zonedFileTime = imageData.getDateTime().atZone(ZoneId.systemDefault());
@@ -432,8 +432,8 @@ public class ImportManager extends FileProcessor {
 
     private void copyMovFile(String source, String filename, String destination, ImportProcessDTO data) {
         try {
-            File movFile = new File(source + "/" + filename);
-            File mp4File = new File(destination + "/" + filename.replace(".MOV", ".mp4"));
+            File movFile = new File(source, filename);
+            File mp4File = new File(destination, filename.replace(".MOV", ".mp4"));
 
             long fileTime = movFile.lastModified();
 
@@ -448,19 +448,20 @@ public class ImportManager extends FileProcessor {
                     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                     .start();
 
-            backupProcess.waitFor(30 * 60 * 60, TimeUnit.SECONDS);
+            backupProcess.waitFor(20L, TimeUnit.MINUTES);
             backupProcess.destroyForcibly();
 
             fileSystem.setFileDateTime(mp4File, fileTime);
         } catch (Exception e) {
             LOG.error("Failed to copy MOV file", e);
             data.setProblems();
+            Thread.currentThread().interrupt();
         }
     }
 
     private void copyFile(String source, String filename, String destination, ImportProcessDTO data) {
-        fileSystem.copyFile(new File(source + "/" + filename),
-                new File(destination + "/" + filename),
+        fileSystem.copyFile(new File(source, filename),
+                new File(destination, filename),
                 data);
     }
 
@@ -468,7 +469,7 @@ public class ImportManager extends FileProcessor {
         String destinationFilename = getDestinationFilename(filename);
 
         // If the destination already exists then we are done.
-        if(fileSystem.fileExists(new File(destination + "/" + destinationFilename))) {
+        if(fileSystem.fileExists(new File(destination, destinationFilename))) {
             return;
         }
 
