@@ -34,6 +34,6 @@ public class RwDirectory extends RwNode {
 
     @Override
     public String toString() {
-        return "RW (dir): " + getName() + " " + this.children.size();
+        return "RW (dir): " + (getName().isPresent() ? getName().get() : "") + " " + this.children.size();
     }
 }

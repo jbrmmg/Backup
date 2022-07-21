@@ -57,7 +57,7 @@ public abstract class FileTreeNode {
 
     public Optional<FileTreeNode> getNamedChild(String name) {
         for(FileTreeNode nextNode: this.children) {
-            if(name.equals(nextNode.getName())) {
+            if(nextNode.getName().isPresent() && name.equals(nextNode.getName().get())) {
                 return Optional.of(nextNode);
             }
         }
@@ -76,6 +76,6 @@ public abstract class FileTreeNode {
 
     @Override
     public String toString() {
-        return getName() + " " + this.children.size();
+        return (getName().isPresent() ? getName().get() : "") + " " + this.children.size();
     }
 }

@@ -25,7 +25,7 @@ public class BasicTestNode extends FileTreeNode {
 
     public boolean test() {
         // Test the null node.
-        Assert.assertNull(nullNode.getName());
+        Assert.assertFalse(nullNode.getName().isPresent());
 
         try {
             nullNode.addChild(null);

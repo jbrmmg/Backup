@@ -36,6 +36,6 @@ public class RwFile extends RwNode {
 
     @Override
     public String toString() {
-        return "RW (file): " + getName();
+        return "RW (file): " + (getName().isPresent() ? getName().get() : "");
     }
 }
