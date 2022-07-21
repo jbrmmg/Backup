@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 public class DbFile extends DbNode {
     private final FileInfo fileInfo;
@@ -22,8 +23,8 @@ public class DbFile extends DbNode {
     }
 
     @Override
-    public String getName() {
-        return fileInfo.getName();
+    public Optional<String> getName() {
+        return Optional.of(fileInfo.getName());
     }
 
     @Override

@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -210,13 +211,13 @@ public class FileSystem {
         return file.setLastModified(time);
     }
 
-    public boolean validateMountCheck(File file) {
-        if(file == null) {
+    public boolean validateMountCheck(Optional<File> file) {
+        if(!file.isPresent()) {
             LOG.warn("Mount check - skipped");
             return true;
         }
 
-        if(Files.exists(file.toPath())) {
+        if(Files.exists(file.get().toPath())) {
             return true;
         }
 
@@ -225,7 +226,7 @@ public class FileSystem {
         return false;
     }
 
-    public FileSystemImageData readImageMetaData(File file) {
+    public Optional<FileSystemImageData> readImageMetaData(File file) {
         try {
             ImageMetadata metadata = Imaging.getMetadata(file);
 
@@ -234,14 +235,14 @@ public class FileSystem {
 
                 FileSystemImageData fileSystemImageData = new FileSystemImageData(jpegImageMetadata);
                 LOG.info("Blah {}", fileSystemImageData.getDateTime());
-                return fileSystemImageData;
+                return Optional.of(fileSystemImageData);
             }
         }
         catch (Exception e) {
             LOG.error("Failed",e);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public Set<String> listFilesInDirectory(String directory) {

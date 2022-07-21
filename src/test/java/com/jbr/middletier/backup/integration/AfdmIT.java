@@ -215,6 +215,7 @@ public class AfdmIT {
         when(synchronizeDTO.getId()).thenReturn(1);
 
         SourceRepository sourceRepository = mock(SourceRepository.class);
+        PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
         LocationRepository locationRepository = mock(LocationRepository.class);
         ClassificationRepository classificationRepository = mock(ClassificationRepository.class);
         SynchronizeRepository synchronizeRepository = mock(SynchronizeRepository.class);
@@ -225,7 +226,7 @@ public class AfdmIT {
                 locationRepository,
                 classificationRepository,
                 synchronizeRepository,
-                importSourceRepository );
+                importSourceRepository, preImportSourceRepository);
 
         try {
             testAFDM.updateSynchronize(synchronizeDTO);
@@ -242,6 +243,7 @@ public class AfdmIT {
         Source testSource = new Source();
 
         SourceRepository sourceRepository = mock(SourceRepository.class);
+        PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
         LocationRepository locationRepository = mock(LocationRepository.class);
         ClassificationRepository classificationRepository = mock(ClassificationRepository.class);
         SynchronizeRepository synchronizeRepository = mock(SynchronizeRepository.class);
@@ -252,7 +254,7 @@ public class AfdmIT {
                 locationRepository,
                 classificationRepository,
                 synchronizeRepository,
-                importSourceRepository );
+                importSourceRepository, preImportSourceRepository);
 
         try {
             testAFDM.updateSourceStatus(testSource, SourceStatusType.SST_OK);

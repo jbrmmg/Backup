@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.filetree.compare.node;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class SectionNode extends FileTreeNode  {
     public enum SectionNodeType { FILE_FOR_REMOVE, DIRECTORY_FOR_REMOVE, DIRECTORY_FOR_INSERT, FILE_FOR_INSERT }
@@ -19,8 +20,8 @@ public class SectionNode extends FileTreeNode  {
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override

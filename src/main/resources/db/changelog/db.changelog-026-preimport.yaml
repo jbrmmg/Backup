@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 26
+      author: jason
+      changes:
+
+        # Create the pre_import_source table.
+        - createTable:
+            tableName: pre_import_source
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_pre_imp_source
+            baseTableName: pre_import_source
+            baseColumnNames: id
+            referencedTableName: source
+            referencedColumnNames: id

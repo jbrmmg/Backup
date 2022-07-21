@@ -42,66 +42,6 @@ public class ImportManager extends FileProcessor {
         this.ignoreFileRepository = ignoreFileRepository;
     }
 
-    public List<GatherDataDTO> importPhoto(ImportRequest importRequest) throws ImportRequestException, IOException {
-        List<GatherDataDTO> result = new ArrayList<>();
-
-        // Remove any existing import data.
-        clearImports();
-
-        // Check the path exists
-        File importPath = new File(importRequest.getPath());
-        if (!importPath.exists()) {
-            throw new ImportRequestException("The path does not exist - " + importPath);
-        }
-
-        // Validate the source.
-        Optional<Source> source = associatedFileDataManager.internalFindSourceByIdIfExists(importRequest.getSource());
-        if (!source.isPresent()) {
-            throw new ImportRequestException("The source does not exist - " + importRequest.getSource());
-        }
-
-        // Find the location.
-        Optional<Location> importLocation = associatedFileDataManager.internalFindImportLocationIfExists();
-        if (!importLocation.isPresent()) {
-            throw new ImportRequestException("Cannot find import location.");
-        }
-
-        // Create a source to match this import
-        ImportSource importSource = associatedFileDataManager.createImportSource(importRequest.getPath(), source.get(), importLocation.get());
-
-        // Perform the import, find all the files to import and take action.
-        // Read directory structure into the database.
-        GatherDataDTO gatherData = new GatherDataDTO(importSource.getIdAndType().getId());
-        updateDatabase(importSource, new ArrayList<>(), true, gatherData);
-
-        result.add(gatherData);
-
-        return result;
-    }
-
-    public void clearImports() {
-        actionManager.clearImportActions();
-
-        // Remove the files associated with imports - first remove files, then directories then source.
-        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
-            List<DirectoryInfo> directories = new ArrayList<>();
-            List<FileInfo> files = new ArrayList<>();
-
-            fileSystemObjectManager.loadByParent(nextSource.getId(),directories,files);
-
-            for(FileInfo nextFile: files) {
-                fileSystemObjectManager.delete(nextFile);
-            }
-
-            Collections.reverse(directories);
-            for(DirectoryInfo nextDirectory: directories) {
-                fileSystemObjectManager.delete(nextDirectory);
-            }
-
-            associatedFileDataManager.deleteImportSource(nextSource);
-        }
-    }
-
     private boolean ignoreFile(FileInfo importFile) {
         // Is this a file to ignore?
         List<IgnoreFile> ignoreFiles = ignoreFileRepository.findByName(importFile.getName());
@@ -266,73 +206,6 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    public List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
-        LOG.info("Import Photo Process");
-        List<ImportDataDTO> result = new ArrayList<>();
-
-        // Get the source.
-        Optional<ImportSourceDTO> importSource = Optional.empty();
-        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
-            importSource = Optional.of(nextSource);
-        }
-
-        if(!importSource.isPresent()) {
-            throw new ImportRequestException("There is no import source defined.");
-        }
-        ImportDataDTO resultItem = new ImportDataDTO(importSource.get().getId());
-        result.add(resultItem);
-
-        try {
-            // Get the place they are to be imported to.
-            Optional<Source> destination = associatedFileDataManager.internalFindSourceByIdIfExists(importSource.get().getDestinationId());
-            if (!destination.isPresent()) {
-                throw new ImportRequestException("Destination for import is not found.");
-            }
-
-            // Get all the files that are in the destination source
-            List<DirectoryInfo> directories = new ArrayList<>();
-            List<FileInfo> files = new ArrayList<>();
-            fileSystemObjectManager.loadByParent(destination.get().getIdAndType().getId(), directories, files);
-
-
-            for (ImportFile nextFile : importFileRepository.findAll()) {
-                LOG.info( "{} MD5: {}", nextFile.getName(), nextFile.getMD5());
-
-                processImport(nextFile, destination.get(), files, resultItem);
-
-                nextFile.setStatus(ImportFileStatusType.IFS_COMPLETE);
-                importFileRepository.save(nextFile);
-            }
-        } catch (Exception e) {
-            resultItem.setProblems();
-        }
-
-        return result;
-    }
-
-    public List<GatherDataDTO> removeEntries() {
-        List<GatherDataDTO> result = new ArrayList<>();
-        GatherDataDTO resultItem = new GatherDataDTO(-1);
-        result.add(resultItem);
-
-        // Remove entries from import table if they are no longer present.
-        for (ImportFile nextFile : importFileRepository.findAll()) {
-            // Does this file still exist?
-            File existingFile = fileSystemObjectManager.getFile(nextFile);
-            resultItem.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
-
-            if (!existingFile.exists()) {
-                LOG.info("Remove this import file - {}", existingFile);
-                importFileRepository.delete(nextFile);
-                resultItem.increment(GatherDataDTO.GatherDataCountType.DELETES);
-            } else {
-                LOG.info("Keeping {}", existingFile);
-            }
-        }
-
-        return result;
-    }
-
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
     private boolean md5StillMissing(Path path, FileInfo fileInfo, Classification classification) {
@@ -379,17 +252,6 @@ public class ImportManager extends FileProcessor {
         return importFileRepository.findAllByOrderByIdAsc();
     }
 
-    public Iterable<ImportFile> resetFiles() {
-        Iterable<ImportFile> result = importFileRepository.findAll();
-
-        for(ImportFile nextImport: result) {
-            nextImport.setStatus(ImportFileStatusType.IFS_READ);
-            importFileRepository.save(nextImport);
-        }
-
-        return findImportFiles();
-    }
-
     @Override
     public FileInfo createNewFile() {
         ImportFile newFile = new ImportFile();
@@ -421,13 +283,15 @@ public class ImportManager extends FileProcessor {
 
     private void copyJpgFile(String source, String filename, String destination, ImportProcessDTO data) {
         File imageFile = new File(source,filename);
-        FileSystemImageData imageData = fileSystem.readImageMetaData(imageFile);
+        Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(imageFile);
 
         File destinationImageFile = new File(destination, filename);
         fileSystem.copyFile(imageFile, destinationImageFile, data);
 
-        ZonedDateTime zonedFileTime = imageData.getDateTime().atZone(ZoneId.systemDefault());
-        fileSystem.setFileDateTime(destinationImageFile, zonedFileTime.toInstant().toEpochMilli());
+        if(imageData.isPresent()) {
+            ZonedDateTime zonedFileTime = imageData.get().getDateTime().atZone(ZoneId.systemDefault());
+            fileSystem.setFileDateTime(destinationImageFile, zonedFileTime.toInstant().toEpochMilli());
+        }
     }
 
     private void copyMovFile(String source, String filename, String destination, ImportProcessDTO data) {
@@ -490,38 +354,159 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    public List<ImportProcessDTO> importProcessPhoto(ImportProcessRequest importProcessRequest) {
+    private Optional<PreImportSource> findPreImportSource() {
+        Optional<PreImportSource> result = Optional.empty();
+
+        int count = 0;
+        for(PreImportSource nextSource : associatedFileDataManager.internalFindAllPreImportSource()) {
+            result = Optional.of(nextSource);
+
+            if(count > 0) {
+                LOG.warn("Too many pre import source, do not import.");
+                return Optional.empty();
+            }
+
+            count++;
+        }
+
+        return result;
+    }
+
+    private Optional<ImportSource> findImportSource() {
+        Optional<ImportSource> result = Optional.empty();
+
+        int count = 0;
+        for(ImportSource nextSource : associatedFileDataManager.internalFindAllImportSource()) {
+            result = Optional.of(nextSource);
+
+            if(count > 0) {
+                LOG.warn("Too many import source, do not import.");
+                return Optional.empty();
+            }
+
+            count++;
+        }
+
+        return result;
+    }
+
+    public List<ImportProcessDTO> convertImportFiles() {
         List<ImportProcessDTO> result = new ArrayList<>();
         ImportProcessDTO resultCount = new ImportProcessDTO();
         result.add(resultCount);
 
         try {
-            LOG.info("Process Files from {}", importProcessRequest.getSource());
-            LOG.info("Into {}", importProcessRequest.getDestination());
+            // Find the pre-import details.
+            Optional<PreImportSource> preImportSource = findPreImportSource();
+            if(!preImportSource.isPresent()) {
+                resultCount.setProblems();
+                LOG.warn("Invalid Pre Import Source - skipping import.");
+                return result;
+            }
+
+            // Find the import details
+            Optional<ImportSource> importSource = findImportSource();
+            if(!importSource.isPresent()) {
+                resultCount.setProblems();
+                LOG.warn("Invalid Import Source - skipping import.");
+                return result;
+            }
+
+            LOG.info("Process Files from {}", preImportSource.get().getPath());
+            LOG.info("Into {}", importSource.get().getPath());
 
             // Setup the files.
-            File source = new File(importProcessRequest.getSource());
-            File destination = new File(importProcessRequest.getDestination());
+            File source = new File(preImportSource.get().getPath());
+            File destination = new File(importSource.get().getPath());
 
             // Check that the source exists.
             if(!fileSystem.directoryExists(source.toPath())) {
-                throw new IllegalStateException(importProcessRequest.getSource() + " does not exist.");
+                throw new IllegalStateException(preImportSource.get().getPath() + " does not exist.");
             }
 
             // Check that the destination exists.
             if(!fileSystem.directoryExists(destination.toPath())) {
-                throw new IllegalStateException(importProcessRequest.getDestination() + " does not exist.");
+                throw new IllegalStateException(importSource.get().getPath() + " does not exist.");
             }
 
-            for(String nextFilename : fileSystem.listFilesInDirectory(importProcessRequest.getSource())) {
-                processFile(importProcessRequest.getSource(),
+            for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+                processFile(preImportSource.get().getPath(),
                         nextFilename,
-                        importProcessRequest.getDestination(),
+                        importSource.get().getPath(),
                         resultCount );
             }
         } catch (Exception e) {
             resultCount.setProblems();
             LOG.error("Problems",e);
+        }
+
+        return result;
+    }
+
+    public List<GatherDataDTO> importPhoto() throws ImportRequestException, IOException {
+        List<GatherDataDTO> result = new ArrayList<>();
+
+        // Find the import source
+        Optional<ImportSource> importSource = findImportSource();
+        if(!importSource.isPresent()) {
+            throw new ImportRequestException("No import source is defined.");
+        }
+
+        // Check the path exists
+        File importPath = new File(importSource.get().getPath());
+        if (!importPath.exists()) {
+            throw new ImportRequestException("The path does not exist - " + importPath);
+        }
+
+        // Perform the import, find all the files to import and take action.
+        // Read directory structure into the database.
+        GatherDataDTO gatherData = new GatherDataDTO(importSource.get().getIdAndType().getId());
+        updateDatabase(importSource.get(), new ArrayList<>(), true, gatherData);
+
+        result.add(gatherData);
+
+        return result;
+    }
+
+    public List<ImportDataDTO> processImportFiles() throws ImportRequestException {
+        LOG.info("Import Photo Process");
+        List<ImportDataDTO> result = new ArrayList<>();
+
+        // Get the source.
+        Optional<ImportSourceDTO> importSource = Optional.empty();
+        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
+            importSource = Optional.of(nextSource);
+        }
+
+        if(!importSource.isPresent()) {
+            throw new ImportRequestException("There is no import source defined.");
+        }
+        ImportDataDTO resultItem = new ImportDataDTO(importSource.get().getId());
+        result.add(resultItem);
+
+        try {
+            // Get the place they are to be imported to.
+            Optional<Source> destination = associatedFileDataManager.internalFindSourceByIdIfExists(importSource.get().getDestinationId());
+            if (!destination.isPresent()) {
+                throw new ImportRequestException("Destination for import is not found.");
+            }
+
+            // Get all the files that are in the destination source
+            List<DirectoryInfo> directories = new ArrayList<>();
+            List<FileInfo> files = new ArrayList<>();
+            fileSystemObjectManager.loadByParent(destination.get().getIdAndType().getId(), directories, files);
+
+
+            for (ImportFile nextFile : importFileRepository.findAll()) {
+                LOG.info( "{} MD5: {}", nextFile.getName(), nextFile.getMD5());
+
+                processImport(nextFile, destination.get(), files, resultItem);
+
+                nextFile.setStatus(ImportFileStatusType.IFS_COMPLETE);
+                importFileRepository.save(nextFile);
+            }
+        } catch (Exception e) {
+            resultItem.setProblems();
         }
 
         return result;

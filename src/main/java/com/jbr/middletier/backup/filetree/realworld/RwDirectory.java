@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.filetree.realworld;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class RwDirectory extends RwNode {
     private final Path path;
@@ -13,8 +14,8 @@ public class RwDirectory extends RwNode {
     }
 
     @Override
-    public String getName() {
-        return path.getFileName().toString();
+    public Optional<String> getName() {
+        return Optional.of(path.getFileName().toString());
     }
 
     @Override

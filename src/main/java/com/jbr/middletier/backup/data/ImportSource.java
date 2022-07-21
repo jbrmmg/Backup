@@ -1,5 +1,9 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.dto.ImportSourceDTO;
+import com.jbr.middletier.backup.exception.InvalidSourceIdException;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+
 import javax.persistence.*;
 
 @Entity
@@ -13,9 +17,10 @@ public class ImportSource extends Source {
         super(FileSystemObjectType.FSO_IMPORT_SOURCE);
     }
 
-    public ImportSource(String path) {
+    public ImportSource(ImportSourceDTO source, AssociatedFileDataManager associatedFileDataManager) throws InvalidSourceIdException {
         super(FileSystemObjectType.FSO_IMPORT_SOURCE);
-        setPath(path);
+        update(source);
+        setDestination(associatedFileDataManager.internalFindSourceById(source.getId()));
     }
 
     public Source getDestination() { return this.destination; }

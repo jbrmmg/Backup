@@ -15,16 +15,16 @@ public abstract class CompareRoot extends RootFileTreeNode {
 
         for(FileTreeNode nextLHS : lhs.getChildren()) {
             for(FileTreeNode nextRHS : rhs.getChildren()) {
-                if(nextLHS.getName().equals(nextRHS.getName())) {
-                    added.add(nextLHS.getName());
+                if(nextLHS.getName().isPresent() && nextRHS.getName().isPresent() && nextLHS.getName().get().equals(nextRHS.getName().get())) {
+                    added.add(nextLHS.getName().get());
                     FileTreeNode resultNode = createCompareNode(CompareStatusType.EQUAL, result, nextLHS, nextRHS);
                     result.addChild(resultNode);
                     performCompare(resultNode,nextLHS,nextRHS);
                 }
             }
 
-            if(!added.contains(nextLHS.getName())) {
-                added.add(nextLHS.getName());
+            if(!added.contains(nextLHS.getName().get())) {
+                added.add(nextLHS.getName().get());
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.REMOVED, result, nextLHS, nullNode);
                 result.addChild(resultNode);
                 performCompare(resultNode,nextLHS,nullNode);
@@ -32,8 +32,8 @@ public abstract class CompareRoot extends RootFileTreeNode {
         }
 
         for(FileTreeNode nextRHS : rhs.getChildren()) {
-            if(!added.contains(nextRHS.getName())) {
-                added.add(nextRHS.getName());
+            if(nextRHS.getName().isPresent() && !added.contains(nextRHS.getName().get())) {
+                added.add(nextRHS.getName().get());
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.ADDED, result, nullNode, nextRHS);
                 result.addChild(resultNode);
                 performCompare(resultNode,nullNode,nextRHS);

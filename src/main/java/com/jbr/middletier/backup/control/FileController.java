@@ -124,8 +124,8 @@ public class FileController {
         Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
 
         HierarchyResponse response = new HierarchyResponse();
-        if(parent.isPresent() && parent.get().getParentId() != null) {
-            response.setId(parent.get().getParentId().getId());
+        if(parent.isPresent() && parent.get().getParentId().isPresent()) {
+            response.setId(parent.get().getParentId().get().getId());
         } else {
             response.setId(-1);
         }

@@ -107,8 +107,8 @@ public class MigrateManager {
         }
 
         @Override
-        public String getName() {
-            return this.directoryName;
+        public Optional<String> getName() {
+            return Optional.of(this.directoryName);
         }
 
         @Override
@@ -117,12 +117,13 @@ public class MigrateManager {
         }
 
         private void addDirectory(DirectoryLevelHelper directoryLevelHelper, DirectoryInfo directory) {
-            DirectoryNode nextNode = (DirectoryNode) getNamedChild(directoryLevelHelper.getName());
-            if(nextNode == null) {
+            Optional<FileTreeNode> nextNode = getNamedChild(directoryLevelHelper.getName());
+            if(!nextNode.isPresent()) {
                 addChild(new DirectoryNode(this, directoryLevelHelper, directory));
             } else {
+                DirectoryNode nextDirectoryNode = (DirectoryNode)nextNode.get();
                 directoryLevelHelper.nextLevel();
-                nextNode.addDirectory(directoryLevelHelper, directory);
+                nextDirectoryNode.addDirectory(directoryLevelHelper, directory);
             }
         }
 
@@ -140,7 +141,7 @@ public class MigrateManager {
 
         public DirectoryInfo getDbDirectory(FileSystemObjectId parentId) {
             this.dbDirectory.setName(this.directoryName);
-            this.dbDirectory.setParentId(parentId);
+            this.dbDirectory.setParentId(Optional.of(parentId));
 
             return this.dbDirectory;
         }
@@ -184,14 +185,20 @@ public class MigrateManager {
         int count = 0;
         for(FileSystemObject nextDirectory : fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_DIRECTORY)) {
             DirectoryInfo directory = (DirectoryInfo) nextDirectory;
+            Optional<FileSystemObjectId> parentId = directory.getParentId();
+
+            if(!parentId.isPresent()) {
+                LOG.warn("Directory with null parent {}", nextDirectory.getIdAndType().toString());
+                continue;
+            }
 
             // Get the directory node for the source.
             DirectoryNode rootOfSource;
-            if(sources.containsKey(directory.getParentId().toString())) {
+            if(sources.containsKey(parentId.get().toString())) {
                 rootOfSource = sources.get(directory.getParentId().toString());
             } else {
-                rootOfSource = new DirectoryNode(null, directory.getParentId());
-                sources.put(directory.getParentId().toString(), rootOfSource);
+                rootOfSource = new DirectoryNode(null, parentId.get());
+                sources.put(parentId.toString(), rootOfSource);
             }
 
             rootOfSource.addDirectory(directory);

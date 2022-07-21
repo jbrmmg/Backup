@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import java.util.List;
+import java.util.Optional;
 
 public class RwDbTree extends CompareRoot {
     private final RwRoot realWorld;
@@ -129,8 +130,8 @@ public class RwDbTree extends CompareRoot {
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override

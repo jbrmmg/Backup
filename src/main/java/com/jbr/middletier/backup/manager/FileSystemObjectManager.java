@@ -112,7 +112,7 @@ public class FileSystemObjectManager {
 
         List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
         for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParent(null);
+            nextDirectory.setParent(Optional.empty());
             directoryRepository.save(nextDirectory);
         }
 
@@ -164,11 +164,11 @@ public class FileSystemObjectManager {
     }
 
     private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) {
-        if(fso.getParentId() == null) {
+        if(fso.getParentId().isPresent()) {
             return;
         }
 
-        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId());
+        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId().get());
         if(!parent.isPresent())
             return;
 

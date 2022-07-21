@@ -147,7 +147,7 @@ public class FsoIT   {
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParent(testSource);
+        directoryInfo.setParent(Optional.of(testSource));
         directoryInfo.setName("test directory");
 
         directoryRepository.save(directoryInfo);
@@ -161,7 +161,7 @@ public class FsoIT   {
         LocalDateTime aDate =  LocalDateTime.parse("2022-06-02 10:02:03", formatter);
 
         FileInfo fileInfo = new FileInfo();
-        fileInfo.setParent(directoryInfo);
+        fileInfo.setParent(Optional.of(directoryInfo));
         fileInfo.setName("Blah");
         fileInfo.setClassification(classificationList.get(0));
         fileInfo.setDate(aDate);
@@ -174,7 +174,8 @@ public class FsoIT   {
         Optional<FileInfo> theFile = fileRepository.findById(theId);
         Assert.assertTrue(theFile.isPresent());
 
-        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile.get().getParentId().getId());
+        Assert.assertTrue(theFile.get().getParentId().isPresent());
+        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile.get().getParentId().get().getId());
         Assert.assertEquals("Blah", theFile.get().getName());
         Assert.assertEquals(classificationList.get(0).getId(), theFile.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile.get().getDate());
@@ -192,7 +193,8 @@ public class FsoIT   {
         Optional<FileInfo> theFile2 = fileRepository.findById(theId);
         Assert.assertTrue(theFile2.isPresent());
 
-        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile2.get().getParentId().getId());
+        Assert.assertTrue(theFile2.get().getParentId().isPresent());
+        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile2.get().getParentId().get().getId());
         Assert.assertEquals("not Blah", theFile2.get().getName());
         Assert.assertEquals(classificationList.get(1).getId(), theFile2.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile2.get().getDate());
@@ -221,13 +223,13 @@ public class FsoIT   {
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParent(testSource);
+        directoryInfo.setParent(Optional.of(testSource));
         directoryInfo.setName("test directory");
 
         directoryRepository.save(directoryInfo);
 
         DirectoryInfo directoryInfo1 = new DirectoryInfo();
-        directoryInfo1.setParent(directoryInfo);
+        directoryInfo1.setParent(Optional.of(directoryInfo));
         directoryInfo1.setName("test 2");
 
         directoryRepository.save(directoryInfo1);
@@ -238,11 +240,15 @@ public class FsoIT   {
         Assert.assertEquals("test directory", directoryInfoList.get(0).getName());
         Assert.assertEquals("test 2", directoryInfoList.get(1).getName());
 
-        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId());
+        Optional<FileSystemObjectId> parentId = directoryInfoList.get(1).getParentId();
+        Assert.assertTrue(parentId.isPresent());
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(parentId.get());
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof DirectoryInfo);
 
-        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId());
+        parentId = directoryInfoList.get(0).getParentId();
+        Assert.assertTrue(parentId.isPresent());
+        parent = fileSystemObjectManager.findFileSystemObject(parentId.get());
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof Source);
 
@@ -271,7 +277,7 @@ public class FsoIT   {
         testIgnoreFile.setDate(aDate);
         testIgnoreFile.setMD5(new MD5("YTWVS"));
         testIgnoreFile.setSize(8310L);
-        testIgnoreFile.setParent(null);
+        testIgnoreFile.setParent(Optional.empty());
 
         ignoreFileRepository.save(testIgnoreFile);
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, testIgnoreFile.getIdAndType().getType());

@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Optional;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @Entity
@@ -42,27 +43,32 @@ public class FileSystemObject {
         return new FileSystemObjectId(this.id, FileSystemObjectType.getFileSystemObjectType(this.type));
     }
 
-    public FileSystemObjectId getParentId() {
+    public Optional<FileSystemObjectId> getParentId() {
         if(this.parentId == null) {
-            return null;
+            return Optional.empty();
         }
 
-        return new FileSystemObjectId(this.parentId, FileSystemObjectType.getFileSystemObjectType(this.parentType));
+        return Optional.of(new FileSystemObjectId(this.parentId, FileSystemObjectType.getFileSystemObjectType(this.parentType)));
     }
 
-    public void setParent(FileSystemObject parent) {
-        if(parent == null) {
+    public void setParent(Optional<FileSystemObject> parent) {
+        if(!parent.isPresent()) {
+            setParentId(Optional.empty());
+            return;
+        }
+
+        setParentId(Optional.of(parent.get().getIdAndType()));
+    }
+
+    public void setParentId(Optional<FileSystemObjectId> parentId) {
+        if(!parentId.isPresent()) {
             this.parentId = null;
             this.parentType = null;
             return;
         }
 
-        setParentId(parent.getIdAndType());
-    }
-
-    public void setParentId(FileSystemObjectId parentId) {
-        this.parentId = parentId.getId();
-        this.parentType = parentId.getType().getTypeName();
+        this.parentId = parentId.get().getId();
+        this.parentType = parentId.get().getType().getTypeName();
     }
 
     public String getName() {

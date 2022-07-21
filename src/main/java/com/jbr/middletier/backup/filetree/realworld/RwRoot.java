@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class RwRoot extends RootFileTreeNode {
     private final Path rootOfRealWorld;
@@ -20,12 +21,12 @@ public class RwRoot extends RootFileTreeNode {
             if (path.getNameCount() <= this.rootOfRealWorld.getNameCount())
                 return;
 
-            FileTreeNode nextIterator = this;
+            Optional<FileTreeNode> nextIterator = Optional.of(this);
 
             for (int directoryIdx = rootOfRealWorld.getNameCount(); directoryIdx < path.getNameCount() - 1; directoryIdx++) {
-                nextIterator = nextIterator.getNamedChild(path.getName(directoryIdx).toString());
+                nextIterator = nextIterator.get().getNamedChild(path.getName(directoryIdx).toString());
 
-                if(nextIterator == null)
+                if(!nextIterator.isPresent())
                     return;
             }
 
@@ -33,19 +34,19 @@ public class RwRoot extends RootFileTreeNode {
             if (fileSystem.isDirectory(path)) {
                 // Ignore directories that start with .
                 if (!path.getFileName().toString().startsWith(".")) {
-                    nextIterator.addChild(new RwDirectory(nextIterator, path));
+                    nextIterator.get().addChild(new RwDirectory(nextIterator.get(), path));
                 }
 
                 return;
             }
 
-            nextIterator.addChild(new RwFile(nextIterator, path));
+            nextIterator.get().addChild(new RwFile(nextIterator.get(), path));
         });
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override
@@ -59,7 +60,7 @@ public class RwRoot extends RootFileTreeNode {
             List<FileTreeNode> toBeRemoved = new ArrayList<>();
 
             for(FileTreeNode nextNode : this.children) {
-                if(!nextNode.getName().matches(filter)) {
+                if(nextNode.getName().isPresent() && !nextNode.getName().get().matches(filter)) {
                     toBeRemoved.add(nextNode);
                 }
             }

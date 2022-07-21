@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.DBC_NOT_EQUAL;
@@ -64,7 +65,9 @@ public class TestFileTreeClasses {
         BasicTestNode testNode = new BasicTestNode();
 
         testNode.test4();
-        Assert.assertEquals("Hello", testNode.getNamedChild("Hello").getName());
+        Assert.assertTrue(testNode.getNamedChild("Hello").isPresent());
+        Assert.assertTrue(testNode.getNamedChild("Hello").get().getName().isPresent());
+        Assert.assertEquals("Hello", testNode.getNamedChild("Hello").get().getName().get());
         Assert.assertNull(testNode.getNamedChild("Hello2"));
         Assert.assertEquals("Hello 0", testNode.getNamedChild("Hello").toString());
     }
@@ -166,14 +169,14 @@ public class TestFileTreeClasses {
         DbFile mockFile = mock(DbFile.class);
         DbFile mockFile2 = mock(DbFile.class);
 
-        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
         when(mockFile.compare(mockFile2)).thenReturn(result);
         when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
         when(mockFile.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
-        when(mockFile2.getName()).thenReturn("test1");
+        when(mockFile2.getName()).thenReturn(Optional.of("test1"));
         when(mockFile2.isDirectory()).thenReturn(false);
         when(mockFile2.compare(mockFile)).thenReturn(result);
         when(mockFile2.getClassification()).thenReturn(actionType == null ? null : classification);
@@ -356,14 +359,14 @@ public class TestFileTreeClasses {
         DbFile mockFile = mock(DbFile.class);
         DbDirectory mockDirectory = mock(DbDirectory.class);
 
-        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
         when(mockFile.compare(mockDirectory)).thenReturn(DBC_NOT_EQUAL);
         when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
         when(mockFile.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
-        when(mockDirectory.getName()).thenReturn("test1");
+        when(mockDirectory.getName()).thenReturn(Optional.of("test1"));
         when(mockDirectory.isDirectory()).thenReturn(true);
         when(mockDirectory.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
@@ -436,7 +439,7 @@ public class TestFileTreeClasses {
 
         DbFile mockFile = mock(DbFile.class);
 
-        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
         when(mockFile.compare(null)).thenReturn(DBC_NOT_EQUAL);
         when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
@@ -508,13 +511,13 @@ public class TestFileTreeClasses {
         DbDirectory mockDirectory = mock(DbDirectory.class);
         DbDirectory mockDirectory2 = mock(DbDirectory.class);
 
-        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
         when(mockDirectory.compare(mockDirectory2)).thenReturn(DBC_EQUAL);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
-        when(mockDirectory2.getName()).thenReturn("test1");
+        when(mockDirectory2.getName()).thenReturn(Optional.of("test1"));
         when(mockDirectory2.isDirectory()).thenReturn(true);
         when(mockDirectory2.compare(mockDirectory)).thenReturn(DBC_EQUAL);
         when(mockDirectory2.getFSO()).thenReturn(mockFSO);
@@ -534,7 +537,7 @@ public class TestFileTreeClasses {
 
         DbDirectory mockDirectory = mock(DbDirectory.class);
 
-        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
         when(mockDirectory.compare(null)).thenReturn(DBC_NOT_EQUAL);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
@@ -555,13 +558,13 @@ public class TestFileTreeClasses {
         DbDirectory mockDirectory = mock(DbDirectory.class);
         DbFile mockFile = mock(DbFile.class);
 
-        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
         when(mockDirectory.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
-        when(mockFile.getName()).thenReturn("test1");
+        when(mockFile.getName()).thenReturn(Optional.of("test1"));
         when(mockFile.isDirectory()).thenReturn(false);
         when(mockFile.compare(mockDirectory)).thenReturn(DBC_NOT_EQUAL);
         when(mockFile.getFSO()).thenReturn(mockFSO);
@@ -581,7 +584,7 @@ public class TestFileTreeClasses {
 
         DbFile mockFile = mock(DbFile.class);
 
-        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(true);
         when(mockFile.compare(null)).thenReturn(DBC_NOT_EQUAL);
         when(mockFile.getFSO()).thenReturn(mockFSO);
@@ -601,7 +604,7 @@ public class TestFileTreeClasses {
 
         DbDirectory mockDirectory = mock(DbDirectory.class);
 
-        when(mockDirectory.getName()).thenReturn("test");
+        when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
         when(mockDirectory.compare(null)).thenReturn(DBC_NOT_EQUAL);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
@@ -620,21 +623,21 @@ public class TestFileTreeClasses {
         when(classification.getAction()).thenReturn(ClassificationActionType.CA_BACKUP);
 
         DbFile mockFile = mock(DbFile.class);
-        when(mockFile.getName()).thenReturn("test");
+        when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
         when(mockFile.compare(mockFile)).thenReturn(DBC_EQUAL);
         when(mockFile.getClassification()).thenReturn(classification);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
         DbFile mockFile2 = mock(DbFile.class);
-        when(mockFile2.getName()).thenReturn("test1");
+        when(mockFile2.getName()).thenReturn(Optional.of("test1"));
         when(mockFile2.isDirectory()).thenReturn(false);
         when(mockFile2.compare(mockFile)).thenReturn(DBC_EQUAL);
         when(mockFile2.getClassification()).thenReturn(classification);
         ReflectionTestUtils.setField(mockFile2,"children",new ArrayList<>());
 
         DbFile mockFile3 = mock(DbFile.class);
-        when(mockFile3.getName()).thenReturn("test2");
+        when(mockFile3.getName()).thenReturn(Optional.of("test2"));
         when(mockFile3.isDirectory()).thenReturn(false);
         when(mockFile3.compare(mockFile)).thenReturn(DBC_EQUAL);
         when(mockFile3.getClassification()).thenReturn(classification);

@@ -3,10 +3,7 @@ package com.jbr.middletier.backup.integration;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
-import com.jbr.middletier.backup.exception.ImportRequestException;
-import com.jbr.middletier.backup.exception.InvalidClassificationIdException;
-import com.jbr.middletier.backup.exception.InvalidLocationIdException;
-import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
+import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.*;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -72,9 +69,11 @@ public class ImportIT extends FileTester {
     ActionManager actionManager;
 
     Source source;
+    ImportSource importSource;
+    PreImportSource preImportSource;
 
     @Before
-    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException {
+    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, InvalidSourceIdException {
         initialiseDirectories();
 
         // Update JPG so it gets an MD5
@@ -112,6 +111,21 @@ public class ImportIT extends FileTester {
         sourceDTO.setPath(sourceDirectory);
 
         this.source = associatedFileDataManager.createSource(sourceDTO);
+
+        ImportSourceDTO importSourceDTO = new ImportSourceDTO();
+        importSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        importSourceDTO.setStatus(SourceStatusType.SST_OK);
+        importSourceDTO.setPath(sourceDirectory);
+        importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
+
+        this.importSource = associatedFileDataManager.createImportSource(importSourceDTO);
+
+        PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
+        preImportSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
+        preImportSourceDTO.setPath(sourceDirectory);
+
+        this.preImportSource = associatedFileDataManager.createPreImportSource(preImportSourceDTO);
     }
 
     private void checkGather(List<GatherDataDTO> result, int fileInsert, int dirInsert) {
@@ -175,19 +189,15 @@ public class ImportIT extends FileTester {
         driveManager.gather();
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setSource(this.source.getIdAndType().getId());
-        importRequest.setPath(importDirectory);
-        List<GatherDataDTO> result = importManager.importPhoto(importRequest);
+        List<GatherDataDTO> result = importManager.importPhoto();
         checkGather(result, 4, 2);
 
-        List<ImportDataDTO> importResult = importManager.importPhotoProcess();
+        List<ImportDataDTO> importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 0, 0, 0, 0);
 
         confirmActions();
 
-        importManager.resetFiles();
-        importResult = importManager.importPhotoProcess();
+        importResult = importManager.processImportFiles();
         checkImport(importResult, 4, 0, 0, 0, 0);
 
         driveManager.gather();
@@ -197,10 +207,10 @@ public class ImportIT extends FileTester {
         importDesciption = getTestStructure("test10");
         copyFiles(importDesciption, importDirectory);
 
-        result = importManager.importPhoto(importRequest);
+        result = importManager.importPhoto();
         checkGather(result, 4, 2);
 
-        importResult = importManager.importPhotoProcess();
+        importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 0, 4, 0, 0);
     }
 
@@ -212,31 +222,26 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDesciption = getTestStructure("test14_1");
         copyFiles(importDesciption, importDirectory);
 
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setSource(this.source.getIdAndType().getId());
-        importRequest.setPath(importDirectory);
-        List<GatherDataDTO> result = importManager.importPhoto(importRequest);
+        List<GatherDataDTO> result = importManager.importPhoto();
         checkGather(result, 5, 0);
 
-        List<ImportDataDTO> importResult = importManager.importPhotoProcess();
+        List<ImportDataDTO> importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 0, 0, 0, 0);
 
         confirmActionsIgnoreOrRecipe("IMG_8233.jpg", true);
         confirmActionsIgnoreOrRecipe("IMG_8234.jpg", true);
         confirmActions();
 
-        importManager.resetFiles();
-        importResult = importManager.importPhotoProcess();
+        importResult = importManager.processImportFiles();
         checkImport(importResult, 3, 0, 0, 2, 0);
 
         importDesciption = getTestStructure("test14_1");
         copyFiles(importDesciption, importDirectory);
 
-        result = importManager.importPhoto(importRequest);
+        result = importManager.importPhoto();
         checkGather(result, 5, 0);
 
-        importManager.resetFiles();
-        importResult = importManager.importPhotoProcess();
+        importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 2, 0, 0, 0);
 
         actionManager.clearImportActions();
@@ -250,13 +255,10 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDesciption = getTestStructure("test1");
         copyFiles(importDesciption, importDirectory);
 
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setSource(this.source.getIdAndType().getId());
-        importRequest.setPath(importDirectory);
-        List<GatherDataDTO> result = importManager.importPhoto(importRequest);
+        List<GatherDataDTO> result = importManager.importPhoto();
         checkGather(result, 1, 1);
 
-        List<ImportDataDTO> importResult = importManager.importPhotoProcess();
+        List<ImportDataDTO> importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 0, 0, 0, 1);
     }
 
@@ -268,21 +270,17 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDesciption = getTestStructure("test14_1");
         copyFiles(importDesciption, importDirectory);
 
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setSource(this.source.getIdAndType().getId());
-        importRequest.setPath(importDirectory);
-        List<GatherDataDTO> result = importManager.importPhoto(importRequest);
+        List<GatherDataDTO> result = importManager.importPhoto();
         checkGather(result, 5, 0);
 
-        List<ImportDataDTO> importResult = importManager.importPhotoProcess();
+        List<ImportDataDTO> importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 0, 0, 0, 0);
 
         confirmActionsIgnoreOrRecipe("IMG_8233.jpg", false);
         confirmActionsIgnoreOrRecipe("IMG_8234.jpg", false);
         confirmActions();
 
-        importManager.resetFiles();
-        importResult = importManager.importPhotoProcess();
+        importResult = importManager.processImportFiles();
         checkImport(importResult, 5, 0, 0, 0, 0);
 
         sourceDescription = getTestStructure("test14_recipe");

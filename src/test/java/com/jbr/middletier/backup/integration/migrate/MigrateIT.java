@@ -26,8 +26,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
-
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,8 +155,9 @@ public class MigrateIT extends WebTester {
         Assert.assertTrue(fso.isPresent());
         FileInfo file = (FileInfo) fso.get();
         Assert.assertEquals("WP_20160917_00_27_06_Selfie.jpg", file.getName());
-        Assert.assertEquals(9 + 101, (long)file.getParentId().getId());
-        Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+        Assert.assertTrue(file.getParentId().isPresent());
+        Assert.assertEquals(9 + 101, (long)file.getParentId().get().getId());
+        Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().get().getType());
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1702065, (long)file.getSize());
         Assert.assertEquals("2016-10-01 15:30", formatter.format(file.getDate()));
@@ -206,8 +205,9 @@ public class MigrateIT extends WebTester {
         ImportFile file = (ImportFile) fso.get();
         Assert.assertNotNull(file);
         Assert.assertEquals("IMG_5739.jpg", file.getName());
-        Assert.assertEquals(10 + 101, (long)file.getParentId().getId());
-        Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+        Assert.assertTrue(file.getParentId().isPresent());
+        Assert.assertEquals(10 + 101, (long)file.getParentId().get().getId());
+        Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().get().getType());
         Assert.assertEquals(5, (long)file.getClassification().getId());
         Assert.assertEquals(1645188, (long)file.getSize());
         Assert.assertEquals("2022-01-03 18:44", formatter.format(file.getDate()));
@@ -216,7 +216,8 @@ public class MigrateIT extends WebTester {
 
         // Check the FK's
         try {
-            Optional<FileSystemObject> directory = fileSystemObjectManager.findFileSystemObject(file.getParentId());
+            Assert.assertTrue(file.getParentId().isPresent());
+            Optional<FileSystemObject> directory = fileSystemObjectManager.findFileSystemObject(file.getParentId().get());
             Assert.assertTrue(directory.isPresent());
             fileSystemObjectManager.delete(directory.get());
             Assert.fail();
@@ -241,8 +242,9 @@ public class MigrateIT extends WebTester {
                 ImportFile file = (ImportFile) importFile.get();
                 Assert.assertNotNull(file);
                 Assert.assertEquals("IMG_4060.jpg", file.getName());
-                Assert.assertEquals(10 + 101, (long) file.getParentId().getId());
-                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                Assert.assertTrue(file.getParentId().isPresent());
+                Assert.assertEquals(10 + 101, (long) file.getParentId().get().getId());
+                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().get().getType());
                 Assert.assertEquals(5, (long) file.getClassification().getId());
                 Assert.assertEquals(1570162, (long) file.getSize());
                 Assert.assertEquals("2022-01-03 18:39", formatter.format(file.getDate()));
@@ -270,8 +272,9 @@ public class MigrateIT extends WebTester {
                 Assert.assertNotNull(file);
                 testDeleteId = next.getFileId();
                 Assert.assertEquals("Report-September-2020.pdf", file.getName());
-                Assert.assertEquals(11 + 101, (long) file.getParentId().getId());
-                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().getType());
+                Assert.assertTrue(file.getParentId().isPresent());
+                Assert.assertEquals(11 + 101, (long) file.getParentId().get().getId());
+                Assert.assertEquals(FileSystemObjectType.FSO_DIRECTORY, file.getParentId().get().getType());
                 Assert.assertEquals(4, (long) file.getClassification().getId());
                 Assert.assertEquals(712919, (long) file.getSize());
                 Assert.assertEquals("2020-09-30 04:00", formatter.format(file.getDate()));
@@ -324,24 +327,28 @@ public class MigrateIT extends WebTester {
         Assert.assertTrue(fso.isPresent());
         DirectoryInfo directory = (DirectoryInfo) fso.get();
         Assert.assertEquals("Day 6", directory.getName());
-        FileSystemObjectId checkSameParent = fso.get().getParentId();
+        Optional<FileSystemObjectId> checkSameParent = fso.get().getParentId();
+        Assert.assertTrue(checkSameParent.isPresent());
 
-        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        fso = fileSystemObjectManager.findFileSystemObject(checkSameParent.get());
         Assert.assertTrue(fso.isPresent());
         directory = (DirectoryInfo) fso.get();
         Assert.assertEquals("Boom Banger", directory.getName());
 
-        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.get().getParentId().isPresent());
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId().get());
         Assert.assertTrue(fso.isPresent());
         directory = (DirectoryInfo) fso.get();
         Assert.assertEquals("September", directory.getName());
 
-        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.get().getParentId().isPresent());
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId().get());
         Assert.assertTrue(fso.isPresent());
         directory = (DirectoryInfo) fso.get();
         Assert.assertEquals("2016", directory.getName());
 
-        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId());
+        Assert.assertTrue(fso.get().getParentId().isPresent());
+        fso = fileSystemObjectManager.findFileSystemObject(fso.get().getParentId().get());
         Assert.assertTrue(fso.isPresent());
         Source source = (Source) fso.get();
         Assert.assertEquals("/media/Shared/Photo", source.getName());

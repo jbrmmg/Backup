@@ -85,6 +85,7 @@ public class SyncApiIT extends FileTester {
 
     private Source source;
     private Source destination;
+    private ImportSource importSource;
     private Synchronize synchronize;
 
     @Before
@@ -115,13 +116,17 @@ public class SyncApiIT extends FileTester {
         }
 
         // During this test create files in the following directories
-        String sourceDirectory = "./target/it_test/source";
         deleteDirectoryContents(new File(sourceDirectory).toPath());
         Files.createDirectories(new File(sourceDirectory).toPath());
 
-        String destinationDirectory = "./target/it_test/destination";
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
+
+        deleteDirectoryContents(new File(importDirectory).toPath());
+        Files.createDirectories(new File(importDirectory).toPath());
+
+        deleteDirectoryContents(new File(preImportDirectory).toPath());
+        Files.createDirectories(new File(preImportDirectory).toPath());
 
         // Create the standard sources
         Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
@@ -146,6 +151,21 @@ public class SyncApiIT extends FileTester {
 
         this.destination = associatedFileDataManager.createSource(sourceDTO);
 
+        ImportSourceDTO importSourceDTO = new ImportSourceDTO();
+        importSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        importSourceDTO.setStatus(SourceStatusType.SST_OK);
+        importSourceDTO.setPath(importDirectory);
+        importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
+
+        this.importSource = associatedFileDataManager.createImportSource(importSourceDTO);
+
+        PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
+        preImportSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
+        preImportSourceDTO.setPath(importDirectory);
+
+        associatedFileDataManager.createPreImportSource(preImportSourceDTO);
+
         // Create the source and synchronise entries
         SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
         synchronizeDTO.setId(1);
@@ -161,6 +181,7 @@ public class SyncApiIT extends FileTester {
         associatedFileDataManager.deleteAllSynchronize();
         actionManager.deleteAllActions();
         fileSystemObjectManager.deleteAllFileObjects();
+        associatedFileDataManager.deleteAllPreImportSource();
         associatedFileDataManager.deleteAllImportSource();
         associatedFileDataManager.deleteAllSource();
     }
@@ -566,39 +587,17 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void importTestInvalidSource() throws Exception {
-        initialiseDirectories();
-
-        // Set up a request with invalid source, check exception.
-        ImportRequest importRequest = new ImportRequest();
-        int badId = this.source.getIdAndType().getId() + 1;
-        if(this.destination.getIdAndType().getId() == badId) {
-            badId = this.destination.getIdAndType().getId() + 1;
-        }
-        importRequest.setPath(importDirectory);
-        importRequest.setSource(badId);
-
-        LOG.info("Gather the data.");
-        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("The source does not exist - " + badId, error);
-    }
-
-    @Test
     public void importTestInvalidPath() throws Exception {
         initialiseDirectories();
 
-        // Set up a request with invalid path, check exception.
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setPath(importDirectory + "x");
-        importRequest.setSource(this.source.getIdAndType().getId());
+        SourceDTO updateSource = new SourceDTO(this.importSource);
+        updateSource.setPath(importDirectory + "x");
+
+        associatedFileDataManager.updateSource(updateSource);
 
         LOG.info("Gather the data.");
         String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
+                        .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
@@ -619,37 +618,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void importTestNoImportLocation() throws Exception {
-        initialiseDirectories();
-
-        // Set up the correct request.
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setPath(importDirectory);
-        importRequest.setSource(this.source.getIdAndType().getId());
-
-        // Remove the import location temporarily.
-        Optional<Location> location = associatedFileDataManager.findLocationById(4);
-        if(location.isPresent()) {
-            location.get().setName("Import x");
-            associatedFileDataManager.updateLocation(new LocationDTO(location.get()));
-        }
-
-        LOG.info("Gather the data.");
-        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
-                        .contentType(getContentType()))
-                .andExpect(status().isNotFound())
-                .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("Cannot find import location.", error);
-
-        // Restore the location.
-        if(location.isPresent()) {
-            location.get().setName("Import");
-            associatedFileDataManager.updateLocation(new LocationDTO(location.get()));
-        }
-    }
-
-    @Test
     public void importTest() throws Exception {
         LOG.info("Delete with Gather Testing");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
@@ -661,6 +629,9 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, sourceDirectory);
 
         sourceDescription = getTestStructure("test6");
+        copyFiles(sourceDescription, preImportDirectory);
+
+        sourceDescription = getTestStructure("test6_3");
         copyFiles(sourceDescription, importDirectory);
 
         // Insert an ignore file to check it doesn't interfere.
@@ -677,15 +648,22 @@ public class SyncApiIT extends FileTester {
         ignoreFile.setSize(12);
         fileSystemObjectManager.save(ignoreFile);
 
-        // Set up the correct request.
-        ImportRequest importRequest = new ImportRequest();
-        importRequest.setPath(importDirectory);
-        importRequest.setSource(this.source.getIdAndType().getId());
-
         // Perform the gather - should be 5 files, 1 directory.
-        LOG.info("Gather the data.");
+        LOG.info("Convert the files");
+        getMockMvc().perform(post("/jbr/int/backup/convert")
+                        .content(this.json("testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].filesInserted", is(6)))
+                .andExpect(jsonPath("$[0].directoriesInserted", is(1)))
+                .andExpect(jsonPath("$[0].filesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
+                .andExpect(jsonPath("$[0].deletes", is(0)));
+
+        LOG.info("Gather the files");
         getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
+                        .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -822,7 +800,7 @@ public class SyncApiIT extends FileTester {
 
         LOG.info("Reset the data.");
         getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
+                        .content(this.json("test"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -856,7 +834,7 @@ public class SyncApiIT extends FileTester {
         // Reset the information.
         initialiseDirectories();
         getMockMvc().perform(post("/jbr/int/backup/import")
-                        .content(this.json(importRequest))
+                        .content(this.json("test"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -1796,9 +1774,6 @@ public class SyncApiIT extends FileTester {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test4");
         copyFiles(sourceDescription, sourceDirectory);
-
-        // Insert an import source
-        associatedFileDataManager.createImportSource("Blah", this.source, this.source.getLocation());
 
         // Remove the destination
         associatedFileDataManager.updateSourceStatus(this.destination, SourceStatusType.SST_GATHERING);

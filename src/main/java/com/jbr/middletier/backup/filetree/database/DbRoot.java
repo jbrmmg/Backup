@@ -7,6 +7,8 @@ import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.RootFileTreeNode;
 
+import java.util.Optional;
+
 public class DbRoot extends RootFileTreeNode {
     private final Source databaseSource;
 
@@ -23,8 +25,8 @@ public class DbRoot extends RootFileTreeNode {
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override

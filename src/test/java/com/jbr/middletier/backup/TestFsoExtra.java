@@ -225,7 +225,7 @@ public class TestFsoExtra {
                 importFileRepository);
 
         FileSystemObject testFso = mock(FileSystemObject.class);
-        when(testFso.getParentId()).thenReturn(new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY));
+        when(testFso.getParentId()).thenReturn(Optional.of(new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY)));
 
         File result = manager.getFile(testFso);
         Assert.assertEquals("null", result.getName());

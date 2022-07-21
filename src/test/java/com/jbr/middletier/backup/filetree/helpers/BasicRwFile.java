@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import org.junit.Assert;
 
 import java.io.File;
+import java.util.Optional;
 
 public class BasicRwFile extends RwFile {
     public BasicRwFile() {
@@ -22,7 +23,7 @@ public class BasicRwFile extends RwFile {
     }
 
     @Override
-    public String getName() {
-        return "test";
+    public Optional<String> getName() {
+        return Optional.of("test");
     }
 }

@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.filetree.realworld.RwDirectory;
 import org.junit.Assert;
 
 import java.io.File;
+import java.util.Optional;
 
 public class BasicRwDirectory extends RwDirectory {
     public BasicRwDirectory() {
@@ -11,8 +12,8 @@ public class BasicRwDirectory extends RwDirectory {
     }
 
     @Override
-    public String getName() {
-        return "Test";
+    public Optional<String> getName() {
+        return Optional.of("Test");
     }
 
     public boolean test() {

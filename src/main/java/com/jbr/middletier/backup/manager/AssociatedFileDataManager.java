@@ -22,15 +22,17 @@ public class AssociatedFileDataManager {
     private final ClassificationRepository classificationRepository;
     private final SynchronizeRepository synchronizeRepository;
     private final ImportSourceRepository importSourceRepository;
+    private final PreImportSourceRepository preImportSourceRepository;
     private List<Classification> cachedClassifications;
 
     @Autowired
-    public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository) {
+    public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository, PreImportSourceRepository preImportSourceRepository) {
         this.sourceRepository = sourceRepository;
         this.locationRepository = locationRepository;
         this.classificationRepository = classificationRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.importSourceRepository = importSourceRepository;
+        this.preImportSourceRepository = preImportSourceRepository;
         this.cachedClassifications = null;
     }
 
@@ -52,14 +54,14 @@ public class AssociatedFileDataManager {
         return this.cachedClassifications;
     }
 
-    public Classification classifyFile(FileInfo file) {
+    public Optional<Classification> classifyFile(FileInfo file) {
         for(Classification nextClassification : internalFindAllClassification()) {
             if(nextClassification.fileMatches(file)) {
-                return nextClassification;
+                return Optional.of(nextClassification);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public Classification createClassification(ClassificationDTO newClassification) throws ClassificationIdException {
@@ -117,6 +119,7 @@ public class AssociatedFileDataManager {
         return locationRepository.findById(id);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Location createLocation(LocationDTO newLocation) throws LocationAlreadyExistsException {
         Optional<Location> existing = locationRepository.findById(newLocation.getId());
         if(existing.isPresent()) {
@@ -162,6 +165,18 @@ public class AssociatedFileDataManager {
         return result;
     }
 
+    public List<PreImportSourceDTO> externalFindAllPreImportSource() {
+        List<PreImportSourceDTO> result = new ArrayList<>();
+
+        this.internalFindAllPreImportSource().forEach(preImportSource -> result.add(new PreImportSourceDTO(preImportSource)));
+
+        return result;
+    }
+
+    public Iterable<PreImportSource> internalFindAllPreImportSource() {
+        return this.preImportSourceRepository.findAllByOrderByIdAsc();
+    }
+
     public Iterable<ImportSource> internalFindAllImportSource() {
         return this.importSourceRepository.findAllByOrderByIdAsc();
     }
@@ -195,15 +210,20 @@ public class AssociatedFileDataManager {
         return sourceRepository.save(new Source(newSource));
     }
 
-    public ImportSource createImportSource(String path, Source destination, Location location) {
-        ImportSource importSource = new ImportSource(path);
-        importSource.setDestination(destination);
-        importSource.setLocation(location);
-        importSource.setStatus(SourceStatusType.SST_OK);
+    public ImportSource createImportSource(ImportSourceDTO newSource) throws SourceAlreadyExistsException, InvalidSourceIdException {
+        if(newSource.getId() != null) {
+            throw new SourceAlreadyExistsException(newSource.getId());
+        }
 
-        sourceRepository.save(importSource);
+        return importSourceRepository.save(new ImportSource(newSource, this));
+    }
 
-        return importSource;
+    public PreImportSource createPreImportSource(PreImportSourceDTO newSource) throws SourceAlreadyExistsException {
+        if(newSource.getId() != null) {
+            throw new SourceAlreadyExistsException(newSource.getId());
+        }
+
+        return preImportSourceRepository.save(new PreImportSource(newSource));
     }
 
     public void updateSource(SourceDTO source) throws InvalidSourceIdException {
@@ -239,6 +259,10 @@ public class AssociatedFileDataManager {
 
     public void deleteAllImportSource() {
         importSourceRepository.deleteAll();
+    }
+
+    public void deleteAllPreImportSource() {
+        preImportSourceRepository.deleteAll();
     }
 
     // Synchronize - CRUD actions

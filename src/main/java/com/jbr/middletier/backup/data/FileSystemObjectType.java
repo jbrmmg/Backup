@@ -8,7 +8,8 @@ public enum FileSystemObjectType {
     FSO_FILE("FILE"),
     FSO_DIRECTORY("DIRY"),
     FSO_SOURCE("SRCE"),
-    FSO_IMPORT_SOURCE("IMPS");
+    FSO_IMPORT_SOURCE("IMPS"),
+    FSO_PRE_IMPORT_SOURCE("PIMP");
 
     private final String type;
 

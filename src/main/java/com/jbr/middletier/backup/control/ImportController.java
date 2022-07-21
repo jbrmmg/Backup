@@ -1,8 +1,6 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.ImportFile;
-import com.jbr.middletier.backup.data.ImportProcessRequest;
-import com.jbr.middletier.backup.data.ImportRequest;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportDataDTO;
 import com.jbr.middletier.backup.dto.ImportFileDTO;
@@ -10,7 +8,6 @@ import com.jbr.middletier.backup.dto.ImportProcessDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.manager.ImportManager;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,32 +32,25 @@ public class ImportController {
         this.importManager = importManager;
     }
 
-    @PostMapping(path="/import")
-    public @ResponseBody List<GatherDataDTO> importPhotoDirectory(@NotNull @RequestBody ImportRequest importRequest) throws ImportRequestException, IOException {
-        LOG.info("Import - {}", importRequest.getPath());
-
-        return importManager.importPhoto(importRequest);
-    }
-
     @PostMapping(path="/convert")
-    public @ResponseBody List<ImportProcessDTO> processImports(@NotNull @RequestBody ImportProcessRequest importProcessRequest) {
-        LOG.info("Import proces - from {} to {}", importProcessRequest.getSource(), importProcessRequest.getDestination());
+    public @ResponseBody List<ImportProcessDTO> processImports() {
+        LOG.info("Convert files from pre import to import");
 
-        return importManager.importProcessPhoto(importProcessRequest);
+        return importManager.convertImportFiles();
     }
 
-    @DeleteMapping(path="/import")
-    public @ResponseBody List<GatherDataDTO> removeEntries() {
-        LOG.info("Remove entries from import table");
+    @PostMapping(path="/import")
+    public @ResponseBody List<GatherDataDTO> importPhotoDirectory() throws ImportRequestException, IOException {
+        LOG.info("Import the files");
 
-        return importManager.removeEntries();
+        return importManager.importPhoto();
     }
 
     @PostMapping(path="/importprocess")
     public @ResponseBody List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
-        LOG.info("Import - process");
+        LOG.info("Process the import files.");
 
-        return importManager.importPhotoProcess();
+        return importManager.processImportFiles();
     }
 
     private List<ImportFileDTO> getExternalList(Iterable<ImportFile> list) {
@@ -79,12 +69,5 @@ public class ImportController {
         LOG.info("Get the import files.");
 
         return getExternalList(importManager.findImportFiles());
-    }
-
-    @PutMapping(path="/importfiles")
-    public @ResponseBody List<ImportFileDTO> resetFiles() {
-        LOG.info("Get the import files.");
-
-        return getExternalList(importManager.resetFiles());
     }
 }

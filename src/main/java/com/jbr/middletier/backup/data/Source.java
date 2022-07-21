@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dto.SourceDTO;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.File;
+import java.util.Optional;
 
 @SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
@@ -80,12 +81,12 @@ public class Source extends FileSystemObject {
 
     public void setLocation(Location location) { this.location = location; }
 
-    public File getMountCheck() {
+    public Optional<File> getMountCheck() {
         if(this.mountCheck == null) {
-            return null;
+            return Optional.empty();
         }
 
-        return new File(this.mountCheck);
+        return Optional.of(new File(this.mountCheck));
     }
 
     public void setMountCheck(String mountCheck) {
