@@ -358,7 +358,7 @@ public class ImportManager extends FileProcessor {
         Optional<PreImportSource> result = Optional.empty();
 
         int count = 0;
-        for(PreImportSource nextSource : associatedFileDataManager.internalFindAllPreImportSource()) {
+        for(PreImportSource nextSource : associatedFileDataManager.findAllPreImportSource()) {
             result = Optional.of(nextSource);
 
             if(count > 0) {
@@ -376,7 +376,7 @@ public class ImportManager extends FileProcessor {
         Optional<ImportSource> result = Optional.empty();
 
         int count = 0;
-        for(ImportSource nextSource : associatedFileDataManager.internalFindAllImportSource()) {
+        for(ImportSource nextSource : associatedFileDataManager.findAllImportSource()) {
             result = Optional.of(nextSource);
 
             if(count > 0) {
@@ -473,20 +473,20 @@ public class ImportManager extends FileProcessor {
         List<ImportDataDTO> result = new ArrayList<>();
 
         // Get the source.
-        Optional<ImportSourceDTO> importSource = Optional.empty();
-        for(ImportSourceDTO nextSource: associatedFileDataManager.externalFindAllImportSource()) {
+        Optional<ImportSource> importSource = Optional.empty();
+        for(ImportSource nextSource: associatedFileDataManager.findAllImportSource()) {
             importSource = Optional.of(nextSource);
         }
 
         if(!importSource.isPresent()) {
             throw new ImportRequestException("There is no import source defined.");
         }
-        ImportDataDTO resultItem = new ImportDataDTO(importSource.get().getId());
+        ImportDataDTO resultItem = new ImportDataDTO(importSource.get().getIdAndType().getId());
         result.add(resultItem);
 
         try {
             // Get the place they are to be imported to.
-            Optional<Source> destination = associatedFileDataManager.internalFindSourceByIdIfExists(importSource.get().getDestinationId());
+            Optional<Source> destination = associatedFileDataManager.findSourceIfExists(importSource.get().getDestination().getIdAndType().getId());
             if (!destination.isPresent()) {
                 throw new ImportRequestException("Destination for import is not found.");
             }

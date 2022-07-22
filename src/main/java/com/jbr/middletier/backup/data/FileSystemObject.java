@@ -43,6 +43,8 @@ public class FileSystemObject {
         return new FileSystemObjectId(this.id, FileSystemObjectType.getFileSystemObjectType(this.type));
     }
 
+    public void setId(Integer id) { this.id = id; }
+
     public Optional<FileSystemObjectId> getParentId() {
         if(this.parentId == null) {
             return Optional.empty();

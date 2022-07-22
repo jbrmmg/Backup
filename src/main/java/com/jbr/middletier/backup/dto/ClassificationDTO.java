@@ -17,17 +17,6 @@ public class ClassificationDTO {
     public ClassificationDTO() {
     }
 
-    public ClassificationDTO(Classification classification) {
-        this.id = classification.getId();
-        this.order = classification.getOrder();
-        this.regex = classification.getRegex();
-        this.action = classification.getAction();
-        this.icon = classification.getIcon();
-        this.useMD5 = classification.getUseMD5();
-        this.isImage = classification.getIsImage();
-        this.isVideo = classification.getIsVideo();
-    }
-
     public Integer getId() {
         return id;
     }
@@ -76,19 +65,19 @@ public class ClassificationDTO {
         this.useMD5 = useMD5;
     }
 
-    public Boolean getImage() {
+    public Boolean getIsImage() {
         return isImage;
     }
 
-    public void setImage(Boolean image) {
+    public void setIsImage(Boolean image) {
         isImage = image;
     }
 
-    public Boolean getVideo() {
+    public Boolean getIsVideo() {
         return isVideo;
     }
 
-    public void setVideo(Boolean video) {
+    public void setIsVideo(Boolean video) {
         isVideo = video;
     }
 }

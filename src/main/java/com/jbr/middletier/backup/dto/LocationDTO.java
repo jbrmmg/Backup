@@ -17,19 +17,6 @@ public class LocationDTO {
         setSize("");
     }
 
-    public LocationDTO(int id, String name, String size) {
-        setId(id);
-        setName(name);
-        setSize(size);
-    }
-
-    public LocationDTO(Location location) {
-        this();
-        setId(location.getId());
-        setName(location.getName());
-        setSize(location.getSize());
-    }
-
     public Integer getId() {
         return id;
     }

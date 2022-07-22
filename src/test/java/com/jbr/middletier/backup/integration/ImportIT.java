@@ -77,19 +77,19 @@ public class ImportIT extends FileTester {
         initialiseDirectories();
 
         // Update JPG so it gets an MD5
-        for (Classification nextClassification : associatedFileDataManager.internalFindAllClassification()) {
+        for (Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if (nextClassification.getRegex().contains("jpg")) {
                 ClassificationDTO updateClassification = new ClassificationDTO();
                 updateClassification.setId(nextClassification.getId());
                 updateClassification.setIcon(nextClassification.getIcon());
                 updateClassification.setRegex(nextClassification.getRegex());
                 updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setVideo(nextClassification.getIsVideo());
+                updateClassification.setIsVideo(nextClassification.getIsVideo());
                 updateClassification.setOrder(1);
-                updateClassification.setImage(true);
+                updateClassification.setIsImage(true);
                 updateClassification.setUseMD5(true);
 
-                associatedFileDataManager.updateClassification(updateClassification);
+                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             }
         }
 
@@ -101,31 +101,31 @@ public class ImportIT extends FileTester {
         if (!existingLocation.isPresent())
             fail();
 
-        LocationDTO location = new LocationDTO(existingLocation.get());
+        LocationDTO location = associatedFileDataManager.convertToDTO(existingLocation.get());
         location.setCheckDuplicates(true);
-        associatedFileDataManager.updateLocation(location);
+        associatedFileDataManager.updateLocation(associatedFileDataManager.convertToEntity(location));
 
         SourceDTO sourceDTO = new SourceDTO();
-        sourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus(SourceStatusType.SST_OK);
         sourceDTO.setPath(sourceDirectory);
 
-        this.source = associatedFileDataManager.createSource(sourceDTO);
+        this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
-        importSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         importSourceDTO.setStatus(SourceStatusType.SST_OK);
         importSourceDTO.setPath(sourceDirectory);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
 
-        this.importSource = associatedFileDataManager.createImportSource(importSourceDTO);
+        this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(importSourceDTO));
 
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
-        preImportSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
         preImportSourceDTO.setPath(sourceDirectory);
 
-        this.preImportSource = associatedFileDataManager.createPreImportSource(preImportSourceDTO);
+        this.preImportSource = associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
     }
 
     private void checkGather(List<GatherDataDTO> result, int fileInsert, int dirInsert) {

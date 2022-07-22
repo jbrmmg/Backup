@@ -83,7 +83,7 @@ public class DuplicateManager {
         actionManager.clearDuplicateActions();
 
         // Check for duplicates in sources.
-        for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
+        for (Source nextSource : associatedFileDataManager.findAllSource()) {
             if (Boolean.TRUE.equals(nextSource.getLocation().getCheckDuplicates())) {
                 DuplicateDataDTO duplicateDataDTO = new DuplicateDataDTO(nextSource.getIdAndType().getId());
                 result.add(duplicateDataDTO);

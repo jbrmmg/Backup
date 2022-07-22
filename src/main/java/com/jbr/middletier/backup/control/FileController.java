@@ -94,7 +94,7 @@ public class FileController {
             List<Integer> sourceIds = new ArrayList<>();
 
             // Level 1 - get those sources that are the left-hand side of synchronisation.
-            for(Synchronize nextSynchronize: associatedFileDataManager.internalFindAllSynchronize()) {
+            for(Synchronize nextSynchronize: associatedFileDataManager.findAllSynchronize()) {
                 if(sourceIds.contains(nextSynchronize.getSource().getIdAndType().getId())) {
                     continue;
                 }

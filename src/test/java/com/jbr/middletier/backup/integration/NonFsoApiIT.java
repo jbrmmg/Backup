@@ -329,13 +329,13 @@ public class NonFsoApiIT extends WebTester {
     public void classificationApi() throws Exception {
         // TODO - do not assume the size is 33 - work it out.
         ClassificationDTO classificationDTO = new ClassificationDTO();
-        classificationDTO.setVideo(false);
+        classificationDTO.setIsVideo(false);
         classificationDTO.setOrder(33);
         classificationDTO.setUseMD5(true);
         classificationDTO.setAction(ClassificationActionType.CA_BACKUP);
         classificationDTO.setRegex("*/sdaf");
         classificationDTO.setIcon("Flahr");
-        classificationDTO.setImage(true);
+        classificationDTO.setIsImage(true);
 
         LOG.info("Create a classification.");
         getMockMvc().perform(post("/jbr/ext/backup/classification")
@@ -352,9 +352,9 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction().toString())))
                 .andExpect(jsonPath("$[32].useMD5", is(classificationDTO.getUseMD5())))
                 .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
-                .andExpect(jsonPath("$[32].video", is(classificationDTO.getVideo())))
+                .andExpect(jsonPath("$[32].video", is(classificationDTO.getIsVideo())))
                 .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())))
-                .andExpect(jsonPath("$[32].image", is(classificationDTO.getImage())));
+                .andExpect(jsonPath("$[32].image", is(classificationDTO.getIsImage())));
 
         LOG.info("Modify the classification.");
         classificationDTO.setId(33);

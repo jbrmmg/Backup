@@ -75,15 +75,15 @@ public class AfdmIT {
         newLocation.setName("Test");
         newLocation.setSize("1GB");
 
-        associatedFileDataManager.createLocation(newLocation);
+        associatedFileDataManager.createLocation(associatedFileDataManager.convertToEntity(newLocation));
 
         Optional<Location> findLocation = associatedFileDataManager.findLocationById(1000);
         Assert.assertTrue(findLocation.isPresent());
 
-        LocationDTO updateLocation = new LocationDTO(findLocation.get());
+        LocationDTO updateLocation = associatedFileDataManager.convertToDTO(findLocation.get());
         updateLocation.setName("Test 2");
 
-        associatedFileDataManager.updateLocation(updateLocation);
+        associatedFileDataManager.updateLocation(associatedFileDataManager.convertToEntity(updateLocation));
 
         Optional<Location> findLocation2 = associatedFileDataManager.findLocationById(1000);
         Assert.assertTrue(findLocation2.isPresent());
@@ -91,7 +91,7 @@ public class AfdmIT {
         Assert.assertEquals("Test 2", findLocation2.get().getName());
         Assert.assertEquals("1GB", findLocation2.get().getSize());
 
-        associatedFileDataManager.deleteLocation(updateLocation);
+        associatedFileDataManager.deleteLocation(findLocation2.get());
 
         findLocation2 = associatedFileDataManager.findLocationById(1000);
         Assert.assertFalse(findLocation2.isPresent());
@@ -103,17 +103,17 @@ public class AfdmIT {
 
         ClassificationDTO newDTO = new ClassificationDTO();
         newDTO.setAction(ClassificationActionType.CA_BACKUP);
-        newDTO.setImage(false);
+        newDTO.setIsImage(false);
         newDTO.setIcon("Fred");
         newDTO.setOrder(1);
         newDTO.setRegex("x");
         newDTO.setUseMD5(true);
-        newDTO.setVideo(false);
+        newDTO.setIsVideo(false);
 
-        Classification newClassification = associatedFileDataManager.createClassification(newDTO);
+        Classification newClassification = associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(newDTO));
 
         AtomicReference<Optional<Classification>> findClassification = new AtomicReference<>(Optional.empty());
-        associatedFileDataManager.internalFindAllClassification().forEach(classification -> {
+        associatedFileDataManager.findAllClassifications().forEach(classification -> {
             if(classification.getId().equals(newClassification.getId())) {
                 findClassification.set(Optional.of(classification));
             }
@@ -126,11 +126,10 @@ public class AfdmIT {
         Assert.assertEquals(false, findClassification.get().get().getIsVideo());
         Assert.assertEquals(true, findClassification.get().get().getUseMD5());
 
-        ClassificationDTO classificationForDelete = new ClassificationDTO(findClassification.get().get());
-        associatedFileDataManager.deleteClassification(classificationForDelete);
+        associatedFileDataManager.deleteClassification(findClassification.get().get());
 
         findClassification.set(Optional.empty());
-        associatedFileDataManager.internalFindAllClassification().forEach(classification -> {
+        associatedFileDataManager.findAllClassifications().forEach(classification -> {
             if(classification.getId().equals(newClassification.getId())) {
                 findClassification.set(Optional.of(classification));
             }
@@ -146,31 +145,31 @@ public class AfdmIT {
         newLocation.setId(1000);
         newLocation.setName("Test");
         newLocation.setName("1GB");
-        associatedFileDataManager.createLocation(newLocation);
+        associatedFileDataManager.createLocation(associatedFileDataManager.convertToEntity(newLocation));
 
         SourceDTO newSource1 = new SourceDTO();
         newSource1.setLocation(newLocation);
         newSource1.setStatus(SourceStatusType.SST_OK);
         newSource1.setFilter("*.xml");
         newSource1.setPath("/test/directory");
-        Source createdSource1 = associatedFileDataManager.createSource(newSource1);
+        Source createdSource1 = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(newSource1));
 
         SourceDTO newSource2 = new SourceDTO();
         newSource2.setLocation(newLocation);
         newSource2.setStatus(SourceStatusType.SST_OK);
         newSource2.setFilter("*.xml");
         newSource2.setPath("/test/directory2");
-        Source createdSource2 = associatedFileDataManager.createSource(newSource2);
+        Source createdSource2 = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(newSource2));
 
         SynchronizeDTO newSync = new SynchronizeDTO();
         newSync.setId(1000);
-        newSync.setDestination(new SourceDTO(createdSource1));
-        newSync.setSource(new SourceDTO(createdSource2));
+        newSync.setDestination(newSource1);
+        newSync.setSource(newSource2);
 
-        associatedFileDataManager.createSynchronize(newSync);
+        associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(newSync));
 
         AtomicReference<Optional<Synchronize>> findSync = new AtomicReference<>(Optional.empty());
-        associatedFileDataManager.internalFindAllSynchronize().forEach(synchronize -> {
+        associatedFileDataManager.findAllSynchronize().forEach(synchronize -> {
             if(synchronize.getId().equals(newSync.getId())) {
                 findSync.set(Optional.of(synchronize));
             }
@@ -182,10 +181,10 @@ public class AfdmIT {
 
         findSync.get().get().setDestination(createdSource2);
         findSync.get().get().setSource(createdSource1);
-        associatedFileDataManager.updateSynchronize(new SynchronizeDTO(findSync.get().get()));
+        associatedFileDataManager.updateSynchronize(findSync.get().get());
 
         AtomicReference<Optional<Synchronize>> findSync2 = new AtomicReference<>(Optional.empty());
-        associatedFileDataManager.internalFindAllSynchronize().forEach(synchronize -> {
+        associatedFileDataManager.findAllSynchronize().forEach(synchronize -> {
             if(synchronize.getId().equals(newSync.getId())) {
                 findSync2.set(Optional.of(synchronize));
             }
@@ -195,24 +194,24 @@ public class AfdmIT {
         Assert.assertEquals("/test/directory2", findSync2.get().get().getDestination().getPath());
         Assert.assertEquals("/test/directory", findSync2.get().get().getSource().getPath());
 
-        associatedFileDataManager.deleteSynchronize(new SynchronizeDTO(findSync2.get().get()));
+        associatedFileDataManager.deleteSynchronize(findSync2.get().get());
         findSync2.set(Optional.empty());
-        for(Synchronize nextSync : associatedFileDataManager.internalFindAllSynchronize() ) {
+        for(Synchronize nextSync : associatedFileDataManager.findAllSynchronize() ) {
             if(nextSync.getId().equals(newSync.getId())) {
                 findSync2.set(Optional.of(nextSync));
             }
         }
         Assert.assertFalse(findSync2.get().isPresent());
 
-        associatedFileDataManager.deleteSource(new SourceDTO(createdSource1));
-        associatedFileDataManager.deleteSource(new SourceDTO(createdSource2));
-        associatedFileDataManager.deleteLocation(newLocation);
+        associatedFileDataManager.deleteSource(createdSource1);
+        associatedFileDataManager.deleteSource(createdSource2);
+        associatedFileDataManager.deleteLocation(associatedFileDataManager.convertToEntity(newLocation));
     }
 
     @Test
     public void updateSynchronizeTest() {
-        SynchronizeDTO synchronizeDTO = mock(SynchronizeDTO.class);
-        when(synchronizeDTO.getId()).thenReturn(1);
+        Synchronize synchronize = mock(Synchronize.class);
+        when(synchronize.getId()).thenReturn(1);
 
         SourceRepository sourceRepository = mock(SourceRepository.class);
         PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
@@ -226,10 +225,11 @@ public class AfdmIT {
                 locationRepository,
                 classificationRepository,
                 synchronizeRepository,
-                importSourceRepository, preImportSourceRepository);
+                importSourceRepository,
+                preImportSourceRepository);
 
         try {
-            testAFDM.updateSynchronize(synchronizeDTO);
+            testAFDM.updateSynchronize(synchronize);
             Assert.fail();
         } catch (InvalidSynchronizeIdException e) {
             Assert.assertEquals("Synchronize with id (1) not found.", e.getMessage());

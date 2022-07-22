@@ -99,19 +99,19 @@ public class SyncApiIT extends FileTester {
         addClassification(associatedFileDataManager,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
 
         // Update JPG so it gets an MD5
-        for(Classification nextClassification : associatedFileDataManager.internalFindAllClassification()) {
+        for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if(nextClassification.getRegex().contains("jpg")) {
                 ClassificationDTO updateClassification = new ClassificationDTO();
                 updateClassification.setId(nextClassification.getId());
                 updateClassification.setIcon(nextClassification.getIcon());
                 updateClassification.setRegex(nextClassification.getRegex());
                 updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setVideo(nextClassification.getIsVideo());
+                updateClassification.setIsVideo(nextClassification.getIsVideo());
                 updateClassification.setOrder(1);
-                updateClassification.setImage(true);
+                updateClassification.setIsImage(true);
                 updateClassification.setUseMD5(true);
 
-                associatedFileDataManager.updateClassification(updateClassification);
+                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             }
         }
 
@@ -133,46 +133,46 @@ public class SyncApiIT extends FileTester {
         if(!existingLocation.isPresent())
             fail();
 
-        LocationDTO location = new LocationDTO(existingLocation.get());
+        LocationDTO location = associatedFileDataManager.convertToDTO(existingLocation.get());
         location.setCheckDuplicates(true);
-        associatedFileDataManager.updateLocation(location);
+        associatedFileDataManager.updateLocation(associatedFileDataManager.convertToEntity(location));
 
         SourceDTO sourceDTO = new SourceDTO();
-        sourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus(SourceStatusType.SST_OK);
         sourceDTO.setPath(sourceDirectory);
 
-        this.source = associatedFileDataManager.createSource(sourceDTO);
+        this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         sourceDTO = new SourceDTO();
-        sourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus(SourceStatusType.SST_OK);
         sourceDTO.setPath(destinationDirectory);
 
-        this.destination = associatedFileDataManager.createSource(sourceDTO);
+        this.destination = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
-        importSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         importSourceDTO.setStatus(SourceStatusType.SST_OK);
         importSourceDTO.setPath(importDirectory);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
 
-        this.importSource = associatedFileDataManager.createImportSource(importSourceDTO);
+        this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(importSourceDTO));
 
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
-        preImportSourceDTO.setLocation(new LocationDTO(existingLocation.get()));
+        preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
         preImportSourceDTO.setPath(importDirectory);
 
-        associatedFileDataManager.createPreImportSource(preImportSourceDTO);
+        associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
 
         // Create the source and synchronise entries
         SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
         synchronizeDTO.setId(1);
-        synchronizeDTO.setSource(new SourceDTO(this.source));
-        synchronizeDTO.setDestination(new SourceDTO(this.destination));
+        synchronizeDTO.setSource(associatedFileDataManager.convertToDTO(this.source));
+        synchronizeDTO.setDestination(associatedFileDataManager.convertToDTO(this.destination));
 
-        this.synchronize = associatedFileDataManager.createSynchronize(synchronizeDTO);
+        this.synchronize = associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(synchronizeDTO));
     }
 
     @After
@@ -534,8 +534,8 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, sourceDirectory);
 
         // Remove the destination source or this test.
-        associatedFileDataManager.internalDeleteSynchronize(this.synchronize);
-        associatedFileDataManager.internalDeleteSource(this.destination);
+        associatedFileDataManager.deleteSynchronize(this.synchronize);
+        associatedFileDataManager.deleteSource(this.destination);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -590,10 +590,10 @@ public class SyncApiIT extends FileTester {
     public void importTestInvalidPath() throws Exception {
         initialiseDirectories();
 
-        SourceDTO updateSource = new SourceDTO(this.importSource);
+        SourceDTO updateSource = associatedFileDataManager.convertToDTO(this.importSource);
         updateSource.setPath(importDirectory + "x");
 
-        associatedFileDataManager.updateSource(updateSource);
+        associatedFileDataManager.updateSource(associatedFileDataManager.convertToEntity(updateSource));
 
         LOG.info("Gather the data.");
         String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
@@ -675,7 +675,7 @@ public class SyncApiIT extends FileTester {
 
         // Verify that the database matches the real world.
         ImportSource importSource = null;
-        for(ImportSource nextImportSource : associatedFileDataManager.internalFindAllImportSource()) {
+        for(ImportSource nextImportSource : associatedFileDataManager.findAllImportSource()) {
             // Only one is expected
             importSource = nextImportSource;
         }
@@ -1000,7 +1000,7 @@ public class SyncApiIT extends FileTester {
                 .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("Source with id (1) not found.", error);
 
-        associatedFileDataManager.internalFindSourceById(this.source.getIdAndType().getId());
+        associatedFileDataManager.findSourceById(this.source.getIdAndType().getId());
 
         sourceDTO = new SourceDTO();
         sourceDTO.setId(this.source.getIdAndType().getId());
@@ -1845,7 +1845,7 @@ public class SyncApiIT extends FileTester {
         // During this test create files in the following directories
         initialiseDirectories();
         this.source.setMountCheck("./target/it_test/import/thisfileismissing.txt");
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
@@ -1865,7 +1865,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         this.source.setMountCheck(null);
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
     }
 
     @Test
@@ -1893,7 +1893,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         this.source.setMountCheck("./target/it_test/import/thisfileismissing.txt");
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
 
         // Perform the sync.
         getMockMvc().perform(post("/jbr/int/backup/sync")
@@ -1911,7 +1911,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         this.source.setMountCheck(null);
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
     }
 
     @Test
@@ -1924,7 +1924,7 @@ public class SyncApiIT extends FileTester {
 
         // During this test create files in the following directories
         this.source.setMountCheck(checkMountFile.toString());
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
@@ -1944,7 +1944,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         this.source.setMountCheck(null);
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
     }
 
     @Test
@@ -1974,7 +1974,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         this.source.setMountCheck(checkMountFile.toString());
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
 
         // Perform the sync.
         getMockMvc().perform(post("/jbr/int/backup/sync")
@@ -1992,6 +1992,6 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         this.source.setMountCheck(null);
-        associatedFileDataManager.updateSource(this.source.getSourceDTO());
+        associatedFileDataManager.updateSource(this.source);
     }
 }

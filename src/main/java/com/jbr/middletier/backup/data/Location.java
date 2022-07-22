@@ -31,30 +31,6 @@ public class Location {
         setSize("");
     }
 
-    public Location(LocationDTO source) {
-        setId(source.getId());
-        setName(source.getName());
-        setSize(source.getSize());
-        update(source);
-    }
-
-    public void update(LocationDTO source) {
-        setName(source.getName());
-        setSize(source.getSize());
-        this.checkDuplicates = source.getCheckDuplicates();
-    }
-
-    public LocationDTO getLocationDTO() {
-        LocationDTO result = new LocationDTO();
-
-        result.setId(getId());
-        result.setName(getName());
-        result.setSize(getSize());
-        result.setCheckDuplicates(getCheckDuplicates());
-
-        return result;
-    }
-
     public int getId() { return this.id; }
 
     public String getName() { return this.name; }
@@ -69,7 +45,7 @@ public class Location {
 
     public void setSize(@NotNull String size) { this.size = size; }
 
-    public void setCheckDuplicates() { this.checkDuplicates = true; }
+    public void setCheckDuplicates(Boolean checkDuplicates) { this.checkDuplicates = checkDuplicates; }
 
     @Override
     public String toString() {

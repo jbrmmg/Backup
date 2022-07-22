@@ -15,12 +15,7 @@ public class ImportSource extends Source {
 
     public ImportSource() {
         super(FileSystemObjectType.FSO_IMPORT_SOURCE);
-    }
-
-    public ImportSource(ImportSourceDTO source, AssociatedFileDataManager associatedFileDataManager) throws InvalidSourceIdException {
-        super(FileSystemObjectType.FSO_IMPORT_SOURCE);
-        update(source);
-        setDestination(associatedFileDataManager.internalFindSourceById(source.getId()));
+        this.destination = null;
     }
 
     public Source getDestination() { return this.destination; }

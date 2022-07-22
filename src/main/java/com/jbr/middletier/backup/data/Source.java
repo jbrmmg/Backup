@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.data;
 
 import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -32,37 +33,6 @@ public class Source extends FileSystemObject {
     public Source() {
         super(FileSystemObjectType.FSO_SOURCE);
         setPath("");
-    }
-
-    public Source(String path) {
-        this();
-        setPath(path);
-    }
-
-    public Source(SourceDTO source) {
-        this();
-        update(source);
-    }
-
-    public SourceDTO getSourceDTO() {
-        SourceDTO result = new SourceDTO();
-
-        result.setId(getIdAndType().getId());
-        result.setLocation(getLocation().getLocationDTO());
-        result.setFilter(getFilter());
-        result.setStatus(getStatus());
-        result.setPath(getPath());
-        result.setMountCheck(getMountCheck() == null ? null : getMountCheck().toString());
-
-        return result;
-    }
-
-    public void update(SourceDTO source) {
-        setPath(source.getPath());
-        setLocation(new Location(source.getLocation()));
-        setStatus(source.getStatus());
-        setFilter(source.getFilter());
-        setMountCheck(source.getMountCheck());
     }
 
     public void setPath(@NotNull String path) { this.name = path; }

@@ -9,15 +9,6 @@ public class ImportSourceDTO extends SourceDTO {
         super();
     }
 
-    public ImportSourceDTO(ImportSource importSource) {
-        this(new SourceDTO(importSource));
-        this.destinationId = importSource.getDestination().getIdAndType().getId();
-    }
-
-    public ImportSourceDTO(SourceDTO sourceDTO) {
-        super(sourceDTO);
-    }
-
     public Integer getDestinationId() {
         return destinationId;
     }

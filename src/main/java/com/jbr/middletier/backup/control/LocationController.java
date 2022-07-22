@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,28 +27,39 @@ public class LocationController {
         this.associatedFileDataManager = associatedFileDataManager;
     }
 
+    private List<LocationDTO> getLocations() {
+        List<LocationDTO> result = new ArrayList<>();
+
+        associatedFileDataManager.findAllLocation().forEach(location -> result.add(associatedFileDataManager.convertToDTO(location)));
+        LOG.info("Get the locations - {}", result.size());
+
+        return result;
+    }
+
     @GetMapping(path="/location")
     public @ResponseBody List<LocationDTO> getLocation() {
-        LOG.info("Get the locations");
-        return associatedFileDataManager.externalFindAllLocation();
+        return getLocations();
     }
 
     @PostMapping(path="/location")
     public @ResponseBody List<LocationDTO> createLocation(@NotNull @RequestBody LocationDTO location) throws LocationAlreadyExistsException {
-        associatedFileDataManager.createLocation(location);
-        return associatedFileDataManager.externalFindAllLocation();
+        LOG.info("create location {}", location);
+        associatedFileDataManager.createLocation(associatedFileDataManager.convertToEntity(location));
+        return getLocations();
     }
 
     @PutMapping(path="/location")
     public @ResponseBody List<LocationDTO> updateLocation(@NotNull @RequestBody LocationDTO location) throws InvalidLocationIdException {
-        associatedFileDataManager.updateLocation(location);
-        return associatedFileDataManager.externalFindAllLocation();
+        LOG.info("update location {}", location);
+        associatedFileDataManager.updateLocation(associatedFileDataManager.convertToEntity(location));
+        return getLocations();
     }
 
     @DeleteMapping(path="/location")
     public @ResponseBody List<LocationDTO> deleteLocation(@NotNull @RequestBody LocationDTO location) throws InvalidLocationIdException {
-        associatedFileDataManager.deleteLocation(location);
-        return associatedFileDataManager.externalFindAllLocation();
+        LOG.info("delete location {}", location);
+        associatedFileDataManager.deleteLocation(associatedFileDataManager.convertToEntity(location));
+        return getLocations();
     }
 
 }

@@ -40,13 +40,13 @@ public class Summary {
                 instance.sources = new ArrayList<>();
 
                 // Initialise the summary object.
-                for (Source nextSource : associatedFileDataManager.internalFindAllSource()) {
-                    SourceDTO nextSourceDTO = nextSource.getSourceDTO();
+                for (Source nextSource : associatedFileDataManager.findAllSource()) {
+                    SourceDTO nextSourceDTO = associatedFileDataManager.convertToDTO(nextSource);
 
                     // Check to see if there is an import source.
-                    Optional<ImportSource> importSource = associatedFileDataManager.internalFindImportSourceByIdIfExists(nextSourceDTO.getId());
+                    Optional<ImportSource> importSource = associatedFileDataManager.findImportSourceIfExists(nextSourceDTO.getId());
                     if(importSource.isPresent()) {
-                        ImportSourceDTO importSourceDTO = new ImportSourceDTO(importSource.get());
+                        ImportSourceDTO importSourceDTO = associatedFileDataManager.convertToDTO(importSource.get());
                         nextSourceDTO = importSourceDTO;
                         instance.sources.add(importSourceDTO);
                     } else {

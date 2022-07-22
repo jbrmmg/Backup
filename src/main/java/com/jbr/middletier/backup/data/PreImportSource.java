@@ -10,9 +10,4 @@ public class PreImportSource extends Source {
     public PreImportSource() {
         super(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE);
     }
-
-    public PreImportSource(PreImportSourceDTO source) {
-        super(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE);
-        update(source);
-    }
 }

@@ -14,16 +14,6 @@ public class SynchronizeDTO {
         setId(0);
     }
 
-    public SynchronizeDTO(int id) {
-        setId(id);
-    }
-
-    public SynchronizeDTO(Synchronize synchronize) {
-        this.id = synchronize.getId();
-        this.source = new SourceDTO(synchronize.getSource());
-        this.destination = new SourceDTO(synchronize.getDestination());
-    }
-
     public Integer getId() {
         return id;
     }

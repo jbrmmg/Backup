@@ -4,6 +4,12 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
+import org.modelmapper.Converter;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
+import org.modelmapper.TypeMap;
+import org.modelmapper.spi.Mapping;
+import org.modelmapper.spi.MappingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +30,7 @@ public class AssociatedFileDataManager {
     private final ImportSourceRepository importSourceRepository;
     private final PreImportSourceRepository preImportSourceRepository;
     private List<Classification> cachedClassifications;
+    private ModelMapper modelMapper;
 
     @Autowired
     public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository, PreImportSourceRepository preImportSourceRepository) {
@@ -34,18 +41,90 @@ public class AssociatedFileDataManager {
         this.importSourceRepository = importSourceRepository;
         this.preImportSourceRepository = preImportSourceRepository;
         this.cachedClassifications = null;
+
+        this.modelMapper = new ModelMapper();
+
+        PropertyMap<Source,SourceDTO> sourceMap = new PropertyMap<Source, SourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<ImportSource,ImportSourceDTO> importSourceMap = new PropertyMap<ImportSource, ImportSourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+                map().setDestinationId(source.getDestination().getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<PreImportSource,PreImportSourceDTO> preImportSourceMap = new PropertyMap<PreImportSource, PreImportSourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        this.modelMapper.addMappings(sourceMap);
+        this.modelMapper.addMappings(importSourceMap);
+        this.modelMapper.addMappings(preImportSourceMap);
     }
 
-    // Classification - CRUD actions.
-    public List<ClassificationDTO> externalFindAllClassification() {
-        List<ClassificationDTO> result = new ArrayList<>();
-
-        this.classificationRepository.findAllByOrderByOrderAsc().forEach(classification -> result.add(new ClassificationDTO(classification)));
-
-        return result;
+    // DTO to entity conversions.
+    public ClassificationDTO convertToDTO(Classification classification) {
+        return modelMapper.map(classification, ClassificationDTO.class);
     }
 
-    public List<Classification> internalFindAllClassification() {
+    public Classification convertToEntity(ClassificationDTO classification) {
+        return modelMapper.map(classification, Classification.class);
+    }
+
+    public LocationDTO convertToDTO(Location location) {
+        return modelMapper.map(location, LocationDTO.class);
+    }
+
+    public Location convertToEntity(LocationDTO location) {
+        return modelMapper.map(location, Location.class);
+    }
+
+    public SourceDTO convertToDTO(Source source) {
+        return modelMapper.map(source, SourceDTO.class);
+    }
+
+    public Source convertToEntity(SourceDTO source) {
+        return modelMapper.map(source, Source.class);
+    }
+
+    public ImportSourceDTO convertToDTO(ImportSource source) {
+        return modelMapper.map(source, ImportSourceDTO.class);
+    }
+
+    public ImportSource convertToEntity(ImportSourceDTO source) {
+        return modelMapper.map(source, ImportSource.class);
+    }
+
+    public PreImportSourceDTO convertToDTO(PreImportSource source) {
+        return modelMapper.map(source, PreImportSourceDTO.class);
+    }
+
+    public PreImportSource convertToEntity(PreImportSourceDTO source) {
+        return modelMapper.map(source, PreImportSource.class);
+    }
+
+    public SynchronizeDTO convertToDTO(Synchronize synchronize) {
+        return modelMapper.map(synchronize, SynchronizeDTO.class);
+    }
+
+    public Synchronize convertToEntity(SynchronizeDTO synchronize) {
+        return modelMapper.map(synchronize, Synchronize.class);
+    }
+
+    /* --------------------------------------------------------------------------------------------------
+     * CLASSIFICATION
+     * -------------------------------------------------------------------------------------------------- */
+
+    public List<Classification> findAllClassifications() {
         if(this.cachedClassifications == null) {
             this.cachedClassifications = new ArrayList<>();
             this.classificationRepository.findAllByOrderByOrderAsc().forEach(classification -> this.cachedClassifications.add(classification));
@@ -55,7 +134,7 @@ public class AssociatedFileDataManager {
     }
 
     public Optional<Classification> classifyFile(FileInfo file) {
-        for(Classification nextClassification : internalFindAllClassification()) {
+        for(Classification nextClassification : findAllClassifications()) {
             if(nextClassification.fileMatches(file)) {
                 return Optional.of(nextClassification);
             }
@@ -64,28 +143,26 @@ public class AssociatedFileDataManager {
         return Optional.empty();
     }
 
-    public Classification createClassification(ClassificationDTO newClassification) throws ClassificationIdException {
-        if(newClassification.getId() != null) {
+    public Classification createClassification(Classification classification) throws ClassificationIdException {
+        if(classification.getId() != null) {
             throw new ClassificationIdException();
         }
 
         this.cachedClassifications = null;
-        return classificationRepository.save(new Classification(newClassification));
+        return classificationRepository.save(classification);
     }
 
-    public void updateClassification(ClassificationDTO classification) throws InvalidClassificationIdException {
+    public void updateClassification(Classification classification) throws InvalidClassificationIdException {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(!existing.isPresent()) {
             throw new InvalidClassificationIdException(classification.getId());
         }
 
-        existing.get().update(classification);
-
         this.cachedClassifications = null;
-        classificationRepository.save(existing.get());
+        classificationRepository.save(classification);
     }
 
-    public void deleteClassification(ClassificationDTO classification) throws InvalidClassificationIdException {
+    public void deleteClassification(Classification classification) throws InvalidClassificationIdException {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
         if(!existing.isPresent()) {
             throw new InvalidClassificationIdException(classification.getId());
@@ -95,16 +172,19 @@ public class AssociatedFileDataManager {
         classificationRepository.deleteById(classification.getId());
     }
 
-    // Location - CRUD actions
-    public List<LocationDTO> externalFindAllLocation() {
-        List<LocationDTO> result = new ArrayList<>();
+    /* --------------------------------------------------------------------------------------------------
+     * CLASSIFICATION
+     * -------------------------------------------------------------------------------------------------- */
 
-        this.locationRepository.findAllByOrderByIdAsc().forEach(location -> result.add(new LocationDTO(location)));
+   public List<Location> findAllLocation() {
+        List<Location> result = new ArrayList<>();
+
+        this.locationRepository.findAllByOrderByIdAsc().forEach(result::add);
 
         return result;
     }
 
-    public Optional<Location> internalFindImportLocationIfExists() {
+    public Optional<Location> findImportLocation() {
         Optional<Location> result = Optional.empty();
         for(Location nextLocation: locationRepository.findAll()) {
             if(nextLocation.getName().equalsIgnoreCase("import")) {
@@ -120,26 +200,25 @@ public class AssociatedFileDataManager {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public Location createLocation(LocationDTO newLocation) throws LocationAlreadyExistsException {
-        Optional<Location> existing = locationRepository.findById(newLocation.getId());
+    public Location createLocation(Location location) throws LocationAlreadyExistsException {
+        Optional<Location> existing = locationRepository.findById(location.getId());
         if(existing.isPresent()) {
             throw new LocationAlreadyExistsException(existing.get().getId());
         }
 
-        return locationRepository.save(new Location(newLocation));
+        return locationRepository.save(location);
     }
 
-    public void updateLocation(LocationDTO location) throws InvalidLocationIdException {
+    public void updateLocation(Location location) throws InvalidLocationIdException {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(!existing.isPresent()) {
             throw new InvalidLocationIdException(location.getId());
         }
 
-        existing.get().update(location);
-        locationRepository.save(existing.get());
+        locationRepository.save(location);
     }
 
-    public void deleteLocation(LocationDTO location) throws InvalidLocationIdException {
+    public void deleteLocation(Location location) throws InvalidLocationIdException {
         Optional<Location> existing = locationRepository.findById(location.getId());
         if(!existing.isPresent()) {
             throw new InvalidLocationIdException(location.getId());
@@ -148,44 +227,19 @@ public class AssociatedFileDataManager {
         locationRepository.deleteById(location.getId());
     }
 
-    // Source - CRUD actions
-    public List<SourceDTO> externalFindAllSource() {
-        List<SourceDTO> result = new ArrayList<>();
+    /* --------------------------------------------------------------------------------------------------
+     * SOURCE
+     * -------------------------------------------------------------------------------------------------- */
 
-        this.sourceRepository.findAllByOrderByIdAsc().forEach(source -> result.add(new SourceDTO(source)));
+    public List<Source> findAllSource() {
+        List<Source> result = new ArrayList<>();
 
-        return result;
-    }
-
-    public List<ImportSourceDTO> externalFindAllImportSource() {
-        List<ImportSourceDTO> result = new ArrayList<>();
-
-        this.internalFindAllImportSource().forEach(importSource -> result.add(new ImportSourceDTO(importSource)));
+        this.sourceRepository.findAllByOrderByIdAsc().forEach(result::add);
 
         return result;
     }
 
-    public List<PreImportSourceDTO> externalFindAllPreImportSource() {
-        List<PreImportSourceDTO> result = new ArrayList<>();
-
-        this.internalFindAllPreImportSource().forEach(preImportSource -> result.add(new PreImportSourceDTO(preImportSource)));
-
-        return result;
-    }
-
-    public Iterable<PreImportSource> internalFindAllPreImportSource() {
-        return this.preImportSourceRepository.findAllByOrderByIdAsc();
-    }
-
-    public Iterable<ImportSource> internalFindAllImportSource() {
-        return this.importSourceRepository.findAllByOrderByIdAsc();
-    }
-
-    public Iterable<Source> internalFindAllSource() {
-        return this.sourceRepository.findAll();
-    }
-
-    public Source internalFindSourceById(Integer id) throws InvalidSourceIdException {
+    public Source findSourceById(Integer id) throws InvalidSourceIdException {
         Optional<Source> existing = sourceRepository.findById(id);
         if(!existing.isPresent()) {
             throw new InvalidSourceIdException(id);
@@ -194,42 +248,23 @@ public class AssociatedFileDataManager {
         return existing.get();
     }
 
-    public Optional<Source> internalFindSourceByIdIfExists(Integer id) {
+    public Optional<Source> findSourceIfExists(Integer id) {
         return sourceRepository.findById(id);
     }
 
-    public Optional<ImportSource> internalFindImportSourceByIdIfExists(Integer id) {
-        return importSourceRepository.findById(id);
-    }
-
-    public Source createSource(SourceDTO newSource) throws SourceAlreadyExistsException {
-        if(newSource.getId() != null) {
-            throw new SourceAlreadyExistsException(newSource.getId());
+    public Source createSource(Source source) throws SourceAlreadyExistsException {
+        if(source.getIdAndType().getId() != null) {
+            throw new SourceAlreadyExistsException(source.getIdAndType().getId());
         }
 
-        return sourceRepository.save(new Source(newSource));
+        return sourceRepository.save(source);
     }
 
-    public ImportSource createImportSource(ImportSourceDTO newSource) throws SourceAlreadyExistsException, InvalidSourceIdException {
-        if(newSource.getId() != null) {
-            throw new SourceAlreadyExistsException(newSource.getId());
-        }
+    public void updateSource(Source source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
 
-        return importSourceRepository.save(new ImportSource(newSource, this));
-    }
-
-    public PreImportSource createPreImportSource(PreImportSourceDTO newSource) throws SourceAlreadyExistsException {
-        if(newSource.getId() != null) {
-            throw new SourceAlreadyExistsException(newSource.getId());
-        }
-
-        return preImportSourceRepository.save(new PreImportSource(newSource));
-    }
-
-    public void updateSource(SourceDTO source) throws InvalidSourceIdException {
-        Source existing = internalFindSourceById(source.getId());
-        existing.update(source);
-        sourceRepository.save(existing);
+        sourceRepository.save(source);
     }
 
     public void updateSourceStatus(Source source, SourceStatusType status) {
@@ -241,86 +276,138 @@ public class AssociatedFileDataManager {
         }
     }
 
-    public void deleteSource(SourceDTO source) throws InvalidSourceIdException {
-        sourceRepository.deleteById(internalFindSourceById(source.getId()).getIdAndType().getId());
-    }
+    public void deleteSource(Source source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
 
-    public void internalDeleteSource(Source source) {
-        sourceRepository.delete(source);
-    }
-
-    public void deleteImportSource(ImportSourceDTO importSource) {
-        importSourceRepository.deleteById(importSource.getId());
+        sourceRepository.deleteById(source.getIdAndType().getId());
     }
 
     public void deleteAllSource() {
         sourceRepository.deleteAll();
     }
 
+    /* --------------------------------------------------------------------------------------------------
+     * IMPORT SOURCE
+     * -------------------------------------------------------------------------------------------------- */
+
+    public List<ImportSource> findAllImportSource() {
+        List<ImportSource> result = new ArrayList<>();
+
+        this.importSourceRepository.findAllByOrderByIdAsc().forEach(result::add);
+
+        return result;
+    }
+
+    public Optional<ImportSource> findImportSourceIfExists(Integer id) {
+        return importSourceRepository.findById(id);
+    }
+
+    public ImportSource createImportSource(ImportSource source) throws SourceAlreadyExistsException {
+        if(source.getIdAndType().getId() != null) {
+            throw new SourceAlreadyExistsException(source.getIdAndType().getId());
+        }
+
+        return importSourceRepository.save(source);
+    }
+
+    public void updateImportSource(ImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        importSourceRepository.save(source);
+    }
+
+    public void deleteImportSource(ImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        importSourceRepository.deleteById(source.getIdAndType().getId());
+    }
+
     public void deleteAllImportSource() {
         importSourceRepository.deleteAll();
+    }
+
+    /* --------------------------------------------------------------------------------------------------
+     * PRE-IMPORT SOURCE
+     * -------------------------------------------------------------------------------------------------- */
+
+    public List<PreImportSource> findAllPreImportSource() {
+        List<PreImportSource> result = new ArrayList<>();
+
+        this.preImportSourceRepository.findAllByOrderByIdAsc().forEach(result::add);
+
+        return result;
+    }
+
+    public Optional<PreImportSource> findPreImportSourceIfExists(Integer id) {
+        return preImportSourceRepository.findById(id);
+    }
+
+    public PreImportSource createPreImportSource(PreImportSource source) throws SourceAlreadyExistsException {
+        if(source.getIdAndType().getId() != null) {
+            throw new SourceAlreadyExistsException(source.getIdAndType().getId());
+        }
+
+        return preImportSourceRepository.save(source);
+    }
+
+    public void updatePreImportSource(PreImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        preImportSourceRepository.save(source);
+    }
+
+    public void deletePreImportSource(PreImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        preImportSourceRepository.deleteById(source.getIdAndType().getId());
     }
 
     public void deleteAllPreImportSource() {
         preImportSourceRepository.deleteAll();
     }
 
-    // Synchronize - CRUD actions
-    public List<SynchronizeDTO> externalFindAllSynchronize() {
-        List<SynchronizeDTO> result = new ArrayList<>();
+    /* --------------------------------------------------------------------------------------------------
+     * SYNCHRONIZE
+     * -------------------------------------------------------------------------------------------------- */
 
-        this.synchronizeRepository.findAllByOrderByIdAsc().forEach(synchronize -> result.add(new SynchronizeDTO(synchronize)));
+    public List<Synchronize> findAllSynchronize() {
+        List<Synchronize> result = new ArrayList<>();
+
+        this.synchronizeRepository.findAllByOrderByIdAsc().forEach(result::add);
 
         return result;
     }
 
-    public Iterable<Synchronize> internalFindAllSynchronize() {
-        return this.synchronizeRepository.findAll();
-    }
-
-    public Synchronize createSynchronize(SynchronizeDTO newSynchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
-        Optional<Synchronize> existing = synchronizeRepository.findById(newSynchronize.getId());
+    public Synchronize createSynchronize(Synchronize synchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
+        Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(existing.isPresent()) {
-            throw new SynchronizeAlreadyExistsException(newSynchronize.getId());
+            throw new SynchronizeAlreadyExistsException(synchronize.getId());
         }
 
-        Source source = internalFindSourceById(newSynchronize.getSource().getId());
-        Source destination = internalFindSourceById(newSynchronize.getDestination().getId());
-
-        Synchronize newSync = new Synchronize();
-        newSync.setId(newSynchronize.getId());
-        newSync.setDestination(destination);
-        newSync.setSource(source);
-
-        return synchronizeRepository.save(newSync);
+        return synchronizeRepository.save(synchronize);
     }
 
-    public void updateSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
+    public void updateSynchronize(Synchronize synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 
-        Source source = internalFindSourceById(synchronize.getSource().getId());
-        Source destination = internalFindSourceById(synchronize.getDestination().getId());
-
-        existing.get().setDestination(destination);
-        existing.get().setSource(source);
-
-        synchronizeRepository.save(existing.get());
+        synchronizeRepository.save(synchronize);
     }
 
-    public void deleteSynchronize(SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
+    public void deleteSynchronize(Synchronize synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 
-        synchronizeRepository.deleteById(existing.get().getId());
-    }
-
-    public void internalDeleteSynchronize(Synchronize synchronize) {
-        synchronizeRepository.delete(synchronize);
+        synchronizeRepository.deleteById(synchronize.getId());
     }
 
     public void deleteAllSynchronize() {
