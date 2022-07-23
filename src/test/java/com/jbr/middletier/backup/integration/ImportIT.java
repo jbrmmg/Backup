@@ -115,7 +115,7 @@ public class ImportIT extends FileTester {
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         importSourceDTO.setStatus(SourceStatusType.SST_OK);
-        importSourceDTO.setPath(sourceDirectory);
+        importSourceDTO.setPath(importDirectory);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
 
         this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(importSourceDTO));
@@ -208,7 +208,7 @@ public class ImportIT extends FileTester {
         copyFiles(importDesciption, importDirectory);
 
         result = importManager.importPhoto();
-        checkGather(result, 4, 2);
+        checkGather(result, 0, 0);
 
         importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 0, 4, 0, 0);
@@ -239,7 +239,7 @@ public class ImportIT extends FileTester {
         copyFiles(importDesciption, importDirectory);
 
         result = importManager.importPhoto();
-        checkGather(result, 5, 0);
+        checkGather(result, 0, 0);
 
         importResult = importManager.processImportFiles();
         checkImport(importResult, 0, 2, 0, 0, 0);

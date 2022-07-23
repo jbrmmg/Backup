@@ -155,6 +155,7 @@ public class AfdmIT {
         newSource1.setFilter("*.xml");
         newSource1.setPath("/test/directory");
         Source createdSource1 = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(newSource1));
+        newSource1 = associatedFileDataManager.convertToDTO(createdSource1);
 
         SourceDTO newSource2 = new SourceDTO();
         newSource2.setLocation(newLocation);
@@ -162,6 +163,7 @@ public class AfdmIT {
         newSource2.setFilter("*.xml");
         newSource2.setPath("/test/directory2");
         Source createdSource2 = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(newSource2));
+        newSource2 = associatedFileDataManager.convertToDTO(createdSource2);
 
         SynchronizeDTO newSync = new SynchronizeDTO();
         newSync.setId(1000);

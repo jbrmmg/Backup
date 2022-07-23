@@ -716,7 +716,7 @@ public class SyncApiIT extends FileTester {
             importSource = nextImportSource;
         }
 
-        sourceDescription = getTestStructure("test6_4");
+        sourceDescription = getTestStructure("test6_4_1");
         validateSource(fileSystemObjectManager, importSource, sourceDescription);
     }
 
