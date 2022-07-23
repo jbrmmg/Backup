@@ -137,7 +137,7 @@ public class ActionManager {
         actionConfirmRepository.deleteAll(actions);
     }
 
-    public List<ActionConfirm> getConfirmedImportActionsForFile(FileInfo file) {
+    public List<ActionConfirm> getActionsForFile(FileInfo file) {
         return actionConfirmRepository.findByFileInfoAndAction(file,ActionConfirmType.AC_IMPORT.getTypeName());
     }
 

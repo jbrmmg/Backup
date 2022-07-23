@@ -281,7 +281,11 @@ public class FileTester extends WebTester {
                     if(!childNode.directory && childNode.name.equals(nextFile.getName())) {
                         childNode.dbId = nextFile.getIdAndType().getId();
                         childNode.matched = true;
-                        childNode.dateIndicator = childNode.date.equals(nextFile.getDate()) ? " " : "X";
+
+                        LocalDateTime childDate = childNode.date.withSecond(0).withNano(0);
+                        LocalDateTime fileDate = nextFile.getDate().withSecond(0).withNano(0);
+
+                        childNode.dateIndicator = childDate.equals(fileDate) ? " " : "X";
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
                         childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
                         matched = true;

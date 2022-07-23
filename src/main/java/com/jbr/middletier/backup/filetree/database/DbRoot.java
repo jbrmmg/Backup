@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.filetree.database;
 
 import com.jbr.middletier.backup.data.DirectoryInfo;
+import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
@@ -16,7 +17,11 @@ public class DbRoot extends RootFileTreeNode {
         this.databaseSource = databaseSource;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(databaseSource.getIdAndType().getId())) {
-            addChild(new DbDirectory(this,nextDirectory,fileRepository,directoryRepository));
+            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
+        }
+
+        for(FileInfo nextFile : fileRepository.findByParentId(databaseSource.getIdAndType().getId())) {
+            addChild(new DbFile(this, nextFile));
         }
     }
 

@@ -28,7 +28,7 @@ public class ImportController {
 
     @Contract(pure = true)
     @Autowired
-    public ImportController(ImportManager importManager ) {
+    public ImportController(ImportManager importManager) {
         this.importManager = importManager;
     }
 

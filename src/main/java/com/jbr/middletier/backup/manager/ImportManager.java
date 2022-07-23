@@ -5,7 +5,6 @@ import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportDataDTO;
 import com.jbr.middletier.backup.dto.ImportProcessDTO;
-import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Component
 public class ImportManager extends FileProcessor {
@@ -58,11 +56,7 @@ public class ImportManager extends FileProcessor {
     }
 
     private boolean processClassification(ImportFile importFile, Path path, ImportDataDTO result) {
-        if(importFile.getClassification() == null) {
-            return false;
-        }
-
-        if(!importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
+        if((importFile.getClassification() == null) || !importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
             result.increment(ImportDataDTO.ImportDataCountType.NON_BACKUP_CLASSIFICATIONS);
             LOG.info("{} not a backed up file, deleting", path);
             fileSystem.deleteFile(path.toFile(),result);
@@ -84,16 +78,18 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
-    private FileTestResultType processExisting(ImportFile importFile, Path path, List<FileInfo> files, ImportDataDTO result) {
-        List<FileInfo> existingFiles = files.stream()
-                .filter(file -> file.getName().equals(importFile.getName()))
-                .collect(Collectors.toList());
+    private FileTestResultType processExisting(ImportFile importFile, Path path, ImportDataDTO result) {
+        // Find files with the same name.
+        Iterable<FileSystemObject> existingFiles = fileSystemObjectManager.findFileSystemObjectByName(importFile.getName(), FileSystemObjectType.FSO_FILE);
 
-        for(FileInfo nextFile: existingFiles) {
+        for(FileSystemObject nextFile: existingFiles) {
+            if(nextFile.getIdAndType().getType() != FileSystemObjectType.FSO_FILE)
+                continue;
+
             LOG.info("{}", nextFile);
 
             // Get the details of the file - size & md5.
-            FileTestResultType testResult = fileAlreadyExists(path,nextFile,importFile);
+            FileTestResultType testResult = fileAlreadyExists(path,(FileInfo)nextFile,importFile);
             if(testResult == FileTestResultType.EXACT) {
                 result.increment(ImportDataDTO.ImportDataCountType.ALREADY_IMPORTED);
 
@@ -163,10 +159,9 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void processImport(ImportFile importFile, Source source, List<FileInfo> files, ImportDataDTO result) throws IOException {
-        // If this file is completed then exit.
-        if(importFile.getStatus().equals(ImportFileStatusType.IFS_COMPLETE)) {
-            return;
+    private ImportFileStatusType processImport(ImportFile importFile, Source source, ImportDataDTO result) throws IOException {
+        if(importFile.getStatus() == ImportFileStatusType.IFS_REMOVED) {
+            return ImportFileStatusType.IFS_REMOVED;
         }
 
         // Get the path to the import file.
@@ -174,7 +169,7 @@ public class ImportManager extends FileProcessor {
 
         // What is the classification? if yes, unless this is a backup file just remove it.
         if(!processClassification(importFile,path,result)) {
-            return;
+            return ImportFileStatusType.IFS_REMOVED;
         }
 
         // Get details of the file to import.
@@ -186,24 +181,26 @@ public class ImportManager extends FileProcessor {
 
         // Is this file being ignored?
         if(!processIgnored(importFile,path,result)) {
-            return;
+            return ImportFileStatusType.IFS_REMOVED;
         }
 
         // Does this file already exist in the source?
-        FileTestResultType existingState = processExisting(importFile,path,files,result);
+        FileTestResultType existingState = processExisting(importFile,path,result);
         if(FileTestResultType.EXACT == existingState) {
-            return;
+            return ImportFileStatusType.IFS_REMOVED;
         }
 
         // We can import this file but need to know where.
         // Photos are in <source> / <year> / <month> / <event> / filename
-        List<ActionConfirm> confirmedActions = actionManager.getConfirmedImportActionsForFile(importFile);
+        List<ActionConfirm> confirmedActions = actionManager.getActionsForFile(importFile);
         if(!confirmedActions.isEmpty()) {
             processImportActions(importFile,path,confirmedActions,source,result);
-        } else {
-            // Create an action to be confirmed.
-            actionManager.createFileImportAction(importFile,FileTestResultType.CLOSE == existingState ? "C" : null);
+            return ImportFileStatusType.IFS_COMPLETE;
         }
+
+        // Create an action to be confirmed.
+        actionManager.createFileImportAction(importFile,FileTestResultType.CLOSE == existingState ? "C" : null);
+        return ImportFileStatusType.IFS_AWAITING_ACTION;
     }
 
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
@@ -287,6 +284,7 @@ public class ImportManager extends FileProcessor {
 
         File destinationImageFile = new File(destination, filename);
         fileSystem.copyFile(imageFile, destinationImageFile, data);
+        data.increment(ImportProcessDTO.ImportProcessCountType.IMAGE_FILES);
 
         if(imageData.isPresent()) {
             ZonedDateTime zonedFileTime = imageData.get().getDateTime().atZone(ZoneId.systemDefault());
@@ -301,7 +299,8 @@ public class ImportManager extends FileProcessor {
 
             long fileTime = movFile.lastModified();
 
-            String copyCommand = "ffmpeg -i %%INPUT%% -qscale 0 %%OUTPUT%%";
+            //TODO - this should be configurable
+            String copyCommand = "cp %%INPUT%% %%OUTPUT%%";
             copyCommand = copyCommand.replace("%%INPUT%%", movFile.toString().replace(" ", "\\ "));
             copyCommand = copyCommand.replace("%%OUTPUT%%", mp4File.toString().replace(" ", "\\ "));
 
@@ -315,6 +314,7 @@ public class ImportManager extends FileProcessor {
             backupProcess.waitFor(20L, TimeUnit.MINUTES);
             backupProcess.destroyForcibly();
 
+            data.increment(ImportProcessDTO.ImportProcessCountType.MOV_FILES);
             fileSystem.setFileDateTime(mp4File, fileTime);
         } catch (Exception e) {
             LOG.error("Failed to copy MOV file", e);
@@ -324,9 +324,13 @@ public class ImportManager extends FileProcessor {
     }
 
     private void copyFile(String source, String filename, String destination, ImportProcessDTO data) {
-        fileSystem.copyFile(new File(source, filename),
-                new File(destination, filename),
-                data);
+        File sourceFile = new File(source, filename);
+        File destinationFile = new File(destination, filename);
+        long fileTime = sourceFile.lastModified();
+
+        fileSystem.copyFile(sourceFile, destinationFile, data);
+
+        fileSystem.setFileDateTime(destinationFile, fileTime);
     }
 
     private void processFile(String source, String filename, String destination, ImportProcessDTO data) {
@@ -334,6 +338,7 @@ public class ImportManager extends FileProcessor {
 
         // If the destination already exists then we are done.
         if(fileSystem.fileExists(new File(destination, destinationFilename))) {
+            data.increment(ImportProcessDTO.ImportProcessCountType.ALREADY_PRESENT);
             return;
         }
 
@@ -352,6 +357,7 @@ public class ImportManager extends FileProcessor {
                 copyFile(source, filename, destination, data);
                 break;
         }
+        data.increment(ImportProcessDTO.ImportProcessCountType.FILES_PROCESSED);
     }
 
     private Optional<PreImportSource> findPreImportSource() {
@@ -458,6 +464,9 @@ public class ImportManager extends FileProcessor {
             throw new ImportRequestException("The path does not exist - " + importPath);
         }
 
+        // Remove any import actions.
+        actionManager.clearImportActions();
+
         // Perform the import, find all the files to import and take action.
         // Read directory structure into the database.
         GatherDataDTO gatherData = new GatherDataDTO(importSource.get().getIdAndType().getId());
@@ -491,19 +500,15 @@ public class ImportManager extends FileProcessor {
                 throw new ImportRequestException("Destination for import is not found.");
             }
 
-            // Get all the files that are in the destination source
-            List<DirectoryInfo> directories = new ArrayList<>();
-            List<FileInfo> files = new ArrayList<>();
-            fileSystemObjectManager.loadByParent(destination.get().getIdAndType().getId(), directories, files);
-
-
             for (ImportFile nextFile : importFileRepository.findAll()) {
                 LOG.info( "{} MD5: {}", nextFile.getName(), nextFile.getMD5());
 
-                processImport(nextFile, destination.get(), files, resultItem);
+                ImportFileStatusType newStatus = processImport(nextFile, destination.get(), resultItem);
 
-                nextFile.setStatus(ImportFileStatusType.IFS_COMPLETE);
-                importFileRepository.save(nextFile);
+                if(nextFile.getStatus() != newStatus) {
+                    nextFile.setStatus(newStatus);
+                    importFileRepository.save(nextFile);
+                }
             }
         } catch (Exception e) {
             resultItem.setProblems();

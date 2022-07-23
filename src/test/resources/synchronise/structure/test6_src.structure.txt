@@ -1,1 +1,1 @@
-Text2.txt    /                    Text.txt            2019-05-18-17-56   17
+Text2.txt    Doc                    Text.txt            2019-05-18-17-56   17

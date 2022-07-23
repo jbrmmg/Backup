@@ -1,0 +1,7 @@
+Text.txt        /                   Text.txt            2013-05-12-14-24   12
+SpreadSheet.ods /                   Bills.ods           2003-05-12-05-00   7749
+Photo.jpg       /                   Letter.jpg          2022-05-20-13-21   1102542    C714A0B2E792EB102F706DC2424B0083
+Text.txt        /                   GetRid.ds_store     1985-05-11-15-44   12
+Text.txt        /                   Text.bscf           2013-05-12-14-24   12
+Video.MOV       /                   Video.mp4           2014-02-02-21-43   5371710
+Text.txt        /                   Text31.txt          2013-06-12-14-24   12
