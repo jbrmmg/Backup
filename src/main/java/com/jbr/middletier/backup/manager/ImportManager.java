@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.manager;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
@@ -26,6 +27,7 @@ public class ImportManager extends FileProcessor {
 
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
+    private final ApplicationProperties applicationProperties;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
@@ -34,10 +36,12 @@ public class ImportManager extends FileProcessor {
                          IgnoreFileRepository ignoreFileRepository,
                          BackupManager backupManager,
                          ActionManager actionManager,
-                         FileSystem fileSystem) {
+                         FileSystem fileSystem,
+                         ApplicationProperties applicationProperties) {
         super(backupManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
+        this.applicationProperties = applicationProperties;
     }
 
     private boolean ignoreFile(FileInfo importFile) {
@@ -299,8 +303,7 @@ public class ImportManager extends FileProcessor {
 
             long fileTime = movFile.lastModified();
 
-            //TODO - this should be configurable
-            String copyCommand = "cp %%INPUT%% %%OUTPUT%%";
+            String copyCommand = applicationProperties.getFfmpegCommand();
             copyCommand = copyCommand.replace("%%INPUT%%", movFile.toString().replace(" ", "\\ "));
             copyCommand = copyCommand.replace("%%OUTPUT%%", mp4File.toString().replace(" ", "\\ "));
 

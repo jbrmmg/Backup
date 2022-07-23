@@ -11,3 +11,4 @@ logging:
 
 backup:
   enabled: false
+  ffmpeg-command: cp %%INPUT%% %%OUTPUT%%

@@ -146,6 +146,7 @@ public class ApplicationProperties {
     private String reviewDirectory;
     private String dbBackupCommand;
     private Long dbBackupMaxTime;
+    private String ffmpegCommand;
 
     public Directory getDirectory() { return this.directory; }
 
@@ -206,4 +207,12 @@ public class ApplicationProperties {
     public void setDbBackupMaxTime(Long dbBackupMaxTime) { this.dbBackupMaxTime = dbBackupMaxTime; }
 
     public Long getDbBackupMaxTime() { return this.dbBackupMaxTime; }
+
+    public String getFfmpegCommand() {
+        return ffmpegCommand;
+    }
+
+    public void setFfmpegCommand(String ffmpegCommand) {
+        this.ffmpegCommand = ffmpegCommand;
+    }
 }
