@@ -1,10 +1,6 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.FileSystemObject;
-import com.jbr.middletier.backup.data.FileSystemObjectType;
-import com.jbr.middletier.backup.data.MD5;
-
+import com.jbr.middletier.backup.data.*;
 import java.time.LocalDateTime;
 
 @SuppressWarnings("unused")
@@ -22,7 +18,7 @@ public class FileInfoDTO {
         this.date = fileInfo.getDate();
         this.size = fileInfo.getSize();
         this.md5 = fileInfo.getMD5();
-        this.parentType = fileInfo.getParentId() == null ?  null : fileInfo.getParentId().getType();
+        this.parentType = fileInfo.getParentId().map(FileSystemObjectId::getType).orElse(null);
     }
 
     public FileInfoDTO(FileSystemObject fso) {

@@ -2,7 +2,9 @@ package com.jbr.middletier.backup.data;
 
 public enum ImportFileStatusType {
     IFS_READ("READ"),
-    IFS_COMPLETE("COMPLETE");
+    IFS_AWAITING_ACTION("AWAITING_ACTION"),
+    IFS_COMPLETE("COMPLETE"),
+    IFS_REMOVED("REMOVED");
 
     private final String type;
 

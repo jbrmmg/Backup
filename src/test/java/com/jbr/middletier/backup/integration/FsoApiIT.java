@@ -141,6 +141,7 @@ public class FsoApiIT extends WebTester {
         LOG.info("Delete the original source.");
         source = new SourceDTO();
         source.setId(1000000);
+        source.setStatus(SourceStatusType.SST_OK);
 
         getMockMvc().perform(delete("/jbr/ext/backup/source")
                         .content(this.json(source))
@@ -156,6 +157,7 @@ public class FsoApiIT extends WebTester {
         LOG.info("Delete the remaining source.");
         source = new SourceDTO();
         source.setId(1000001);
+        source.setStatus(SourceStatusType.SST_OK);
 
         getMockMvc().perform(delete("/jbr/ext/backup/source")
                         .content(this.json(source))

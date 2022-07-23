@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.data.SourceStatusType;
 
 @SuppressWarnings("unused")
@@ -24,36 +23,6 @@ public class SourceDTO {
         this.totalFileSize = 0;
         this.largestFile = 0;
         this.mountCheck = null;
-    }
-
-    public SourceDTO(Source source) {
-        this();
-        setId(source.getIdAndType().getId());
-        setPath(source.getPath());
-        setLocation(new LocationDTO(source.getLocation()));
-        setStatus(source.getStatus());
-        setFilter(source.getFilter());
-        setMountCheck(source.getMountCheck() == null ? null : source.getMountCheck().toString());
-    }
-
-    public SourceDTO(int id, String path) {
-        this();
-        setId(id);
-        setPath(path);
-    }
-
-    protected SourceDTO(SourceDTO sourceDTO) {
-        this();
-        setId(sourceDTO.getId());
-        setPath(sourceDTO.getPath());
-        setLocation(sourceDTO.getLocation());
-        setStatus(sourceDTO.getStatus());
-        setFilter(sourceDTO.getFilter());
-        setMountCheck(sourceDTO.getMountCheck());
-        this.directoryCount = 0;
-        this.fileCount = 0;
-        this.totalFileSize = 0;
-        this.largestFile = 0;
     }
 
     public Integer getId() {

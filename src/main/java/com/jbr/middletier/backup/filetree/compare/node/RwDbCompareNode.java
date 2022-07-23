@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 public class RwDbCompareNode extends FileTreeNode {
     public enum ActionType { NONE, INSERT, UPDATE, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
@@ -80,8 +81,8 @@ public class RwDbCompareNode extends FileTreeNode {
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override
@@ -109,14 +110,14 @@ public class RwDbCompareNode extends FileTreeNode {
         return this.isDirectory;
     }
 
-    public File getFileForDelete() {
+    public Optional<File> getFileForDelete() {
         if( !(realWorldNode instanceof RwFile)) {
-            return null;
+            return Optional.empty();
         }
 
         RwFile file = (RwFile)realWorldNode;
 
         this.actionType = ActionType.DELETE;
-        return file.getFile();
+        return Optional.of(file.getFile());
     }
 }

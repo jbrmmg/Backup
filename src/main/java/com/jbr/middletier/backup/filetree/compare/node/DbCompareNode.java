@@ -179,8 +179,8 @@ public class DbCompareNode  extends FileTreeNode {
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override

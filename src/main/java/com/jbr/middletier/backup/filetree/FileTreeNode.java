@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.filetree;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class FileTreeNode {
     public enum CompareStatusType { EQUAL, ADDED, REMOVED, UPDATED }
@@ -9,8 +10,8 @@ public abstract class FileTreeNode {
     // Dummy node just used to represent a missing node.
     protected static final FileTreeNode nullNode = new FileTreeNode(null) {
         @Override
-        public String getName() {
-            return null;
+        public Optional<String> getName() {
+            return Optional.empty();
         }
 
         @Override
@@ -34,7 +35,7 @@ public abstract class FileTreeNode {
         return this.parent;
     }
 
-    public abstract String getName();
+    public abstract Optional<String> getName();
 
     protected abstract void childAdded(FileTreeNode newChild);
 
@@ -54,14 +55,14 @@ public abstract class FileTreeNode {
         return CompareStatusType.EQUAL;
     }
 
-    public FileTreeNode getNamedChild(String name) {
+    public Optional<FileTreeNode> getNamedChild(String name) {
         for(FileTreeNode nextNode: this.children) {
-            if(name.equals(nextNode.getName())) {
-                return nextNode;
+            if(name.equals(nextNode.getName().orElse(""))) {
+                return Optional.of(nextNode);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public void addChild(FileTreeNode newChild) {
@@ -75,6 +76,6 @@ public abstract class FileTreeNode {
 
     @Override
     public String toString() {
-        return getName() + " " + this.children.size();
+        return getName().orElse("") + " " + this.children.size();
     }
 }

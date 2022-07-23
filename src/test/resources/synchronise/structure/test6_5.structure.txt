@@ -1,0 +1,2 @@
+Text2.txt    Doc                    Text.txt            2019-05-18-17-56   17
+Photo.jpg    2022/May/Blah          Letter.jpg          2022-05-20-13-21   1102542    C714A0B2E792EB102F706DC2424B0083

@@ -8,6 +8,8 @@ import com.jbr.middletier.backup.dataaccess.DirectoryRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 
+import java.util.Optional;
+
 public class DbDirectory extends DbNode {
     private final DirectoryInfo directoryInfo;
 
@@ -25,8 +27,8 @@ public class DbDirectory extends DbNode {
     }
 
     @Override
-    public String getName() {
-        return directoryInfo.getName();
+    public Optional<String> getName() {
+        return Optional.of(directoryInfo.getName());
     }
 
     @Override

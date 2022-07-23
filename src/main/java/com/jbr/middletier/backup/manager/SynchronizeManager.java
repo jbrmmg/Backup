@@ -225,7 +225,7 @@ public class SynchronizeManager {
     public List<SyncDataDTO> synchronize() {
         List<SyncDataDTO> result = new ArrayList<>();
 
-        for(Synchronize nextSynchronize : associatedFileDataManager.internalFindAllSynchronize()) {
+        for(Synchronize nextSynchronize : associatedFileDataManager.findAllSynchronize()) {
             result.add(processSynchronize(nextSynchronize));
         }
 

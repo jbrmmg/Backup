@@ -22,7 +22,7 @@ backup:
     name: /home/jason/Working/BackupDev
     days: 5
     zip: /home/jason/Working/BackupDevZip
-  schedule: 0 0/1 * ? * *
+  schedule: 0 0 0/2 * * ?
   enabled: false
   email:
     enabled: true

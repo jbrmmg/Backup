@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.Location;
-
 import javax.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")
@@ -15,19 +13,6 @@ public class LocationDTO {
         setId(0);
         setName("");
         setSize("");
-    }
-
-    public LocationDTO(int id, String name, String size) {
-        setId(id);
-        setName(name);
-        setSize(size);
-    }
-
-    public LocationDTO(Location location) {
-        this();
-        setId(location.getId());
-        setName(location.getName());
-        setSize(location.getSize());
     }
 
     public Integer getId() {

@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
-import com.jbr.middletier.backup.exception.InvalidSourceIdException;
 import com.jbr.middletier.backup.exception.InvalidSynchronizeIdException;
 import com.jbr.middletier.backup.exception.SynchronizeAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -27,27 +27,35 @@ public class SynchronizeController {
         this.associatedFileDataManager = associatedFileDataManager;
     }
 
+    private List<SynchronizeDTO> getSynchronizations() {
+        List<SynchronizeDTO> result = new ArrayList<>();
+
+        associatedFileDataManager.findAllSynchronize().forEach(synchronize -> result.add(associatedFileDataManager.convertToDTO(synchronize)));
+        LOG.info("Get the synchronizations - {}", result.size());
+
+        return result;
+    }
+
     @GetMapping(path="/synchronize")
     public @ResponseBody List<SynchronizeDTO> getSynchronize() {
-        LOG.info("Get the synchronize");
-        return associatedFileDataManager.externalFindAllSynchronize();
+        return getSynchronizations();
     }
 
     @PostMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
-        associatedFileDataManager.createSynchronize(synchronize);
-        return associatedFileDataManager.externalFindAllSynchronize();
+    public @ResponseBody List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException {
+        associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(synchronize));
+        return getSynchronizations();
     }
 
     @PutMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
-        associatedFileDataManager.updateSynchronize(synchronize);
-        return associatedFileDataManager.externalFindAllSynchronize();
+    public @ResponseBody List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
+        associatedFileDataManager.updateSynchronize(associatedFileDataManager.convertToEntity(synchronize));
+        return getSynchronizations();
     }
 
     @DeleteMapping(path="/synchronize")
     public @ResponseBody List<SynchronizeDTO> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
-        associatedFileDataManager.deleteSynchronize(synchronize);
-        return associatedFileDataManager.externalFindAllSynchronize();
+        associatedFileDataManager.deleteSynchronize(associatedFileDataManager.convertToEntity(synchronize));
+        return getSynchronizations();
     }
 }

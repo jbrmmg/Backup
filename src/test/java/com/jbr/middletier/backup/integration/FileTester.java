@@ -27,6 +27,7 @@ import java.util.List;
 public class FileTester extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FileTester.class);
     protected static final String importDirectory = "./target/it_test/import";
+    protected static final String preImportDirectory = "./target/it_test/preimport";
     protected static final String sourceDirectory = "./target/it_test/source";
     protected static final String destinationDirectory = "./target/it_test/destination";
 
@@ -37,7 +38,6 @@ public class FileTester extends WebTester {
         public final String md5;
         public final LocalDateTime dateTime;
         public final Long fileSize;
-        public boolean checked;
 
         public StructureDescription(String description) {
             String[] structureItems = description.split("\\s+");
@@ -50,8 +50,6 @@ public class FileTester extends WebTester {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
             this.dateTime = LocalDateTime.parse(structureItems[3],formatter);
-
-            checked = false;
         }
     }
 
@@ -280,7 +278,11 @@ public class FileTester extends WebTester {
                     if(!childNode.directory && childNode.name.equals(nextFile.getName())) {
                         childNode.dbId = nextFile.getIdAndType().getId();
                         childNode.matched = true;
-                        childNode.dateIndicator = childNode.date.equals(nextFile.getDate()) ? " " : "X";
+
+                        LocalDateTime childDate = childNode.date.withSecond(0).withNano(0);
+                        LocalDateTime fileDate = nextFile.getDate().withSecond(0).withNano(0);
+
+                        childNode.dateIndicator = childDate.equals(fileDate) ? " " : "X";
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
                         childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
                         matched = true;
@@ -408,12 +410,15 @@ public class FileTester extends WebTester {
         deleteDirectoryContents(new File(destinationDirectory).toPath());
         Files.createDirectories(new File(destinationDirectory).toPath());
 
+        deleteDirectoryContents(new File(preImportDirectory).toPath());
+        Files.createDirectories(new File(preImportDirectory).toPath());
+
         deleteDirectoryContents(new File(importDirectory).toPath());
         Files.createDirectories(new File(importDirectory).toPath());
     }
 
     protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) throws ClassificationIdException {
-        for(Classification nextClassification : associatedFileDataManager.internalFindAllClassification()) {
+        for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if(nextClassification.getRegex().equalsIgnoreCase(regex)) {
                 return;
             }
@@ -423,11 +428,11 @@ public class FileTester extends WebTester {
         ClassificationDTO newClassificationDTO = new ClassificationDTO();
         newClassificationDTO.setRegex(regex);
         newClassificationDTO.setOrder(order);
-        newClassificationDTO.setVideo(video);
-        newClassificationDTO.setImage(image);
+        newClassificationDTO.setIsVideo(video);
+        newClassificationDTO.setIsImage(image);
         newClassificationDTO.setAction(action);
         newClassificationDTO.setUseMD5(useMD5);
 
-        associatedFileDataManager.createClassification(newClassificationDTO);
+        associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(newClassificationDTO));
     }
 }

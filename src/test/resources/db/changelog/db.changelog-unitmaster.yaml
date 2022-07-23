@@ -76,5 +76,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-025-mountchk.yaml
 
   - include:
+      file: /db/changelog/db.changelog-026-preimport.yaml
+
+  - include:
       file: /db/changelog/db.changelog-999-dbgdata.yaml
 

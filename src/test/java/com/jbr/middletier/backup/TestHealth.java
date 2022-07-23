@@ -69,7 +69,8 @@ public class TestHealth extends WebTester {
     public void TestSourceCTOR() {
         LOG.info("Test FSO Failure");
         try {
-            Source source = new Source("TestWithPath");
+            Source source = new Source();
+            source.setPath("TestWithPath");
             Assert.assertEquals("TestWithPath", source.getPath());
         } catch (Exception e) {
             Assert.fail();

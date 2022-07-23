@@ -10,35 +10,57 @@ import java.util.List;
 public abstract class CompareRoot extends RootFileTreeNode {
     protected abstract FileTreeNode createCompareNode(CompareStatusType status, FileTreeNode parent, FileTreeNode lhs, FileTreeNode rhs);
 
-    protected void performCompare(FileTreeNode result, FileTreeNode lhs, FileTreeNode rhs) {
-        List<String> added = new ArrayList<>();
+    private void matchesAndLhs(FileTreeNode result, Iterable<FileTreeNode> lhs, Iterable<FileTreeNode> rhs, List<String> added) {
+        for(FileTreeNode nextLHS : lhs) {
+            String lhsName = nextLHS.getName().orElse("");
+            if(lhsName.length() == 0) {
+                continue;
+            }
 
-        for(FileTreeNode nextLHS : lhs.getChildren()) {
-            for(FileTreeNode nextRHS : rhs.getChildren()) {
-                if(nextLHS.getName().equals(nextRHS.getName())) {
-                    added.add(nextLHS.getName());
+            for(FileTreeNode nextRHS : rhs) {
+                String rhsName = nextRHS.getName().orElse("");
+                if(rhsName.length() == 0) {
+                    continue;
+                }
+
+                if(lhsName.equals(rhsName)) {
+                    added.add(lhsName);
                     FileTreeNode resultNode = createCompareNode(CompareStatusType.EQUAL, result, nextLHS, nextRHS);
                     result.addChild(resultNode);
                     performCompare(resultNode,nextLHS,nextRHS);
                 }
             }
 
-            if(!added.contains(nextLHS.getName())) {
-                added.add(nextLHS.getName());
+            if(!added.contains(lhsName)) {
+                added.add(lhsName);
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.REMOVED, result, nextLHS, nullNode);
                 result.addChild(resultNode);
                 performCompare(resultNode,nextLHS,nullNode);
             }
         }
+    }
 
-        for(FileTreeNode nextRHS : rhs.getChildren()) {
-            if(!added.contains(nextRHS.getName())) {
-                added.add(nextRHS.getName());
+    private void rhsOnly(FileTreeNode result, Iterable<FileTreeNode> rhs, List<String> added) {
+        for(FileTreeNode nextRHS : rhs) {
+            String rhsName = nextRHS.getName().orElse("");
+            if(rhsName.length() == 0) {
+                continue;
+            }
+
+            if(!added.contains(rhsName)) {
+                added.add(rhsName);
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.ADDED, result, nullNode, nextRHS);
                 result.addChild(resultNode);
                 performCompare(resultNode,nullNode,nextRHS);
             }
         }
+    }
+
+    protected void performCompare(FileTreeNode result, FileTreeNode lhs, FileTreeNode rhs) {
+        List<String> added = new ArrayList<>();
+
+        matchesAndLhs(result, lhs.getChildren(), rhs.getChildren(), added);
+        rhsOnly(result, rhs.getChildren(), added);
     }
 
     protected void internalCompare(FileTreeNode lhs, FileTreeNode rhs) {

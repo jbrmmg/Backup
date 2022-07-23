@@ -33,7 +33,6 @@ public class FileController {
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
-    private final MigrateManager migrateManager;
 
     @Contract(pure = true)
     @Autowired
@@ -43,8 +42,7 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager,
-                          FileSystem fileSystem,
-                          MigrateManager migrateManager) {
+                          FileSystem fileSystem) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -52,7 +50,6 @@ public class FileController {
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
         this.fileSystem = fileSystem;
-        this.migrateManager = migrateManager;
     }
 
     @GetMapping(path="/files")
@@ -88,6 +85,15 @@ public class FileController {
         return synchronizeManager.synchronize();
     }
 
+    private int getParentId(Optional<FileSystemObject> optParent) {
+        if(!optParent.isPresent()) {
+            return -1;
+        }
+
+        FileSystemObject parent = optParent.get();
+        return parent.getParentId().map(FileSystemObjectId::getId).orElse(-1);
+    }
+
     @PostMapping(path="/hierarchy")
     public @ResponseBody List<HierarchyResponse> hierarchy( @RequestBody HierarchyResponse lastResponse ) {
         List<HierarchyResponse> result = new ArrayList<>();
@@ -97,7 +103,7 @@ public class FileController {
             List<Integer> sourceIds = new ArrayList<>();
 
             // Level 1 - get those sources that are the left-hand side of synchronisation.
-            for(Synchronize nextSynchronize: associatedFileDataManager.internalFindAllSynchronize()) {
+            for(Synchronize nextSynchronize: associatedFileDataManager.findAllSynchronize()) {
                 if(sourceIds.contains(nextSynchronize.getSource().getIdAndType().getId())) {
                     continue;
                 }
@@ -124,11 +130,7 @@ public class FileController {
         Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
 
         HierarchyResponse response = new HierarchyResponse();
-        if(parent.isPresent() && parent.get().getParentId() != null) {
-            response.setId(parent.get().getParentId().getId());
-        } else {
-            response.setId(-1);
-        }
+        response.setId(getParentId(parent));
         response.setDirectory(true);
         response.setUnderlyingId(lastResponse.getId());
         response.setBackup(true);
@@ -251,12 +253,5 @@ public class FileController {
         // Create a delete request.
         FileInfo loadedFile = (FileInfo)file.get();
         return actionManager.createFileDeleteAction(loadedFile);
-    }
-
-    @PostMapping(path="/migration")
-    public @ResponseBody List<MigrateDateDTO> migrate(@RequestBody String temp) {
-        LOG.info("Perform the post migration process - {}", temp);
-
-        return migrateManager.postMigrationChecks();
     }
 }

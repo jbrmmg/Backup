@@ -173,7 +173,10 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void LocationCRUD() {
         try {
-            LocationDTO location = new LocationDTO(6,"Test", "1MB");
+            LocationDTO location = new LocationDTO();
+            location.setId(6);
+            location.setName("Test");
+            location.setSize("1MB");
             location.setCheckDuplicates(false);
 
             getMockMvc().perform(post("/jbr/ext/backup/location")

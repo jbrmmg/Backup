@@ -66,14 +66,16 @@ abstract class FileProcessor {
         for(ActionConfirm next : deletes) {
             if(next.confirmed() &&
                     compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId())) {
-                File fileToDelete = compareNode.getFileForDelete();
-                fileSystem.deleteFile(fileToDelete, gatherData);
+                Optional<File> fileToDelete = compareNode.getFileForDelete();
+                if(fileToDelete.isPresent()) {
+                    fileSystem.deleteFile(fileToDelete.get(), gatherData);
 
-                if(!fileSystem.fileExists(fileToDelete)) {
-                    // If the file has been removed, then remove the action.
-                    actionManager.actionPerformed(next);
-                    performed.add(next);
-                    gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
+                    if (!fileSystem.fileExists(fileToDelete.get())) {
+                        // If the file has been removed, then remove the action.
+                        actionManager.actionPerformed(next);
+                        performed.add(next);
+                        gatherData.increment(GatherDataDTO.GatherDataCountType.DELETES);
+                    }
                 }
             }
         }
@@ -109,19 +111,19 @@ abstract class FileProcessor {
         return node.getRealWorldNode();
     }
 
-    private FileSystemObjectId getParentIt(RwDbCompareNode node) {
+    private Optional<FileSystemObjectId> getParentId(RwDbCompareNode node) {
         FileTreeNode parentNode = node.getParent();
-        FileSystemObjectId parentId = null;
+        Optional<FileSystemObjectId> parentId = Optional.empty();
         if(parentNode instanceof RwDbCompareNode) {
             RwDbCompareNode rwDbParentNode = (RwDbCompareNode)parentNode;
 
             Objects.requireNonNull(rwDbParentNode.getDatabaseObjectId(),"NPE: cannot add or update directory with no known parent.");
 
-            parentId = rwDbParentNode.getDatabaseObjectId();
+            parentId = Optional.of(rwDbParentNode.getDatabaseObjectId());
         } else if(parentNode instanceof RwDbTree) {
             RwDbTree rwDbSource = (RwDbTree)parentNode;
 
-            parentId = rwDbSource.getDbSource().getSource().getIdAndType();
+            parentId = Optional.of(rwDbSource.getDbSource().getSource().getIdAndType());
         }
 
         Objects.requireNonNull(parentId,"NPE: Unable to determine the directory parent id.");
@@ -144,9 +146,12 @@ abstract class FileProcessor {
         RwNode rwNode = getRwNode(node);
 
         // Insert a new directory.
+        if(!rwNode.getName().isPresent())
+            throw new IllegalStateException("Cannot insert a directory with no name.");
+
         DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
-        directory.setName(rwNode.getName());
-        directory.setParentId(getParentIt(node));
+        directory.setName(rwNode.getName().orElse(""));
+        directory.setParentId(getParentId(node).orElse(null));
 
         fileSystemObjectManager.save(directory);
 
@@ -168,16 +173,16 @@ abstract class FileProcessor {
         // Get the real world object.
         RwFile rwNode = (RwFile)getRwNode(node);
 
+        if(!rwNode.getName().isPresent())
+            throw new IllegalStateException("Cannot insert a file with no name.");
+
         FileInfo file = (FileInfo) existingFile.get();
-        file.setName(rwNode.getName());
-        file.setParentId(getParentIt(node));
+        file.setName(rwNode.getName().orElse(""));
+        file.setParentId(getParentId(node).orElse(null));
 
         if(file.getClassification() == null) {
-            Classification newClassification = associatedFileDataManager.classifyFile(file);
-
-            if(newClassification != null) {
-                file.setClassification(newClassification);
-            }
+            Optional<Classification> newClassification = associatedFileDataManager.classifyFile(file);
+            newClassification.ifPresent(file::setClassification);
         }
 
         LocalDateTime fileDate = Instant.ofEpochMilli(rwNode.getFile().lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();

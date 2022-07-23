@@ -137,7 +137,7 @@ public class ActionManager {
         actionConfirmRepository.deleteAll(actions);
     }
 
-    public List<ActionConfirm> getConfirmedImportActionsForFile(FileInfo file) {
+    public List<ActionConfirm> getActionsForFile(FileInfo file) {
         return actionConfirmRepository.findByFileInfoAndAction(file,ActionConfirmType.AC_IMPORT.getTypeName());
     }
 
@@ -181,7 +181,7 @@ public class ActionManager {
     }
 
     private boolean sourcesMounted() {
-        for(Source nextSource : associatedFileDataManager.internalFindAllSource()) {
+        for(Source nextSource : associatedFileDataManager.findAllSource()) {
             if((nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE)
                     && (!fileSystem.validateMountCheck(nextSource.getMountCheck()))) {
                 return false;

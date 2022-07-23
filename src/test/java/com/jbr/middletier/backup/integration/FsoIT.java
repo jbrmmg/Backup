@@ -106,7 +106,7 @@ public class FsoIT   {
 
         Optional<Source> foundSource = sourceRepository.findById(newId);
         Assert.assertTrue(foundSource.isPresent());
-        Assert.assertNull(foundSource.get().getParentId());
+        Assert.assertFalse(foundSource.get().getParentId().isPresent());
 
         Assert.assertEquals("/test/source/path", foundSource.get().getPath());
         Assert.assertEquals("*.FRD", foundSource.get().getFilter());
@@ -132,7 +132,7 @@ public class FsoIT   {
     }
 
     @Test
-    public void file() throws ParseException {
+    public void file() {
         LOG.info("Test the basic file object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -174,7 +174,8 @@ public class FsoIT   {
         Optional<FileInfo> theFile = fileRepository.findById(theId);
         Assert.assertTrue(theFile.isPresent());
 
-        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile.get().getParentId().getId());
+        Assert.assertTrue(theFile.get().getParentId().isPresent());
+        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile.get().getParentId().get().getId());
         Assert.assertEquals("Blah", theFile.get().getName());
         Assert.assertEquals(classificationList.get(0).getId(), theFile.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile.get().getDate());
@@ -192,7 +193,8 @@ public class FsoIT   {
         Optional<FileInfo> theFile2 = fileRepository.findById(theId);
         Assert.assertTrue(theFile2.isPresent());
 
-        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile2.get().getParentId().getId());
+        Assert.assertTrue(theFile2.get().getParentId().isPresent());
+        Assert.assertEquals(directoryInfo.getIdAndType().getId(), theFile2.get().getParentId().get().getId());
         Assert.assertEquals("not Blah", theFile2.get().getName());
         Assert.assertEquals(classificationList.get(1).getId(), theFile2.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile2.get().getDate());
@@ -238,11 +240,15 @@ public class FsoIT   {
         Assert.assertEquals("test directory", directoryInfoList.get(0).getName());
         Assert.assertEquals("test 2", directoryInfoList.get(1).getName());
 
-        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(1).getParentId());
+        Optional<FileSystemObjectId> parentId = directoryInfoList.get(1).getParentId();
+        Assert.assertTrue(parentId.isPresent());
+        Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(parentId.get());
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof DirectoryInfo);
 
-        parent = fileSystemObjectManager.findFileSystemObject(directoryInfoList.get(0).getParentId());
+        parentId = directoryInfoList.get(0).getParentId();
+        Assert.assertTrue(parentId.isPresent());
+        parent = fileSystemObjectManager.findFileSystemObject(parentId.get());
         Assert.assertTrue(parent.isPresent());
         Assert.assertTrue(parent.get() instanceof Source);
 

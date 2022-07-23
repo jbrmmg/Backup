@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,27 +27,38 @@ public class ClassificationController {
         this.associatedFileDataManager = associatedFileDataManager;
     }
 
+    private List<ClassificationDTO> getLocations() {
+        List<ClassificationDTO> result = new ArrayList<>();
+
+        associatedFileDataManager.findAllClassifications().forEach(classification -> result.add(associatedFileDataManager.convertToDTO(classification)));
+        LOG.info("Get the classifications - {}", result.size());
+
+        return result;
+    }
+
     @GetMapping(path="/classification")
     public @ResponseBody List<ClassificationDTO> getClassification() {
-        LOG.info("Get the classifications.");
-        return associatedFileDataManager.externalFindAllClassification();
+        return getLocations();
     }
 
     @PostMapping(path="/classification")
     public @ResponseBody List<ClassificationDTO> createClassification(@NotNull @RequestBody ClassificationDTO classification) throws ClassificationIdException {
-        associatedFileDataManager.createClassification(classification);
-        return associatedFileDataManager.externalFindAllClassification();
+        LOG.info("create classification {}", classification);
+        associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(classification));
+        return getLocations();
     }
 
     @PutMapping(path="/classification")
     public @ResponseBody List<ClassificationDTO> updateClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
-        associatedFileDataManager.updateClassification(classification);
-        return associatedFileDataManager.externalFindAllClassification();
+        LOG.info("update classification {}", classification);
+        associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(classification));
+        return getLocations();
     }
 
     @DeleteMapping(path="/classification")
     public @ResponseBody List<ClassificationDTO> deleteClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
-        associatedFileDataManager.deleteClassification(classification);
-        return associatedFileDataManager.externalFindAllClassification();
+        LOG.info("delete classification {}", classification);
+        associatedFileDataManager.deleteClassification(associatedFileDataManager.convertToEntity(classification));
+        return getLocations();
     }
 }

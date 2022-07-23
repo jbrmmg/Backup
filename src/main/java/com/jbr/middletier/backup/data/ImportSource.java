@@ -11,11 +11,7 @@ public class ImportSource extends Source {
 
     public ImportSource() {
         super(FileSystemObjectType.FSO_IMPORT_SOURCE);
-    }
-
-    public ImportSource(String path) {
-        super(FileSystemObjectType.FSO_IMPORT_SOURCE);
-        setPath(path);
+        this.destination = null;
     }
 
     public Source getDestination() { return this.destination; }

@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.control;
 
+import com.jbr.middletier.backup.dto.ImportSourceDTO;
+import com.jbr.middletier.backup.dto.PreImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.InvalidSourceIdException;
 import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
@@ -10,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,27 +30,71 @@ public class SourceController {
         this.associatedFileDataManager = associatedFileDataManager;
     }
 
+    private List<SourceDTO> getSources() {
+        List<SourceDTO> result = new ArrayList<>();
+
+        associatedFileDataManager.findAllSource().forEach(source -> result.add(associatedFileDataManager.convertToDTO(source)));
+        LOG.info("Get the sources - {}", result.size());
+
+        return result;
+    }
+
     @GetMapping(path="/source")
     public @ResponseBody List<SourceDTO> getSource() {
-        LOG.info("Get the source");
-        return associatedFileDataManager.externalFindAllSource();
+        return getSources();
     }
 
     @PostMapping(path="/source")
     public @ResponseBody List<SourceDTO> createSource(@NotNull @RequestBody SourceDTO source) throws SourceAlreadyExistsException {
-        associatedFileDataManager.createSource(source);
-        return associatedFileDataManager.externalFindAllSource();
+        associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
     }
 
     @PutMapping(path="/source")
     public @ResponseBody List<SourceDTO> updateSource(@NotNull @RequestBody SourceDTO source) throws InvalidSourceIdException {
-        associatedFileDataManager.updateSource(source);
-        return associatedFileDataManager.externalFindAllSource();
+        associatedFileDataManager.updateSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
     }
 
     @DeleteMapping(path="/source")
     public @ResponseBody List<SourceDTO> deleteSource(@RequestBody SourceDTO source) throws InvalidSourceIdException {
-        associatedFileDataManager.deleteSource(source);
-        return associatedFileDataManager.externalFindAllSource();
+        associatedFileDataManager.deleteSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @PostMapping(path="/importSource")
+    public @ResponseBody List<SourceDTO> createImportSource(@NotNull @RequestBody ImportSourceDTO source) throws SourceAlreadyExistsException {
+        associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @PutMapping(path="/importSource")
+    public @ResponseBody List<SourceDTO> updateImportSource(@NotNull @RequestBody ImportSourceDTO source) throws InvalidSourceIdException {
+        associatedFileDataManager.updateImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @DeleteMapping(path="/importSource")
+    public @ResponseBody List<SourceDTO> deleteImportSource(@RequestBody ImportSourceDTO source) throws InvalidSourceIdException {
+        associatedFileDataManager.deleteImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @PostMapping(path="/preImportSource")
+    public @ResponseBody List<SourceDTO> createPreImportSource(@NotNull @RequestBody PreImportSourceDTO source) throws SourceAlreadyExistsException {
+        associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @PutMapping(path="/preImportSource")
+    public @ResponseBody List<SourceDTO> updatePreImportSource(@NotNull @RequestBody PreImportSourceDTO source) throws InvalidSourceIdException {
+        associatedFileDataManager.updatePreImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @DeleteMapping(path="/preImportSource")
+    public @ResponseBody List<SourceDTO> deletePreImportSource(@RequestBody PreImportSourceDTO source) throws InvalidSourceIdException {
+        associatedFileDataManager.deletePreImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
     }
 }

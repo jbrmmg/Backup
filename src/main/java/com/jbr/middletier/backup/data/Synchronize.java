@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
@@ -20,18 +19,11 @@ public class Synchronize {
     @ManyToOne(optional = false)
     private Source destination;
 
-    @SuppressWarnings("unused")
     public Synchronize() {
         setId(0);
     }
 
-    public void update(SynchronizeDTO source) {
-        setSource(new Source(source.getSource()));
-        setDestination(new Source(source.getDestination()));
-    }
-
-    @NotNull
-    public Integer getId() { return this.id; }
+    @NotNull public Integer getId() { return this.id; }
 
     public Source getSource() { return this.source; }
 

@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class RwFile extends RwNode {
     private final File file;
@@ -14,8 +15,8 @@ public class RwFile extends RwNode {
     }
 
     @Override
-    public String getName() {
-        return file.getName();
+    public Optional<String> getName() {
+        return Optional.of(file.getName());
     }
 
     @Override
@@ -35,6 +36,6 @@ public class RwFile extends RwNode {
 
     @Override
     public String toString() {
-        return "RW (file): " + getName();
+        return "RW (file): " + getName().orElse("");
     }
 }

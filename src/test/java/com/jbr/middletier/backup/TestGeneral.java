@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -31,6 +32,9 @@ import static org.mockito.Mockito.*;
 @SpringBootTest(classes = MiddleTier.class)
 @WebAppConfiguration
 public class TestGeneral extends WebTester {
+    @Autowired
+    AssociatedFileDataManager associatedFileDataManager;
+
     @Test
     public void TestDefaultProfile() {
         SpringApplication app = mock(SpringApplication.class);
@@ -63,7 +67,8 @@ public class TestGeneral extends WebTester {
         gatherDataDTO.setProblems();
         Assert.assertTrue(gatherDataDTO.hasProblems());
 
-        SynchronizeDTO synchronizeDTO = new SynchronizeDTO(1);
+        SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
+        synchronizeDTO.setId(1);
         Assert.assertEquals((Integer) 1, synchronizeDTO.getId());
 
         SyncDataDTO syncDataDTO = new SyncDataDTO(1);
@@ -80,7 +85,9 @@ public class TestGeneral extends WebTester {
         okStatus.setStatus("Test");
         Assert.assertEquals("Test", okStatus.getStatus());
 
-        SourceDTO sourceDTO = new SourceDTO(1, "Test");
+        SourceDTO sourceDTO = new SourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setPath("Test");
         Assert.assertEquals((Integer)1,sourceDTO.getId());
         Assert.assertEquals("Test",sourceDTO.getPath());
         sourceDTO.setLocation(new LocationDTO());
@@ -91,14 +98,6 @@ public class TestGeneral extends WebTester {
         sourceDTO.increaseFileSize(10);
         sourceDTO.increaseFileSize(100);
         sourceDTO.increaseFileSize(60);
-
-        class SourceDTO2 extends  SourceDTO {
-            public SourceDTO2(SourceDTO source) {
-                super(source);
-            }
-        }
-        SourceDTO2 sourceDTO2 = new SourceDTO2(sourceDTO);
-        Assert.assertEquals("Test",sourceDTO2.getFilter());
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setDestinationId(1);
@@ -236,8 +235,7 @@ public class TestGeneral extends WebTester {
         synchronizeDTO.getDestination().getLocation().setSize("1GB");
         synchronizeDTO.getDestination().setStatus(SourceStatusType.SST_OK);
 
-        Synchronize synchronize = new Synchronize();
-        synchronize.update(synchronizeDTO);
+        Synchronize synchronize = associatedFileDataManager.convertToEntity(synchronizeDTO);
 
         Assert.assertEquals("Test -> Test", synchronize.toString());
     }
@@ -255,11 +253,11 @@ public class TestGeneral extends WebTester {
     public void TestLocationDTO() {
         Location location = new Location();
         location.setId(1);
-        location.setCheckDuplicates();
+        location.setCheckDuplicates(true);
         location.setName("Test");
         location.setSize("1G");
 
-        LocationDTO locationDTO = location.getLocationDTO();
+        LocationDTO locationDTO = associatedFileDataManager.convertToDTO(location);
         Assert.assertEquals("Test", locationDTO.getName());
     }
 
@@ -272,13 +270,13 @@ public class TestGeneral extends WebTester {
 
         Location location = new Location();
         location.setId(1);
-        location.setCheckDuplicates();
+        location.setCheckDuplicates(true);
         location.setName("Test");
         location.setSize("1G");
 
         source.setLocation(location);
 
-        SourceDTO sourceDTO = source.getSourceDTO();
+        SourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
         Assert.assertNotNull(sourceDTO);
     }
 
@@ -443,7 +441,7 @@ public class TestGeneral extends WebTester {
         synchronizeList.add(synchronize);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -482,7 +480,7 @@ public class TestGeneral extends WebTester {
         synchronizeList.add(synchronize);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -521,7 +519,7 @@ public class TestGeneral extends WebTester {
         synchronizeList.add(synchronize);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -560,7 +558,7 @@ public class TestGeneral extends WebTester {
         synchronizeList.add(synchronize);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -599,7 +597,7 @@ public class TestGeneral extends WebTester {
         synchronizeList.add(synchronize);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSynchronize()).thenReturn(synchronizeList);
+        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -632,7 +630,7 @@ public class TestGeneral extends WebTester {
         sources.add(source);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSource()).thenReturn(sources);
+        when(associatedFileDataManager.findAllSource()).thenReturn(sources);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -668,7 +666,7 @@ public class TestGeneral extends WebTester {
         sources.add(source);
 
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.internalFindAllSource()).thenReturn(sources);
+        when(associatedFileDataManager.findAllSource()).thenReturn(sources);
 
         BackupManager backupManager = mock(BackupManager.class);
 
@@ -689,5 +687,367 @@ public class TestGeneral extends WebTester {
         List<GatherDataDTO> gatherData = driveManager.gather();
         Assert.assertEquals(1, gatherData.size());
         Assert.assertTrue(gatherData.get(0).hasProblems());
+    }
+
+    @Test
+    public void testLocationToDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setName("Test");
+        location.setSize("1TB");
+        location.setCheckDuplicates(true);
+
+        LocationDTO locationDTO = associatedFileDataManager.convertToDTO(location);
+        Assert.assertEquals(1, locationDTO.getId().intValue());
+        Assert.assertEquals("Test", locationDTO.getName());
+        Assert.assertEquals("1TB", locationDTO.getSize());
+        Assert.assertEquals(true, locationDTO.getCheckDuplicates());
+
+        location = new Location();
+        location.setId(1);
+        location.setName("Test");
+        location.setSize("1TB");
+
+        locationDTO = associatedFileDataManager.convertToDTO(location);
+        Assert.assertEquals(1, locationDTO.getId().intValue());
+        Assert.assertEquals("Test", locationDTO.getName());
+        Assert.assertEquals("1TB", locationDTO.getSize());
+        Assert.assertNull(locationDTO.getCheckDuplicates());
+    }
+
+    @Test
+    public void testLocationToEntity() {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setName("Test");
+        locationDTO.setSize("1TB");
+        locationDTO.setCheckDuplicates(false);
+
+        Location location = associatedFileDataManager.convertToEntity(locationDTO);
+        Assert.assertEquals(1, location.getId());
+        Assert.assertEquals("Test", location.getName());
+        Assert.assertEquals("1TB", location.getSize());
+        Assert.assertEquals(false, location.getCheckDuplicates());
+
+        locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setName("Test");
+        locationDTO.setSize("1TB");
+        locationDTO.setCheckDuplicates(true);
+
+        location = associatedFileDataManager.convertToEntity(locationDTO);
+        Assert.assertEquals(1, location.getId());
+        Assert.assertEquals("Test", location.getName());
+        Assert.assertEquals("1TB", location.getSize());
+        Assert.assertEquals(true, location.getCheckDuplicates());
+    }
+
+    @Test
+    public void testClassificationToEntity() {
+        ClassificationDTO classificationDTO = new ClassificationDTO();
+        classificationDTO.setId(1);
+        classificationDTO.setIsImage(true);
+        classificationDTO.setIsVideo(true);
+        classificationDTO.setAction(CA_DELETE);
+        classificationDTO.setOrder(1);
+        classificationDTO.setRegex("Blah");
+        classificationDTO.setUseMD5(false);
+        classificationDTO.setIcon("fred");
+
+        Classification classification = associatedFileDataManager.convertToEntity(classificationDTO);
+        Assert.assertEquals(1,classification.getId().intValue());
+        Assert.assertTrue(classification.getIsVideo());
+        Assert.assertTrue(classification.getIsImage());
+        Assert.assertEquals(CA_DELETE, classification.getAction());
+        Assert.assertEquals(1,classification.getOrder().intValue());
+        Assert.assertEquals("Blah", classification.getRegex());
+        Assert.assertFalse(classification.getUseMD5());
+        Assert.assertEquals("fred", classification.getIcon());
+    }
+
+    @Test
+    public void testClassificationToDTO() {
+        Classification classification = new Classification();
+        classification.setId(1);
+        classification.setIsImage(true);
+        classification.setIsVideo(true);
+        classification.setAction(CA_DELETE);
+        classification.setOrder(1);
+        classification.setRegex("Blah");
+        classification.setUseMD5(false);
+        classification.setIcon("fred");
+
+        ClassificationDTO classificationDTO = associatedFileDataManager.convertToDTO(classification);
+        Assert.assertEquals(1,classificationDTO.getId().intValue());
+        Assert.assertTrue(classificationDTO.getIsVideo());
+        Assert.assertTrue(classificationDTO.getIsImage());
+        Assert.assertEquals(CA_DELETE, classificationDTO.getAction());
+        Assert.assertEquals(1,classificationDTO.getOrder().intValue());
+        Assert.assertEquals("Blah", classificationDTO.getRegex());
+        Assert.assertFalse(classificationDTO.getUseMD5());
+        Assert.assertEquals("fred", classificationDTO.getIcon());
+    }
+
+    @Test
+    public void testSourceEntity() {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setSize("1TB");
+        locationDTO.setName("Test");
+        locationDTO.setCheckDuplicates(true);
+        SourceDTO sourceDTO = new SourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setPath("Cheese");
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setLocation(locationDTO);
+        sourceDTO.setMountCheck("Check");
+        sourceDTO.setFilter("Blah");
+
+        Source source = associatedFileDataManager.convertToEntity(sourceDTO);
+        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
+        Assert.assertEquals("Cheese", source.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        Assert.assertEquals(1,source.getLocation().getId());
+        Assert.assertEquals("1TB", source.getLocation().getSize());
+        Assert.assertEquals("Test", source.getLocation().getName());
+        Assert.assertTrue(source.getMountCheck().isPresent());
+        Assert.assertEquals("Check", source.getMountCheck().get().toString());
+        Assert.assertEquals("Blah", source.getFilter());
+    }
+
+    @Test
+    public void testSourceDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setSize("1TB");
+        location.setName("Test");
+        location.setCheckDuplicates(true);
+        Source source = new Source();
+        source.setId(1);
+        source.setPath("Cheese");
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setLocation(location);
+        source.setMountCheck("Check");
+        source.setFilter("Blah");
+
+        SourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
+        Assert.assertEquals(1, sourceDTO.getId().intValue());
+        Assert.assertEquals("Cheese", sourceDTO.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, sourceDTO.getStatus());
+        Assert.assertEquals(1, sourceDTO.getLocation().getId().intValue());
+        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
+        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
+        Assert.assertEquals("Check", sourceDTO.getMountCheck());
+        Assert.assertEquals("Blah", sourceDTO.getFilter());
+    }
+
+    @Test
+    public void testImportSourceEntity() {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setSize("1TB");
+        locationDTO.setName("Test");
+        locationDTO.setCheckDuplicates(true);
+        ImportSourceDTO sourceDTO = new ImportSourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setPath("Cheese");
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setLocation(locationDTO);
+        sourceDTO.setMountCheck("Check");
+        sourceDTO.setFilter("Blah");
+        sourceDTO.setDestinationId(1);
+
+        ImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
+        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
+        Assert.assertEquals("Cheese", source.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        Assert.assertEquals(1,source.getLocation().getId());
+        Assert.assertEquals("1TB", source.getLocation().getSize());
+        Assert.assertEquals("Test", source.getLocation().getName());
+        Assert.assertTrue(source.getMountCheck().isPresent());
+        Assert.assertEquals("Check", source.getMountCheck().get().toString());
+        Assert.assertEquals("Blah", source.getFilter());
+        Assert.assertEquals(1, source.getDestination().getIdAndType().getId().intValue());
+    }
+
+    @Test
+    public void testImportSourceDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setSize("1TB");
+        location.setName("Test");
+        location.setCheckDuplicates(true);
+        Source destination = new Source();
+        destination.setId(1);
+        ImportSource source = new ImportSource();
+        source.setId(1);
+        source.setPath("Cheese");
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setLocation(location);
+        source.setMountCheck("Check");
+        source.setFilter("Blah");
+        source.setDestination(destination);
+
+        ImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
+        Assert.assertEquals(1,sourceDTO.getId().intValue());
+        Assert.assertEquals("Cheese", sourceDTO.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, sourceDTO.getStatus());
+        Assert.assertEquals(1,sourceDTO.getLocation().getId().intValue());
+        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
+        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
+        Assert.assertEquals("Check", sourceDTO.getMountCheck());
+        Assert.assertEquals("Blah", sourceDTO.getFilter());
+        Assert.assertEquals(1, sourceDTO.getDestinationId().intValue());
+    }
+
+    @Test
+    public void testPreImportSourceEntity() {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setSize("1TB");
+        locationDTO.setName("Test");
+        locationDTO.setCheckDuplicates(true);
+        PreImportSourceDTO sourceDTO = new PreImportSourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setPath("Cheese");
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setLocation(locationDTO);
+        sourceDTO.setMountCheck("Check");
+        sourceDTO.setFilter("Blah");
+
+        PreImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
+        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
+        Assert.assertEquals("Cheese", source.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        Assert.assertEquals(1,source.getLocation().getId());
+        Assert.assertEquals("1TB", source.getLocation().getSize());
+        Assert.assertEquals("Test", source.getLocation().getName());
+        Assert.assertTrue(source.getMountCheck().isPresent());
+        Assert.assertEquals("Check", source.getMountCheck().get().toString());
+        Assert.assertEquals("Blah", source.getFilter());
+    }
+
+    @Test
+    public void testPreImportSourceDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setSize("1TB");
+        location.setName("Test");
+        location.setCheckDuplicates(true);
+        PreImportSource source = new PreImportSource();
+        source.setId(1);
+        source.setPath("Cheese");
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setLocation(location);
+        source.setMountCheck("Check");
+        source.setFilter("Blah");
+
+        PreImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
+        Assert.assertEquals(1, sourceDTO.getId().intValue());
+        Assert.assertEquals("Cheese", sourceDTO.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, sourceDTO.getStatus());
+        Assert.assertEquals(1, sourceDTO.getLocation().getId().intValue());
+        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
+        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
+        Assert.assertEquals("Check", sourceDTO.getMountCheck());
+        Assert.assertEquals("Blah", sourceDTO.getFilter());
+    }
+
+    @Test
+    public void testSynchronizeEntity() {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setSize("1TB");
+        locationDTO.setName("Test");
+        locationDTO.setCheckDuplicates(true);
+        SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
+        SourceDTO sourceDTO = new SourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setLocation(locationDTO);
+        sourceDTO.setFilter("retlif");
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setPath("Side");
+        sourceDTO.setMountCheck("Chis");
+        SourceDTO destinationDTO = new SourceDTO();
+        destinationDTO.setId(2);
+        destinationDTO.setLocation(locationDTO);
+        destinationDTO.setFilter("filter");
+        destinationDTO.setStatus(SourceStatusType.SST_OK);
+        destinationDTO.setPath("Foot");
+        destinationDTO.setMountCheck("Check");
+        synchronizeDTO.setId(1);
+        synchronizeDTO.setSource(sourceDTO);
+        synchronizeDTO.setDestination(destinationDTO);
+
+        Synchronize synchronize = associatedFileDataManager.convertToEntity(synchronizeDTO);
+        Assert.assertEquals(1, synchronize.getId().intValue());
+        Assert.assertEquals(1, synchronize.getSource().getIdAndType().getId().intValue());
+        Assert.assertEquals(1, synchronize.getSource().getLocation().getId());
+        Assert.assertEquals("1TB", synchronize.getSource().getLocation().getSize());
+        Assert.assertEquals("Test", synchronize.getSource().getLocation().getName());
+        Assert.assertTrue(synchronize.getSource().getLocation().getCheckDuplicates());
+        Assert.assertEquals("retlif", synchronize.getSource().getFilter());
+        Assert.assertEquals(SourceStatusType.SST_OK, synchronize.getSource().getStatus());
+        Assert.assertEquals("Side", synchronize.getSource().getPath());
+        Assert.assertTrue(synchronize.getSource().getMountCheck().isPresent());
+        Assert.assertEquals("Chis", synchronize.getSource().getMountCheck().get().toString());
+        Assert.assertEquals(2, synchronize.getDestination().getIdAndType().getId().intValue());
+        Assert.assertEquals(1, synchronize.getDestination().getLocation().getId());
+        Assert.assertEquals("1TB", synchronize.getDestination().getLocation().getSize());
+        Assert.assertEquals("Test", synchronize.getDestination().getLocation().getName());
+        Assert.assertTrue(synchronize.getDestination().getLocation().getCheckDuplicates());
+        Assert.assertEquals("filter", synchronize.getDestination().getFilter());
+        Assert.assertEquals(SourceStatusType.SST_OK, synchronize.getDestination().getStatus());
+        Assert.assertEquals("Foot", synchronize.getDestination().getPath());
+        Assert.assertTrue(synchronize.getDestination().getMountCheck().isPresent());
+        Assert.assertEquals("Check", synchronize.getDestination().getMountCheck().get().toString());
+    }
+
+    @Test
+    public void testSynchronizeDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setSize("1TB");
+        location.setName("Test");
+        location.setCheckDuplicates(true);
+        Synchronize synchronize = new Synchronize();
+        Source source = new Source();
+        source.setId(1);
+        source.setLocation(location);
+        source.setFilter("retlif");
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath("Side");
+        source.setMountCheck("Chis");
+        Source destination = new Source();
+        destination.setId(2);
+        destination.setLocation(location);
+        destination.setFilter("filter");
+        destination.setStatus(SourceStatusType.SST_OK);
+        destination.setPath("Foot");
+        destination.setMountCheck("Check");
+        synchronize.setId(1);
+        synchronize.setSource(source);
+        synchronize.setDestination(destination);
+
+        SynchronizeDTO synchronizeDTO = associatedFileDataManager.convertToDTO(synchronize);
+        Assert.assertEquals(1, synchronizeDTO.getId().intValue());
+        Assert.assertEquals(1, synchronizeDTO.getSource().getId().intValue());
+        Assert.assertEquals(1, synchronizeDTO.getSource().getLocation().getId().intValue());
+        Assert.assertEquals("1TB", synchronizeDTO.getSource().getLocation().getSize());
+        Assert.assertEquals("Test", synchronizeDTO.getSource().getLocation().getName());
+        Assert.assertTrue(synchronizeDTO.getSource().getLocation().getCheckDuplicates());
+        Assert.assertEquals("retlif", synchronizeDTO.getSource().getFilter());
+        Assert.assertEquals(SourceStatusType.SST_OK, synchronizeDTO.getSource().getStatus());
+        Assert.assertEquals("Side", synchronizeDTO.getSource().getPath());
+        Assert.assertEquals("Chis", synchronizeDTO.getSource().getMountCheck());
+        Assert.assertEquals(2, synchronizeDTO.getDestination().getId().intValue());
+        Assert.assertEquals(1, synchronizeDTO.getDestination().getLocation().getId().intValue());
+        Assert.assertEquals("1TB", synchronizeDTO.getDestination().getLocation().getSize());
+        Assert.assertEquals("Test", synchronizeDTO.getDestination().getLocation().getName());
+        Assert.assertTrue(synchronizeDTO.getDestination().getLocation().getCheckDuplicates());
+        Assert.assertEquals("filter", synchronizeDTO.getDestination().getFilter());
+        Assert.assertEquals(SourceStatusType.SST_OK, synchronizeDTO.getDestination().getStatus());
+        Assert.assertEquals("Foot", synchronizeDTO.getDestination().getPath());
+        Assert.assertEquals("Check", synchronizeDTO.getDestination().getMountCheck());
     }
 }

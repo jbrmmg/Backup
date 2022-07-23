@@ -69,7 +69,7 @@ public class DriveManager extends FileProcessor {
         // Are any files to be deleted?
         List<ActionConfirm> deleteActions = actionManager.findConfirmedDeletes();
 
-        for(Source nextSource: associatedFileDataManager.internalFindAllSource()) {
+        for(Source nextSource: associatedFileDataManager.findAllSource()) {
             if(nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE) {
                 LOG.info("Process Source {}", nextSource);
                 processSource(nextSource, deleteActions, result);

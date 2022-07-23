@@ -3,6 +3,8 @@ package com.jbr.middletier.backup.filetree.helpers;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import org.junit.Assert;
 
+import java.util.Optional;
+
 public class BasicTestNode extends FileTreeNode {
     private String name;
 
@@ -13,8 +15,8 @@ public class BasicTestNode extends FileTreeNode {
     }
 
     @Override
-    public String getName() {
-        return this.name;
+    public Optional<String> getName() {
+        return this.name == null ? Optional.empty() : Optional.of(this.name);
     }
 
     @Override
@@ -23,7 +25,7 @@ public class BasicTestNode extends FileTreeNode {
 
     public boolean test() {
         // Test the null node.
-        Assert.assertNull(nullNode.getName());
+        Assert.assertFalse(nullNode.getName().isPresent());
 
         try {
             nullNode.addChild(null);

@@ -1,11 +1,69 @@
 package com.jbr.middletier.backup.config;
 
+import com.jbr.middletier.backup.data.ImportSource;
+import com.jbr.middletier.backup.data.PreImportSource;
+import com.jbr.middletier.backup.data.Source;
+import com.jbr.middletier.backup.dto.ImportSourceDTO;
+import com.jbr.middletier.backup.dto.PreImportSourceDTO;
+import com.jbr.middletier.backup.dto.SourceDTO;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix="backup")
 public class ApplicationProperties {
+    @Bean
+    public ModelMapper modelMapper() {
+        ModelMapper modelMapper = new ModelMapper();
+
+        PropertyMap<Source, SourceDTO> sourceMap = new PropertyMap<Source, SourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<ImportSource, ImportSourceDTO> importSourceMap = new PropertyMap<ImportSource, ImportSourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+                map().setDestinationId(source.getDestination().getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<PreImportSource, PreImportSourceDTO> preImportSourceMap = new PropertyMap<PreImportSource, PreImportSourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<ImportSource, SourceDTO> importSource2Map = new PropertyMap<ImportSource, SourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<PreImportSource, SourceDTO> importSource3Map = new PropertyMap<PreImportSource, SourceDTO>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        modelMapper.addMappings(sourceMap);
+        modelMapper.addMappings(importSourceMap);
+        modelMapper.addMappings(preImportSourceMap);
+        modelMapper.addMappings(importSource2Map);
+        modelMapper.addMappings(importSource3Map);
+
+        return modelMapper;
+    }
+
     public static class Directory {
         private String name;
         private long days;
@@ -88,6 +146,7 @@ public class ApplicationProperties {
     private String reviewDirectory;
     private String dbBackupCommand;
     private Long dbBackupMaxTime;
+    private String ffmpegCommand;
 
     public Directory getDirectory() { return this.directory; }
 
@@ -148,4 +207,12 @@ public class ApplicationProperties {
     public void setDbBackupMaxTime(Long dbBackupMaxTime) { this.dbBackupMaxTime = dbBackupMaxTime; }
 
     public Long getDbBackupMaxTime() { return this.dbBackupMaxTime; }
+
+    public String getFfmpegCommand() {
+        return ffmpegCommand;
+    }
+
+    public void setFfmpegCommand(String ffmpegCommand) {
+        this.ffmpegCommand = ffmpegCommand;
+    }
 }

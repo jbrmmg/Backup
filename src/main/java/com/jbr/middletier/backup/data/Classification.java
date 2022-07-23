@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.ClassificationDTO;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
@@ -42,39 +41,37 @@ public class Classification {
         this.useMD5 = false;
     }
 
-    public Classification(ClassificationDTO source) {
-        this.id = source.getId();
-        this.order = source.getOrder();
-        this.useMD5 = source.getUseMD5();
-        update(source);
-    }
-
-    public void update(ClassificationDTO source) {
-        this.regex = source.getRegex();
-        this.action = source.getAction().getTypeName();
-        this.icon = source.getIcon();
-        this.useMD5 = source.getUseMD5();
-        this.isImage = source.getImage();
-        this.isVideo = source.getVideo();
-        this.order = source.getOrder();
-    }
-
     public Integer getId() { return this.id; }
+
+    public void setId(Integer id) { this.id = id; }
 
     public String getRegex() { return this.regex; }
 
+    public void setRegex(String regex) { this.regex = regex; }
+
     public ClassificationActionType getAction() { return ClassificationActionType.getClassificationActionType(this.action); }
+
+    public void setAction(ClassificationActionType action) { this.action = action.getTypeName(); }
 
     public String getIcon() { return this.icon; }
 
-    @NotNull
-    public Boolean getUseMD5() { return this.useMD5; }
+    public void setIcon(String icon) { this.icon = icon; }
+
+    @NotNull public Boolean getUseMD5() { return this.useMD5; }
+
+    public void setUseMD5(@NotNull Boolean useMD5) { this.useMD5 = useMD5; }
 
     public Boolean getIsVideo() { return this.isVideo; }
 
+    public void setIsVideo(Boolean isVideo) { this.isVideo = isVideo; }
+
     public Boolean getIsImage() { return this.isImage; }
 
+    public void setIsImage(Boolean isImage) { this.isImage = isImage; }
+
     public @NotNull Integer getOrder() { return this.order; }
+
+    public void setOrder(@NotNull Integer order) { this.order = order; }
 
     @Override
     public String toString() {

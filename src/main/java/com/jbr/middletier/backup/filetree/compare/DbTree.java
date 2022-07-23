@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import java.util.List;
+import java.util.Optional;
 
 public class DbTree extends CompareRoot {
     private final DbRoot source;
@@ -118,8 +119,8 @@ public class DbTree extends CompareRoot {
     }
 
     @Override
-    public String getName() {
-        return null;
+    public Optional<String> getName() {
+        return Optional.empty();
     }
 
     @Override
