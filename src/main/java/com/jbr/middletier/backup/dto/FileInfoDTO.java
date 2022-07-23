@@ -1,10 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
-import com.google.protobuf.compiler.PluginProtos;
 import com.jbr.middletier.backup.data.*;
-
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class FileInfoDTO {

@@ -60,7 +60,7 @@ public class RwRoot extends RootFileTreeNode {
             List<FileTreeNode> toBeRemoved = new ArrayList<>();
 
             for(FileTreeNode nextNode : this.children) {
-                if(nextNode.getName().orElse("").matches(filter)) {
+                if(!nextNode.getName().orElse("").matches(filter)) {
                     toBeRemoved.add(nextNode);
                 }
             }

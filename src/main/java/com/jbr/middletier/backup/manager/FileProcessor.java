@@ -111,7 +111,7 @@ abstract class FileProcessor {
         return node.getRealWorldNode();
     }
 
-    private Optional<FileSystemObjectId> getParentIt(RwDbCompareNode node) {
+    private Optional<FileSystemObjectId> getParentId(RwDbCompareNode node) {
         FileTreeNode parentNode = node.getParent();
         Optional<FileSystemObjectId> parentId = Optional.empty();
         if(parentNode instanceof RwDbCompareNode) {
@@ -150,8 +150,8 @@ abstract class FileProcessor {
             throw new IllegalStateException("Cannot insert a directory with no name.");
 
         DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
-        directory.setName(rwNode.getName().get());
-        directory.setParentId(getParentIt(node).isPresent() ? getParentIt(node).get() : null);
+        directory.setName(rwNode.getName().orElse(""));
+        directory.setParentId(getParentId(node).orElse(null));
 
         fileSystemObjectManager.save(directory);
 
@@ -178,7 +178,7 @@ abstract class FileProcessor {
 
         FileInfo file = (FileInfo) existingFile.get();
         file.setName(rwNode.getName().get());
-        file.setParentId(getParentIt(node).isPresent() ? getParentIt(node).get() : null);
+        file.setParentId(getParentId(node).orElse(null));
 
         if(file.getClassification() == null) {
             Optional<Classification> newClassification = associatedFileDataManager.classifyFile(file);

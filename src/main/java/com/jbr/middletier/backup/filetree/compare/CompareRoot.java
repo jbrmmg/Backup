@@ -14,17 +14,27 @@ public abstract class CompareRoot extends RootFileTreeNode {
         List<String> added = new ArrayList<>();
 
         for(FileTreeNode nextLHS : lhs.getChildren()) {
+            String lhsName = nextLHS.getName().orElse("");
+            if(lhsName.length() == 0) {
+                continue;
+            }
+
             for(FileTreeNode nextRHS : rhs.getChildren()) {
-                if(nextLHS.getName().isPresent() && nextRHS.getName().isPresent() && nextLHS.getName().get().equals(nextRHS.getName().get())) {
-                    added.add(nextLHS.getName().get());
+                String rhsName = nextRHS.getName().orElse("");
+                if(rhsName.length() == 0) {
+                    continue;
+                }
+
+                if(lhsName.equals(rhsName)) {
+                    added.add(lhsName);
                     FileTreeNode resultNode = createCompareNode(CompareStatusType.EQUAL, result, nextLHS, nextRHS);
                     result.addChild(resultNode);
                     performCompare(resultNode,nextLHS,nextRHS);
                 }
             }
 
-            if(!added.contains(nextLHS.getName().get())) {
-                added.add(nextLHS.getName().get());
+            if(!added.contains(lhsName)) {
+                added.add(lhsName);
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.REMOVED, result, nextLHS, nullNode);
                 result.addChild(resultNode);
                 performCompare(resultNode,nextLHS,nullNode);
@@ -32,8 +42,13 @@ public abstract class CompareRoot extends RootFileTreeNode {
         }
 
         for(FileTreeNode nextRHS : rhs.getChildren()) {
-            if(nextRHS.getName().isPresent() && !added.contains(nextRHS.getName().get())) {
-                added.add(nextRHS.getName().get());
+            String rhsName = nextRHS.getName().orElse("");
+            if(rhsName.length() == 0) {
+                continue;
+            }
+
+            if(!added.contains(rhsName)) {
+                added.add(rhsName);
                 FileTreeNode resultNode = createCompareNode(CompareStatusType.ADDED, result, nullNode, nextRHS);
                 result.addChild(resultNode);
                 performCompare(resultNode,nullNode,nextRHS);

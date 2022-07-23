@@ -122,6 +122,10 @@ public class FileSystemObjectManager {
     public Optional<FileSystemObject> findFileSystemObject(FileSystemObjectId id) {
         Optional<FileSystemObject> result = Optional.empty();
 
+        if(id == null) {
+            return result;
+        }
+
         switch(id.getType()) {
             case FSO_IMPORT_SOURCE:
                 return copyOf(associatedFileDataManager.findImportSourceIfExists(id.getId()));
@@ -167,11 +171,7 @@ public class FileSystemObjectManager {
     }
 
     private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) {
-        if(!fso.getParentId().isPresent()) {
-            return;
-        }
-
-        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId().get());
+        Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId().orElse(null));
         if(!parent.isPresent())
             return;
 
