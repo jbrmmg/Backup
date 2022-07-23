@@ -1,8 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.SourceDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.File;

@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
-import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.DBC_NOT_EQUAL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

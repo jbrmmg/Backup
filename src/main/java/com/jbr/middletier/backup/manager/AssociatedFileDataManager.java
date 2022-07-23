@@ -152,6 +152,7 @@ public class AssociatedFileDataManager {
         return result;
     }
 
+    @SuppressWarnings("unused")
     public Optional<Location> findImportLocation() {
         Optional<Location> result = Optional.empty();
         for(Location nextLocation: locationRepository.findAll()) {
@@ -207,6 +208,7 @@ public class AssociatedFileDataManager {
         return result;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Source findSourceById(Integer id) throws InvalidSourceIdException {
         Optional<Source> existing = sourceRepository.findById(id);
         if(!existing.isPresent()) {
@@ -351,7 +353,7 @@ public class AssociatedFileDataManager {
         return result;
     }
 
-    public Synchronize createSynchronize(Synchronize synchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
+    public Synchronize createSynchronize(Synchronize synchronize) throws SynchronizeAlreadyExistsException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(existing.isPresent()) {
             throw new SynchronizeAlreadyExistsException(synchronize.getId());
@@ -360,7 +362,7 @@ public class AssociatedFileDataManager {
         return synchronizeRepository.save(synchronize);
     }
 
-    public void updateSynchronize(Synchronize synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
+    public void updateSynchronize(Synchronize synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
         if(!existing.isPresent()) {
             throw new InvalidSynchronizeIdException(synchronize.getId());

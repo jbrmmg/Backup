@@ -73,7 +73,7 @@ public class ImportIT extends FileTester {
     PreImportSource preImportSource;
 
     @Before
-    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, InvalidSourceIdException {
+    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException {
         initialiseDirectories();
 
         // Update JPG so it gets an MD5

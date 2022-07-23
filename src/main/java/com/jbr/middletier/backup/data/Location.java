@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.LocationDTO;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;

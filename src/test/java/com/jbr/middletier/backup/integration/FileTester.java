@@ -38,7 +38,6 @@ public class FileTester extends WebTester {
         public final String md5;
         public final LocalDateTime dateTime;
         public final Long fileSize;
-        public boolean checked;
 
         public StructureDescription(String description) {
             String[] structureItems = description.split("\\s+");
@@ -51,8 +50,6 @@ public class FileTester extends WebTester {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
             this.dateTime = LocalDateTime.parse(structureItems[3],formatter);
-
-            checked = false;
         }
     }
 

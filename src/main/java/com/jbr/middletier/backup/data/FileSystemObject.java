@@ -53,24 +53,24 @@ public class FileSystemObject {
         return Optional.of(new FileSystemObjectId(this.parentId, FileSystemObjectType.getFileSystemObjectType(this.parentType)));
     }
 
-    public void setParent(Optional<FileSystemObject> parent) {
-        if(!parent.isPresent()) {
-            setParentId(Optional.empty());
+    public void setParent(FileSystemObject parent) {
+        if(null == parent) {
+            setParentId(null);
             return;
         }
 
-        setParentId(Optional.of(parent.get().getIdAndType()));
+        setParentId(parent.getIdAndType());
     }
 
-    public void setParentId(Optional<FileSystemObjectId> parentId) {
-        if(!parentId.isPresent()) {
+    public void setParentId(FileSystemObjectId parentId) {
+        if(null == parentId) {
             this.parentId = null;
             this.parentType = null;
             return;
         }
 
-        this.parentId = parentId.get().getId();
-        this.parentType = parentId.get().getType().getTypeName();
+        this.parentId = parentId.getId();
+        this.parentType = parentId.getType().getTypeName();
     }
 
     public String getName() {

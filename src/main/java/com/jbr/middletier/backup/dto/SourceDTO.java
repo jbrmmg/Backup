@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.data.SourceStatusType;
 
 @SuppressWarnings("unused")

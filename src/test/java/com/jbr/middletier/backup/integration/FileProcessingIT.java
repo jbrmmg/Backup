@@ -152,12 +152,12 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
-        file.setParent(Optional.of(level1));
+        file.setParent(level1);
         file.setName("testFile.txt");
         fileRepository.save(file);
 
@@ -194,13 +194,13 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         //1998-04-10-11-43        12
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
-        file.setParent(Optional.of(level1));
+        file.setParent(level1);
         file.setName("Backup.dxf~");
         file.setSize(12);
         file.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
@@ -245,7 +245,7 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         directoryRepository.save(level1);
 
@@ -299,12 +299,12 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         directoryRepository.save(level1);
 
         DirectoryInfo file = new DirectoryInfo();
-        file.setParent(Optional.of(level1));
+        file.setParent(level1);
         file.setName("Backup.dxf~");
         directoryRepository.save(file);
 
@@ -364,17 +364,17 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
-        file.setParent(Optional.of(level1));
+        file.setParent(level1);
         file.setName("Backup");
         fileRepository.save(file);
 
         FileInfo file2 = new FileInfo();
-        file2.setParent(Optional.of(level1));
+        file2.setParent(level1);
         file2.setName("Text1.txt");
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
@@ -443,17 +443,17 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         directoryRepository.save(level1);
 
         FileInfo file = new FileInfo();
-        file.setParent(Optional.of(level1));
+        file.setParent(level1);
         file.setName("Deleted.txt");
         fileRepository.save(file);
 
         FileInfo file2 = new FileInfo();
-        file2.setParent(Optional.of(level1));
+        file2.setParent(level1);
         file2.setName("Backup.dxf~");
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
@@ -516,17 +516,17 @@ public class FileProcessingIT extends FileTester {
         sourceRepository.save(source);
 
         DirectoryInfo level1 = new DirectoryInfo();
-        level1.setParent(Optional.of(source));
+        level1.setParent(source);
         level1.setName("Documents");
         directoryRepository.save(level1);
 
         DirectoryInfo extraDirectory = new DirectoryInfo();
-        extraDirectory.setParent(Optional.of(level1));
+        extraDirectory.setParent(level1);
         extraDirectory.setName("Deleted");
         directoryRepository.save(extraDirectory);
 
         FileInfo file2 = new FileInfo();
-        file2.setParent(Optional.of(level1));
+        file2.setParent(level1);
         file2.setName("Backup.dxf~");
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
@@ -667,12 +667,12 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void checkDbDirectoryException() {
         DirectoryInfo tempDirectory = new DirectoryInfo();
-        tempDirectory.setParent(Optional.empty());
+        tempDirectory.setParent(null);
         tempDirectory.setName("Documents");
         directoryRepository.save(tempDirectory);
 
         DirectoryInfo tempDirectory2 = new DirectoryInfo();
-        tempDirectory2.setParent(Optional.empty());
+        tempDirectory2.setParent(null);
         tempDirectory2.setName("Documents");
         directoryRepository.save(tempDirectory2);
 

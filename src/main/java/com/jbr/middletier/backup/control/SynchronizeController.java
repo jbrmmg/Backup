@@ -1,8 +1,6 @@
 package com.jbr.middletier.backup.control;
 
-import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
-import com.jbr.middletier.backup.exception.InvalidSourceIdException;
 import com.jbr.middletier.backup.exception.InvalidSynchronizeIdException;
 import com.jbr.middletier.backup.exception.SynchronizeAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
@@ -44,13 +42,13 @@ public class SynchronizeController {
     }
 
     @PostMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException, InvalidSourceIdException {
+    public @ResponseBody List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException {
         associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }
 
     @PutMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException, InvalidSourceIdException {
+    public @ResponseBody List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         associatedFileDataManager.updateSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }

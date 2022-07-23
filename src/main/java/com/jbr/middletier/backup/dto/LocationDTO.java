@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.Location;
-
 import javax.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")

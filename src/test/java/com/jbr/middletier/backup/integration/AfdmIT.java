@@ -27,7 +27,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.ui.ModelMap;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.util.Optional;
@@ -239,8 +238,6 @@ public class AfdmIT {
             Assert.fail();
         } catch (InvalidSynchronizeIdException e) {
             Assert.assertEquals("Synchronize with id (1) not found.", e.getMessage());
-        } catch (InvalidSourceIdException e2) {
-            Assert.fail();
         }
     }
 

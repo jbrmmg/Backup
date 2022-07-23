@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.PreImportSourceDTO;
-
 import javax.persistence.*;
 
 @Entity

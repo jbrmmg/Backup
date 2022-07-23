@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.ClassificationDTO;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;

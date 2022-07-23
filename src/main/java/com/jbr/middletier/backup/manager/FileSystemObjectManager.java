@@ -112,7 +112,7 @@ public class FileSystemObjectManager {
 
         List<DirectoryInfo> dbDirectories = new ArrayList<>(directoryRepository.findAllByOrderByIdAsc());
         for(DirectoryInfo nextDirectory : dbDirectories) {
-            nextDirectory.setParent(Optional.empty());
+            nextDirectory.setParent(null);
             directoryRepository.save(nextDirectory);
         }
 

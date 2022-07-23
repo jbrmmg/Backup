@@ -132,7 +132,7 @@ public class FsoIT   {
     }
 
     @Test
-    public void file() throws ParseException {
+    public void file() {
         LOG.info("Test the basic file object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -147,7 +147,7 @@ public class FsoIT   {
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParent(Optional.of(testSource));
+        directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
 
         directoryRepository.save(directoryInfo);
@@ -161,7 +161,7 @@ public class FsoIT   {
         LocalDateTime aDate =  LocalDateTime.parse("2022-06-02 10:02:03", formatter);
 
         FileInfo fileInfo = new FileInfo();
-        fileInfo.setParent(Optional.of(directoryInfo));
+        fileInfo.setParent(directoryInfo);
         fileInfo.setName("Blah");
         fileInfo.setClassification(classificationList.get(0));
         fileInfo.setDate(aDate);
@@ -223,13 +223,13 @@ public class FsoIT   {
         sourceRepository.save(testSource);
 
         DirectoryInfo directoryInfo = new DirectoryInfo();
-        directoryInfo.setParent(Optional.of(testSource));
+        directoryInfo.setParent(testSource);
         directoryInfo.setName("test directory");
 
         directoryRepository.save(directoryInfo);
 
         DirectoryInfo directoryInfo1 = new DirectoryInfo();
-        directoryInfo1.setParent(Optional.of(directoryInfo));
+        directoryInfo1.setParent(directoryInfo);
         directoryInfo1.setName("test 2");
 
         directoryRepository.save(directoryInfo1);
@@ -277,7 +277,7 @@ public class FsoIT   {
         testIgnoreFile.setDate(aDate);
         testIgnoreFile.setMD5(new MD5("YTWVS"));
         testIgnoreFile.setSize(8310L);
-        testIgnoreFile.setParent(Optional.empty());
+        testIgnoreFile.setParent(null);
 
         ignoreFileRepository.save(testIgnoreFile);
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, testIgnoreFile.getIdAndType().getType());

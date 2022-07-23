@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.ImportSource;
-
 public class ImportSourceDTO extends SourceDTO {
     private Integer destinationId;
 

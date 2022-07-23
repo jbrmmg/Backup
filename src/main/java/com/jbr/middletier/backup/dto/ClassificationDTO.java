@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.ClassificationActionType;
 
 @SuppressWarnings("unused")
@@ -13,9 +12,6 @@ public class ClassificationDTO {
     private Boolean useMD5;
     private Boolean isImage;
     private Boolean isVideo;
-
-    public ClassificationDTO() {
-    }
 
     public Integer getId() {
         return id;

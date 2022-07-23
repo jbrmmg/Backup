@@ -1,9 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.ImportSourceDTO;
-import com.jbr.middletier.backup.exception.InvalidSourceIdException;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
-
 import javax.persistence.*;
 
 @Entity

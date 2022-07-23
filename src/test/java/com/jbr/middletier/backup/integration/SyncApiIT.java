@@ -89,7 +89,7 @@ public class SyncApiIT extends FileTester {
     private Synchronize synchronize;
 
     @Before
-    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, InvalidSourceIdException, SynchronizeAlreadyExistsException, ClassificationIdException, LocationAlreadyExistsException {
+    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
         backupManager.clearMessageCache();
 
         addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
