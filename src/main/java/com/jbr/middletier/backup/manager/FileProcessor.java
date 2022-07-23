@@ -177,7 +177,7 @@ abstract class FileProcessor {
             throw new IllegalStateException("Cannot insert a file with no name.");
 
         FileInfo file = (FileInfo) existingFile.get();
-        file.setName(rwNode.getName().get());
+        file.setName(rwNode.getName().orElse(""));
         file.setParentId(getParentId(node).orElse(null));
 
         if(file.getClassification() == null) {

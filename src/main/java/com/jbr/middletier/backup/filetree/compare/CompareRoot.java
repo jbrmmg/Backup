@@ -10,16 +10,14 @@ import java.util.List;
 public abstract class CompareRoot extends RootFileTreeNode {
     protected abstract FileTreeNode createCompareNode(CompareStatusType status, FileTreeNode parent, FileTreeNode lhs, FileTreeNode rhs);
 
-    protected void performCompare(FileTreeNode result, FileTreeNode lhs, FileTreeNode rhs) {
-        List<String> added = new ArrayList<>();
-
-        for(FileTreeNode nextLHS : lhs.getChildren()) {
+    private void matchesAndLhs(FileTreeNode result, Iterable<FileTreeNode> lhs, Iterable<FileTreeNode> rhs, List<String> added) {
+        for(FileTreeNode nextLHS : lhs) {
             String lhsName = nextLHS.getName().orElse("");
             if(lhsName.length() == 0) {
                 continue;
             }
 
-            for(FileTreeNode nextRHS : rhs.getChildren()) {
+            for(FileTreeNode nextRHS : rhs) {
                 String rhsName = nextRHS.getName().orElse("");
                 if(rhsName.length() == 0) {
                     continue;
@@ -40,8 +38,10 @@ public abstract class CompareRoot extends RootFileTreeNode {
                 performCompare(resultNode,nextLHS,nullNode);
             }
         }
+    }
 
-        for(FileTreeNode nextRHS : rhs.getChildren()) {
+    private void rhsOnly(FileTreeNode result, Iterable<FileTreeNode> rhs, List<String> added) {
+        for(FileTreeNode nextRHS : rhs) {
             String rhsName = nextRHS.getName().orElse("");
             if(rhsName.length() == 0) {
                 continue;
@@ -54,6 +54,13 @@ public abstract class CompareRoot extends RootFileTreeNode {
                 performCompare(resultNode,nullNode,nextRHS);
             }
         }
+    }
+
+    protected void performCompare(FileTreeNode result, FileTreeNode lhs, FileTreeNode rhs) {
+        List<String> added = new ArrayList<>();
+
+        matchesAndLhs(result, lhs.getChildren(), rhs.getChildren(), added);
+        rhsOnly(result, rhs.getChildren(), added);
     }
 
     protected void internalCompare(FileTreeNode lhs, FileTreeNode rhs) {
