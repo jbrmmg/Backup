@@ -151,7 +151,7 @@ abstract class FileProcessor {
 
         DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
         directory.setName(rwNode.getName().get());
-        directory.setParentId(getParentIt(node));
+        directory.setParentId(getParentIt(node).isPresent() ? getParentIt(node).get() : null);
 
         fileSystemObjectManager.save(directory);
 
@@ -178,7 +178,7 @@ abstract class FileProcessor {
 
         FileInfo file = (FileInfo) existingFile.get();
         file.setName(rwNode.getName().get());
-        file.setParentId(getParentIt(node));
+        file.setParentId(getParentIt(node).isPresent() ? getParentIt(node).get() : null);
 
         if(file.getClassification() == null) {
             Optional<Classification> newClassification = associatedFileDataManager.classifyFile(file);
