@@ -106,7 +106,7 @@ public class FsoIT   {
 
         Optional<Source> foundSource = sourceRepository.findById(newId);
         Assert.assertTrue(foundSource.isPresent());
-        Assert.assertNull(foundSource.get().getParentId());
+        Assert.assertFalse(foundSource.get().getParentId().isPresent());
 
         Assert.assertEquals("/test/source/path", foundSource.get().getPath());
         Assert.assertEquals("*.FRD", foundSource.get().getFilter());

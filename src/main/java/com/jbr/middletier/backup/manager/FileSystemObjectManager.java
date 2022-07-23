@@ -167,7 +167,7 @@ public class FileSystemObjectManager {
     }
 
     private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) {
-        if(fso.getParentId().isPresent()) {
+        if(!fso.getParentId().isPresent()) {
             return;
         }
 

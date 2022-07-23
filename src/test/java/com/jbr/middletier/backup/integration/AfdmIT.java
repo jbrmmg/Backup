@@ -15,6 +15,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.ui.ModelMap;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.util.Optional;
@@ -213,6 +215,7 @@ public class AfdmIT {
         Synchronize synchronize = mock(Synchronize.class);
         when(synchronize.getId()).thenReturn(1);
 
+        ModelMapper modelMapper = mock(ModelMapper.class);
         SourceRepository sourceRepository = mock(SourceRepository.class);
         PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
         LocationRepository locationRepository = mock(LocationRepository.class);
@@ -226,7 +229,8 @@ public class AfdmIT {
                 classificationRepository,
                 synchronizeRepository,
                 importSourceRepository,
-                preImportSourceRepository);
+                preImportSourceRepository,
+                modelMapper);
 
         try {
             testAFDM.updateSynchronize(synchronize);
@@ -242,6 +246,7 @@ public class AfdmIT {
     public void sourceStatusTest() {
         Source testSource = new Source();
 
+        ModelMapper modelMapper = mock(ModelMapper.class);
         SourceRepository sourceRepository = mock(SourceRepository.class);
         PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
         LocationRepository locationRepository = mock(LocationRepository.class);
@@ -254,7 +259,7 @@ public class AfdmIT {
                 locationRepository,
                 classificationRepository,
                 synchronizeRepository,
-                importSourceRepository, preImportSourceRepository);
+                importSourceRepository, preImportSourceRepository, modelMapper);
 
         try {
             testAFDM.updateSourceStatus(testSource, SourceStatusType.SST_OK);

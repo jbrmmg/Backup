@@ -4,12 +4,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
-import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
-import org.modelmapper.TypeMap;
-import org.modelmapper.spi.Mapping;
-import org.modelmapper.spi.MappingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,45 +25,18 @@ public class AssociatedFileDataManager {
     private final ImportSourceRepository importSourceRepository;
     private final PreImportSourceRepository preImportSourceRepository;
     private List<Classification> cachedClassifications;
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository, PreImportSourceRepository preImportSourceRepository) {
+    public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository, PreImportSourceRepository preImportSourceRepository, ModelMapper modelMapper) {
         this.sourceRepository = sourceRepository;
         this.locationRepository = locationRepository;
         this.classificationRepository = classificationRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.importSourceRepository = importSourceRepository;
         this.preImportSourceRepository = preImportSourceRepository;
+        this.modelMapper = modelMapper;
         this.cachedClassifications = null;
-
-        this.modelMapper = new ModelMapper();
-
-        PropertyMap<Source,SourceDTO> sourceMap = new PropertyMap<Source, SourceDTO>() {
-            @Override
-            protected void configure() {
-                map().setId(source.getIdAndType().getId());
-            }
-        };
-
-        PropertyMap<ImportSource,ImportSourceDTO> importSourceMap = new PropertyMap<ImportSource, ImportSourceDTO>() {
-            @Override
-            protected void configure() {
-                map().setId(source.getIdAndType().getId());
-                map().setDestinationId(source.getDestination().getIdAndType().getId());
-            }
-        };
-
-        PropertyMap<PreImportSource,PreImportSourceDTO> preImportSourceMap = new PropertyMap<PreImportSource, PreImportSourceDTO>() {
-            @Override
-            protected void configure() {
-                map().setId(source.getIdAndType().getId());
-            }
-        };
-
-        this.modelMapper.addMappings(sourceMap);
-        this.modelMapper.addMappings(importSourceMap);
-        this.modelMapper.addMappings(preImportSourceMap);
     }
 
     // DTO to entity conversions.

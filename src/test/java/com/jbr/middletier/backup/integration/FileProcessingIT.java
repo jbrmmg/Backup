@@ -126,11 +126,12 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
 
         // Check that the details were read as expected.
-        Assert.assertNull(rwRoot.getName());
+        Assert.assertFalse(rwRoot.getName().isPresent());
         int count = 0;
         for (FileTreeNode nextNode : rwRoot.getChildren()) {
             for (FileTreeNode children : nextNode.getChildren()) {
-                Assert.assertEquals("Backup.dxf~", children.getName());
+                Assert.assertTrue(children.getName().isPresent());
+                Assert.assertEquals("Backup.dxf~", children.getName().get());
                 count++;
             }
         }
@@ -163,11 +164,12 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         // Check that the details were read as expected.
-        Assert.assertNull(dbRoot.getName());
+        Assert.assertFalse(dbRoot.getName().isPresent());
         int count = 0;
         for (FileTreeNode nextNode : dbRoot.getChildren()) {
             for (FileTreeNode children : nextNode.getChildren()) {
-                Assert.assertEquals("testFile.txt", children.getName());
+                Assert.assertTrue(children.getName().isPresent());
+                Assert.assertEquals("testFile.txt", children.getName().get());
                 count++;
             }
         }
@@ -221,10 +223,10 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             Assert.assertTrue(nextNode instanceof SectionNode);
             SectionNode sectionNode = (SectionNode) nextNode;
-            Assert.assertNull(sectionNode.getName());
+            Assert.assertFalse(sectionNode.getName().isPresent());
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.deleteAll();
         directoryRepository.deleteAll();
@@ -265,11 +267,11 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode) nextNode;
-                Assert.assertNull(sectionNode.getName());
+                Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
-                Assert.assertNull(compareNode.getName());
+                Assert.assertFalse(compareNode.getName().isPresent());
                 Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                 Assert.assertFalse(compareNode.isDirectory());
             } else {
@@ -277,7 +279,7 @@ public class FileProcessingIT extends FileTester {
             }
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
         Assert.assertEquals(4, sectionCount);
 
         fileRepository.deleteAll();
@@ -325,7 +327,7 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode) nextNode;
-                Assert.assertNull(sectionNode.getName());
+                Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
@@ -337,11 +339,11 @@ public class FileProcessingIT extends FileTester {
             }
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
         Assert.assertEquals(4, sectionCount);
         Assert.assertEquals(2, compareCount);
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
 
         directoryRepository.delete(file);
         directoryRepository.delete(level1);
@@ -398,7 +400,7 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode) nextNode;
-                Assert.assertNull(sectionNode.getName());
+                Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
@@ -414,12 +416,12 @@ public class FileProcessingIT extends FileTester {
             }
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
         Assert.assertEquals(4, sectionCount);
         Assert.assertEquals(2, compareDirectoryCount);
         Assert.assertEquals(1, compareFileCount);
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.delete(file);
         fileRepository.delete(file2);
@@ -476,7 +478,7 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode) nextNode;
-                Assert.assertNull(sectionNode.getName());
+                Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
@@ -488,11 +490,11 @@ public class FileProcessingIT extends FileTester {
             }
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
         Assert.assertEquals(4, sectionCount);
         Assert.assertEquals(1, compareCount);
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.delete(file2);
         fileRepository.delete(file);
@@ -549,7 +551,7 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode) nextNode;
-                Assert.assertNull(sectionNode.getName());
+                Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
@@ -561,11 +563,11 @@ public class FileProcessingIT extends FileTester {
             }
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
         Assert.assertEquals(4, sectionCount);
         Assert.assertEquals(1, compareCount);
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.delete(file2);
         directoryRepository.delete(extraDirectory);
@@ -604,7 +606,7 @@ public class FileProcessingIT extends FileTester {
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode) {
                 SectionNode sectionNode = (SectionNode) nextNode;
-                Assert.assertNull(sectionNode.getName());
+                Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode) {
                 RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
@@ -620,12 +622,12 @@ public class FileProcessingIT extends FileTester {
             }
         }
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
         Assert.assertEquals(4, sectionCount);
         Assert.assertEquals(1, compareFileCount);
         Assert.assertEquals(1, compareDirectoryCount);
 
-        Assert.assertNull(rwDbTree.getName());
+        Assert.assertFalse(rwDbTree.getName().isPresent());
 
         sourceRepository.deleteAll();
     }

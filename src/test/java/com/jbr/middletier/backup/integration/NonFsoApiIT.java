@@ -102,10 +102,12 @@ public class NonFsoApiIT extends WebTester {
         SourceDTO destination = new SourceDTO();
         destination.setId(newSource1.getIdAndType().getId());
         destination.setLocation(locationDTO);
+        destination.setStatus(SourceStatusType.SST_OK);
 
         SourceDTO source = new SourceDTO();
         source.setId(newSource2.getIdAndType().getId());
         source.setLocation(locationDTO);
+        source.setStatus(SourceStatusType.SST_OK);
 
         SynchronizeDTO newSync = new SynchronizeDTO();
         newSync.setId(1);
@@ -352,9 +354,9 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction().toString())))
                 .andExpect(jsonPath("$[32].useMD5", is(classificationDTO.getUseMD5())))
                 .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
-                .andExpect(jsonPath("$[32].video", is(classificationDTO.getIsVideo())))
+                .andExpect(jsonPath("$[32].isVideo", is(classificationDTO.getIsVideo())))
                 .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())))
-                .andExpect(jsonPath("$[32].image", is(classificationDTO.getIsImage())));
+                .andExpect(jsonPath("$[32].isImage", is(classificationDTO.getIsImage())));
 
         LOG.info("Modify the classification.");
         classificationDTO.setId(33);

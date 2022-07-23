@@ -89,7 +89,7 @@ public class SyncApiIT extends FileTester {
     private Synchronize synchronize;
 
     @Before
-    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, InvalidSourceIdException, SynchronizeAlreadyExistsException, ClassificationIdException {
+    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, InvalidSourceIdException, SynchronizeAlreadyExistsException, ClassificationIdException, LocationAlreadyExistsException {
         backupManager.clearMessageCache();
 
         addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
@@ -151,8 +151,12 @@ public class SyncApiIT extends FileTester {
 
         this.destination = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
+        Optional<Location> importLocation = associatedFileDataManager.findLocationById(4);
+        if(!importLocation.isPresent())
+            fail();
+
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
-        importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
+        importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(importLocation.get()));
         importSourceDTO.setStatus(SourceStatusType.SST_OK);
         importSourceDTO.setPath(importDirectory);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
@@ -160,7 +164,7 @@ public class SyncApiIT extends FileTester {
         this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(importSourceDTO));
 
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
-        preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
+        preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(importLocation.get()));
         preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
         preImportSourceDTO.setPath(importDirectory);
 
@@ -590,10 +594,10 @@ public class SyncApiIT extends FileTester {
     public void importTestInvalidPath() throws Exception {
         initialiseDirectories();
 
-        SourceDTO updateSource = associatedFileDataManager.convertToDTO(this.importSource);
+        ImportSourceDTO updateSource = associatedFileDataManager.convertToDTO(this.importSource);
         updateSource.setPath(importDirectory + "x");
 
-        associatedFileDataManager.updateSource(associatedFileDataManager.convertToEntity(updateSource));
+        associatedFileDataManager.updateImportSource(associatedFileDataManager.convertToEntity(updateSource));
 
         LOG.info("Gather the data.");
         String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/import")
@@ -602,11 +606,18 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("The path does not exist - " + importDirectory + "x", error);
+
+        updateSource.setPath(importDirectory);
+        associatedFileDataManager.updateImportSource(associatedFileDataManager.convertToEntity(updateSource));
     }
 
     @Test
     public void importTestNotSetup() throws Exception {
         initialiseDirectories();
+
+        // Save the import source.
+        ImportSourceDTO savedImportSource = associatedFileDataManager.convertToDTO(this.importSource);
+        associatedFileDataManager.deleteImportSource(this.importSource);
 
         // Check that it fails if the request has not been sent
         String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/importprocess")
@@ -615,6 +626,9 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
         Assert.assertEquals("There is no import source defined.", error);
+
+        savedImportSource.setId(null);
+        this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(savedImportSource));
     }
 
     @Test
@@ -992,6 +1006,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setId(1);
         sourceDTO.setPath("Test");
         sourceDTO.setLocation(locationDTO);
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
 
         String error = Objects.requireNonNull(getMockMvc().perform(put("/jbr/ext/backup/source")
                         .content(this.json(sourceDTO))
@@ -1004,6 +1019,7 @@ public class SyncApiIT extends FileTester {
 
         sourceDTO = new SourceDTO();
         sourceDTO.setId(this.source.getIdAndType().getId());
+        sourceDTO.setStatus(SourceStatusType.SST_OK);
         error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/ext/backup/source")
                         .content(this.json(sourceDTO))
                         .contentType(getContentType()))
@@ -1827,7 +1843,7 @@ public class SyncApiIT extends FileTester {
 
         Assert.assertTrue(summary.isValid());
         List<SourceDTO> sources = summary.getSources();
-        Assert.assertEquals(2,sources.size());
+        Assert.assertEquals(4,sources.size());
         Assert.assertEquals(14,sources.get(0).getFileCount());
         Assert.assertEquals(11,sources.get(0).getDirectoryCount());
         Assert.assertEquals(6622444,sources.get(0).getLargestFile());
