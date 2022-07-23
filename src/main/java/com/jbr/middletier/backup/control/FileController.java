@@ -85,6 +85,15 @@ public class FileController {
         return synchronizeManager.synchronize();
     }
 
+    private int getParentId(Optional<FileSystemObject> optParent) {
+        if(!optParent.isPresent()) {
+            return -1;
+        }
+
+        FileSystemObject parent = optParent.get();
+        return parent.getParentId().map(FileSystemObjectId::getId).orElse(-1);
+    }
+
     @PostMapping(path="/hierarchy")
     public @ResponseBody List<HierarchyResponse> hierarchy( @RequestBody HierarchyResponse lastResponse ) {
         List<HierarchyResponse> result = new ArrayList<>();
@@ -121,11 +130,7 @@ public class FileController {
         Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
 
         HierarchyResponse response = new HierarchyResponse();
-        if(parent.isPresent() && parent.get().getParentId().isPresent()) {
-            response.setId(parent.get().getParentId().get().getId());
-        } else {
-            response.setId(-1);
-        }
+        response.setId(getParentId(parent));
         response.setDirectory(true);
         response.setUnderlyingId(lastResponse.getId());
         response.setBackup(true);

@@ -1,11 +1,10 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.FileSystemObject;
-import com.jbr.middletier.backup.data.FileSystemObjectType;
-import com.jbr.middletier.backup.data.MD5;
+import com.google.protobuf.compiler.PluginProtos;
+import com.jbr.middletier.backup.data.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class FileInfoDTO {
@@ -22,7 +21,7 @@ public class FileInfoDTO {
         this.date = fileInfo.getDate();
         this.size = fileInfo.getSize();
         this.md5 = fileInfo.getMD5();
-        this.parentType = fileInfo.getParentId().isPresent() ?  fileInfo.getParentId().get().getType() : null;
+        this.parentType = fileInfo.getParentId().map(FileSystemObjectId::getType).orElse(null);
     }
 
     public FileInfoDTO(FileSystemObject fso) {
