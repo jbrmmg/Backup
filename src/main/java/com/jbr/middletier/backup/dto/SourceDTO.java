@@ -7,7 +7,7 @@ public class SourceDTO {
     private Integer id;
     private String path;
     private LocationDTO location;
-    private SourceStatusType status;
+    private String status;
     private String filter;
     private String mountCheck;
     private int directoryCount;
@@ -49,11 +49,11 @@ public class SourceDTO {
         this.location = location;
     }
 
-    public SourceStatusType getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(SourceStatusType status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

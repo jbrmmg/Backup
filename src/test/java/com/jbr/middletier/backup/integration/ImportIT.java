@@ -107,14 +107,14 @@ public class ImportIT extends FileTester {
 
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
-        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setStatus("OK");
         sourceDTO.setPath(sourceDirectory);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
-        importSourceDTO.setStatus(SourceStatusType.SST_OK);
+        importSourceDTO.setStatus("OK");
         importSourceDTO.setPath(importDirectory);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
 
@@ -122,7 +122,7 @@ public class ImportIT extends FileTester {
 
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
         preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
-        preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
+        preImportSourceDTO.setStatus("OK");
         preImportSourceDTO.setPath(sourceDirectory);
 
         this.preImportSource = associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));

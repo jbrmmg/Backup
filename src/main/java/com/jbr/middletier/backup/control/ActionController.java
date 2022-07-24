@@ -58,7 +58,7 @@ public class ActionController {
 
         List<FileInfoDTO> result = new ArrayList<>();
         for(FileSystemObject nextFile: fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_IGNORE_FILE)) {
-            result.add(new FileInfoDTO(nextFile));
+            result.add(fileSystemObjectManager.convertToDTO((IgnoreFile)nextFile));
         }
 
         result.sort(comparing(FileInfoDTO::getFilename));

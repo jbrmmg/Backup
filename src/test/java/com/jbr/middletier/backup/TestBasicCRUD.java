@@ -13,6 +13,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,10 +48,15 @@ public class TestBasicCRUD extends WebTester {
     @Autowired
     BackupRepository backupRepository;
 
+    @Autowired
+    ModelMapper modelMapper;
+
     @Test
     public void BackupCRUD() {
         try {
-            BackupDTO backup = new BackupDTO("TST","WhaT");
+            BackupDTO backup = new BackupDTO();
+            backup.setId("TST");
+            backup.setType("WhaT");
             backup.setTime(10);
             backup.setArtifact("Test");
             backup.setBackupName("Test");
@@ -81,7 +87,9 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            BackupDTO backup2 = new BackupDTO("TSTX","WhaT");
+            BackupDTO backup2 = new BackupDTO();
+            backup2.setId("TSTX");
+            backup2.setType("WhaT");
             error = getMockMvc().perform(put("/jbr/ext/backup")
                             .content(this.json(backup2))
                             .contentType(getContentType()))
@@ -151,9 +159,11 @@ public class TestBasicCRUD extends WebTester {
                 fail();
             }
 
-            BackupDTO backupDTO = new BackupDTO("CLN","clean");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("CLN");
+            backupDTO.setType("clean");
             backupDTO.setTime(100);
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
 
@@ -317,7 +327,9 @@ public class TestBasicCRUD extends WebTester {
     @Test
     public void HardwareCRUD() {
         try {
-            HardwareDTO hardware = new HardwareDTO("00:00:00:00:00:00","N");
+            HardwareDTO hardware = new HardwareDTO();
+            hardware.setMacAddress("00:00:00:00:00:00");
+            hardware.setReservedIP("N");
             hardware.setName("Testing");
 
             getMockMvc().perform(get("/jbr/ext/hardware")
@@ -351,7 +363,9 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            HardwareDTO hardware2 = new HardwareDTO("00:00:00:00:00:99","N");
+            HardwareDTO hardware2 = new HardwareDTO();
+            hardware2.setMacAddress("00:00:00:00:00:99");
+            hardware2.setReservedIP("N");
             getMockMvc().perform(put("/jbr/ext/hardware")
                             .content(this.json(hardware2))
                             .contentType(getContentType()))

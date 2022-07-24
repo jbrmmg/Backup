@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.BackupDTO;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -42,22 +40,6 @@ public class Backup {
         this.type = "";
     }
 
-    public Backup(BackupDTO source) {
-        setId(source.getId());
-        setType(source.getType());
-        update(source);
-    }
-
-    public void update(BackupDTO source) {
-        setType(source.getType());
-        setDirectory(source.getDirectory());
-
-        this.artifact = source.getArtifact();
-        this.backupName = source.getBackupName();
-        this.fileName = source.getFileName();
-        this.time = source.getTime();
-    }
-
     public String getId() {
         return id;
     }
@@ -81,6 +63,16 @@ public class Backup {
     public String getFileName() { return this.fileName; }
 
     public long getTime() { return this.time; }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public void setFileName(String filename) {this.fileName = filename; }
+
+    public void setArtifact(String artifact) {this.artifact = artifact; }
+
+    public void setBackupName(String backupName) {this.backupName = backupName; }
 
     public void setId(@NotNull String id) { this.id = id; }
 

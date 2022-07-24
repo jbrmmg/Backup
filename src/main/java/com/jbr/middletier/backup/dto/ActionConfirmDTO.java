@@ -4,34 +4,16 @@ import com.jbr.middletier.backup.data.ActionConfirm;
 
 @SuppressWarnings("unused")
 public class ActionConfirmDTO {
-    private final int id;
-    private final int fileId;
-    private final String fileName;
-    private final String action;
-    private final Boolean confirmed;
-    private final Boolean parameterRequired;
-    private final String parameter;
-    private final String flags;
-    private final boolean isImage;
-    private final boolean isVideo;
-
-    public ActionConfirmDTO(ActionConfirm data) {
-        this.id = data.getId();
-        this.action = data.getAction().getTypeName();
-        this.fileId = data.getPath().getIdAndType().getId();
-        this.fileName = data.getPath().getName();
-        this.parameterRequired = data.getParameterRequired();
-        this.parameter = data.getParameter();
-        this.flags = data.getFlags();
-        this.confirmed = data.confirmed();
-        if(data.getPath().getClassification() != null) {
-            this.isImage = data.getPath().getClassification().getIsImage();
-            this.isVideo = data.getPath().getClassification().getIsVideo();
-        } else {
-            this.isImage = false;
-            this.isVideo = false;
-        }
-    }
+    private int id;
+    private int fileId;
+    private String fileName;
+    private String action;
+    private Boolean confirmed;
+    private Boolean parameterRequired;
+    private String parameter;
+    private String flags;
+    private boolean isImage;
+    private boolean isVideo;
 
     public int getId() {
         return id;
@@ -65,11 +47,51 @@ public class ActionConfirmDTO {
         return flags;
     }
 
-    public boolean isImage() {
+    public boolean getIsImage() {
         return isImage;
     }
 
-    public boolean isVideo() {
+    public boolean getIsVideo() {
         return isVideo;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setFileId(int fileId) {
+        this.fileId = fileId;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public void setConfirmed(Boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public void setParameterRequired(Boolean parameterRequired) {
+        this.parameterRequired = parameterRequired;
+    }
+
+    public void setParameter(String parameter) {
+        this.parameter = parameter;
+    }
+
+    public void setFlags(String flags) {
+        this.flags = flags;
+    }
+
+    public void setIsImage(boolean image) {
+        isImage = image;
+    }
+
+    public void setIsVideo(boolean video) {
+        isVideo = video;
     }
 }

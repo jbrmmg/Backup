@@ -17,11 +17,6 @@ public class BackupDTO {
         setType("");
     }
 
-    public BackupDTO(String id, String type) {
-        setId(id);
-        setType(type);
-    }
-
     public String getId() {
         return id;
     }

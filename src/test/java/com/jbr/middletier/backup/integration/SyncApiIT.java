@@ -139,14 +139,14 @@ public class SyncApiIT extends FileTester {
 
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
-        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setStatus("OK");
         sourceDTO.setPath(sourceDirectory);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
-        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setStatus("OK");
         sourceDTO.setPath(destinationDirectory);
 
         this.destination = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
@@ -157,7 +157,7 @@ public class SyncApiIT extends FileTester {
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(importLocation.get()));
-        importSourceDTO.setStatus(SourceStatusType.SST_OK);
+        importSourceDTO.setStatus("OK");
         importSourceDTO.setPath(importDirectory);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
 
@@ -165,7 +165,7 @@ public class SyncApiIT extends FileTester {
 
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
         preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(importLocation.get()));
-        preImportSourceDTO.setStatus(SourceStatusType.SST_OK);
+        preImportSourceDTO.setStatus("OK");
         preImportSourceDTO.setPath(preImportDirectory);
 
         associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
@@ -723,7 +723,6 @@ public class SyncApiIT extends FileTester {
     @Test
     public void importTestIgnore() throws Exception {
         LOG.info("Delete with Gather Testing");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         // During this test create files in the following directories
         initialiseDirectories();
@@ -869,7 +868,6 @@ public class SyncApiIT extends FileTester {
     @Test
     public void importTest() throws Exception {
         LOG.info("Delete with Gather Testing");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
          // During this test create files in the following directories
         initialiseDirectories();
@@ -1084,19 +1082,17 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(14)))
                 .andExpect(jsonPath("$[0].filename", is("Backup.dxf~")))
-                .andExpect(jsonPath("$[0].type", is(FileSystemObjectType.FSO_FILE.toString())))
+                .andExpect(jsonPath("$[0].type", is("FILE")))
                 .andExpect(jsonPath("$[0].date", startsWith("1998-04-10")))
                 .andExpect(jsonPath("$[0].size", is(12)))
-                .andExpect(jsonPath("$[0].md5.set", is(false)))
-                .andExpect(jsonPath("$[0].parentType", is(FileSystemObjectType.FSO_DIRECTORY.toString())))
+                .andExpect(jsonPath("$[0].parentType", is("DIRY")))
                 .andExpect(jsonPath("$[1].filename", is("Bills.ods")))
                 .andExpect(jsonPath("$[2].filename", is("Cycle.MOV")))
                 .andExpect(jsonPath("$[3].filename", is("GetRid.ds_store")))
                 .andExpect(jsonPath("$[4].filename", is("IMG_2329.HEIC")))
                 .andExpect(jsonPath("$[5].filename", is("IMG_3891.jpeg")))
                 .andExpect(jsonPath("$[6].filename", is("IMG_8231.jpg")))
-                .andExpect(jsonPath("$[6].md5.set", is(true)))
-                .andExpect(jsonPath("$[6].md5.value", is("C714A0B2E792EB102F706DC2424B0083")))
+                .andExpect(jsonPath("$[6].md5", is("C714A0B2E792EB102F706DC2424B0083")))
                 .andExpect(jsonPath("$[7].filename", is("IMG_931d.png")))
                 .andExpect(jsonPath("$[8].filename", is("Letter.odt")))
                 .andExpect(jsonPath("$[9].filename", is("NotHere._.ds_store")))
@@ -1202,7 +1198,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setId(1);
         sourceDTO.setPath("Test");
         sourceDTO.setLocation(locationDTO);
-        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setStatus("OK");
 
         String error = Objects.requireNonNull(getMockMvc().perform(put("/jbr/ext/backup/source")
                         .content(this.json(sourceDTO))
@@ -1215,7 +1211,7 @@ public class SyncApiIT extends FileTester {
 
         sourceDTO = new SourceDTO();
         sourceDTO.setId(this.source.getIdAndType().getId());
-        sourceDTO.setStatus(SourceStatusType.SST_OK);
+        sourceDTO.setStatus("OK");
         error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/ext/backup/source")
                         .content(this.json(sourceDTO))
                         .contentType(getContentType()))
