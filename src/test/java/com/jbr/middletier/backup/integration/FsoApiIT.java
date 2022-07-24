@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
-import com.jbr.middletier.backup.data.SourceStatusType;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import org.junit.ClassRule;

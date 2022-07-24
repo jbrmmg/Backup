@@ -12,9 +12,6 @@ public class FileInfoDTO {
     private String parentType;
     private Integer parentId;
 
-    public FileInfoDTO() {
-    }
-
     public String getFilename() {
         return filename;
     }

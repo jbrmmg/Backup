@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
  * Created by jason on 11/02/17.
  */
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name="backup")
 public class Backup {

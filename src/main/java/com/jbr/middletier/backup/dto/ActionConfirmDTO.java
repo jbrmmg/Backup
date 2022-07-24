@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.ActionConfirm;
-
 @SuppressWarnings("unused")
 public class ActionConfirmDTO {
     private int id;

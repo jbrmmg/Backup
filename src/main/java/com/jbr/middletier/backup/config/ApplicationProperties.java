@@ -91,7 +91,7 @@ public class ApplicationProperties {
             @Override
             protected Boolean convert(FileInfo file) {
                 if(null == file) {
-                    return null;
+                    return false;
                 }
                 if(file.getClassification() == null) {
                     return false;
@@ -104,7 +104,7 @@ public class ApplicationProperties {
             @Override
             protected Boolean convert(FileInfo file) {
                 if(null == file) {
-                    return null;
+                    return false;
                 }
                 if(file.getClassification() == null) {
                     return false;
