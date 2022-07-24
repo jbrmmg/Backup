@@ -7,6 +7,7 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@SuppressWarnings("unused")
 public class FileSystemImageData {
     private LocalDateTime dateTime;
     private boolean valid;

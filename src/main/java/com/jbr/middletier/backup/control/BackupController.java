@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.exception.InvalidBackupIdException;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,17 +28,20 @@ public class BackupController {
 
     private final BackupRepository backupRepository;
     private final BackupCtrl backupCtrl;
+    private final ModelMapper modelMapper;
 
     @Contract(pure = true)
     @Autowired
     BackupController(BackupRepository backupRepository,
-                     BackupCtrl backupCtrl) {
+                     BackupCtrl backupCtrl,
+                     ModelMapper modelMapper) {
         this.backupRepository = backupRepository;
         this.backupCtrl = backupCtrl;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping(path="/byId")
-    public @ResponseBody Backup specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
+    public @ResponseBody BackupDTO specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         LOG.info("List hardware.");
         // Check that the item exists.
         Optional<Backup> storedHardware = backupRepository.findById(id);
@@ -46,7 +50,7 @@ public class BackupController {
             throw new InvalidBackupIdException(id);
         }
 
-        return storedHardware.get();
+        return modelMapper.map(storedHardware.get(),BackupDTO.class);
     }
 
     @GetMapping()
@@ -66,10 +70,7 @@ public class BackupController {
             throw new InvalidBackupIdException(backup.getId());
         }
 
-        storedBackup.get().update(backup);
-
-        backupRepository.save(storedBackup.get());
-
+        backupRepository.save(modelMapper.map(backup, Backup.class));
         return OkStatus.getOkStatus();
     }
 
@@ -83,7 +84,7 @@ public class BackupController {
             throw new BackupAlreadyExistsException(backup.getId());
         }
 
-        backupRepository.save(new Backup(backup));
+        backupRepository.save(modelMapper.map(backup,Backup.class));
 
         return OkStatus.getOkStatus();
     }

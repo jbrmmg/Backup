@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dto.BackupDTO;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,9 @@ public class DatabaseIT {
     @Autowired
     SourceRepository sourceRepository;
 
+    @Autowired
+    ModelMapper modelMapper;
+
     @Test
     public void hardware(){
         LOG.info("Basic test of the Hardware object");
@@ -118,7 +122,7 @@ public class DatabaseIT {
         newBackupDTO.setFileName("Dev");
         newBackupDTO.setTime(100);
 
-        Backup newBackup = new Backup(newBackupDTO);
+        Backup newBackup = modelMapper.map(newBackupDTO,Backup.class);
         backupRepository.save(newBackup);
 
         Optional<Backup> findBackup = backupRepository.findById("XXXX");

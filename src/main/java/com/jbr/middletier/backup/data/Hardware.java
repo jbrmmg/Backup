@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.data;
 
-import com.jbr.middletier.backup.dto.HardwareDTO;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -28,18 +26,6 @@ public class Hardware {
     public Hardware() {
         macAddress = "";
         reservedIP = "";
-    }
-
-    public Hardware(HardwareDTO source) {
-        setMacAddress(source.getMacAddress());
-        setReservedIP(source.getReservedIP());
-        update(source);
-    }
-
-    public void update(HardwareDTO source) {
-        setReservedIP(source.getReservedIP());
-        setIP(source.getIp());
-        setName(source.getName());
     }
 
     public String getMacAddress() { return this.macAddress; }

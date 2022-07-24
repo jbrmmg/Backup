@@ -1,16 +1,13 @@
 package com.jbr.middletier.backup.config;
 
-import com.jbr.middletier.backup.data.ImportSource;
-import com.jbr.middletier.backup.data.PreImportSource;
-import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.dto.ImportSourceDTO;
-import com.jbr.middletier.backup.dto.PreImportSourceDTO;
-import com.jbr.middletier.backup.dto.SourceDTO;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dto.*;
+import org.modelmapper.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Optional;
 
 @Configuration
 @ConfigurationProperties(prefix="backup")
@@ -18,6 +15,27 @@ public class ApplicationProperties {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
+
+        Converter<String,SourceStatusType> stringSourceStatusConverter = new AbstractConverter<String, SourceStatusType>() {
+            @Override
+            protected SourceStatusType convert(String s) {
+                return SourceStatusType.getSourceStatusType(s);
+            }
+        };
+
+        Converter<SourceStatusType,String> sourceStatusStringConverter = new AbstractConverter<SourceStatusType, String>() {
+            @Override
+            protected String convert(SourceStatusType s) {
+                return s.getTypeName();
+            }
+        };
+
+        Converter<ActionConfirmType,String> actionConfirmStringConverter = new AbstractConverter<ActionConfirmType, String>() {
+            @Override
+            protected String convert(ActionConfirmType ac) {
+                return ac.getTypeName();
+            }
+        };
 
         PropertyMap<Source, SourceDTO> sourceMap = new PropertyMap<Source, SourceDTO>() {
             @Override
@@ -54,6 +72,109 @@ public class ApplicationProperties {
                 map().setId(source.getIdAndType().getId());
             }
         };
+
+        Converter<Optional<FileSystemObjectId>,String> fsoIdTypeConverter = new AbstractConverter<Optional<FileSystemObjectId>, String>() {
+            @Override
+            protected String convert(Optional<FileSystemObjectId> fileSystemObjectId) {
+                return fileSystemObjectId.map(systemObjectId -> systemObjectId.getType().getTypeName()).orElse(null);
+            }
+        };
+
+        Converter<Optional<FileSystemObjectId>,Integer> fsoIdIntegerConverter = new AbstractConverter<Optional<FileSystemObjectId>, Integer>() {
+            @Override
+            protected Integer convert(Optional<FileSystemObjectId> fileSystemObjectId) {
+                return fileSystemObjectId.map(FileSystemObjectId::getId).orElse(null);
+            }
+        };
+
+        Converter<FileInfo,Boolean> actionToIsImage = new AbstractConverter<FileInfo, Boolean>() {
+            @Override
+            protected Boolean convert(FileInfo file) {
+                if(null == file) {
+                    return false;
+                }
+                if(file.getClassification() == null) {
+                    return false;
+                }
+                return file.getClassification().getIsImage();
+            }
+        };
+
+        Converter<FileInfo,Boolean> actionToIsVideo = new AbstractConverter<FileInfo, Boolean>() {
+            @Override
+            protected Boolean convert(FileInfo file) {
+                if(null == file) {
+                    return false;
+                }
+                if(file.getClassification() == null) {
+                    return false;
+                }
+                return file.getClassification().getIsVideo();
+            }
+        };
+
+        Converter<FileInfo,Integer> fileToIdConverter = new AbstractConverter<FileInfo, Integer>() {
+            @Override
+            protected Integer convert(FileInfo file) {
+                if(null == file) {
+                    return null;
+                }
+
+                return file.getIdAndType().getId();
+            }
+        };
+
+        Converter<FileInfo,String> fileToNameConverter = new AbstractConverter<FileInfo, String>() {
+            @Override
+            protected String convert(FileInfo file) {
+                if(null == file) {
+                    return null;
+                }
+
+                return file.getName();
+            }
+        };
+
+        modelMapper.addConverter(stringSourceStatusConverter);
+        modelMapper.addConverter(sourceStatusStringConverter);
+        modelMapper.addConverter(actionConfirmStringConverter);
+
+        modelMapper.createTypeMap(Source.class, SourceDTO.class);
+        modelMapper.createTypeMap(SourceDTO.class, Source.class);
+        modelMapper.createTypeMap(ImportSource.class, ImportSourceDTO.class);
+        modelMapper.createTypeMap(ImportSource.class, SourceDTO.class);
+        modelMapper.createTypeMap(ImportSourceDTO.class, ImportSource.class);
+        modelMapper.createTypeMap(PreImportSource.class, PreImportSourceDTO.class);
+        modelMapper.createTypeMap(PreImportSource.class, SourceDTO.class);
+        modelMapper.createTypeMap(PreImportSourceDTO.class, PreImportSource.class);
+        modelMapper.createTypeMap(Location.class, LocationDTO.class);
+        modelMapper.createTypeMap(LocationDTO.class, Location.class);
+        modelMapper.createTypeMap(Classification.class, ClassificationDTO.class);
+        modelMapper.createTypeMap(ClassificationDTO.class, Classification.class);
+        modelMapper.createTypeMap(Hardware.class,HardwareDTO.class);
+        modelMapper.createTypeMap(HardwareDTO.class,Hardware.class);
+        modelMapper.createTypeMap(Backup.class,BackupDTO.class);
+        modelMapper.createTypeMap(BackupDTO.class,Backup.class);
+
+        modelMapper.createTypeMap(FileInfo.class,FileInfoDTO.class).addMappings(mapper -> {
+            mapper.using(fsoIdTypeConverter).map(FileInfo::getParentId,FileInfoDTO::setParentType);
+            mapper.using(fsoIdIntegerConverter).map(FileInfo::getParentId,FileInfoDTO::setParentId);
+            mapper.map(FileInfo::getName,FileInfoDTO::setFilename);
+        });
+
+        modelMapper.createTypeMap(IgnoreFile.class,FileInfoDTO.class).addMappings(mapper -> {
+            mapper.using(fsoIdTypeConverter).map(FileInfo::getParentId,FileInfoDTO::setParentType);
+            mapper.using(fsoIdIntegerConverter).map(FileInfo::getParentId,FileInfoDTO::setParentId);
+            mapper.map(FileInfo::getName,FileInfoDTO::setFilename);
+        });
+
+        modelMapper.createTypeMap(ActionConfirm.class,ActionConfirmDTO.class).addMappings(mapper -> {
+            mapper.using(actionToIsImage).map(ActionConfirm::getPath,ActionConfirmDTO::setIsImage);
+            mapper.using(actionToIsVideo).map(ActionConfirm::getPath,ActionConfirmDTO::setIsVideo);
+            mapper.using(fileToIdConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileId);
+            mapper.using(fileToNameConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileName);
+            mapper.map(ActionConfirm::confirmed,ActionConfirmDTO::setConfirmed);
+        });
 
         modelMapper.addMappings(sourceMap);
         modelMapper.addMappings(importSourceMap);

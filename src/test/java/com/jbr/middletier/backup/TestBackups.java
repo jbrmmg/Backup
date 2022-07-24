@@ -17,6 +17,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class TestBackups {
     @Autowired
     BackupCtrl backupCtrl;
 
+    @Autowired
+    ModelMapper modelMapper;
+
     private int GetBackupTime() {
         Calendar calendar = Calendar.getInstance();
         return calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE) - 5;
@@ -65,9 +69,11 @@ public class TestBackups {
             Files.createDirectories(testFile.toPath());
             Assert.assertTrue(testFile.exists());
 
-            BackupDTO backupDTO = new BackupDTO("CLN","clean");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("CLN");
+            backupDTO.setType("clean");
             backupDTO.setTime(GetBackupTime());
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -166,9 +172,11 @@ public class TestBackups {
                 writer.close();
             }
 
-            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("ZIP");
+            backupDTO.setType("zipup");
             backupDTO.setTime(GetBackupTime());
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -218,9 +226,11 @@ public class TestBackups {
                 assertTrue(testFile.createNewFile());
             }
 
-            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("ZIP");
+            backupDTO.setType("zipup");
             backupDTO.setTime(GetBackupTime());
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -262,9 +272,11 @@ public class TestBackups {
                 FileUtils.deleteDirectory(testDirectory);
             }
 
-            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("ZIP");
+            backupDTO.setType("zipup");
             backupDTO.setTime(GetBackupTime());
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
             zipupBackup.performBackup(backupManager, fileSystem,backup);
@@ -330,9 +342,11 @@ public class TestBackups {
             // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, null);
 
-            BackupDTO backupDTO = new BackupDTO("ZIP", "zipup");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("ZIP");
+            backupDTO.setType("zipup");
             backupDTO.setTime(GetBackupTime());
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
             zipupBackup.performBackup(backupManager,fileSystem,backup);
@@ -363,7 +377,9 @@ public class TestBackups {
                 assertTrue(backedup.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("File", "file");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("File");
+            backupDTO.setType("file");
             backupDTO.setDirectory("./target/testfiles/Backup");
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
@@ -381,7 +397,7 @@ public class TestBackups {
                 assertTrue(testFile.createNewFile());
             }
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -405,7 +421,9 @@ public class TestBackups {
             if (backedup.exists()) {
                 assertTrue(backedup.delete());
             }
-            BackupDTO backupDTO = new BackupDTO("File", "file");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("File");
+            backupDTO.setType("file");
             backupDTO.setDirectory("./target/testfiles/Backup");
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
@@ -420,7 +438,7 @@ public class TestBackups {
                 assertTrue(testFile.getParentFile().mkdirs());
             }
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -444,14 +462,16 @@ public class TestBackups {
             if (backedup.exists()) {
                 assertTrue(backedup.delete());
             }
-            BackupDTO backupDTO = new BackupDTO("File", "file");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("File");
+            backupDTO.setType("file");
             backupDTO.setDirectory("./target/testfiles/Backupx");
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("testx.txt");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -522,14 +542,16 @@ public class TestBackups {
                 assertTrue(expected4.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("Git","git");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("Git");
+            backupDTO.setType("git");
             backupDTO.setDirectory("./target/testfiles/BackupGit");
             backupDTO.setBackupName("TestGit");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.txt");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -562,14 +584,16 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("DB");
+            backupDTO.setType("database");
             backupDTO.setDirectory("db:2:usr:pwd");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -599,14 +623,16 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("DB");
+            backupDTO.setType("database");
             backupDTO.setDirectory("TestDB");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -624,22 +650,22 @@ public class TestBackups {
         backupDTO.setId("TST1");
         backupDTO.setTime(100);
 
-        Backup backup = new Backup(backupDTO);
+        Backup backup = modelMapper.map(backupDTO,Backup.class);
         backupRepository.save(backup);
 
         backupDTO.setId("Tst2");
         backupDTO.setTime(200);
-        backup = new Backup(backupDTO);
+        backup = modelMapper.map(backupDTO,Backup.class);
         backupRepository.save(backup);
 
         backupDTO.setId("Tst3");
         backupDTO.setTime(300);
-        backup = new Backup(backupDTO);
+        backup = modelMapper.map(backupDTO,Backup.class);
         backupRepository.save(backup);
 
         backupDTO.setId("Tst4");
         backupDTO.setTime(400);
-        backup = new Backup(backupDTO);
+        backup = modelMapper.map(backupDTO,Backup.class);
         backupRepository.save(backup);
 
         List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(199,301)));
@@ -652,10 +678,12 @@ public class TestBackups {
     public void TestInvalidType() {
         try {
             // Perform the test.
-            BackupDTO backupDTO = new BackupDTO("BOB", "bob");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("BOB");
+            backupDTO.setType("bob");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -683,14 +711,16 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("DB");
+            backupDTO.setType("database");
             backupDTO.setDirectory("db:2");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("synchronise");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -726,14 +756,16 @@ public class TestBackups {
             raf.setLength(102);
             raf.close();
 
-            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("DB");
+            backupDTO.setType("database");
             backupDTO.setDirectory("db:2:x:y");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.sql");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -769,14 +801,16 @@ public class TestBackups {
                 assertTrue(expected1.delete());
             }
 
-            BackupDTO backupDTO = new BackupDTO("DB", "database");
+            BackupDTO backupDTO = new BackupDTO();
+            backupDTO.setId("DB");
+            backupDTO.setType("database");
             backupDTO.setDirectory("2:x:y");
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.sql");
             backupDTO.setTime(GetBackupTime());
 
-            Backup backup = new Backup(backupDTO);
+            Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             databaseBackup.performBackup(backupManager, fileSystem,backup);
             applicationProperties.setDbUrl(backupDbUrl);

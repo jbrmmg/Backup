@@ -14,11 +14,6 @@ public class HardwareDTO {
         setReservedIP("N");
     }
 
-    public HardwareDTO(String macAddress, String reservedIP) {
-        setMacAddress(macAddress);
-        setReservedIP(reservedIP);
-    }
-
     public String getMacAddress() {
         return macAddress;
     }

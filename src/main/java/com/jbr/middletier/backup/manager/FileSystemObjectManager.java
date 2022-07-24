@@ -3,7 +3,9 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
+import com.jbr.middletier.backup.dto.FileInfoDTO;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +22,24 @@ public class FileSystemObjectManager {
     private final IgnoreFileRepository ignoreFileRepository;
     private final AssociatedFileDataManager associatedFileDataManager;
     private final ImportFileRepository importFileRepository;
+    private final ModelMapper modelMapper;
 
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
                                    DirectoryRepository directoryRepository,
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
-                                   ImportFileRepository importFileRepository) {
+                                   ImportFileRepository importFileRepository, ModelMapper modelMapper) {
         this.fileRepository = fileRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.associatedFileDataManager = associatedFileDataManager;
         this.importFileRepository = importFileRepository;
+        this.modelMapper = modelMapper;
+    }
+
+    public FileInfoDTO convertToDTO(FileInfo fileInfo) {
+        return modelMapper.map(fileInfo, FileInfoDTO.class);
     }
 
     @SuppressWarnings("unchecked")

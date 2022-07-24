@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ public class ActionManager {
     private final FileSystemObjectManager fileSystemObjectManager;
     private final AssociatedFileDataManager associatedFileDataManager;
     private final FileSystem fileSystem;
+    private final ModelMapper modelMapper;
 
     private static final String END_TD = "</td>";
 
@@ -45,19 +47,25 @@ public class ActionManager {
                          ResourceLoader resourceLoader,
                          FileSystemObjectManager fileSystemObjectManager,
                          AssociatedFileDataManager associatedFileDataManager,
-                         FileSystem fileSystem) {
+                         FileSystem fileSystem,
+                         ModelMapper modelMapper) {
         this.applicationProperties = applicationProperties;
         this.actionConfirmRepository = actionConfirmRepository;
         this.resourceLoader = resourceLoader;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
         this.fileSystem = fileSystem;
+        this.modelMapper = modelMapper;
+    }
+
+    public ActionConfirmDTO convertToDTO(ActionConfirm actionConfirm) {
+        return modelMapper.map(actionConfirm, ActionConfirmDTO.class);
     }
 
     public List<ActionConfirmDTO> externalFindByConfirmed(boolean confirmed) {
         List<ActionConfirmDTO> result = new ArrayList<>();
 
-        this.actionConfirmRepository.findByConfirmed(confirmed).forEach(action -> result.add(new ActionConfirmDTO(action)));
+        this.actionConfirmRepository.findByConfirmed(confirmed).forEach(action -> result.add(convertToDTO(action)));
 
         return result;
     }
@@ -81,7 +89,7 @@ public class ActionManager {
             actionConfirmRepository.deleteById(request.getId());
         }
 
-        return new ActionConfirmDTO(existingAction.get());
+        return convertToDTO(existingAction.get());
     }
 
     private ActionConfirmDTO createAction(ActionConfirmType type, FileInfo file, String flags) {
@@ -101,7 +109,7 @@ public class ActionManager {
                 break;
         }
 
-        return new ActionConfirmDTO(actionConfirmRepository.save(actionConfirm));
+        return convertToDTO(actionConfirmRepository.save(actionConfirm));
     }
 
     public ActionConfirmDTO createFileDeleteAction(FileInfo file) {

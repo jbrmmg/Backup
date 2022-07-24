@@ -150,7 +150,7 @@ public class AfdmIT {
 
         SourceDTO newSource1 = new SourceDTO();
         newSource1.setLocation(newLocation);
-        newSource1.setStatus(SourceStatusType.SST_OK);
+        newSource1.setStatus("OK");
         newSource1.setFilter("*.xml");
         newSource1.setPath("/test/directory");
         Source createdSource1 = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(newSource1));
@@ -158,7 +158,7 @@ public class AfdmIT {
 
         SourceDTO newSource2 = new SourceDTO();
         newSource2.setLocation(newLocation);
-        newSource2.setStatus(SourceStatusType.SST_OK);
+        newSource2.setStatus("OK");
         newSource2.setFilter("*.xml");
         newSource2.setPath("/test/directory2");
         Source createdSource2 = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(newSource2));

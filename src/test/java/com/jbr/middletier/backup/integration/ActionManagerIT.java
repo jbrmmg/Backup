@@ -16,6 +16,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,6 +128,7 @@ public class ActionManagerIT {
 
     @Test
     public void testConfirmAction() {
+        ModelMapper modelMapper = mock(ModelMapper.class);
         FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties properties = mock(ApplicationProperties.class);
         ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
@@ -149,7 +151,7 @@ public class ActionManagerIT {
         ActionManager actionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
-                fileSystemObjectManager, associatedFileDataManager, fileSystem);
+                fileSystemObjectManager, associatedFileDataManager, fileSystem, modelMapper);
 
         when(confirmActionRequest.getId()).thenReturn(1);
 
@@ -161,6 +163,11 @@ public class ActionManagerIT {
 
     @Test
     public void testConfirmActionCreate() {
+        ActionConfirmDTO actionConfirmDTO = mock(ActionConfirmDTO.class);
+        when(actionConfirmDTO.getAction()).thenReturn("DELETE_DUP");
+
+        ModelMapper modelMapper = mock(ModelMapper.class);
+        when(modelMapper.map(any(ActionConfirm.class),any())).thenReturn(actionConfirmDTO);
         FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties properties = mock(ApplicationProperties.class);
         ActionConfirmRepository actionConfirmRepository = mock(ActionConfirmRepository.class);
@@ -181,7 +188,8 @@ public class ActionManagerIT {
         ActionManager actionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
-                fileSystemObjectManager, associatedFileDataManager, fileSystem);
+                fileSystemObjectManager, associatedFileDataManager,
+                fileSystem, modelMapper);
 
         ActionConfirmDTO action = actionManager.createFileDeleteDuplicateAction(file);
         Assert.assertEquals("DELETE_DUP", action.getAction());

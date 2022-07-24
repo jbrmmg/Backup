@@ -1,51 +1,60 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.*;
 import java.time.LocalDateTime;
 
 @SuppressWarnings("unused")
 public class FileInfoDTO {
-    private final String filename;
-    private final FileSystemObjectType type;
-    private final LocalDateTime date;
-    private final Long size;
-    private final MD5 md5;
-    private final FileSystemObjectType parentType;
-
-    public FileInfoDTO(FileInfo fileInfo) {
-        this.filename = fileInfo.getName();
-        this.type = fileInfo.getIdAndType().getType();
-        this.date = fileInfo.getDate();
-        this.size = fileInfo.getSize();
-        this.md5 = fileInfo.getMD5();
-        this.parentType = fileInfo.getParentId().map(FileSystemObjectId::getType).orElse(null);
-    }
-
-    public FileInfoDTO(FileSystemObject fso) {
-        this((FileInfo)fso);
-    }
+    private String filename;
+    private String type;
+    private LocalDateTime date;
+    private Long size;
+    private String md5;
+    private String parentType;
+    private Integer parentId;
 
     public String getFilename() {
         return filename;
     }
 
-    public FileSystemObjectType getType() {
+    public void setFilename(String filename) { this.filename = filename; }
+
+    public String getType() {
         return type;
     }
+
+    public void setType(String type) { this.type = type; }
 
     public LocalDateTime getDate() {
         return date;
     }
 
+    public void setDate(LocalDateTime date) { this.date = date;}
+
     public Long getSize() {
         return size;
     }
 
-    public MD5 getMd5() {
+    public void setSize(Long size) { this.size = size; }
+
+    public String getMd5() {
         return md5;
     }
 
-    public FileSystemObjectType getParentType() {
+    public void setMd5(String md5) { this.md5 = md5; }
+
+    public String getParentType() {
         return parentType;
+    }
+
+    public void setParentType(String parentType) {
+        this.parentType = parentType;
+    }
+
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
     }
 }

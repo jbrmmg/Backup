@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.exception.HardwareAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidHardwareIdException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +22,17 @@ public class HardwareController {
     private static final Logger LOG = LoggerFactory.getLogger(HardwareController.class);
 
     private final HardwareRepository hardwareRepository;
+    private final ModelMapper modelMapper;
 
     @Contract(pure = true)
     @Autowired
-    HardwareController(HardwareRepository hardwareRepository) {
+    HardwareController(HardwareRepository hardwareRepository, ModelMapper modelMapper) {
         this.hardwareRepository = hardwareRepository;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping(path="/byId")
-    public @ResponseBody Hardware specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
+    public @ResponseBody HardwareDTO specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
         LOG.info("List hardware.");
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(macAddress);
@@ -38,7 +41,7 @@ public class HardwareController {
             throw new InvalidHardwareIdException(macAddress);
         }
 
-        return storedHardware.get();
+        return modelMapper.map(storedHardware.get(),HardwareDTO.class);
     }
 
     @GetMapping()
@@ -58,10 +61,7 @@ public class HardwareController {
             throw new InvalidHardwareIdException(hardware.getMacAddress());
         }
 
-        storedHardware.get().update(hardware);
-
-        hardwareRepository.save(storedHardware.get());
-
+        hardwareRepository.save(modelMapper.map(hardware, Hardware.class));
         return OkStatus.getOkStatus();
     }
 
@@ -75,7 +75,7 @@ public class HardwareController {
             throw new HardwareAlreadyExistsException(hardware.getMacAddress());
         }
 
-        hardwareRepository.save(new Hardware(hardware));
+        hardwareRepository.save(modelMapper.map(hardware, Hardware.class));
 
         return OkStatus.getOkStatus();
     }

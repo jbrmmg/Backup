@@ -102,12 +102,12 @@ public class NonFsoApiIT extends WebTester {
         SourceDTO destination = new SourceDTO();
         destination.setId(newSource1.getIdAndType().getId());
         destination.setLocation(locationDTO);
-        destination.setStatus(SourceStatusType.SST_OK);
+        destination.setStatus("OK");
 
         SourceDTO source = new SourceDTO();
         source.setId(newSource2.getIdAndType().getId());
         source.setLocation(locationDTO);
-        source.setStatus(SourceStatusType.SST_OK);
+        source.setStatus("OK");
 
         SynchronizeDTO newSync = new SynchronizeDTO();
         newSync.setId(1);
