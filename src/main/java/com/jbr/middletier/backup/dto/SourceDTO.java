@@ -8,6 +8,7 @@ public class SourceDTO {
     private String status;
     private String filter;
     private String mountCheck;
+    private String type;
     private int directoryCount;
     private int fileCount;
     private long totalFileSize;
@@ -65,6 +66,14 @@ public class SourceDTO {
 
     public String getMountCheck() {
         return mountCheck;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public void setMountCheck(String mountCheck) {
