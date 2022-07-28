@@ -234,7 +234,7 @@ public class FileSystem {
                 JpegImageMetadata jpegImageMetadata = (JpegImageMetadata)metadata;
 
                 FileSystemImageData fileSystemImageData = new FileSystemImageData(jpegImageMetadata);
-                LOG.info("Blah {}", fileSystemImageData.getDateTime());
+                LOG.info("File {} - {}", file.getName(), fileSystemImageData.getDateTime());
                 return Optional.of(fileSystemImageData);
             }
         }

@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Configuration
@@ -135,6 +136,28 @@ public class ApplicationProperties {
             }
         };
 
+        Converter<FileInfo, LocalDateTime> fileToDateConverter = new AbstractConverter<FileInfo, LocalDateTime>() {
+            @Override
+            protected LocalDateTime convert(FileInfo file) {
+                if(null == file) {
+                    return null;
+                }
+
+                return file.getDate();
+            }
+        };
+
+        Converter<FileInfo,Long> fileToSizeConverter = new AbstractConverter<FileInfo, Long>() {
+            @Override
+            protected Long convert(FileInfo file) {
+                if(null == file) {
+                    return null;
+                }
+
+                return file.getSize();
+            }
+        };
+
         modelMapper.addConverter(stringSourceStatusConverter);
         modelMapper.addConverter(sourceStatusStringConverter);
         modelMapper.addConverter(actionConfirmStringConverter);
@@ -173,6 +196,8 @@ public class ApplicationProperties {
             mapper.using(actionToIsVideo).map(ActionConfirm::getPath,ActionConfirmDTO::setIsVideo);
             mapper.using(fileToIdConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileId);
             mapper.using(fileToNameConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileName);
+            mapper.using(fileToDateConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileDate);
+            mapper.using(fileToSizeConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileSize);
             mapper.map(ActionConfirm::confirmed,ActionConfirmDTO::setConfirmed);
         });
 

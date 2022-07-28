@@ -1,10 +1,14 @@
 package com.jbr.middletier.backup.dto;
 
+import java.time.LocalDateTime;
+
 @SuppressWarnings("unused")
 public class ActionConfirmDTO {
     private int id;
     private int fileId;
     private String fileName;
+    private Long size;
+    private LocalDateTime date;
     private String action;
     private Boolean confirmed;
     private Boolean parameterRequired;
@@ -91,5 +95,21 @@ public class ActionConfirmDTO {
 
     public void setIsVideo(boolean video) {
         isVideo = video;
+    }
+
+    public Long getFileSize() {
+        return size;
+    }
+
+    public void setFileSize(Long size) {
+        this.size = size;
+    }
+
+    public LocalDateTime getFileDate() {
+        return date;
+    }
+
+    public void setFileDate(LocalDateTime date) {
+        this.date = date;
     }
 }
