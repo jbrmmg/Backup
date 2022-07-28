@@ -1141,5 +1141,7 @@ public class TestGeneral extends WebTester {
         Assert.assertFalse(actionConfirmDTO.getIsVideo());
         Assert.assertEquals(4, actionConfirmDTO.getFileId());
         Assert.assertEquals("TestFile2.txt", actionConfirmDTO.getFileName());
+        Assert.assertEquals(2423, actionConfirmDTO.getFileSize().longValue());
+        Assert.assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getFileDate()));
     }
 }
