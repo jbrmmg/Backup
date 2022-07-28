@@ -290,7 +290,7 @@ public class ImportManager extends FileProcessor {
         fileSystem.copyFile(imageFile, destinationImageFile, data);
         data.increment(ImportProcessDTO.ImportProcessCountType.IMAGE_FILES);
 
-        if(imageData.isPresent()) {
+        if(imageData.isPresent() && imageData.get().getDateTime() != null) {
             ZonedDateTime zonedFileTime = imageData.get().getDateTime().atZone(ZoneId.systemDefault());
             fileSystem.setFileDateTime(destinationImageFile, zonedFileTime.toInstant().toEpochMilli());
         }
