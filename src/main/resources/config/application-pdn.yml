@@ -4,12 +4,6 @@ spring:
     username: ${db.pdn.backup.user}
     password: ${db.pdn.backup.password}
 
-  boot:
-    admin:
-      client:
-        url: ${spring.admin.clienturl}
-
-
   application:
     name: Middle Tier Backup
 
