@@ -275,7 +275,7 @@ public class ImportManager extends FileProcessor {
             return ProcessType.MOV;
         }
 
-        if(filename.endsWith(".jpg") || filename.endsWith(".JPG")) {
+        if(filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) {
             return ProcessType.JPG;
         }
 
