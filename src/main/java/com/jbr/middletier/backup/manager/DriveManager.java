@@ -82,6 +82,8 @@ public class DriveManager extends FileProcessor {
             actionManager.actionPerformed(next);
         }
 
+        LOG.info("Gather complete.");
+
         return result;
     }
 

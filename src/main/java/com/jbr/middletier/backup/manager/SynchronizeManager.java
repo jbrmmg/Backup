@@ -229,6 +229,8 @@ public class SynchronizeManager {
             result.add(processSynchronize(nextSynchronize));
         }
 
+        LOG.info("Synchronize completed.");
+
         return result;
     }
 }
