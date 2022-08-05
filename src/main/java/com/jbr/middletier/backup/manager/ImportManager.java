@@ -449,6 +449,8 @@ public class ImportManager extends FileProcessor {
             LOG.error("Problems",e);
         }
 
+        LOG.info("Convert import files is complete.");
+
         return result;
     }
 
@@ -476,6 +478,7 @@ public class ImportManager extends FileProcessor {
         updateDatabase(importSource.get(), new ArrayList<>(), true, gatherData);
 
         result.add(gatherData);
+        LOG.info("Import photo is complete.");
 
         return result;
     }
@@ -516,6 +519,7 @@ public class ImportManager extends FileProcessor {
         } catch (Exception e) {
             resultItem.setProblems();
         }
+        LOG.info("Process import files is complete.");
 
         return result;
     }
