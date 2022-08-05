@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -55,7 +54,7 @@ public class WebTester {
     public MediaType getContentType() {
         return new MediaType(MediaType.APPLICATION_JSON.getType(),
                 MediaType.APPLICATION_JSON.getSubtype(),
-                Charset.forName(StandardCharsets.UTF_8.toString()));
+                StandardCharsets.UTF_8);
     }
 
     public MockMvc getMockMvc() {
