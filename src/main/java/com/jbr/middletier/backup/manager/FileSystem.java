@@ -1,11 +1,9 @@
 package com.jbr.middletier.backup.manager;
 
+import com.drew.imaging.ImageMetadataReader;
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
-import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.ImageMetadata;
-import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -228,14 +226,9 @@ public class FileSystem {
 
     public Optional<FileSystemImageData> readImageMetaData(File file) {
         try {
-            ImageMetadata metadata = Imaging.getMetadata(file);
-
-            if(metadata instanceof JpegImageMetadata) {
-                JpegImageMetadata jpegImageMetadata = (JpegImageMetadata)metadata;
-
-                FileSystemImageData fileSystemImageData = new FileSystemImageData(jpegImageMetadata);
-                LOG.info("File {} - {}", file.getName(), fileSystemImageData.getDateTime());
-                return Optional.of(fileSystemImageData);
+            FileSystemImageData imageData = new FileSystemImageData(ImageMetadataReader.readMetadata(file));
+            if(imageData.isValid()) {
+                return Optional.of(imageData);
             }
         }
         catch (Exception e) {

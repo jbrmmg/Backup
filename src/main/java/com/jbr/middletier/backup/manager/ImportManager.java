@@ -302,6 +302,11 @@ public class ImportManager extends FileProcessor {
             File mp4File = new File(destination, filename.replace(".MOV", ".mp4"));
 
             long fileTime = movFile.lastModified();
+            Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(movFile);
+            if(imageData.isPresent() && imageData.get().getDateTime() != null) {
+                ZonedDateTime zonedFileTime = imageData.get().getDateTime().atZone(ZoneId.systemDefault());
+                fileTime = zonedFileTime.toInstant().toEpochMilli();
+            }
 
             String copyCommand = applicationProperties.getFfmpegCommand();
             copyCommand = copyCommand.replace("%%INPUT%%", movFile.toString().replace(" ", "\\ "));
