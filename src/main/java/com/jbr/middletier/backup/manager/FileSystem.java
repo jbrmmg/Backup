@@ -232,7 +232,7 @@ public class FileSystem {
             }
         }
         catch (Exception e) {
-            LOG.error("Failed",e);
+            LOG.error("Unable to get image data from file " + file.getName());
         }
 
         return Optional.empty();
