@@ -260,31 +260,31 @@ public class ImportManager extends FileProcessor {
         return newFile;
     }
 
-    private String getDestinationFilename(String filename) {
-        if(getFileType(filename) == ProcessType.MOV) {
+    private enum ProcessType { USE_EXIF_DATE, CONVERT_QUICKTIME, NORMAL }
+
+    private String getDestinationFilename(String filename, ProcessType processType) {
+        if(processType.equals(ProcessType.CONVERT_QUICKTIME)) {
             return filename.replace(".MOV", ".mp4");
         }
 
         return filename;
     }
 
-    private enum ProcessType { JPG, MOV, OTHER }
+    private ProcessType getFileType(Optional<FileSystemImageData> imageData) {
+        if(imageData.isPresent() && imageData.get().isValid()) {
+            if(imageData.get().getDateSourceType().equals(ImageDataDirectoryType.IDD_QUICKTIME)) {
+                return ProcessType.CONVERT_QUICKTIME;
+            }
 
-    private ProcessType getFileType(String filename) {
-        if(filename.endsWith(".MOV")) {
-            return ProcessType.MOV;
+            return ProcessType.USE_EXIF_DATE;
         }
 
-        if(filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")) {
-            return ProcessType.JPG;
-        }
-
-        return ProcessType.OTHER;
+        // Everything else is a normal copy
+        return ProcessType.NORMAL;
     }
 
-    private void copyJpgFile(String source, String filename, String destination, ImportProcessDTO data) {
+    private void copyFileWithExifMetadata(String source, String filename, String destination, Optional<FileSystemImageData> imageData, ImportProcessDTO data) {
         File imageFile = new File(source,filename);
-        Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(imageFile);
 
         File destinationImageFile = new File(destination, filename);
         fileSystem.copyFile(imageFile, destinationImageFile, data);
@@ -296,7 +296,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void copyMovFile(String source, String filename, String destination, ImportProcessDTO data) {
+    private void copyAndConvertQuicktime(String source, String filename, String destination, ImportProcessDTO data) {
         try {
             File movFile = new File(source, filename);
             File mp4File = new File(destination, filename.replace(".MOV", ".mp4"));
@@ -342,7 +342,10 @@ public class ImportManager extends FileProcessor {
     }
 
     private void processFile(String source, String filename, String destination, ImportProcessDTO data) {
-        String destinationFilename = getDestinationFilename(filename);
+        Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(new File(source,filename));
+
+        ProcessType processType = getFileType(imageData);
+        String destinationFilename = getDestinationFilename(filename, processType);
 
         // If the destination already exists then we are done.
         if(fileSystem.fileExists(new File(destination, destinationFilename))) {
@@ -350,18 +353,14 @@ public class ImportManager extends FileProcessor {
             return;
         }
 
-        // File types handled:
-        // jpg - set date time from meta data.
-        // MOV - reformat as mp4
-        // all else, just copy.
-        switch(getFileType(filename)) {
-            case JPG:
-                copyJpgFile(source, filename, destination, data);
+        switch(processType) {
+            case USE_EXIF_DATE:
+                copyFileWithExifMetadata(source, filename, destination, imageData, data);
                 break;
-            case MOV:
-                copyMovFile(source, filename, destination, data);
+            case CONVERT_QUICKTIME:
+                copyAndConvertQuicktime(source, filename, destination, data);
                 break;
-            case OTHER:
+            case NORMAL:
                 copyFile(source, filename, destination, data);
                 break;
         }
