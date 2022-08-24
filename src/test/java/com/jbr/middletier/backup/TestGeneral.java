@@ -215,6 +215,7 @@ public class TestGeneral extends WebTester {
         //noinspection ConstantConditions
         Assert.assertFalse(test);
 
+        //noinspection EqualsBetweenInconvertibleTypes
         test = fsoId.equals(testObj);
         Assert.assertFalse(test);
     }
@@ -442,7 +443,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void sychronizeProblem1() {
+    public void synchronizeProblem1() {
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(null);
         when(syncSource.getPath()).thenReturn("Source");
@@ -481,7 +482,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void sychronizeProblem2() {
+    public void synchronizeProblem2() {
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
         when(syncSource.getPath()).thenReturn("Source");
@@ -520,7 +521,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void sychronizeProblem3() {
+    public void synchronizeProblem3() {
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
@@ -559,7 +560,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void sychronizeProblem4() {
+    public void synchronizeProblem4() {
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
@@ -598,7 +599,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void sychronizeProblem5() {
+    public void synchronizeProblem5() {
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
@@ -981,7 +982,7 @@ public class TestGeneral extends WebTester {
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setId(1);
         sourceDTO.setLocation(locationDTO);
-        sourceDTO.setFilter("retlif");
+        sourceDTO.setFilter("notFilter");
         sourceDTO.setStatus("OK");
         sourceDTO.setPath("Side");
         sourceDTO.setMountCheck("Chis");
@@ -1003,7 +1004,7 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("1TB", synchronize.getSource().getLocation().getSize());
         Assert.assertEquals("Test", synchronize.getSource().getLocation().getName());
         Assert.assertTrue(synchronize.getSource().getLocation().getCheckDuplicates());
-        Assert.assertEquals("retlif", synchronize.getSource().getFilter());
+        Assert.assertEquals("notFilter", synchronize.getSource().getFilter());
         Assert.assertEquals(SourceStatusType.SST_OK, synchronize.getSource().getStatus());
         Assert.assertEquals("Side", synchronize.getSource().getPath());
         Assert.assertTrue(synchronize.getSource().getMountCheck().isPresent());
@@ -1031,7 +1032,7 @@ public class TestGeneral extends WebTester {
         Source source = new Source();
         source.setId(1);
         source.setLocation(location);
-        source.setFilter("retlif");
+        source.setFilter("notFilter");
         source.setStatus(SourceStatusType.SST_OK);
         source.setPath("Side");
         source.setMountCheck("Chis");
@@ -1053,7 +1054,7 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("1TB", synchronizeDTO.getSource().getLocation().getSize());
         Assert.assertEquals("Test", synchronizeDTO.getSource().getLocation().getName());
         Assert.assertTrue(synchronizeDTO.getSource().getLocation().getCheckDuplicates());
-        Assert.assertEquals("retlif", synchronizeDTO.getSource().getFilter());
+        Assert.assertEquals("notFilter", synchronizeDTO.getSource().getFilter());
         Assert.assertEquals("OK", synchronizeDTO.getSource().getStatus());
         Assert.assertEquals("Side", synchronizeDTO.getSource().getPath());
         Assert.assertEquals("Chis", synchronizeDTO.getSource().getMountCheck());
@@ -1085,7 +1086,7 @@ public class TestGeneral extends WebTester {
         fileInfo.setId(1);
         fileInfo.setName("TestFile.txt");
         fileInfo.setSize(380);
-        fileInfo.setMD5(new MD5("XYZI"));
+        fileInfo.setMD5(new MD5("testMD5"));
         fileInfo.setParent(null);
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
@@ -1096,7 +1097,7 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("TestFile.txt", fileInfoDTO.getFilename());
         Assert.assertEquals(LocalDateTime.parse("2022-02-27 22:23",formatter), fileInfoDTO.getDate());
         Assert.assertEquals(380, fileInfoDTO.getSize().intValue());
-        Assert.assertEquals("XYZI", fileInfoDTO.getMd5());
+        Assert.assertEquals("testMD5", fileInfoDTO.getMd5());
         Assert.assertEquals(2, fileInfoDTO.getParentId().intValue());
         Assert.assertEquals("DIRY", fileInfoDTO.getParentType());
     }
@@ -1118,7 +1119,7 @@ public class TestGeneral extends WebTester {
         fileInfo.setId(4);
         fileInfo.setName("TestFile2.txt");
         fileInfo.setSize(2423);
-        fileInfo.setMD5(new MD5("VJODSF"));
+        fileInfo.setMD5(new MD5("testMD5Again"));
         fileInfo.setParent(null);
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));

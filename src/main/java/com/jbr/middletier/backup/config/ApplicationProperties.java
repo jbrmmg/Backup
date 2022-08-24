@@ -13,6 +13,22 @@ import java.util.Optional;
 @Configuration
 @ConfigurationProperties(prefix="backup")
 public class ApplicationProperties {
+    private Boolean getIsImageOrVideo(FileInfo file, boolean imageCheck) {
+        if(null == file) {
+            return false;
+        }
+
+        if(file.getClassification() == null) {
+            return false;
+        }
+
+        if(imageCheck) {
+            return file.getClassification().getIsImage();
+        }
+
+        return file.getClassification().getIsVideo();
+    }
+
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
@@ -91,26 +107,14 @@ public class ApplicationProperties {
         Converter<FileInfo,Boolean> actionToIsImage = new AbstractConverter<FileInfo, Boolean>() {
             @Override
             protected Boolean convert(FileInfo file) {
-                if(null == file) {
-                    return false;
-                }
-                if(file.getClassification() == null) {
-                    return false;
-                }
-                return file.getClassification().getIsImage();
+                return getIsImageOrVideo(file,true);
             }
         };
 
         Converter<FileInfo,Boolean> actionToIsVideo = new AbstractConverter<FileInfo, Boolean>() {
             @Override
             protected Boolean convert(FileInfo file) {
-                if(null == file) {
-                    return false;
-                }
-                if(file.getClassification() == null) {
-                    return false;
-                }
-                return file.getClassification().getIsVideo();
+                return getIsImageOrVideo(file,false);
             }
         };
 

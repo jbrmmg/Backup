@@ -7,8 +7,7 @@ public class BasicSection extends SectionNode {
         super(section);
     }
 
-    public boolean test() {
+    public void test() {
         childAdded(null);
-        return true;
     }
 }

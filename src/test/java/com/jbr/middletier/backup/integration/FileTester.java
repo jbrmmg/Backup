@@ -395,7 +395,7 @@ public class FileTester extends WebTester {
         if(!Files.exists(path))
             return;
 
-        //noinspection ResultOfMethodCallIgnored
+        //noinspection ResultOfMethodCallIgnored,resource
         Files.walk(path)
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)

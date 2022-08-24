@@ -25,8 +25,9 @@ public class BasicRwDirectory extends RwDirectory {
             Assert.fail();
         } catch (IllegalStateException e) {
             Assert.assertEquals("Real World Directory children must be Real World Directory or File.",e.getMessage());
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

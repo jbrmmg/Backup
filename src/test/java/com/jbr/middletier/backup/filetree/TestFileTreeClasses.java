@@ -95,7 +95,7 @@ public class TestFileTreeClasses {
         }
 
         BasicSection testRwDbSection = new BasicSection(SectionNode.SectionNodeType.FILE_FOR_INSERT);
-        Assert.assertTrue(testRwDbSection.test());
+        testRwDbSection.test();
 
         try {
             new BasicSection(null);
