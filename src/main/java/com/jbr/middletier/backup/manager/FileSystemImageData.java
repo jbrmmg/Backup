@@ -36,6 +36,8 @@ public class FileSystemImageData {
             case TAG_IMAGE_HEIGHT:
                 this.height = Integer.parseInt(value);
                 break;
+            default:
+                // Ignore any other types.
         }
     }
 
@@ -47,6 +49,8 @@ public class FileSystemImageData {
             case TAG_IMAGE_HEIGHT:
                 this.height = Integer.parseInt(value.replace(" pixels", ""));
                 break;
+            default:
+                // Ignore any other types.
         }
     }
 
@@ -142,7 +146,7 @@ public class FileSystemImageData {
                 // Ignore these headers.
                 break;
             case IDD_UNKNOWN:
-                LOG.warn("Directory - " + directory + " not handled.");
+                LOG.warn("Directory - {} not handled.", directory);
         }
     }
 

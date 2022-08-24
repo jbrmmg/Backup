@@ -17,9 +17,10 @@ public class BasicRwFile extends RwFile {
             Assert.fail();
         } catch(IllegalStateException e) {
             Assert.assertEquals("Cannot add child nodes to a file node.", e.getMessage());
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     @Override
