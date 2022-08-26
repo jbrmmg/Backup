@@ -4,10 +4,7 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
-import com.jbr.middletier.backup.manager.ActionManager;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
-import com.jbr.middletier.backup.manager.BackupManager;
-import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.summary.Summary;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
@@ -75,6 +72,9 @@ public class SyncApiIT extends FileTester {
     BackupManager backupManager;
 
     @Autowired
+    DbLoggingManager dbLoggingManager;
+
+    @Autowired
     FileSystemObjectManager fileSystemObjectManager;
 
     @Autowired
@@ -90,7 +90,7 @@ public class SyncApiIT extends FileTester {
 
     @Before
     public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
-        backupManager.clearMessageCache();
+        dbLoggingManager.clearMessageCache();
 
         addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
         addClassification(associatedFileDataManager,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, true, false, false);
@@ -404,8 +404,8 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesWarned", is(1)));
 
         // Check that no errors.
-        Assert.assertEquals(1, backupManager.getMessageCache(BackupManager.webLogLevel.WARN).size());
-        Assert.assertEquals(0, backupManager.getMessageCache(BackupManager.webLogLevel.ERROR).size());
+        Assert.assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_WARNING).size());
+        Assert.assertEquals(0, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
 
         LOG.info("Gather the data again.");
         getMockMvc().perform(post("/jbr/int/backup/gather")

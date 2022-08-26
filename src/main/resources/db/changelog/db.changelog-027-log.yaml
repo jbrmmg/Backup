@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 27
+      author: jason
+      changes:
+
+        # Create the pre_import_source table.
+        - createTable:
+            tableName: log
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: char(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message
+                  type: varchar(200)
+                  constraints:
+                    nullable: false

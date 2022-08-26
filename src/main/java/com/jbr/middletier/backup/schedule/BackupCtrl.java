@@ -26,6 +26,7 @@ public class BackupCtrl {
 
     private final TypeManager typeManager;
     private final BackupManager backupManager;
+    private final DbLoggingManager dbLoggingManager;
     private final BackupRepository backupRepository;
     private final ApplicationProperties applicationProperties;
     private final FileSystem fileSystem;
@@ -33,11 +34,12 @@ public class BackupCtrl {
     @Autowired
     public BackupCtrl(TypeManager typeManager,
                       BackupManager backupManager,
-                      BackupRepository backupRepository,
+                      DbLoggingManager dbLoggingManager, BackupRepository backupRepository,
                       ApplicationProperties applicationProperties,
                       FileSystem fileSystem) {
         this.typeManager = typeManager;
         this.backupManager = backupManager;
+        this.dbLoggingManager = dbLoggingManager;
         this.backupRepository = backupRepository;
         this.applicationProperties = applicationProperties;
         this.fileSystem = fileSystem;
@@ -56,7 +58,7 @@ public class BackupCtrl {
                 PerformBackup performBackup = typeManager.getBackup(backup.getType());
 
                 // Perform the backup.
-                performBackup.performBackup(backupManager,fileSystem,backup);
+                performBackup.performBackup(backupManager,dbLoggingManager,fileSystem,backup);
             }
         } catch (Exception ex) {
             LOG.error("Failed to perform backup",ex);

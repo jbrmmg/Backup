@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.type;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.DbLoggingManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,9 +66,9 @@ public class DatabaseBackup implements PerformBackup {
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
+    public void performBackup(BackupManager backupManager, DbLoggingManager dbLoggingManager, FileSystem fileSystem, Backup backup) {
         try {
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
+            dbLoggingManager.info(String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
             LOG.info("Database Backup {} {} {} {}", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory());
 
             // Perform a database backup.
@@ -104,7 +105,7 @@ public class DatabaseBackup implements PerformBackup {
 
             LOG.info("Backup completed.");
         } catch (Exception ex) {
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"db backup " + ex);
+            dbLoggingManager.error("db backup " + ex);
             LOG.error("Failed to perform database backup",ex);
             Thread.currentThread().interrupt();
         }

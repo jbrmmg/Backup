@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.type;
 
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.DbLoggingManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ public class FileBackup implements PerformBackup {
 
     private static final String PATH_FILE_FORMAT = "%s/%s";
 
-    void performFileBackup(BackupManager backupManager, FileSystem fileSystem, String sourceDirectory, String destinationDirectory, String artifactName, boolean weblog) throws IOException {
+    void performFileBackup(DbLoggingManager dbLoggingManager, FileSystem fileSystem, String sourceDirectory, String destinationDirectory, String artifactName) throws IOException {
         // Perform a file backup.
 
         // Check that the source directory exists.
@@ -53,23 +54,21 @@ public class FileBackup implements PerformBackup {
 
         // Perform the file copy.
         LOG.info("Copy {}/{} to {}/{}",sourceDirectory,artifactName,destinationDirectory,artifactName);
-        if(weblog) {
-            backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("Copy %s/%s to %s/%s", sourceDirectory, artifactName, destinationDirectory, artifactName));
-        }
+        dbLoggingManager.info(String.format("Copy %s/%s to %s/%s", sourceDirectory, artifactName, destinationDirectory, artifactName));
         FileSystem.TemporaryResultDTO result = new FileSystem.TemporaryResultDTO();
         fileSystem.copyFile(sourceFile,destinationFile,result);
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
+    public void performBackup(BackupManager backupManager, DbLoggingManager dbLoggingManager, FileSystem fileSystem, Backup backup) {
         try {
             LOG.info("File Backup {} {} {} {} {}", backup.getId(), backup.getBackupName(), backup.getFileName(), backup.getArtifact(), backup.getDirectory());
 
             // Perform a file backup.
-            performFileBackup(backupManager, fileSystem,backup.getDirectory(),String.format(PATH_FILE_FORMAT,backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact(),true);
+            performFileBackup(dbLoggingManager, fileSystem,backup.getDirectory(),String.format(PATH_FILE_FORMAT,backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact());
         } catch (Exception ex) {
             LOG.error("Failed to perform file backup",ex);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"file backup " + ex);
+            dbLoggingManager.error("file backup " + ex);
         }
     }
 }

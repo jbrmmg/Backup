@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.control;
 
-import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.dto.GatherDataDTO;
 import com.jbr.middletier.backup.dto.ImportDataDTO;
 import com.jbr.middletier.backup.dto.ImportFileDTO;
@@ -12,12 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Comparator.comparing;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -53,21 +48,10 @@ public class ImportController {
         return importManager.processImportFiles();
     }
 
-    private List<ImportFileDTO> getExternalList(Iterable<ImportFile> list) {
-        List<ImportFileDTO> result = new ArrayList<>();
-        for(ImportFile nextFile: list) {
-            result.add(new ImportFileDTO(nextFile));
-        }
-
-        result.sort(comparing(ImportFileDTO::getFilename));
-
-        return result;
-    }
-
     @GetMapping(path="/importfiles")
     public @ResponseBody List<ImportFileDTO> getImportFiles() {
         LOG.info("Get the import files.");
 
-        return getExternalList(importManager.findImportFiles());
+        return importManager.externalFindImportFiles();
     }
 }

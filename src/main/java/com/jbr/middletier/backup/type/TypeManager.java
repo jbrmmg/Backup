@@ -1,6 +1,6 @@
 package com.jbr.middletier.backup.type;
 
-import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.DbLoggingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +27,7 @@ public class TypeManager {
 
     private final PerformBackup zipupBackup;
 
-    private final BackupManager backupManager;
+    private final DbLoggingManager dbLoggingManager;
 
     @Autowired
     public TypeManager(PerformBackup fileBackup,
@@ -35,13 +35,13 @@ public class TypeManager {
                        PerformBackup gitBackup,
                        PerformBackup cleanBackup,
                        PerformBackup zipupBackup,
-                       BackupManager backupManager) {
+                       DbLoggingManager dbLoggingManager) {
         this.fileBackup = fileBackup;
         this.databaseBackup = databaseBackup;
         this.gitBackup = gitBackup;
         this.cleanBackup = cleanBackup;
         this.zipupBackup = zipupBackup;
-        this.backupManager = backupManager;
+        this.dbLoggingManager = dbLoggingManager;
     }
 
     public PerformBackup getBackup(String type) {
@@ -66,7 +66,7 @@ public class TypeManager {
             return zipupBackup;
         }
 
-        backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("%s invalid type requested.",type));
+        dbLoggingManager.error(String.format("%s invalid type requested.",type));
         throw new IllegalArgumentException(String.format("%s invalid type requested.",type));
     }
 }
