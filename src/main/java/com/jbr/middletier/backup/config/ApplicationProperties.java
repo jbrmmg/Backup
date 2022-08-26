@@ -104,6 +104,13 @@ public class ApplicationProperties {
             }
         };
 
+        Converter<FileSystemObjectId,Integer> fsoIdIntegerConverter2 = new AbstractConverter<FileSystemObjectId, Integer>() {
+            @Override
+            protected Integer convert(FileSystemObjectId fileSystemObjectId) {
+                return fileSystemObjectId.getId();
+            }
+        };
+
         Converter<FileInfo,Boolean> actionToIsImage = new AbstractConverter<FileInfo, Boolean>() {
             @Override
             protected Boolean convert(FileInfo file) {
@@ -183,9 +190,11 @@ public class ApplicationProperties {
         modelMapper.createTypeMap(Backup.class,BackupDTO.class);
         modelMapper.createTypeMap(BackupDTO.class,Backup.class);
         modelMapper.createTypeMap(DbLog.class,DbLogDTO.class);
+        modelMapper.createTypeMap(FileInfo.class,ImportFileBaseDTO.class).addMappings(mapper -> mapper.map(FileInfo::getName,ImportFileBaseDTO::setFilename));
 
         modelMapper.createTypeMap(ImportFile.class,ImportFileDTO.class).addMappings(mapper -> {
             mapper.map(ImportFile::getName,ImportFileDTO::setFilename);
+            mapper.using(fsoIdIntegerConverter2).map(ImportFile::getIdAndType,ImportFileDTO::setId);
         });
 
         modelMapper.createTypeMap(FileInfo.class,FileInfoDTO.class).addMappings(mapper -> {

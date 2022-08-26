@@ -1102,4 +1102,43 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(2423, actionConfirmDTO.getFileSize().longValue());
         Assert.assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getFileDate()));
     }
+
+    @Test
+    public void testFileDTO() {
+        Classification classification = new Classification();
+        classification.setId(1);
+        classification.setIsImage(true);
+        classification.setIsVideo(false);
+        classification.setIcon("icon");
+
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setId(1);
+        fileInfo.setName("Test");
+        fileInfo.setDate(LocalDateTime.now());
+        fileInfo.setSize(10);
+        fileInfo.setMD5(new MD5("md5"));
+        fileInfo.setClassification(classification);
+
+        FileDTO fileDTO = new FileDTO(fileInfo,"full", "path", "location");
+        fileDTO.setId(2);
+        fileDTO.setName("Test Blah");
+        fileDTO.setFullFilename("full name");
+        fileDTO.setSize(11);
+        fileDTO.setDate(LocalDateTime.now());
+        fileDTO.setImage(false);
+        fileDTO.setVideo(false);
+        fileDTO.setIcon("icon");
+        fileDTO.setPath("path field");
+        fileDTO.setLocationName("location");
+
+        Assert.assertEquals(2,fileDTO.getId());
+        Assert.assertEquals("Test Blah",fileDTO.getName());
+        Assert.assertEquals("full name",fileDTO.getFullFilename());
+        Assert.assertEquals(11,fileDTO.getSize());
+        Assert.assertFalse(fileDTO.isImage());
+        Assert.assertFalse(fileDTO.isVideo());
+        Assert.assertEquals("icon",fileDTO.getIcon());
+        Assert.assertEquals("path field",fileDTO.getPath());
+        Assert.assertEquals("location",fileDTO.getLocationName());
+    }
 }

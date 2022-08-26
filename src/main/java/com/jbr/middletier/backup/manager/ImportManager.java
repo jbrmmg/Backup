@@ -3,11 +3,9 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
-import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.dto.ImportDataDTO;
-import com.jbr.middletier.backup.dto.ImportFileDTO;
-import com.jbr.middletier.backup.dto.ImportProcessDTO;
+import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ImportRequestException;
+import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
@@ -538,14 +536,22 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    private String removeFileExtension(String filename) {
+        return filename.replaceFirst("[.][^.]+$","");
+    }
+
+    private boolean similarFileName(String lhs, String rhs) {
+        return removeFileExtension(lhs).equalsIgnoreCase(removeFileExtension(rhs));
+    }
+
     private void searchSimilarFileData(ImportFileDTO file, FileTreeNode node) {
         // Is this node a file?
         if(node instanceof DbFile) {
             DbFile dbFile = (DbFile) node;
 
             Optional<String> name = dbFile.getName();
-            if(name.isPresent() && file.getFilename().equalsIgnoreCase(name.get())) {
-                file.addSimilarFile((FileInfo)dbFile.getFSO());
+            if(name.isPresent() && similarFileName(file.getFilename(),name.get())) {
+                file.addSimilarFile(modelMapper.map(dbFile.getFSO(), ImportFileBaseDTO.class));
             }
         }
 
@@ -562,7 +568,7 @@ public class ImportManager extends FileProcessor {
                 return;
             }
 
-            DbRoot database = fileSystemObjectManager.createDbRoot(importSource.get());
+            DbRoot database = fileSystemObjectManager.createDbRoot(importSource.get().getDestination());
 
             for(ImportFileDTO nextFile : files) {
                 searchSimilarFileData(nextFile, database);
@@ -585,5 +591,15 @@ public class ImportManager extends FileProcessor {
         result.sort(comparing(ImportFileDTO::getFilename));
 
         return result;
+    }
+
+    public ImportFileDTO externalFindImportFile(Integer id) throws InvalidFileIdException {
+        for(ImportFileDTO nextImportFile : externalFindImportFiles()) {
+            if(nextImportFile.getId().equals(id)) {
+                return nextImportFile;
+            }
+        }
+
+        throw new InvalidFileIdException(id);
     }
 }
