@@ -1,5 +1,10 @@
 package com.jbr.middletier.backup;
 
+import com.drew.imaging.png.PngChunkType;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.icc.IccDirectory;
+import com.drew.metadata.mp4.Mp4Directory;
+import com.drew.metadata.png.PngDirectory;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.config.DefaultProfileUtil;
@@ -21,9 +26,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
 import static org.mockito.Mockito.*;
@@ -1140,5 +1143,73 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("icon",fileDTO.getIcon());
         Assert.assertEquals("path field",fileDTO.getPath());
         Assert.assertEquals("location",fileDTO.getLocationName());
+    }
+
+    @Test
+    public void testDbLog() {
+        DbLog dbLog = new DbLog();
+        dbLog.setId(1);
+        dbLog.setDate(LocalDateTime.now());
+        dbLog.setType(DbLogType.DLT_DEBUG);
+        dbLog.setMessage("Test");
+
+        Assert.assertEquals(1,dbLog.getId().intValue());
+        Assert.assertEquals(DbLogType.DLT_DEBUG,dbLog.getType());
+        Assert.assertEquals("Test",dbLog.getMessage());
+    }
+
+    @Test
+    public void testFileSystemImageData() {
+        PngDirectory pngDirectory = new PngDirectory(PngChunkType.IHDR);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_WIDTH,121);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_HEIGHT,120);
+        pngDirectory.setInt(PngDirectory.TAG_COMPRESSION_TYPE, 0);
+
+        IccDirectory iccDirectory = new IccDirectory();
+        iccDirectory.setString(IccDirectory.TAG_PROFILE_DATETIME, "2022:01:21 11:04:10");
+
+        Metadata metadata = new Metadata();
+        metadata.addDirectory(pngDirectory);
+        metadata.addDirectory(iccDirectory);
+
+        FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
+        Assert.assertTrue(fileSystemImageData.isValid());
+        Assert.assertEquals(120,fileSystemImageData.getHeight());
+        Assert.assertEquals(121,fileSystemImageData.getWidth());
+        Assert.assertEquals("21-January-2022 11:04 IDD_ICC_PROFILE",fileSystemImageData.toString());
+    }
+
+    @Test
+    public void testFileSystemImageDataInvalid() {
+        PngDirectory pngDirectory = new PngDirectory(PngChunkType.IHDR);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_WIDTH,121);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_HEIGHT,120);
+        pngDirectory.setInt(PngDirectory.TAG_COMPRESSION_TYPE, 0);
+
+        IccDirectory iccDirectory = new IccDirectory();
+        iccDirectory.setString(IccDirectory.TAG_PROFILE_DATETIME, "invalid");
+
+        Metadata metadata = new Metadata();
+        metadata.addDirectory(pngDirectory);
+        metadata.addDirectory(iccDirectory);
+
+        FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
+        Assert.assertFalse(fileSystemImageData.isValid());
+
+        fileSystemImageData = new FileSystemImageData(null);
+        Assert.assertFalse(fileSystemImageData.isValid());
+    }
+
+    @Test
+    public void testFileSystemImageDataMp4() {
+        Mp4Directory mp4Directory = new Mp4Directory();
+        mp4Directory.setString(Mp4Directory.TAG_CREATION_TIME, "Fri Jan 21 11:04:12 GMT 2022");
+
+        Metadata metadata = new Metadata();
+        metadata.addDirectory(mp4Directory);
+
+        FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
+        Assert.assertTrue(fileSystemImageData.isValid());
+        Assert.assertEquals("21-January-2022 11:04 IDD_EXIF_SUBIFD",fileSystemImageData.toString());
     }
 }
