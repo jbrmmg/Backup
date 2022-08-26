@@ -183,7 +183,10 @@ public class ApplicationProperties {
         modelMapper.createTypeMap(Backup.class,BackupDTO.class);
         modelMapper.createTypeMap(BackupDTO.class,Backup.class);
         modelMapper.createTypeMap(DbLog.class,DbLogDTO.class);
-        modelMapper.createTypeMap(ImportFile.class,ImportFileDTO.class);
+
+        modelMapper.createTypeMap(ImportFile.class,ImportFileDTO.class).addMappings(mapper -> {
+            mapper.map(ImportFile::getName,ImportFileDTO::setFilename);
+        });
 
         modelMapper.createTypeMap(FileInfo.class,FileInfoDTO.class).addMappings(mapper -> {
             mapper.using(fsoIdTypeConverter).map(FileInfo::getParentId,FileInfoDTO::setParentType);
