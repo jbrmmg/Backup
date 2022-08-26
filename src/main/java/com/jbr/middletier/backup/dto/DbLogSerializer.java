@@ -6,7 +6,11 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+@SuppressWarnings("unused")
 public class DbLogSerializer  extends StdSerializer<DbLogDTO> {
+
+    public DbLogSerializer() { this(null); }
+
     public DbLogSerializer(Class<DbLogDTO> t) {
         super(t);
     }
