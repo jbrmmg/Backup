@@ -27,11 +27,11 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 public class FileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(FileSystem.class);
 
-    private final BackupManager backupManager;
+    private final DbLoggingManager dbLoggingManager;
 
     @Autowired
-    public FileSystem(BackupManager backupManager) {
-        this.backupManager = backupManager;
+    public FileSystem(DbLoggingManager dbLoggingManager) {
+        this.dbLoggingManager = dbLoggingManager;
     }
 
     public boolean directoryIsEmpty(Path path) throws IOException {
@@ -59,7 +59,7 @@ public class FileSystem {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {}", file);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("File delete failure: %s", file));
+            dbLoggingManager.error(String.format("File delete failure: %s", file));
             processResult.setProblems();
         }
     }
@@ -79,7 +79,7 @@ public class FileSystem {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {} {}", file, e);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,String.format("Directory delete failure: %s", file));
+            dbLoggingManager.error(String.format("Directory delete failure: %s", file));
             processResult.setProblems();
         }
     }
@@ -160,7 +160,7 @@ public class FileSystem {
             return new MD5(bytesToHex(md.digest()));
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"Cannot get MD5 - " + path.toString());
+            dbLoggingManager.error("Cannot get MD5 - " + path.toString());
         }
 
         return new MD5();
@@ -174,7 +174,7 @@ public class FileSystem {
         try(Stream<Path> pathStream = Files.walk(path)) {
             pathStream.forEach(walker::processNextPath);
         } catch(IOException e) {
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR, "Failed to walk + " + path);
+            dbLoggingManager.error("Failed to walk + " + path);
             throw e;
         }
     }

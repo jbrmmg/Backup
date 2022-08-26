@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.type;
 
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.DbLoggingManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,17 +29,17 @@ public class GitBackup extends FileBackup {
         return destinationPath.toPath();
     }
 
-    private void processFile(FileSystem fileSystem, File listOfFile, Path destinationPath, BackupManager backupManager, Backup backup) throws IOException {
+    private void processFile(FileSystem fileSystem, File listOfFile, Path destinationPath, DbLoggingManager dbLoggingManager, Backup backup) throws IOException {
         if (listOfFile.getName().startsWith(".")) {
             return;
         }
 
         // Copy file if not already created.
         LOG.info("File {} copy to {}", listOfFile.getName(), destinationPath);
-        performFileBackup(backupManager, fileSystem, backup.getDirectory(), destinationPath.toString(), listOfFile.getName(), false);
+        performFileBackup(dbLoggingManager, fileSystem, backup.getDirectory(), destinationPath.toString(), listOfFile.getName());
     }
 
-    private void processDirectory(FileSystem fileSystem, File listOfFile, Path destinationPath, BackupManager backupManager, Backup backup) throws IOException {
+    private void processDirectory(FileSystem fileSystem, File listOfFile, Path destinationPath, DbLoggingManager dbLoggingManager, Backup backup) throws IOException {
         if (listOfFile.getName().equalsIgnoreCase("target")) {
             return;
         }
@@ -53,11 +54,11 @@ public class GitBackup extends FileBackup {
         FileSystem.TemporaryResultDTO result = new FileSystem.TemporaryResultDTO();
         fileSystem.copyDirectory(source, destination.toFile(),result);
 
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO, String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath, listOfFile.getName()));
+        dbLoggingManager.info(String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath, listOfFile.getName()));
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
+    public void performBackup(BackupManager backupManager, DbLoggingManager dbLoggingManager, FileSystem fileSystem, Backup backup) {
         try {
             LOG.info("Git Backup {} {} {}", backup.getId(), backup.getBackupName(), backup.getDirectory());
 
@@ -81,16 +82,16 @@ public class GitBackup extends FileBackup {
 
             for (File listOfFile : listOfFiles) {
                 if (listOfFile.isFile()) {
-                    processFile(fileSystem, listOfFile, destinationPath, backupManager, backup);
+                    processFile(fileSystem, listOfFile, destinationPath, dbLoggingManager, backup);
                 } else if (listOfFile.isDirectory()) {
-                    processDirectory(fileSystem,listOfFile,destinationPath,backupManager,backup);
+                    processDirectory(fileSystem, listOfFile, destinationPath, dbLoggingManager, backup);
                 }
             }
 
             LOG.info("Backup completed.");
         } catch (Exception ex) {
             LOG.error("Failed to perform git backup", ex);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR,"git backup " + ex);
+            dbLoggingManager.error("git backup " + ex);
         }
     }
 }

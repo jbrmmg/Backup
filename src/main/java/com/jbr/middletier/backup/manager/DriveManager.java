@@ -16,11 +16,11 @@ public class DriveManager extends FileProcessor {
 
     @Autowired
     public DriveManager(AssociatedFileDataManager associatedFileDataManager,
-                        BackupManager backupManager,
+                        DbLoggingManager dbLoggingManager,
                         ActionManager actionManager,
                         FileSystemObjectManager fileSystemObjectManager,
                         FileSystem fileSystem) {
-        super(backupManager, actionManager, associatedFileDataManager, fileSystemObjectManager, fileSystem);
+        super(dbLoggingManager, actionManager, associatedFileDataManager, fileSystemObjectManager, fileSystem);
     }
 
     private static void addProblem(Source nextSource, List<GatherDataDTO> data) {
@@ -43,7 +43,7 @@ public class DriveManager extends FileProcessor {
         }
 
         associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_GATHERING);
-        backupManager.postWebLog(BackupManager.webLogLevel.INFO, "Gather - " + nextSource.getPath());
+        dbLoggingManager.info("Gather - " + nextSource.getPath());
 
         GatherDataDTO gatherData = new GatherDataDTO(nextSource.getIdAndType().getId());
 
@@ -56,7 +56,7 @@ public class DriveManager extends FileProcessor {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
             associatedFileDataManager.updateSourceStatus(nextSource, SourceStatusType.SST_ERROR);
-            backupManager.postWebLog(BackupManager.webLogLevel.ERROR, "Failed to gather " + e);
+            dbLoggingManager.error("Failed to gather " + e);
             gatherData.setProblems();
         }
 

@@ -1,22 +1,37 @@
 package com.jbr.middletier.backup.dto;
 
-import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ImportFileDTO {
-    private final String filename;
-    private final ImportFileStatusType status;
+public class ImportFileDTO extends ImportFileBaseDTO {
+    private Integer id;
+    private String status;
+    List<ImportFileBaseDTO> similarFileList;
 
-    public ImportFileDTO(ImportFile file) {
-        this.filename = file.getName();
-        this.status = file.getStatus();
+    public ImportFileDTO() {
+        similarFileList = new ArrayList<>();
     }
 
-    public String getFilename() {
-        return filename;
+    public Integer getId() {
+        return id;
     }
 
-    public ImportFileStatusType getStatus() {
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getStatus() {
         return status;
     }
+
+    public void setStatus(ImportFileStatusType status) {
+        this.status = status.getTypeName();
+    }
+
+    public void addSimilarFile(ImportFileBaseDTO file) {
+        this.similarFileList.add(file);
+    }
+
+    public List<ImportFileBaseDTO> getSimilarFiles() { return this.similarFileList; }
 }

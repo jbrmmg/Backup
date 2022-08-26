@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+@SuppressWarnings("unused")
 public class ProcessResultSerializer extends StdSerializer<ProcessResultDTO> {
     public ProcessResultSerializer() {
         this(null);

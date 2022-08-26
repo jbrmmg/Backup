@@ -289,4 +289,31 @@ public class ImportIT extends FileTester {
 
         actionManager.clearImportActions();
     }
+
+    @Test
+    public void testSimilarFile() throws IOException, ImportRequestException, InvalidFileIdException {
+        List<StructureDescription> sourceDescription = getTestStructure("test16");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        List<StructureDescription> importDesciption = getTestStructure("test16_import");
+        copyFiles(importDesciption, importDirectory);
+
+        // Import the source data.
+        driveManager.gather();
+
+        List<GatherDataDTO> result = importManager.importPhoto();
+        checkGather(result, 1, 0);
+
+        // Process the import.
+        importManager.processImportFiles();
+
+        // Request the id of the file created.
+        AtomicInteger id = new AtomicInteger(-1);
+        fileSystemObjectManager.findFileSystemObjectByName("IMG_8231.jpeg", FileSystemObjectType.FSO_IMPORT_FILE)
+                .forEach(file -> id.set(file.getIdAndType().getId()) );
+
+        ImportFileDTO file = importManager.externalFindImportFile(id.get());
+        Assert.assertEquals(id.get(),file.getId().longValue());
+        Assert.assertEquals(1,file.getSimilarFiles().size());
+    }
 }

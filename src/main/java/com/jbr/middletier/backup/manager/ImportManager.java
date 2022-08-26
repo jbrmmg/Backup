@@ -3,10 +3,13 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
-import com.jbr.middletier.backup.dto.GatherDataDTO;
-import com.jbr.middletier.backup.dto.ImportDataDTO;
-import com.jbr.middletier.backup.dto.ImportProcessDTO;
+import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ImportRequestException;
+import com.jbr.middletier.backup.exception.InvalidFileIdException;
+import com.jbr.middletier.backup.filetree.FileTreeNode;
+import com.jbr.middletier.backup.filetree.database.DbFile;
+import com.jbr.middletier.backup.filetree.database.DbRoot;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,8 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Comparator.comparing;
+
 @Component
 public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
@@ -28,20 +33,23 @@ public class ImportManager extends FileProcessor {
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final ApplicationProperties applicationProperties;
+    private final ModelMapper modelMapper;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
                          AssociatedFileDataManager associatedFileDataManager,
                          FileSystemObjectManager fileSystemObjectManager,
                          IgnoreFileRepository ignoreFileRepository,
-                         BackupManager backupManager,
+                         DbLoggingManager dbLoggingManager,
                          ActionManager actionManager,
                          FileSystem fileSystem,
-                         ApplicationProperties applicationProperties) {
-        super(backupManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
+                         ApplicationProperties applicationProperties,
+                         ModelMapper modelMapper) {
+        super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.applicationProperties = applicationProperties;
+        this.modelMapper = modelMapper;
     }
 
     private boolean ignoreFile(FileInfo importFile) {
@@ -227,8 +235,8 @@ public class ImportManager extends FileProcessor {
             return FileTestResultType.DIFFERENT;
         }
 
-        // If the classification requires an MD5, and it's missing from one size or the other then
-        // calculate it now.
+        // If the classification requires an MD5, and it's missing from one side or the other,
+        //  then calculate it now.
         if(fileInfo.getClassification() != null && fileInfo.getClassification().getUseMD5()) {
             // Check if the import file has an MD5
             if(!importFile.getMD5().isSet() && md5StillMissing(path,importFile,fileInfo.getClassification())) {
@@ -428,7 +436,7 @@ public class ImportManager extends FileProcessor {
             LOG.info("Process Files from {}", preImportSource.get().getPath());
             LOG.info("Into {}", importSource.get().getPath());
 
-            // Setup the files.
+            // Set up the files.
             File source = new File(preImportSource.get().getPath());
             File destination = new File(importSource.get().getPath());
 
@@ -526,5 +534,72 @@ public class ImportManager extends FileProcessor {
         LOG.info("Process import files is complete.");
 
         return result;
+    }
+
+    private String removeFileExtension(String filename) {
+        return filename.replaceFirst("[.][^.]+$","");
+    }
+
+    private boolean similarFileName(String lhs, String rhs) {
+        return removeFileExtension(lhs).equalsIgnoreCase(removeFileExtension(rhs));
+    }
+
+    private void searchSimilarFileData(ImportFileDTO file, FileTreeNode node) {
+        // Is this node a file?
+        if(node instanceof DbFile) {
+            DbFile dbFile = (DbFile) node;
+
+            Optional<String> name = dbFile.getName();
+            if(name.isPresent() && similarFileName(file.getFilename(),name.get())) {
+                file.addSimilarFile(modelMapper.map(dbFile.getFSO(), ImportFileBaseDTO.class));
+            }
+        }
+
+        // Check the children.
+        for(FileTreeNode nextChild : node.getChildren()) {
+            searchSimilarFileData(file,nextChild);
+        }
+    }
+
+    private void addSimilarFileData(List<ImportFileDTO> files) {
+        try {
+            Optional<ImportSource> importSource = findImportSource();
+            if(!importSource.isPresent()) {
+                return;
+            }
+
+            DbRoot database = fileSystemObjectManager.createDbRoot(importSource.get().getDestination());
+
+            for(ImportFileDTO nextFile : files) {
+                searchSimilarFileData(nextFile, database);
+            }
+        } catch (Exception ex) {
+            dbLoggingManager.error("Failed to add similar data " + ex);
+        }
+    }
+
+    public List<ImportFileDTO> externalFindImportFiles() {
+        List<ImportFileDTO> result = new ArrayList<>();
+        for(ImportFile nextFile: findImportFiles()) {
+            result.add(modelMapper.map(nextFile, ImportFileDTO.class));
+        }
+
+        // Update with the similar files from the destination source.
+        addSimilarFileData(result);
+
+        // Sort the result
+        result.sort(comparing(ImportFileDTO::getFilename));
+
+        return result;
+    }
+
+    public ImportFileDTO externalFindImportFile(Integer id) throws InvalidFileIdException {
+        for(ImportFileDTO nextImportFile : externalFindImportFiles()) {
+            if(nextImportFile.getId().equals(id)) {
+                return nextImportFile;
+            }
+        }
+
+        throw new InvalidFileIdException(id);
     }
 }

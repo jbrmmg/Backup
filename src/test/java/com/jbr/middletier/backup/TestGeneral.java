@@ -1,5 +1,10 @@
 package com.jbr.middletier.backup;
 
+import com.drew.imaging.png.PngChunkType;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.icc.IccDirectory;
+import com.drew.metadata.mp4.Mp4Directory;
+import com.drew.metadata.png.PngDirectory;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.config.DefaultProfileUtil;
@@ -11,22 +16,17 @@ import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
 import static org.mockito.Mockito.*;
@@ -299,55 +299,6 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void WebLogTest() {
-        ApplicationProperties testProperties = mock(ApplicationProperties.class);
-        when(testProperties.getWebLogUrl()).thenReturn("http://test");
-
-        Answer<Boolean> infoCheck = invocationOnMock -> {
-            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
-            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"INFO\""));
-            return false;
-        };
-        RestTemplate testRestTemplate = mock(RestTemplate.class, infoCheck);
-
-        RestTemplateBuilder testRestTemplateBuilder = mock(RestTemplateBuilder.class);
-        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
-
-        BackupManager testBackup = new BackupManager(testProperties,testRestTemplateBuilder);
-        testBackup.postWebLog(BackupManager.webLogLevel.INFO, "Test Info");
-
-        Answer<Boolean> debugCheck = invocationOnMock -> {
-            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
-            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"DEBUG\""));
-            return false;
-        };
-        testRestTemplate = mock(RestTemplate.class, debugCheck);
-        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
-
-        testBackup.postWebLog(BackupManager.webLogLevel.DEBUG, "Test Info");
-
-        Answer<Boolean> warnCheck = invocationOnMock -> {
-            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
-            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"WARN\""));
-            return false;
-        };
-        testRestTemplate = mock(RestTemplate.class, warnCheck);
-        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
-
-        testBackup.postWebLog(BackupManager.webLogLevel.WARN, "Test Info");
-
-        Answer<Boolean> errorCheck = invocationOnMock -> {
-            Assert.assertEquals("http://test", invocationOnMock.getArguments()[0]);
-            Assert.assertTrue(invocationOnMock.getArguments()[1].toString().contains("\"ERROR\""));
-            return false;
-        };
-        testRestTemplate = mock(RestTemplate.class, errorCheck);
-        when(testRestTemplateBuilder.build()).thenReturn(testRestTemplate);
-
-        testBackup.postWebLog(BackupManager.webLogLevel.ERROR, "Test Info");
-    }
-
-    @Test
     public void TestCronClass() {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(true);
@@ -360,11 +311,14 @@ public class TestGeneral extends WebTester {
 
         SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
 
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
                 actionManager,
                 driveManager,
                 duplicateManager,
-                synchronizeManager);
+                synchronizeManager,
+                dbLoggingManager);
 
         gatherSynchronizeCtrl.gatherCron();
         verify(actionManager, times(1)).sendActionEmail();
@@ -387,11 +341,14 @@ public class TestGeneral extends WebTester {
 
         SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
 
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
                 actionManager,
                 driveManager,
                 duplicateManager,
-                synchronizeManager);
+                synchronizeManager,
+                dbLoggingManager);
 
         gatherSynchronizeCtrl.gatherCron();
         verify(actionManager, times(1)).sendActionEmail();
@@ -414,11 +371,14 @@ public class TestGeneral extends WebTester {
 
         SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
 
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
                 actionManager,
                 driveManager,
                 duplicateManager,
-                synchronizeManager);
+                synchronizeManager,
+                dbLoggingManager);
 
         gatherSynchronizeCtrl.gatherCron();
         verify(actionManager, times(0)).sendActionEmail();
@@ -461,7 +421,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
 
@@ -470,7 +430,7 @@ public class TestGeneral extends WebTester {
         FileSystem fileSystem = mock(FileSystem.class);
 
         SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 fileSystemObjectManager,
                 actionManager,
                 fileSystem);
@@ -478,7 +438,7 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK");
     }
 
     @Test
@@ -500,7 +460,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
 
@@ -509,7 +469,7 @@ public class TestGeneral extends WebTester {
         FileSystem fileSystem = mock(FileSystem.class);
 
         SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 fileSystemObjectManager,
                 actionManager,
                 fileSystem);
@@ -517,7 +477,7 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as source not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK");
     }
 
     @Test
@@ -539,7 +499,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
 
@@ -548,7 +508,7 @@ public class TestGeneral extends WebTester {
         FileSystem fileSystem = mock(FileSystem.class);
 
         SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 fileSystemObjectManager,
                 actionManager,
                 fileSystem);
@@ -556,7 +516,7 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK");
     }
 
     @Test
@@ -578,7 +538,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
 
@@ -587,7 +547,7 @@ public class TestGeneral extends WebTester {
         FileSystem fileSystem = mock(FileSystem.class);
 
         SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 fileSystemObjectManager,
                 actionManager,
                 fileSystem);
@@ -595,7 +555,7 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(backupManager, times(1)).postWebLog(BackupManager.webLogLevel.WARN,"Skipping as destination not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK");
     }
 
     @Test
@@ -617,7 +577,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
         when(fileSystemObjectManager.createDbRoot(synchronize.getSource())).thenThrow(NullPointerException.class);
@@ -627,7 +587,7 @@ public class TestGeneral extends WebTester {
         FileSystem fileSystem = mock(FileSystem.class);
 
         SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 fileSystemObjectManager,
                 actionManager,
                 fileSystem);
@@ -650,7 +610,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSource()).thenReturn(sources);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
 
@@ -663,7 +623,7 @@ public class TestGeneral extends WebTester {
         doThrow(new IOException("Failed")).when(fileSystem).createDirectory(any(Path.class));
 
         DriveManager driveManager = new DriveManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 actionManager,
                 fileSystemObjectManager,
                 fileSystem);
@@ -686,7 +646,7 @@ public class TestGeneral extends WebTester {
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(associatedFileDataManager.findAllSource()).thenReturn(sources);
 
-        BackupManager backupManager = mock(BackupManager.class);
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
 
@@ -697,7 +657,7 @@ public class TestGeneral extends WebTester {
         FileSystem fileSystem = mock(FileSystem.class);
 
         DriveManager driveManager = new DriveManager(associatedFileDataManager,
-                backupManager,
+                dbLoggingManager,
                 actionManager,
                 fileSystemObjectManager,
                 fileSystem);
@@ -1144,5 +1104,112 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("TestFile2.txt", actionConfirmDTO.getFileName());
         Assert.assertEquals(2423, actionConfirmDTO.getFileSize().longValue());
         Assert.assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getFileDate()));
+    }
+
+    @Test
+    public void testFileDTO() {
+        Classification classification = new Classification();
+        classification.setId(1);
+        classification.setIsImage(true);
+        classification.setIsVideo(false);
+        classification.setIcon("icon");
+
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setId(1);
+        fileInfo.setName("Test");
+        fileInfo.setDate(LocalDateTime.now());
+        fileInfo.setSize(10);
+        fileInfo.setMD5(new MD5("md5"));
+        fileInfo.setClassification(classification);
+
+        FileDTO fileDTO = new FileDTO(fileInfo,"full", "path", "location");
+        fileDTO.setId(2);
+        fileDTO.setName("Test Blah");
+        fileDTO.setFullFilename("full name");
+        fileDTO.setSize(11);
+        fileDTO.setDate(LocalDateTime.now());
+        fileDTO.setImage(false);
+        fileDTO.setVideo(false);
+        fileDTO.setIcon("icon");
+        fileDTO.setPath("path field");
+        fileDTO.setLocationName("location");
+
+        Assert.assertEquals(2,fileDTO.getId());
+        Assert.assertEquals("Test Blah",fileDTO.getName());
+        Assert.assertEquals("full name",fileDTO.getFullFilename());
+        Assert.assertEquals(11,fileDTO.getSize());
+        Assert.assertFalse(fileDTO.isImage());
+        Assert.assertFalse(fileDTO.isVideo());
+        Assert.assertEquals("icon",fileDTO.getIcon());
+        Assert.assertEquals("path field",fileDTO.getPath());
+        Assert.assertEquals("location",fileDTO.getLocationName());
+    }
+
+    @Test
+    public void testDbLog() {
+        DbLog dbLog = new DbLog();
+        dbLog.setId(1);
+        dbLog.setDate(LocalDateTime.now());
+        dbLog.setType(DbLogType.DLT_DEBUG);
+        dbLog.setMessage("Test");
+
+        Assert.assertEquals(1,dbLog.getId().intValue());
+        Assert.assertEquals(DbLogType.DLT_DEBUG,dbLog.getType());
+        Assert.assertEquals("Test",dbLog.getMessage());
+    }
+
+    @Test
+    public void testFileSystemImageData() {
+        PngDirectory pngDirectory = new PngDirectory(PngChunkType.IHDR);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_WIDTH,121);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_HEIGHT,120);
+        pngDirectory.setInt(PngDirectory.TAG_COMPRESSION_TYPE, 0);
+
+        IccDirectory iccDirectory = new IccDirectory();
+        iccDirectory.setString(IccDirectory.TAG_PROFILE_DATETIME, "2022:01:21 11:04:10");
+
+        Metadata metadata = new Metadata();
+        metadata.addDirectory(pngDirectory);
+        metadata.addDirectory(iccDirectory);
+
+        FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
+        Assert.assertTrue(fileSystemImageData.isValid());
+        Assert.assertEquals(120,fileSystemImageData.getHeight());
+        Assert.assertEquals(121,fileSystemImageData.getWidth());
+        Assert.assertEquals("21-January-2022 11:04 IDD_ICC_PROFILE",fileSystemImageData.toString());
+    }
+
+    @Test
+    public void testFileSystemImageDataInvalid() {
+        PngDirectory pngDirectory = new PngDirectory(PngChunkType.IHDR);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_WIDTH,121);
+        pngDirectory.setInt(PngDirectory.TAG_IMAGE_HEIGHT,120);
+        pngDirectory.setInt(PngDirectory.TAG_COMPRESSION_TYPE, 0);
+
+        IccDirectory iccDirectory = new IccDirectory();
+        iccDirectory.setString(IccDirectory.TAG_PROFILE_DATETIME, "invalid");
+
+        Metadata metadata = new Metadata();
+        metadata.addDirectory(pngDirectory);
+        metadata.addDirectory(iccDirectory);
+
+        FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
+        Assert.assertFalse(fileSystemImageData.isValid());
+
+        fileSystemImageData = new FileSystemImageData(null);
+        Assert.assertFalse(fileSystemImageData.isValid());
+    }
+
+    @Test
+    public void testFileSystemImageDataMp4() {
+        Mp4Directory mp4Directory = new Mp4Directory();
+        mp4Directory.setString(Mp4Directory.TAG_CREATION_TIME, "Fri Jan 21 11:04:12 GMT 2022");
+
+        Metadata metadata = new Metadata();
+        metadata.addDirectory(mp4Directory);
+
+        FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
+        Assert.assertTrue(fileSystemImageData.isValid());
+        Assert.assertEquals("21-January-2022 11:04 IDD_EXIF_SUBIFD",fileSystemImageData.toString());
     }
 }

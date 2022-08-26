@@ -4,8 +4,10 @@ import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
+import com.jbr.middletier.backup.dataaccess.DbLogRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.DbLoggingManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
 import com.jbr.middletier.backup.type.CleanBackup;
@@ -57,6 +59,9 @@ public class TestBackups {
     @Autowired
     ModelMapper modelMapper;
 
+    @Autowired
+    DbLogRepository dbLogRepository;
+
     private int GetBackupTime() {
         Calendar calendar = Calendar.getInstance();
         return calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE) - 5;
@@ -95,6 +100,8 @@ public class TestBackups {
         when(applicationProperties.getDirectory()).thenReturn(directory);
         when(directory.getName()).thenReturn("thisdirectorydoesnotexist");
 
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
         BackupManager backupManager = mock(BackupManager.class);
 
         Backup backup = mock(Backup.class);
@@ -102,7 +109,7 @@ public class TestBackups {
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
 
         try {
-            cleanBackup.performBackup(backupManager, fileSystem, backup);
+            cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
             Assert.fail();
         } catch (IllegalStateException e) {
             Assert.assertEquals("Backup directory does not exist.", e.getMessage());
@@ -121,6 +128,8 @@ public class TestBackups {
         }
         Assert.assertTrue(testFile2.exists());
 
+        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
         BackupManager backupManager = mock(BackupManager.class);
         FileSystem fileSystem = mock(FileSystem.class);
 
@@ -128,8 +137,8 @@ public class TestBackups {
 
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
 
-        cleanBackup.performBackup(backupManager, fileSystem, backup);
-        verify(backupManager,times(1)).postWebLog(BackupManager.webLogLevel.ERROR,"Failed to convert directory java.time.format.DateTimeParseException: Text '20201401' could not be parsed at index 0");
+        cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
+        verify(dbLoggingManager,times(1)).error("Failed to convert directory java.time.format.DateTimeParseException: Text '20201401' could not be parsed at index 0");
     }
 
     @Test
@@ -150,8 +159,11 @@ public class TestBackups {
                 assertTrue(backupZip.delete());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File testDirectory = new File(backupManager.todaysDirectory());
             if (!testDirectory.exists()) {
@@ -208,8 +220,11 @@ public class TestBackups {
                 assertTrue(backupZip.createNewFile());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File testDirectory = new File(backupManager.todaysDirectory());
             if (!testDirectory.exists()) {
@@ -264,8 +279,11 @@ public class TestBackups {
                 assertTrue(backupZip.createNewFile());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File testDirectory = new File(backupManager.todaysDirectory());
             if (testDirectory.exists()) {
@@ -279,7 +297,7 @@ public class TestBackups {
             Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager, fileSystem,backup);
+            zipupBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -339,8 +357,11 @@ public class TestBackups {
 
             Files.setPosixFilePermissions(newDir.toPath(),permissions);
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("ZIP");
@@ -349,7 +370,7 @@ public class TestBackups {
             Backup backup = modelMapper.map(backupDTO,Backup.class);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager,fileSystem,backup);
+            zipupBackup.performBackup(backupManager,dbLoggingManager,fileSystem,backup);
 
             backupRepository.deleteAll();
 
@@ -369,8 +390,11 @@ public class TestBackups {
     @Test
     public void TestFileBackup() {
         try {
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
             if (backedup.exists()) {
@@ -414,8 +438,11 @@ public class TestBackups {
     @Test
     public void TestFileBackupNoSource() {
         try {
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
             if (backedup.exists()) {
@@ -455,8 +482,11 @@ public class TestBackups {
     @Test
     public void TestFileBackupNoSourceDir() {
         try {
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
             if (backedup.exists()) {
@@ -522,8 +552,11 @@ public class TestBackups {
                 assertTrue(source5.createNewFile());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestGit/src/test.txt");
             if (expected1.exists()) {
@@ -576,8 +609,11 @@ public class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -615,8 +651,11 @@ public class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -703,8 +742,11 @@ public class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -741,8 +783,11 @@ public class TestBackups {
             Files.createDirectories(backupDir.toPath());
             Assert.assertTrue(backupDir.exists());
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -789,8 +834,11 @@ public class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
+            // Create a logging manager.
+            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
+
             // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, null);
+            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             DatabaseBackup databaseBackup = new DatabaseBackup(applicationProperties);
             String backupDbUrl = applicationProperties.getDbUrl();
@@ -812,7 +860,7 @@ public class TestBackups {
 
             Backup backup = modelMapper.map(backupDTO,Backup.class);
 
-            databaseBackup.performBackup(backupManager, fileSystem,backup);
+            databaseBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
             applicationProperties.setDbUrl(backupDbUrl);
 
             assertFalse(expected1.exists());
@@ -828,7 +876,7 @@ public class TestBackups {
             ApplicationProperties applicationProperties = new ApplicationProperties();
             applicationProperties.setEnabled(false);
 
-            BackupCtrl backupCtrl = new BackupCtrl(null, null,null, applicationProperties, null);
+            BackupCtrl backupCtrl = new BackupCtrl(null, null, null, null, applicationProperties, null);
             backupCtrl.scheduleBackup();
 
         } catch (Exception ex) {
@@ -854,9 +902,11 @@ public class TestBackups {
             when(backup.getArtifact()).thenReturn("blah.txt");
             when(backup.getDirectory()).thenReturn("xx");
 
+            DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
             Assert.assertNotNull(dbBackup);
-            dbBackup.performBackup(manager, fileSystem, backup);
+            dbBackup.performBackup(manager, dbLoggingManager, fileSystem, backup);
         } catch(Exception e) {
             Assert.fail();
         }
@@ -881,9 +931,11 @@ public class TestBackups {
             when(backup.getArtifact()).thenReturn("blah.txt");
             when(backup.getDirectory()).thenReturn("xx");
 
+            DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
             Assert.assertNotNull(dbBackup);
-            dbBackup.performBackup(manager, fileSystem, backup);
+            dbBackup.performBackup(manager, dbLoggingManager, fileSystem, backup);
         } catch(Exception e) {
             Assert.fail();
         }
