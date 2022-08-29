@@ -70,7 +70,7 @@ public class LoggingIT extends WebTester {
         dbLoggingManager.warn("Warning message");
         dbLoggingManager.error("Error message");
 
-        getMockMvc().perform(get("/jbr/ext/backup/log")
+        getMockMvc().perform(get("/jbr/int/backup/log")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)))
