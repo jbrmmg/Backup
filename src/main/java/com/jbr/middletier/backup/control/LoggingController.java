@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/jbr/ext/backup")
+@RequestMapping("/jbr/int/backup")
 public class LoggingController {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingController.class);
 
