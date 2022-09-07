@@ -226,7 +226,7 @@ public class ActionManager {
             for (ActionConfirm nextAction : unconfirmedActions) {
                 emailText.append("<tr>");
                 emailText.append("<td class=\"action\">");
-                emailText.append(nextAction.getAction());
+                emailText.append(nextAction.getAction().getTypeName());
                 emailText.append(END_TD);
                 emailText.append("<td class=\"parameter\">");
                 emailText.append(nextAction.getParameter() == null ? "" : nextAction.getParameter());
