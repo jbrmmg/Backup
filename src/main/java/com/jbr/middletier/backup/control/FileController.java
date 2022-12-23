@@ -85,6 +85,50 @@ public class FileController {
         return synchronizeManager.synchronize();
     }
 
+    @PostMapping(path="/print")
+    public @ResponseBody Integer print(@RequestBody Integer id) {
+        LOG.info("File selected for print - {}", id);
+
+        return id;
+    }
+
+    @PostMapping(path="/unprint")
+    public @ResponseBody Integer unprint(@RequestBody Integer id) {
+        LOG.info("Unselect id from print - {}", id);
+
+        return id;
+    }
+
+    @GetMapping(path="/prints")
+    public @ResponseBody List<Integer> prints() {
+        List<Integer> result = new ArrayList<>();
+
+        result.add(1000479);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        result.add(104935);
+        LOG.info("Get Prints");
+
+        return result;
+    }
+
+    @DeleteMapping(path="/prints")
+    public @ResponseBody List<Integer> deletePrints() {
+        List<Integer> result = new ArrayList<>();
+
+        LOG.info("Clear the prints");
+
+        return result;
+    }
+
     private int getParentId(Optional<FileSystemObject> optParent) {
         if(!optParent.isPresent()) {
             return -1;
