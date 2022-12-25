@@ -268,4 +268,54 @@ public class FileSystemObjectManager {
 
         directories.addAll(directoryRepository.findByParentId(id));
     }
+
+    public Integer select(Integer id) {
+        // Find the file.
+        Optional<FileInfo> file = fileRepository.findById(id);
+
+        if(file.isPresent()) {
+            file.get().setFlags("P");
+            fileRepository.save(file.get());
+
+            return id;
+        }
+
+        return null;
+    }
+
+    public Integer unselect(Integer id) {
+        // Find the file.
+        Optional<FileInfo> file = fileRepository.findById(id);
+
+        if(file.isPresent()) {
+            file.get().setFlags(null);
+            fileRepository.save(file.get());
+
+            return id;
+        }
+
+        return null;
+    }
+
+    public List<Integer> getPrints() {
+        List<Integer> result = new ArrayList<>();
+
+        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
+            result.add(next.getIdAndType().getId());
+        }
+
+        return result;
+    }
+
+    public List<Integer> deletePrints() {
+        List<Integer> result = new ArrayList<>();
+
+        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
+            next.setFlags(null);
+
+            fileRepository.save(next);
+        }
+
+        return result;
+    }
 }

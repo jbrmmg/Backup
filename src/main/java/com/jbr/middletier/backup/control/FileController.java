@@ -87,46 +87,22 @@ public class FileController {
 
     @PostMapping(path="/print")
     public @ResponseBody Integer print(@RequestBody Integer id) {
-        LOG.info("File selected for print - {}", id);
-
-        return id;
+        return fileSystemObjectManager.select(id);
     }
 
     @PostMapping(path="/unprint")
     public @ResponseBody Integer unprint(@RequestBody Integer id) {
-        LOG.info("Unselect id from print - {}", id);
-
-        return id;
+        return fileSystemObjectManager.unselect(id);
     }
 
     @GetMapping(path="/prints")
     public @ResponseBody List<Integer> prints() {
-        List<Integer> result = new ArrayList<>();
-
-        result.add(1000479);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        result.add(104935);
-        LOG.info("Get Prints");
-
-        return result;
+        return fileSystemObjectManager.getPrints();
     }
 
     @DeleteMapping(path="/prints")
     public @ResponseBody List<Integer> deletePrints() {
-        List<Integer> result = new ArrayList<>();
-
-        LOG.info("Clear the prints");
-
-        return result;
+        return fileSystemObjectManager.deletePrints();
     }
 
     private int getParentId(Optional<FileSystemObject> optParent) {

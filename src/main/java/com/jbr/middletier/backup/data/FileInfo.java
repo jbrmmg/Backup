@@ -51,6 +51,14 @@ public class FileInfo extends FileSystemObject {
 
     public Classification getClassification() { return this.classification; }
 
+    public String getFlags() {
+        return flags;
+    }
+
+    public void setFlags(String flags) {
+        this.flags = flags;
+    }
+
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
         if(this.getIdAndType().equals(otherFile.getIdAndType())) {
             return false;
