@@ -316,4 +316,13 @@ public class ImportIT extends FileTester {
         Assert.assertEquals(id.get(),file.getId().longValue());
         Assert.assertEquals(1,file.getSimilarFiles().size());
     }
+
+    @Test
+    public void testHeicFile() throws IOException {
+        List<StructureDescription> sourceDescription = getTestStructure("test17");
+        copyFiles(sourceDescription, sourceDirectory);
+
+        List<StructureDescription> importDesciption = getTestStructure("test17_import");
+        copyFiles(importDesciption, importDirectory);
+    }
 }

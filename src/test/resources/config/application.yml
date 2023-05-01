@@ -2,12 +2,12 @@ logging:
   level:
     ROOT: INFO
     com.jbr.middletier: DEBUG
-    org.hibernate.type: TRACE
+#    org.hibernate.type: TRACE
     org.hibernate.SQL: DEBUG
     liquibase: INFO
     org.springframework.orm.jpa: DEBUG
     org.springframework.transaction: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 spring:
   liquibase:
