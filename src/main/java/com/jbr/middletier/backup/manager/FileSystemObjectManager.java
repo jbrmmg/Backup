@@ -1,11 +1,14 @@
 package com.jbr.middletier.backup.manager;
 
 
+import com.jbr.middletier.backup.control.FileController;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +20,8 @@ import java.util.Optional;
 
 @Component
 public class FileSystemObjectManager {
+    private static final Logger LOG = LoggerFactory.getLogger(FileSystemObjectManager.class);
+
     private final FileRepository fileRepository;
     private final DirectoryRepository directoryRepository;
     private final IgnoreFileRepository ignoreFileRepository;
@@ -30,6 +35,8 @@ public class FileSystemObjectManager {
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
                                    ImportFileRepository importFileRepository, ModelMapper modelMapper) {
+        LOG.trace("FSO CTOR");
+
         this.fileRepository = fileRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
@@ -317,5 +324,13 @@ public class FileSystemObjectManager {
         }
 
         return result;
+    }
+
+    public void gatherList() {
+        // Find the P files.
+        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
+            File printFile = getFile(next);
+            LOG.info("cp " + printFile.getAbsolutePath() + " /media/jason/6263-3935/" + printFile.getName());
+        }
     }
 }

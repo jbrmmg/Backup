@@ -18,7 +18,36 @@
         </file>
         <file>
             <source> ${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
+            <outputDirectory>/deployx/</outputDirectory>
+            <destName>MiddleTier-Backup-onejar.jar</destName>
+            <fileMode>0775</fileMode>
+            <filtered>false</filtered>
+        </file>
+        <file>
+            <source>${project.build.directory}/scripts/deploy/StopService.sh</source>
             <outputDirectory>/</outputDirectory>
+            <destName>pre_deploy.sh</destName>
+            <fileMode>0775</fileMode>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>${project.build.directory}/scripts/deploy/BlankDeploy.sh</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>post_deploy.sh</destName>
+            <fileMode>0775</fileMode>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>${basedir}/src/main/resources/deployment/BlankDeploy.txt</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>maven-releases-DeploymentDir.txt</destName>
+            <fileMode>0664</fileMode>
+        </file>
+        <file>
+            <source>${basedir}/src/main/resources/deployment/development.txt</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>maven-snapshots-DeploymentDir.txt</destName>
+            <fileMode>0664</fileMode>
         </file>
     </files>
 </assembly>
