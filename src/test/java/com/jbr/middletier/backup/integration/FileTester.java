@@ -18,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -391,7 +392,7 @@ public class FileTester extends WebTester {
                         destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
 
-                ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneId.systemDefault());
+                ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneOffset.UTC);
                 Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(zonedFileTime.toInstant().toEpochMilli()));
             }
         }
