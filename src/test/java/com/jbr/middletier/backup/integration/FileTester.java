@@ -285,7 +285,7 @@ public class FileTester extends WebTester {
                         childNode.dateIndicator = childDate.equals(fileDate) ? " " : "X";
 
                         if(!childNode.dateIndicator.equals(" ")) {
-                            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MMM-dd hh:mm:ss");
+                            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MMM-dd HH:mm:ss");
                             LOG.warn("Date Difference F {} - D {}",dtf.format(fileDate),dtf.format(childDate));
                         }
 
