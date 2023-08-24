@@ -283,6 +283,12 @@ public class FileTester extends WebTester {
                         LocalDateTime fileDate = nextFile.getDate().withSecond(0).withNano(0);
 
                         childNode.dateIndicator = childDate.equals(fileDate) ? " " : "X";
+
+                        if(!childNode.dateIndicator.equals(" ")) {
+                            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MMM-dd hh:mm:ss");
+                            LOG.warn("Date Difference F {} - D {}",dtf.format(fileDate),dtf.format(childDate));
+                        }
+
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
                         childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
                         matched = true;
