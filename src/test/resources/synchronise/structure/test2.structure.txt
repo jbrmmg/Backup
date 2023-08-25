@@ -9,6 +9,6 @@ Document.pdf    Documents                   Statement.pdf       2012-12-25-06-30
 Video.MOV       Photo/2013/October/AtHome   Cycle.MOV           2013-10-11-09-11   5371710
 Photo.jpg       Photo/2013/October/AtHome   IMG_8231.jpg        2013-10-11-15-23   1102542    C714A0B2E792EB102F706DC2424B0083
 Party.mp4       Photo/2012/July/Birthday    Party.mp4           2012-07-19-17-11   1191706
-Photo.HEIC      Photo/2012/July/Birthday    IMG_2329.HEIC       2012-07-19-17-14   554512
+Photo.HEIC      Photo/2012/July/Birthday    IMG_2329.HEIC       2012-07-19-17-14   443707
 Photo.jpg       Photo/2012/June/Zoo         IMG_3891.jpeg       2012-06-03-11-11   1102542
 Photo.png       Photo/2012/June/Zoo         IMG_931d.png        2012-06-03-11-19   6622444

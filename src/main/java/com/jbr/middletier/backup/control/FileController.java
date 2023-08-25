@@ -274,4 +274,13 @@ public class FileController {
         FileInfo loadedFile = (FileInfo)file.get();
         return actionManager.createFileDeleteAction(loadedFile);
     }
+
+    @PostMapping(path="/generate")
+    public @ResponseBody OkStatus doSomething() {
+        LOG.info("Get a list of the P files");
+
+        fileSystemObjectManager.gatherList();
+
+        return OkStatus.getOkStatus();
+    }
 }

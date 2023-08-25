@@ -18,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -282,7 +283,18 @@ public class FileTester extends WebTester {
                         LocalDateTime childDate = childNode.date.withSecond(0).withNano(0);
                         LocalDateTime fileDate = nextFile.getDate().withSecond(0).withNano(0);
 
+                        // If the child date is midnight then remove the time from the file date too (time is excluded from check).
+                        if(childDate.getHour() == 0 && childDate.getMinute() == 0) {
+                            fileDate = fileDate.withMinute(0).withHour(0);
+                        }
+
                         childNode.dateIndicator = childDate.equals(fileDate) ? " " : "X";
+
+                        if(!childNode.dateIndicator.equals(" ")) {
+                            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MMM-dd HH:mm:ss");
+                            LOG.warn("Date Difference F {} - D {}",dtf.format(fileDate),dtf.format(childDate));
+                        }
+
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
                         childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
                         matched = true;
