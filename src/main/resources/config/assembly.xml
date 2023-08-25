@@ -31,7 +31,7 @@
             <filtered>true</filtered>
         </file>
         <file>
-            <source>${project.build.directory}/scripts/deploy/BlankDeploy.sh</source>
+            <source>${project.build.directory}/scripts/deploy/StartService.sh</source>
             <outputDirectory>/</outputDirectory>
             <destName>post_deploy.sh</destName>
             <fileMode>0775</fileMode>
