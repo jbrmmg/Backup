@@ -283,6 +283,11 @@ public class FileTester extends WebTester {
                         LocalDateTime childDate = childNode.date.withSecond(0).withNano(0);
                         LocalDateTime fileDate = nextFile.getDate().withSecond(0).withNano(0);
 
+                        // If the child date is midnight then remove the time from the file date too (time is excluded from check).
+                        if(childDate.getHour() == 0 && childDate.getMinute() == 0) {
+                            fileDate = fileDate.withMinute(0).withHour(0);
+                        }
+
                         childNode.dateIndicator = childDate.equals(fileDate) ? " " : "X";
 
                         if(!childNode.dateIndicator.equals(" ")) {
@@ -392,7 +397,7 @@ public class FileTester extends WebTester {
                         destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
 
-                ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneOffset.UTC);
+                ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneId.systemDefault());
                 Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(zonedFileTime.toInstant().toEpochMilli()));
             }
         }
