@@ -18,7 +18,7 @@
         </file>
         <file>
             <source> ${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
-            <outputDirectory>/deployx/</outputDirectory>
+            <outputDirectory>/deploy/</outputDirectory>
             <destName>MiddleTier-Backup-onejar.jar</destName>
             <fileMode>0775</fileMode>
             <filtered>false</filtered>
