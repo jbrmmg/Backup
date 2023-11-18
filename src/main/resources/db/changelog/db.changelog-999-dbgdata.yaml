@@ -63,31 +63,6 @@ databaseChangeLog:
             where: regex = '.*\.txt$'
 
         - insert:
-            tableName: classification
-            columns:
-              - column:
-                  name: id
-                  value: 35
-              - column:
-                  name: regex
-                  value: .*\.$
-              - column:
-                  name: action
-                  value: FOLDER
-              - column:
-                  name: order
-                  value: 33
-              - column:
-                  name: useMD5
-                  valueBoolean: false
-              - column:
-                  name: is_image
-                  valueBoolean: false
-              - column:
-                  name: is_video
-                  valueBoolean: false
-
-        - insert:
             tableName: action_confirm
             columns:
               - column:

@@ -18,6 +18,8 @@ public class FileDTO {
     private String path;
     private String locationName;
 
+    private LocalDateTime expiry;
+
     public FileDTO(FileInfo fileInfo, String fullFilename, String path, String location) {
         this.id = fileInfo.getIdAndType().getId();
         this.name = fileInfo.getName();
@@ -30,6 +32,7 @@ public class FileDTO {
         this.fullFilename = fullFilename;
         this.path = path;
         this.locationName = location;
+        this.expiry = fileInfo.getExpiry();
     }
 
     public int getId() {

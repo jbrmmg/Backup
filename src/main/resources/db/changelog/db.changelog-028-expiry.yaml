@@ -1,0 +1,574 @@
+databaseChangeLog:
+  - changeSet:
+      id: 28
+      author: jason
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: expiry
+                  type: datetime
+            tableName: file
+
+        - createTable:
+            tableName: print_size
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: width_in
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: height_in
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: retro
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: panoramic
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: print
+            columns:
+              - column:
+                  name: file_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: size_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: border
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: black_white
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: label
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: file_label
+            columns:
+              - column:
+                  name: file_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: label_id
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 2x2 in
+              - column:
+                  name: width_in
+                  value: 2
+              - column:
+                  name: height_in
+                  value: 2
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 2x3 in
+              - column:
+                  name: width_in
+                  value: 2
+              - column:
+                  name: height_in
+                  value: 3
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 3x3 in
+              - column:
+                  name: width_in
+                  value: 3
+              - column:
+                  name: height_in
+                  value: 3
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 2x2.5 in [Retro]
+              - column:
+                  name: width_in
+                  value: 2
+              - column:
+                  name: height_in
+                  value: 2.5
+              - column:
+                  name: retro
+                  valueBoolean: true
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 4x5 in [Retro]
+              - column:
+                  name: width_in
+                  value: 4
+              - column:
+                  name: height_in
+                  value: 5
+              - column:
+                  name: retro
+                  valueBoolean: true
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 6x4.5 in [Retro]
+              - column:
+                  name: width_in
+                  value: 6
+              - column:
+                  name: height_in
+                  value: 4.5
+              - column:
+                  name: retro
+                  valueBoolean: true
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 4x4 in
+              - column:
+                  name: width_in
+                  value: 4
+              - column:
+                  name: height_in
+                  value: 4
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 5x5 in
+              - column:
+                  name: width_in
+                  value: 5
+              - column:
+                  name: height_in
+                  value: 5
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 6x6 in
+              - column:
+                  name: width_in
+                  value: 6
+              - column:
+                  name: height_in
+                  value: 6
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 8x8 in
+              - column:
+                  name: width_in
+                  value: 8
+              - column:
+                  name: height_in
+                  value: 8
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 10x10 in
+              - column:
+                  name: width_in
+                  value: 10
+              - column:
+                  name: height_in
+                  value: 10
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 6x4 in
+              - column:
+                  name: width_in
+                  value: 6
+              - column:
+                  name: height_in
+                  value: 4
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 7x5 in
+              - column:
+                  name: width_in
+                  value: 7
+              - column:
+                  name: height_in
+                  value: 5
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 8x6 in
+              - column:
+                  name: width_in
+                  value: 8
+              - column:
+                  name: height_in
+                  value: 6
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 10x8 in
+              - column:
+                  name: width_in
+                  value: 10
+              - column:
+                  name: height_in
+                  value: 8
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 12x8 in
+              - column:
+                  name: width_in
+                  value: 12
+              - column:
+                  name: height_in
+                  value: 8
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: A4
+              - column:
+                  name: width_in
+                  value: 8.3
+              - column:
+                  name: height_in
+                  value: 11.7
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 16x12 in
+              - column:
+                  name: width_in
+                  value: 16
+              - column:
+                  name: height_in
+                  value: 12
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 20x16 in
+              - column:
+                  name: width_in
+                  value: 20
+              - column:
+                  name: height_in
+                  value: 16
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 12x12 in
+              - column:
+                  name: width_in
+                  value: 12
+              - column:
+                  name: height_in
+                  value: 12
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 16x16 in
+              - column:
+                  name: width_in
+                  value: 16
+              - column:
+                  name: height_in
+                  value: 16
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 18x18 in
+              - column:
+                  name: width_in
+                  value: 18
+              - column:
+                  name: height_in
+                  value: 18
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 20x20 in
+              - column:
+                  name: width_in
+                  value: 20
+              - column:
+                  name: height_in
+                  value: 20
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: false
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 20x10 in [Panoramic]
+              - column:
+                  name: width_in
+                  value: 20
+              - column:
+                  name: height_in
+                  value: 10
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: true
+
+        - insert:
+            tableName: print_size
+            columns:
+              - column:
+                  name: name
+                  value: 36x12 in [Panoramic]
+              - column:
+                  name: width_in
+                  value: 36
+              - column:
+                  name: height_in
+                  value: 12
+              - column:
+                  name: retro
+                  valueBoolean: false
+              - column:
+                  name: panoramic
+                  valueBoolean: true
