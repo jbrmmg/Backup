@@ -3,7 +3,7 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.*;
 
 @Entity
-@Table(name="size")
+@Table(name="print_size")
 public class PrintSize {
     @Id
     @Column(name="id")
