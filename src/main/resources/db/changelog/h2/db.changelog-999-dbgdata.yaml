@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 999
+      author: jason
+      context: dbg
+      changes:
+
+        - update:
+            columns:
+              - column:
+                  name: useMD5
+                  valueBoolean: true
+            tableName: classification
+            where: regex = '.*\.txt$'
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: SRCE
+              - column:
+                  name: name
+                  value: /home/jason/Working/DbgBackupSources/Source
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: location
+                  value: 1
+              - column:
+                  name: status
+                  value: OK
+              - column:
+                  name: mount_check
+                  value: /home/jason/Working/DbgBackupSources/Source/MountCheck.txt
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: SRCE
+              - column:
+                  name: name
+                  value: /home/jason/Working/DbgBackupSources/Destination
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: location
+                  value: 1
+              - column:
+                  name: status
+                  value: OK
+              - column:
+                  name: mount_check
+                  value: /home/jason/Working/DbgBackupSources/Destination/MountCheck.txt
