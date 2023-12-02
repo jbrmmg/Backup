@@ -19,7 +19,6 @@ spring:
       naming:
         physical-strategy: com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl
 
-
 backup:
   directory:
     name: /home/jason/Working/BackupDev
