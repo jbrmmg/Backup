@@ -17,7 +17,6 @@ public class FileDTO {
     private String icon;
     private String path;
     private String locationName;
-
     private LocalDateTime expiry;
 
     public FileDTO(FileInfo fileInfo, String fullFilename, String path, String location) {
@@ -121,5 +120,13 @@ public class FileDTO {
 
     public void setLocationName(String locationName) {
         this.locationName = locationName;
+    }
+
+    public LocalDateTime getExpiry() {
+        return expiry;
+    }
+
+    public void setExpiry(LocalDateTime expiry) {
+        this.expiry = expiry;
     }
 }

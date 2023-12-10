@@ -49,10 +49,16 @@ public class DebugPhysicalNamingStrategyImpl implements PhysicalNamingStrategy, 
         if(name.getText().equalsIgnoreCase("filter")) {
             return new Identifier(name.getText(), true);
         }
+        if(name.getText().equalsIgnoreCase("order")) {
+            return new Identifier(name.getText(), true);
+        }
 
         // For H2 need to change
         if(name.getText().equalsIgnoreCase("classificationid")) {
             return new Identifier("classification_id",false);
+        }
+        if(name.getText().equalsIgnoreCase("fileid")) {
+            return new Identifier("file_id", false);
         }
 
         return new Identifier(name.getText(), false);

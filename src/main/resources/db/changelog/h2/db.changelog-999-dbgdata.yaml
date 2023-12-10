@@ -10,6 +10,9 @@ databaseChangeLog:
               - column:
                   name: useMD5
                   valueBoolean: "true"
+              - column:
+                  name: icon
+                  value: fa-file-text
             tableName: classification
             where: regex = '.*\.txt$'
 
@@ -66,6 +69,65 @@ databaseChangeLog:
                   value: /home/jason/Working/DbgBackupSources/Destination/MountCheck.txt
 
         - insert:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: source
+                  value: "1"
+              - column:
+                  name: destination
+                  value: "2"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: DIRY
+              - column:
+                  name: name
+                  value: dir2010
+              - column:
+                  name: parent
+                  value: "1"
+              - column:
+                  name: parent_type
+                  value: SRCE
+
+        - insert:
+            tableName: directory
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: DIRY
+              - column:
+                  name: name
+                  value: dir2010
+              - column:
+                  name: parent
+                  value: "2"
+              - column:
+                  name: parent_type
+                  value: SRCE
+
+        - insert:
+            tableName: directory
+            columns:
+              - column:
+                  name: id
+                  value: "4"
+
+        - insert:
             tableName: file_system_object
             columns:
               - column:
@@ -76,17 +138,17 @@ databaseChangeLog:
                   value: fred.txt
               - column:
                   name: parent
-                  value: "1"
+                  value: "3"
               - column:
                   name: parent_type
-                  value: SRCE
+                  value: DIRY
 
         - insert:
             tableName: file
             columns:
               - column:
                   name: id
-                  value: "3"
+                  value: "5"
               - column:
                   name: classification_id
                   value: "10"
@@ -95,4 +157,140 @@ databaseChangeLog:
                   value: "390"
               - column:
                   name: date
-                  value: "2023-09-20"
+                  value: "2023-09-20 23:21:12"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: fred.txt
+              - column:
+                  name: parent
+                  value: "4"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "6"
+              - column:
+                  name: classification_id
+                  value: "10"
+              - column:
+                  name: size
+                  value: "390"
+              - column:
+                  name: date
+                  value: "2023-09-20 23:21:12"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: SRCE
+              - column:
+                  name: name
+                  value: /home/jason/Working/DbgBackupSources/Destination2
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "7"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+              - column:
+                  name: mount_check
+                  value: /home/jason/Working/DbgBackupSources/Destination2/MountCheck.txt
+
+
+        - insert:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+              - column:
+                  name: source
+                  value: "1"
+              - column:
+                  name: destination
+                  value: "7"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: DIRY
+              - column:
+                  name: name
+                  value: dir2010
+              - column:
+                  name: parent
+                  value: "7"
+              - column:
+                  name: parent_type
+                  value: SRCE
+
+        - insert:
+            tableName: directory
+            columns:
+              - column:
+                  name: id
+                  value: "8"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: fred.txt
+              - column:
+                  name: parent
+                  value: "8"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "9"
+              - column:
+                  name: classification_id
+                  value: "10"
+              - column:
+                  name: size
+                  value: "390"
+              - column:
+                  name: date
+                  value: "2023-09-20 23:21:12"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
