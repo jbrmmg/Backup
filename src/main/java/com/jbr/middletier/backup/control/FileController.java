@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -33,6 +35,7 @@ public class FileController {
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
+    private final LabelManager labelManager;
 
     @Contract(pure = true)
     @Autowired
@@ -42,7 +45,8 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager,
-                          FileSystem fileSystem) {
+                          FileSystem fileSystem,
+                          LabelManager labelManager) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -50,6 +54,7 @@ public class FileController {
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
         this.fileSystem = fileSystem;
+        this.labelManager = labelManager;
     }
 
     @GetMapping(path="/files")
@@ -192,7 +197,7 @@ public class FileController {
     }
 
     @GetMapping(path="/file")
-    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id ) throws InvalidFileIdException {
+    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(!file.isPresent()) {
@@ -219,7 +224,54 @@ public class FileController {
             }
         }
 
+        // Get any labels.
+        for(String nextLabel : labelManager.getLabelsForFile(file.get().getIdAndType())) {
+            result.addLabel(nextLabel);
+        }
+
         return result;
+    }
+
+    @PutMapping(path="/expire")
+    public @ResponseBody FileInfoExtra expireFile(@RequestBody FileExpiryDTO expiry) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(expiry.getId(),FileSystemObjectType.FSO_FILE));
+
+        if(file.isEmpty()) {
+            throw new InvalidFileIdException(expiry.getId());
+        }
+        fileSystemObjectManager.setFileExpiry(file.get().getIdAndType(), expiry.getExpiry());
+
+        return getFile(expiry.getId());
+    }
+
+    @PostMapping(path="label")
+    public @ResponseBody FileInfoExtra addLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
+
+        if(file.isEmpty()) {
+            throw new InvalidFileIdException(fileLabelDTO.getFileId());
+        }
+
+        for(Integer label : fileLabelDTO.getLabels()) {
+            labelManager.addLabelToFile(file.get().getIdAndType(), label);
+        }
+
+        return getFile(fileLabelDTO.getFileId());
+    }
+
+    @DeleteMapping(path="label")
+    public @ResponseBody FileInfoExtra removeLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
+
+        if(file.isEmpty()) {
+            throw new InvalidFileIdException(fileLabelDTO.getFileId());
+        }
+
+        for(Integer label : fileLabelDTO.getLabels()) {
+            labelManager.removeLabelFromFile(file.get().getIdAndType(), label);
+        }
+
+        return getFile(fileLabelDTO.getFileId());
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)

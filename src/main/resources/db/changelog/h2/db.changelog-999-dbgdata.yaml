@@ -294,3 +294,43 @@ databaseChangeLog:
               - column:
                   name: MD5
                   value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+
+        - insert:
+            tableName: label
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: name
+                  value: "Passport"
+
+        - insert:
+            tableName: label
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+              - column:
+                  name: name
+                  value: "Certificate"
+
+        - insert:
+            tableName: label
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+              - column:
+                  name: name
+                  value: "House"
+
+        - insert:
+            tableName: file_label
+            columns:
+              - column:
+                  name: file_id
+                  value: "5"
+              - column:
+                  name: label_id
+                  value: "1"
