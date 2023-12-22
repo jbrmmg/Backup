@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.FileLabelRepository;
 import com.jbr.middletier.backup.dataaccess.LabelRepository;
+import com.jbr.middletier.backup.dto.LabelDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +37,19 @@ public class LabelManager {
         }
     }
 
-    public Collection<String> getLabels() {
+    public List<LabelDTO> getLabels() {
         LOG.trace("Get labels");
         loadLabels();
 
-        return this.labels.values();
+        List<LabelDTO> result = new ArrayList<>();
+        for(Map.Entry<Integer,String> entry : this.labels.entrySet()) {
+            LabelDTO  next = new LabelDTO();
+            next.setId(entry.getKey());
+            next.setName(entry.getValue());
+            result.add(next);
+        }
+
+        return result;
     }
 
     public List<String> getLabelsForFile(FileSystemObjectId id) {
@@ -101,7 +110,7 @@ public class LabelManager {
             for(FileLabel next : fileLabelRepository.findByIdFileId(id.getId())) {
                 if(next.getId().getLabelId().equals(labelId)) {
                     // Remove this label.
-                    fileLabelRepository.save(next);
+                    fileLabelRepository.delete(next);
                     return;
                 }
             }

@@ -274,6 +274,11 @@ public class FileController {
         return getFile(fileLabelDTO.getFileId());
     }
 
+    @GetMapping(path="labels")
+    public @ResponseBody List<LabelDTO> labels() {
+        return labelManager.getLabels();
+    }
+
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
     public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
