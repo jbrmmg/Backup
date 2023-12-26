@@ -1,7 +1,7 @@
 databaseChangeLog:
 
   - include:
-      file: /db/changelog/db.changelog-001-backup-unit.yaml
+      file: /db/changelog/h2/db.changelog-001-backup.yaml
 
   - include:
       file: /db/changelog/db.changelog-002-hardware.yaml
@@ -34,16 +34,16 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-011-import.yaml
 
   - include:
-      file: /db/changelog/db.changelog-012-refactor-unit.yaml
+      file: /db/changelog/h2/db.changelog-012-refactor.yaml
 
   - include:
       file: /db/changelog/db.changelog-013-imagetypes.yaml
 
   - include:
-      file: /db/changelog/db.changelog-014-filesystemobject-unit.yaml
+      file: /db/changelog/h2/db.changelog-014-filesystemobject.yaml
 
   - include:
-      file: /db/changelog/db.changelog-015-dropfk-unit.yaml
+      file: /db/changelog/h2/db.changelog-015-dropfk.yaml
 
   - include:
       file: /db/changelog/db.changelog-016-droppk.yaml
@@ -67,7 +67,7 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-022-refactoraction.yaml
 
   - include:
-      file: /db/changelog/db.changelog-023-createpk-unit.yaml
+      file: /db/changelog/h2/db.changelog-023-createpk.yaml
 
   - include:
       file: /db/changelog/db.changelog-024-createfk.yaml
@@ -82,5 +82,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-027-log.yaml
 
   - include:
-      file: /db/changelog/db.changelog-999-dbgdata.yaml
+      file: /db/changelog/db.changelog-028-expiry.yaml
+
+  - include:
+      file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

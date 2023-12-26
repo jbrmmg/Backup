@@ -7,9 +7,7 @@ databaseChangeLog:
         - dropForeignKeyConstraint:
             constraintName: fk_source_directory
             baseTableName: directory
-            baseColumnNames: source_id
 
         - dropForeignKeyConstraint:
             constraintName: fk_directory_file
             baseTableName: file
-            baseColumnNames: directory_id

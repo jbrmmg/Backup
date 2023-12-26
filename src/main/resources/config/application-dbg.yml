@@ -6,6 +6,8 @@ logging:
 
 spring:
   liquibase:
+    default-schema:
+    change-log: classpath:/db/changelog/h2/db.changelog-master.yaml
     contexts: dbg
 
   jpa:
@@ -13,6 +15,9 @@ spring:
       hibernate:
         format_sql: true
     show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl
 
 backup:
   directory:

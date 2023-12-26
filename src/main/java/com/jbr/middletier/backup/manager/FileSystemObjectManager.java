@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -332,5 +333,20 @@ public class FileSystemObjectManager {
             File printFile = getFile(next);
             LOG.info("cp " + printFile.getAbsolutePath() + " /media/jason/6263-3935/" + printFile.getName());
         }
+    }
+
+    public void setFileExpiry(FileSystemObjectId id, LocalDateTime expiry) {
+        // This action is only valid on files.
+        if(id.getType() != FileSystemObjectType.FSO_FILE) {
+            return;
+        }
+
+        Optional<FileInfo> file = fileRepository.findById(id.getId());
+        if(file.isEmpty()) {
+            return;
+        }
+
+        file.get().setExpiry(expiry);
+        fileRepository.save(file.get());
     }
 }
