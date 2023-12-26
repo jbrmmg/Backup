@@ -12,7 +12,7 @@ logging:
 spring:
   liquibase:
     default-schema:
-    change-log: classpath:/db/changelog/db.changelog-unitmaster.yaml
+    change-log: classpath:/db/changelog/h2/db.changelog-master.yaml
     contexts: default
   mvc:
     pathmatch:

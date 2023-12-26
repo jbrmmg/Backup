@@ -17,6 +17,7 @@ public class FileDTO {
     private String icon;
     private String path;
     private String locationName;
+    private LocalDateTime expiry;
 
     public FileDTO(FileInfo fileInfo, String fullFilename, String path, String location) {
         this.id = fileInfo.getIdAndType().getId();
@@ -30,6 +31,7 @@ public class FileDTO {
         this.fullFilename = fullFilename;
         this.path = path;
         this.locationName = location;
+        this.expiry = fileInfo.getExpiry();
     }
 
     public int getId() {
@@ -118,5 +120,13 @@ public class FileDTO {
 
     public void setLocationName(String locationName) {
         this.locationName = locationName;
+    }
+
+    public LocalDateTime getExpiry() {
+        return expiry;
+    }
+
+    public void setExpiry(LocalDateTime expiry) {
+        this.expiry = expiry;
     }
 }

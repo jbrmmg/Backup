@@ -25,6 +25,9 @@ public class FileInfo extends FileSystemObject {
     @Column(name="flags")
     private String flags;
 
+    @Column(name="expiry")
+    private LocalDateTime expiry;
+
     public FileInfo() {
         super(FileSystemObjectType.FSO_FILE);
     }
@@ -57,6 +60,14 @@ public class FileInfo extends FileSystemObject {
 
     public void setFlags(String flags) {
         this.flags = flags;
+    }
+
+    public LocalDateTime getExpiry() {
+        return expiry;
+    }
+
+    public void setExpiry(LocalDateTime expiry) {
+        this.expiry = expiry;
     }
 
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {

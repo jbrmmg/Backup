@@ -11,6 +11,7 @@ public class FileInfoDTO {
     private String md5;
     private String parentType;
     private Integer parentId;
+    private LocalDateTime expiry;
 
     public String getFilename() {
         return filename;
@@ -56,5 +57,13 @@ public class FileInfoDTO {
 
     public void setParentId(Integer parentId) {
         this.parentId = parentId;
+    }
+
+    public LocalDateTime getExpiry() {
+        return expiry;
+    }
+
+    public void setExpiry(LocalDateTime expiry) {
+        this.expiry = expiry;
     }
 }

@@ -11,6 +11,9 @@ spring:
     username: ${db.pdn.backup.user}
     password: ${db.pdn.backup.password}
 
+  liquibase:
+    enabled: false
+
   jpa:
     properties:
       hibernate:

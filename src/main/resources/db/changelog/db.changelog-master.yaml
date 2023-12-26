@@ -82,4 +82,4 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-027-log.yaml
 
   - include:
-      file: /db/changelog/db.changelog-999-dbgdata.yaml
+      file: /db/changelog/db.changelog-028-expiry.yaml
