@@ -2,6 +2,8 @@ package com.jbr.middletier.backup.dto;
 
 public class SelectedPrintDTO {
     private int fileId;
+    private String fileName;
+    private int sizeId;
     private String sizeName;
     private Boolean border;
     private Boolean blackWhite;
@@ -12,6 +14,22 @@ public class SelectedPrintDTO {
 
     public void setFileId(int fileId) {
         this.fileId = fileId;
+    }
+
+    public int getSizeId() {
+        return sizeId;
+    }
+
+    public void setSizeId(int sizeId) {
+        this.sizeId = sizeId;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public String getSizeName() {

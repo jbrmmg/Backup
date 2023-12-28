@@ -313,6 +313,8 @@ public class FileSystemObjectManager {
             SelectedPrintDTO nextPrint = new SelectedPrintDTO();
             nextPrint.setFileId(next.getIdAndType().getId());
             nextPrint.setSizeName("6x4 in");
+            nextPrint.setSizeId(12);
+            nextPrint.setFileName(next.getName());
             nextPrint.setBorder(false);
             nextPrint.setBlackWhite(false);
 
