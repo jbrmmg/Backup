@@ -101,7 +101,7 @@ public class FileController {
     }
 
     @GetMapping(path="/prints")
-    public @ResponseBody List<Integer> prints() {
+    public @ResponseBody List<SelectedPrintDTO> prints() {
         return fileSystemObjectManager.getPrints();
     }
 

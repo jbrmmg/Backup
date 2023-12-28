@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.control.FileController;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
+import com.jbr.middletier.backup.dto.SelectedPrintDTO;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -305,11 +306,17 @@ public class FileSystemObjectManager {
         return null;
     }
 
-    public List<Integer> getPrints() {
-        List<Integer> result = new ArrayList<>();
+    public List<SelectedPrintDTO> getPrints() {
+        List<SelectedPrintDTO> result = new ArrayList<>();
 
         for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
-            result.add(next.getIdAndType().getId());
+            SelectedPrintDTO nextPrint = new SelectedPrintDTO();
+            nextPrint.setFileId(next.getIdAndType().getId());
+            nextPrint.setSizeName("6x4 in");
+            nextPrint.setBorder(false);
+            nextPrint.setBlackWhite(false);
+
+            result.add(nextPrint);
         }
 
         return result;
