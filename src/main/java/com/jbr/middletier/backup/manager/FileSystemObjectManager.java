@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.control.FileController;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
+import com.jbr.middletier.backup.dto.PrintSizeDTO;
 import com.jbr.middletier.backup.dto.SelectedPrintDTO;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.modelmapper.ModelMapper;
@@ -30,13 +31,17 @@ public class FileSystemObjectManager {
     private final AssociatedFileDataManager associatedFileDataManager;
     private final ImportFileRepository importFileRepository;
     private final ModelMapper modelMapper;
+    private final PrintRepository printRepository;
+    private final PrintManager printManager;
 
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
                                    DirectoryRepository directoryRepository,
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
-                                   ImportFileRepository importFileRepository, ModelMapper modelMapper) {
+                                   ImportFileRepository importFileRepository, ModelMapper modelMapper,
+                                   PrintRepository printRepository,
+                                   PrintManager printManager) {
         LOG.trace("FSO CTOR");
 
         this.fileRepository = fileRepository;
@@ -45,6 +50,8 @@ public class FileSystemObjectManager {
         this.associatedFileDataManager = associatedFileDataManager;
         this.importFileRepository = importFileRepository;
         this.modelMapper = modelMapper;
+        this.printRepository = printRepository;
+        this.printManager = printManager;
     }
 
     public FileInfoDTO convertToDTO(FileInfo fileInfo) {
@@ -286,6 +293,17 @@ public class FileSystemObjectManager {
             file.get().setFlags("P");
             fileRepository.save(file.get());
 
+            // Create a print (default size = 12)
+            Print newPrint = new Print();
+            PrintId newPrintId = new PrintId();
+            newPrint.setId(newPrintId);
+            newPrint.getId().setFileId(id);
+            newPrint.getId().setSizeId(12);
+            newPrint.setBorder(false);
+            newPrint.setBlackWhite(false);
+
+            printRepository.save(newPrint);
+
             return id;
         }
 
@@ -300,6 +318,9 @@ public class FileSystemObjectManager {
             file.get().setFlags(null);
             fileRepository.save(file.get());
 
+            // Remove the print rows.
+//            printRepository.deleteByIdFileId(id);
+
             return id;
         }
 
@@ -309,16 +330,50 @@ public class FileSystemObjectManager {
     public List<SelectedPrintDTO> getPrints() {
         List<SelectedPrintDTO> result = new ArrayList<>();
 
-        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
+        // Get the print rows.
+        for(Print next : printRepository.findAll()) {
             SelectedPrintDTO nextPrint = new SelectedPrintDTO();
-            nextPrint.setFileId(next.getIdAndType().getId());
-            nextPrint.setSizeName("6x4 in");
-            nextPrint.setSizeId(12);
-            nextPrint.setFileName(next.getName());
-            nextPrint.setBorder(false);
-            nextPrint.setBlackWhite(false);
+            nextPrint.setFileId(next.getId().getFileId());
+            nextPrint.setSizeId(next.getId().getSizeId());
+            nextPrint.setBorder(next.getBorder());
+            nextPrint.setBlackWhite(next.getBlackWhite());
+
+            for(PrintSizeDTO nextSize : printManager.getPrintSizes()) {
+                if(nextPrint.getSizeId() == nextSize.getId()) {
+                    nextPrint.setSizeName(nextSize.getName());
+                }
+            }
+
+            Optional<FileInfo> file = fileRepository.findById(next.getId().getFileId());
+            if(file.isPresent()) {
+                nextPrint.setFileName(file.get().getName());
+            }
 
             result.add(nextPrint);
+        }
+
+        // Check to see if any files have a P flag (legacy).
+        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
+            // Is this already in the list?
+            boolean already = false;
+            for(SelectedPrintDTO existing : result) {
+                if(existing.getFileId() == next.getIdAndType().getId()) {
+                    already = true;
+                    break;
+                }
+            }
+
+            if(!already) {
+                SelectedPrintDTO nextPrint = new SelectedPrintDTO();
+                nextPrint.setFileId(next.getIdAndType().getId());
+                nextPrint.setSizeName("6x4 in");
+                nextPrint.setSizeId(12);
+                nextPrint.setFileName(next.getName());
+                nextPrint.setBorder(false);
+                nextPrint.setBlackWhite(false);
+
+                result.add(nextPrint);
+            }
         }
 
         return result;
@@ -327,6 +382,32 @@ public class FileSystemObjectManager {
     public Integer updatePrint(SelectedPrintDTO print) {
         // Update the print
         LOG.info("Update print details - {} {} {} {} {}", print.getFileId(), print.getSizeId(), print.getSizeName(), print.getBlackWhite(), print.getBorder());
+
+        // Does this already exist?
+        boolean update = false;
+        for(Print next : printRepository.findAll()) {
+            if(next.getId().getFileId() == print.getFileId()) {
+                update = true;
+                next.getId().setSizeId(print.getSizeId());
+                next.setBorder(print.getBorder());
+                next.setBlackWhite(print.getBlackWhite());
+                printRepository.save(next);
+                break;
+            }
+        }
+
+        // Save the print.
+        if(!update) {
+            Print newPrint = new Print();
+            PrintId newPrintId = new PrintId();
+            newPrintId.setFileId(print.getFileId());
+            newPrintId.setSizeId(print.getSizeId());
+            newPrint.setId(newPrintId);
+            newPrint.setBlackWhite(print.getBlackWhite());
+            newPrint.setBorder(print.getBorder());
+
+            printRepository.save(newPrint);
+        }
 
         return print.getFileId();
     }
