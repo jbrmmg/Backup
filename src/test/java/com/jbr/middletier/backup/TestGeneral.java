@@ -1296,9 +1296,11 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("390-10", id.toString());
         String idString = "390-10";
         Assert.assertEquals(idString.hashCode(),id.hashCode());
+        //noinspection RedundantCast
         Assert.assertEquals(id, (Object)id);
         Assert.assertNotEquals(id,null);
-        Assert.assertNotEquals(id,idString);
+        //noinspection SimplifiableAssertion,EqualsBetweenInconvertibleTypes
+        Assert.assertFalse(id.equals(idString));
 
         FileLabelId id2 = new FileLabelId();
         id2.setLabelId(10);
@@ -1311,6 +1313,18 @@ public class TestGeneral extends WebTester {
         FileLabel label = new FileLabel();
         label.setId(id);
         Assert.assertEquals(id2,label.getId());
+
+        FileLabelDTO fileLabelDTO = new FileLabelDTO();
+        fileLabelDTO.setFileId(10);
+        Assert.assertEquals(10,(long)fileLabelDTO.getFileId());
+        Assert.assertEquals(0,fileLabelDTO.getLabels().size());
+
+        LabelDTO labelDTO = new LabelDTO();
+        labelDTO.setId(10);
+        labelDTO.setName("here");
+        Assert.assertEquals(10,(long)labelDTO.getId());
+        Assert.assertEquals("here", labelDTO.getName());
+
     }
 
     @Test
