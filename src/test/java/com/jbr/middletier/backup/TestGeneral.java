@@ -1072,6 +1072,10 @@ public class TestGeneral extends WebTester {
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
         fileInfo.setParentId(new FileSystemObjectId(2, FileSystemObjectType.FSO_DIRECTORY));
+        fileInfo.setFlags("P");
+        LocalDateTime testDateTime = LocalDateTime.of(2023,12,3,3,15,2,0);
+        fileInfo.setExpiry(testDateTime);
+        Assert.assertEquals("P",fileInfo.getFlags());
 
         FileInfoDTO fileInfoDTO = fileSystemObjectManager.convertToDTO(fileInfo);
         Assert.assertEquals("FILE", fileInfoDTO.getType());
@@ -1081,6 +1085,7 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("testMD5", fileInfoDTO.getMd5());
         Assert.assertEquals(2, fileInfoDTO.getParentId().intValue());
         Assert.assertEquals("DIRY", fileInfoDTO.getParentType());
+        Assert.assertEquals(testDateTime,fileInfoDTO.getExpiry());
     }
 
     @Test
@@ -1374,5 +1379,29 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(3.0,size.getWidth(),0.01);
         Assert.assertTrue(size.getPanoramic());
         Assert.assertTrue(size.getRetro());
+
+        PrintSizeDTO sizeDTO = new PrintSizeDTO();
+        sizeDTO.setId(10);
+        sizeDTO.setName("4x3");
+        sizeDTO.setHeight(4.0);
+        sizeDTO.setWidth(3.0);
+        sizeDTO.setPanoramic(true);
+        sizeDTO.setRetro(true);
+        Assert.assertEquals(10,(long)sizeDTO.getId());
+        Assert.assertEquals("4x3",sizeDTO.getName());
+        Assert.assertEquals(4.0,sizeDTO.getHeight(),0.01);
+        Assert.assertEquals(3.0,sizeDTO.getWidth(),0.01);
+        Assert.assertTrue(sizeDTO.getPanoramic());
+        Assert.assertTrue(sizeDTO.getRetro());
+    }
+
+    @Test
+    public void testPrintId() {
+        PrintId id = new PrintId();
+        id.setSizeId(21);
+        id.setFileId(1);
+        Assert.assertEquals(21,(long)id.getSizeId());
+        Assert.assertEquals(1,(long)id.getFileId());
+        Assert.assertEquals("1-21",id.toString());
     }
 }

@@ -98,8 +98,7 @@ public class ActionManager {
         actionConfirm.setAction(type);
         actionConfirm.setConfirmed(false);
         switch(type) {
-            case AC_DELETE_DUPLICATE:
-            case AC_DELETE:
+            case AC_DELETE_DUPLICATE, AC_DELETE:
                 actionConfirm.setParameterRequired(false);
                 break;
 

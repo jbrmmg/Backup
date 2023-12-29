@@ -191,8 +191,7 @@ public class SynchronizeManager {
             List<FileTreeNode> orderedNodeList = dbTree.getOrderedNodeList();
             LOG.info("Actions {}", orderedNodeList.size());
             for (FileTreeNode nextNode : orderedNodeList) {
-                if (nextNode instanceof DbCompareNode) {
-                    DbCompareNode compareNode = (DbCompareNode) nextNode;
+                if (nextNode instanceof DbCompareNode compareNode) {
                     switch (Objects.requireNonNull(section,"Section not initialised")) {
                         case FILE_FOR_REMOVE:
                             deleteFile(compareNode, result);

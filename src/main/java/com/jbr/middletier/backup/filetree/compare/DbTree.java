@@ -22,16 +22,16 @@ public class DbTree extends CompareRoot {
         // If they are marked equal but are of different types then potentially need to delete and re-add.
 
         if(status.equals(CompareStatusType.REMOVED)) {
-            if(source instanceof DbNode) {
-                return new DbCompareNode(parent, true, (DbNode)source);
+            if(source instanceof DbNode dbNode) {
+                return new DbCompareNode(parent, true, dbNode);
             }
 
             throw new IllegalStateException("Status is removed, but no source provided");
         }
 
         if(status.equals(CompareStatusType.ADDED)) {
-            if(destination instanceof DbNode) {
-                return new DbCompareNode(parent, false, (DbNode)destination);
+            if(destination instanceof DbNode dbNode) {
+                return new DbCompareNode(parent, false, dbNode);
             }
 
             throw new IllegalStateException("Status is added, but no destination provided");

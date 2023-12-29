@@ -546,8 +546,7 @@ public class ImportManager extends FileProcessor {
 
     private void searchSimilarFileData(ImportFileDTO file, FileTreeNode node) {
         // Is this node a file?
-        if(node instanceof DbFile) {
-            DbFile dbFile = (DbFile) node;
+        if(node instanceof DbFile dbFile) {
 
             Optional<String> name = dbFile.getName();
             if(name.isPresent() && similarFileName(file.getFilename(),name.get())) {
