@@ -334,3 +334,264 @@ databaseChangeLog:
               - column:
                   name: label_id
                   value: "1"
+
+# This depends on files being in the /home/jason/Working/DbgBackupSources/Source/Testing/ directory.
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: DIRY
+              - column:
+                  name: name
+                  value: Testing
+              - column:
+                  name: parent
+                  value: "1"
+              - column:
+                  name: parent_type
+                  value: SRCE
+
+        - insert:
+            tableName: directory
+            columns:
+              - column:
+                  name: id
+                  value: "10"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: IMG_0201.JPEG
+              - column:
+                  name: parent
+                  value: "10"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "11"
+              - column:
+                  name: classification_id
+                  value: "19"
+              - column:
+                  name: size
+                  value: "200"
+              - column:
+                  name: date
+                  value: "2023-12-01 00:00:00"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+              - column:
+                  name: flags
+                  value: "P"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: IMG_0208.JPEG
+              - column:
+                  name: parent
+                  value: "10"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "12"
+              - column:
+                  name: classification_id
+                  value: "19"
+              - column:
+                  name: size
+                  value: "200"
+              - column:
+                  name: date
+                  value: "2023-12-01 00:00:00"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+              - column:
+                  name: flags
+                  value: "P"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: IMG_0234.JPEG
+              - column:
+                  name: parent
+                  value: "10"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "13"
+              - column:
+                  name: classification_id
+                  value: "19"
+              - column:
+                  name: size
+                  value: "200"
+              - column:
+                  name: date
+                  value: "2023-12-01 00:00:00"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+              - column:
+                  name: flags
+                  value: "P"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: IMG_0260.JPEG
+              - column:
+                  name: parent
+                  value: "10"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "14"
+              - column:
+                  name: classification_id
+                  value: "19"
+              - column:
+                  name: size
+                  value: "200"
+              - column:
+                  name: date
+                  value: "2023-12-01 00:00:00"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+              - column:
+                  name: flags
+                  value: "P"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: IMG_0264.JPEG
+              - column:
+                  name: parent
+                  value: "10"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "15"
+              - column:
+                  name: classification_id
+                  value: "19"
+              - column:
+                  name: size
+                  value: "200"
+              - column:
+                  name: date
+                  value: "2023-12-01 00:00:00"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+              - column:
+                  name: flags
+                  value: "P"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: type
+                  value: FILE
+              - column:
+                  name: name
+                  value: IMG_0266.JPEG
+              - column:
+                  name: parent
+                  value: "10"
+              - column:
+                  name: parent_type
+                  value: DIRY
+
+        - insert:
+            tableName: file
+            columns:
+              - column:
+                  name: id
+                  value: "16"
+              - column:
+                  name: classification_id
+                  value: "19"
+              - column:
+                  name: size
+                  value: "200"
+              - column:
+                  name: date
+                  value: "2023-12-01 00:00:00"
+              - column:
+                  name: MD5
+                  value: "BAADBEEFBAADBEEFBAADBEEFBAADBEEF"
+              - column:
+                  name: flags
+                  value: "P"
+
+        - update:
+            columns:
+              - column:
+                  name: is_image
+                  valueBoolean: "true"
+            tableName: classification
+            where: id = 19
