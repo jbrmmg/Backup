@@ -78,13 +78,11 @@ public class DbTree extends CompareRoot {
 
     @Override
     protected void findInsertDirectories(FileTreeNode node, List<FileTreeNode> result) {
-        if(node instanceof DbCompareNode compareNode) {
-
-            // If this is an insert and not a directory, or recreate as file.
-            if((compareNode.getActionType().equals(DbCompareNode.ActionType.COPY) && compareNode.isDirectory()) ||
-                    compareNode.getActionType().equals(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
-                result.add(compareNode);
-            }
+        // If this is an insert and not a directory, or recreate as a file.
+        if((node instanceof DbCompareNode compareNode) &&
+            ((compareNode.getActionType().equals(DbCompareNode.ActionType.COPY) && compareNode.isDirectory()) ||
+                    compareNode.getActionType().equals(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY))) {
+            result.add(compareNode);
         }
 
         for(FileTreeNode next : node.getChildren()) {

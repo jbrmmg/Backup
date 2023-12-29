@@ -88,13 +88,11 @@ public class RwDbTree extends CompareRoot {
 
     @Override
     protected void findInsertDirectories (FileTreeNode node, List<FileTreeNode> result) {
-        if(node instanceof RwDbCompareNode compareNode) {
-
-            // If this is an insert and not a directory, or recreate as file.
-            if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && compareNode.isDirectory()) ||
-                    compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
-                result.add(compareNode);
-            }
+        // If this is an insert and not a directory, or recreate as file.
+        if((node instanceof RwDbCompareNode compareNode) &&
+            ((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && compareNode.isDirectory()) ||
+                    compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY))) {
+            result.add(compareNode);
         }
 
         for(FileTreeNode next : node.getChildren()) {

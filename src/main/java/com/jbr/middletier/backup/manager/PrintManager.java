@@ -115,9 +115,7 @@ public class PrintManager {
         return null;
     }
 
-    public List<SelectedPrintDTO> getPrints() {
-        List<SelectedPrintDTO> result = new ArrayList<>();
-
+    private void getPrintRows(List<SelectedPrintDTO> rows) {
         // Get the print rows.
         for(Print next : printRepository.findAll()) {
             SelectedPrintDTO nextPrint = new SelectedPrintDTO();
@@ -137,9 +135,11 @@ public class PrintManager {
             Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getId().getFileId(),FileSystemObjectType.FSO_FILE));
             fso.ifPresent(fileSystemObject -> nextPrint.setFileName(fileSystemObject.getName()));
 
-            result.add(nextPrint);
+            rows.add(nextPrint);
         }
+    }
 
+    private void getFlaggedFiles(List<SelectedPrintDTO> rows) {
         // Get the default size (id = 12)
         PrintSizeDTO defaultSize = getPrintSize(DEFAULT_PRINT_SIZE_ID);
 
@@ -147,7 +147,7 @@ public class PrintManager {
         for(FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
             // Is this already in the list?
             boolean already = false;
-            for(SelectedPrintDTO existing : result) {
+            for(SelectedPrintDTO existing : rows) {
                 if(existing.getFileId() == next.getIdAndType().getId()) {
                     already = true;
                     break;
@@ -167,9 +167,17 @@ public class PrintManager {
                 nextPrint.setBorder(false);
                 nextPrint.setBlackWhite(false);
 
-                result.add(nextPrint);
+                rows.add(nextPrint);
             }
         }
+    }
+
+    public List<SelectedPrintDTO> getPrints() {
+        List<SelectedPrintDTO> result = new ArrayList<>();
+
+        // Get the details of prints.
+        getPrintRows(result);
+        getFlaggedFiles(result);
 
         return result;
     }
@@ -225,7 +233,7 @@ public class PrintManager {
         // Find the P files.
         for(FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
             File printFile = fileSystemObjectManager.getFile(next);
-            LOG.info("cp " + printFile.getAbsolutePath() + " /media/jason/6263-3935/" + next.getName());
+            LOG.info("cp {} /media/jason/6263-3935/{}", printFile.getAbsoluteFile(), next.getName());
         }
     }
 }

@@ -24,11 +24,8 @@ public class DebugPhysicalNamingStrategyImpl implements PhysicalNamingStrategy, 
 
     @Override
     public Identifier toPhysicalSchemaName(final Identifier name, final JdbcEnvironment context) {
-        if(name == null) {
-            return null;
-        }
-
-        return new Identifier(name.getText(), false);
+        // Same as toPhysicalCatalogName
+        return toPhysicalCatalogName(name,context);
     }
 
     @Override
