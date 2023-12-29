@@ -1294,6 +1294,11 @@ public class TestGeneral extends WebTester {
         id.setLabelId(10);
         id.setFileId(390);
         Assert.assertEquals("390-10", id.toString());
+        String idString = "390-10";
+        Assert.assertEquals(idString.hashCode(),id.hashCode());
+        Assert.assertEquals(id, (Object)id);
+        Assert.assertNotEquals(id,null);
+        Assert.assertNotEquals(id,idString);
 
         FileLabelId id2 = new FileLabelId();
         id2.setLabelId(10);
@@ -1306,5 +1311,54 @@ public class TestGeneral extends WebTester {
         FileLabel label = new FileLabel();
         label.setId(id);
         Assert.assertEquals(id2,label.getId());
+    }
+
+    @Test
+    public void testLabel() {
+        LabelDTO label = new LabelDTO();
+        label.setName("blah");
+        label.setId(102);
+        Assert.assertEquals("blah",label.getName());
+        Assert.assertEquals(102,(long)label.getId());
+
+        Label label2 = new Label();
+        label2.setId(212);
+        label2.setName("fred");
+        Assert.assertEquals(212,(long)label2.getId());
+        Assert.assertEquals("fred",label2.getName());
+    }
+
+    @Test
+    public void testSelectPrint() {
+        SelectedPrintDTO print = new SelectedPrintDTO();
+        print.setFileName("IMG.JPG");
+        print.setSizeName("2x2");
+        print.setBorder(false);
+        print.setBlackWhite(false);
+        print.setSizeId(12);
+        print.setFileId(102);
+        Assert.assertEquals("IMG.JPG",print.getFileName());
+        Assert.assertEquals("2x2",print.getSizeName());
+        Assert.assertFalse(print.getBorder());
+        Assert.assertFalse(print.getBlackWhite());
+        Assert.assertEquals(12,print.getSizeId());
+        Assert.assertEquals(102,print.getFileId());
+    }
+
+    @Test
+    public void testPrintSize() {
+        PrintSize size = new PrintSize();
+        size.setId(10);
+        size.setName("4x3");
+        size.setHeight(4.0);
+        size.setWidth(3.0);
+        size.setPanoramic(true);
+        size.setRetro(true);
+        Assert.assertEquals(10,(long)size.getId());
+        Assert.assertEquals("4x3",size.getName());
+        Assert.assertEquals(4.0,size.getHeight(),0.01);
+        Assert.assertEquals(3.0,size.getWidth(),0.01);
+        Assert.assertTrue(size.getPanoramic());
+        Assert.assertTrue(size.getRetro());
     }
 }
