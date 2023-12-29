@@ -324,6 +324,13 @@ public class FileSystemObjectManager {
         return result;
     }
 
+    public Integer updatePrint(SelectedPrintDTO print) {
+        // Update the print
+        LOG.info("Update print details - {} {} {} {} {}", print.getFileId(), print.getSizeId(), print.getSizeName(), print.getBlackWhite(), print.getBorder());
+
+        return print.getFileId();
+    }
+
     public List<Integer> deletePrints() {
         List<Integer> result = new ArrayList<>();
 

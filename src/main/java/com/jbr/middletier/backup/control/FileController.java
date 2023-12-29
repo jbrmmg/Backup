@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.*;
+import org.hibernate.sql.Select;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +94,11 @@ public class FileController {
     @PostMapping(path="/print")
     public @ResponseBody Integer print(@RequestBody Integer id) {
         return fileSystemObjectManager.select(id);
+    }
+
+    @PutMapping(path="/print")
+    public @ResponseBody Integer updatePrint(@RequestBody SelectedPrintDTO selected) {
+        return fileSystemObjectManager.updatePrint(selected);
     }
 
     @PostMapping(path="/unprint")
