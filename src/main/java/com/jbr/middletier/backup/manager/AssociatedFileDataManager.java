@@ -122,7 +122,7 @@ public class AssociatedFileDataManager {
 
     public void updateClassification(Classification classification) throws InvalidClassificationIdException {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidClassificationIdException(classification.getId());
         }
 
@@ -132,7 +132,7 @@ public class AssociatedFileDataManager {
 
     public void deleteClassification(Classification classification) throws InvalidClassificationIdException {
         Optional<Classification> existing = classificationRepository.findById(classification.getId());
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidClassificationIdException(classification.getId());
         }
 
@@ -180,7 +180,7 @@ public class AssociatedFileDataManager {
 
     public void updateLocation(Location location) throws InvalidLocationIdException {
         Optional<Location> existing = locationRepository.findById(location.getId());
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidLocationIdException(location.getId());
         }
 
@@ -189,7 +189,7 @@ public class AssociatedFileDataManager {
 
     public void deleteLocation(Location location) throws InvalidLocationIdException {
         Optional<Location> existing = locationRepository.findById(location.getId());
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidLocationIdException(location.getId());
         }
 
@@ -211,7 +211,7 @@ public class AssociatedFileDataManager {
     @SuppressWarnings("UnusedReturnValue")
     public Source findSourceById(Integer id) throws InvalidSourceIdException {
         Optional<Source> existing = sourceRepository.findById(id);
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidSourceIdException(id);
         }
 
@@ -364,7 +364,7 @@ public class AssociatedFileDataManager {
 
     public void updateSynchronize(Synchronize synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 
@@ -373,7 +373,7 @@ public class AssociatedFileDataManager {
 
     public void deleteSynchronize(Synchronize synchronize) throws InvalidSynchronizeIdException {
         Optional<Synchronize> existing = synchronizeRepository.findById(synchronize.getId());
-        if(!existing.isPresent()) {
+        if(existing.isEmpty()) {
             throw new InvalidSynchronizeIdException(synchronize.getId());
         }
 

@@ -74,7 +74,7 @@ public class ActionManager {
         // Is this a valid action?
         Optional<ActionConfirm> existingAction = actionConfirmRepository.findById(request.getId());
 
-        if(!existingAction.isPresent()) {
+        if(existingAction.isEmpty()) {
             throw new ActionNotFoundException(request.getId());
         }
 

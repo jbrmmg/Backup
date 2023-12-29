@@ -48,7 +48,7 @@ public class HierarchyResponse {
 
     public int getOrderingIndex() {
         int result = 0;
-        if(this.directory && this.displayName.trim().length() == 0)
+        if(this.directory && this.displayName.trim().isEmpty())
             return result;
 
         List<String> orderValues = Arrays.asList("January","February","March","April","May","June","July","August","September","October","November","December");

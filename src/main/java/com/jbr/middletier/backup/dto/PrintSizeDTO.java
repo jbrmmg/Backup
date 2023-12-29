@@ -1,7 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-import javax.persistence.Column;
-
 public class PrintSizeDTO {
     private Integer id;
 
@@ -19,44 +17,44 @@ public class PrintSizeDTO {
         return id;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public Double getWidth() {
+        return width;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Double getWidth() {
-        return width;
-    }
-
-    public void setWidth(Double width) {
-        this.width = width;
-    }
-
     public Double getHeight() {
         return height;
-    }
-
-    public void setHeight(Double height) {
-        this.height = height;
     }
 
     public Boolean getRetro() {
         return retro;
     }
 
-    public void setRetro(Boolean retro) {
-        this.retro = retro;
-    }
-
     public Boolean getPanoramic() {
         return panoramic;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setWidth(Double width) {
+        this.width = width;
+    }
+
+    public void setHeight(Double height) {
+        this.height = height;
+    }
+
+    public void setRetro(Boolean retro) {
+        this.retro = retro;
     }
 
     public void setPanoramic(Boolean panoramic) {

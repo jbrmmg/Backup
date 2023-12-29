@@ -160,13 +160,13 @@ public class ImportManager extends FileProcessor {
         boolean confirmed = false;
         String parameter = "";
         for(ActionConfirm nextConfirm: confirmedActions) {
-            if(nextConfirm.confirmed() && nextConfirm.getParameter() != null && nextConfirm.getParameter().length() > 0) {
+            if(nextConfirm.confirmed() && nextConfirm.getParameter() != null && !nextConfirm.getParameter().isEmpty()) {
                 parameter = nextConfirm.getParameter();
                 confirmed = true;
             }
         }
 
-        if(confirmed && parameter.length() > 0) {
+        if(confirmed && !parameter.isEmpty()) {
             processConfirmedAction(importFile,path,confirmedActions,source,parameter,result);
         }
     }
@@ -419,7 +419,7 @@ public class ImportManager extends FileProcessor {
         try {
             // Find the pre-import details.
             Optional<PreImportSource> preImportSource = findPreImportSource();
-            if(!preImportSource.isPresent()) {
+            if(preImportSource.isEmpty()) {
                 resultCount.setProblems();
                 LOG.warn("Invalid Pre Import Source - skipping import.");
                 return result;
@@ -427,7 +427,7 @@ public class ImportManager extends FileProcessor {
 
             // Find the import details
             Optional<ImportSource> importSource = findImportSource();
-            if(!importSource.isPresent()) {
+            if(importSource.isEmpty()) {
                 resultCount.setProblems();
                 LOG.warn("Invalid Import Source - skipping import.");
                 return result;
@@ -471,7 +471,7 @@ public class ImportManager extends FileProcessor {
 
         // Find the import source
         Optional<ImportSource> importSource = findImportSource();
-        if(!importSource.isPresent()) {
+        if(importSource.isEmpty()) {
             throw new ImportRequestException("No import source is defined.");
         }
 
@@ -505,7 +505,7 @@ public class ImportManager extends FileProcessor {
             importSource = Optional.of(nextSource);
         }
 
-        if(!importSource.isPresent()) {
+        if(importSource.isEmpty()) {
             throw new ImportRequestException("There is no import source defined.");
         }
         ImportDataDTO resultItem = new ImportDataDTO(importSource.get().getIdAndType().getId());
@@ -514,7 +514,7 @@ public class ImportManager extends FileProcessor {
         try {
             // Get the place they are to be imported to.
             Optional<Source> destination = associatedFileDataManager.findSourceIfExists(importSource.get().getDestination().getIdAndType().getId());
-            if (!destination.isPresent()) {
+            if (destination.isEmpty()) {
                 throw new ImportRequestException("Destination for import is not found.");
             }
 
@@ -564,7 +564,7 @@ public class ImportManager extends FileProcessor {
     private void addSimilarFileData(List<ImportFileDTO> files) {
         try {
             Optional<ImportSource> importSource = findImportSource();
-            if(!importSource.isPresent()) {
+            if(importSource.isEmpty()) {
                 return;
             }
 

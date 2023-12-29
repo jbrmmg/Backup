@@ -2,9 +2,8 @@ package com.jbr.middletier.backup.data;
 
 import javax.persistence.Column;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 
-public class PrintId implements Serializable {
+public class PrintId extends BaseComparable {
     @NotNull
     @Column(name="file_id")
     private Integer fileId;
@@ -27,22 +26,6 @@ public class PrintId implements Serializable {
 
     public void setSizeId(Integer sizeId) {
         this.sizeId = sizeId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) return true;
-
-        if (!(o instanceof FileLabelId fileLabelId)) {
-            return false;
-        }
-
-        return this.toString().equalsIgnoreCase(fileLabelId.toString());
-    }
-
-    @Override
-    public int hashCode() {
-        return toString().hashCode();
     }
 
     @Override

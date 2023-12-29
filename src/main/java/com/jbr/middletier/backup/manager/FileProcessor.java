@@ -138,7 +138,7 @@ abstract class FileProcessor {
             existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
         }
 
-        if(!existingDirectory.isPresent()) {
+        if(existingDirectory.isEmpty()) {
             existingDirectory = Optional.of(new DirectoryInfo());
         }
 
@@ -146,7 +146,7 @@ abstract class FileProcessor {
         RwNode rwNode = getRwNode(node);
 
         // Insert a new directory.
-        if(!rwNode.getName().isPresent())
+        if(rwNode.getName().isEmpty())
             throw new IllegalStateException("Cannot insert a directory with no name.");
 
         DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
@@ -166,14 +166,14 @@ abstract class FileProcessor {
             existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
         }
 
-        if(!existingFile.isPresent()) {
+        if(existingFile.isEmpty()) {
             existingFile = Optional.of(createNewFile());
         }
 
         // Get the real world object.
         RwFile rwNode = (RwFile)getRwNode(node);
 
-        if(!rwNode.getName().isPresent())
+        if(rwNode.getName().isEmpty())
             throw new IllegalStateException("Cannot insert a file with no name.");
 
         FileInfo file = (FileInfo) existingFile.get();

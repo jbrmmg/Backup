@@ -44,7 +44,7 @@ public class FileInfo extends FileSystemObject {
 
     public void setDate(LocalDateTime date) { this.date = date; }
 
-    public void setMD5(MD5 md5) { this.md5 = md5.toString().equals("") ? null : md5.toString(); }
+    public void setMD5(MD5 md5) { this.md5 = md5.toString().isEmpty() ? null : md5.toString(); }
 
     public Long getSize() { return this.size; }
 

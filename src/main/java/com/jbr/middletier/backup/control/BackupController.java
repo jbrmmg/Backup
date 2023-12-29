@@ -46,7 +46,7 @@ public class BackupController {
         // Check that the item exists.
         Optional<Backup> storedHardware = backupRepository.findById(id);
 
-        if(!storedHardware.isPresent()) {
+        if(storedHardware.isEmpty()) {
             throw new InvalidBackupIdException(id);
         }
 
@@ -66,7 +66,7 @@ public class BackupController {
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
 
-        if(!storedBackup.isPresent()) {
+        if(storedBackup.isEmpty()) {
             throw new InvalidBackupIdException(backup.getId());
         }
 
@@ -95,7 +95,7 @@ public class BackupController {
 
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(id);
-        if(!storedBackup.isPresent()) {
+        if(storedBackup.isEmpty()) {
             throw new InvalidBackupIdException(id);
         }
 
@@ -111,7 +111,7 @@ public class BackupController {
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
 
-        if(!storedBackup.isPresent()) {
+        if(storedBackup.isEmpty()) {
             throw new InvalidBackupIdException(backup.getId());
         }
 

@@ -98,7 +98,7 @@ public class ImportIT extends FileTester {
         associatedFileDataManager.deleteAllImportSource();
 
         Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
-        if (!existingLocation.isPresent())
+        if (existingLocation.isEmpty())
             fail();
 
         LocationDTO location = associatedFileDataManager.convertToDTO(existingLocation.get());

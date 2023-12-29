@@ -37,7 +37,7 @@ public class HardwareController {
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(macAddress);
 
-        if(!storedHardware.isPresent()) {
+        if(storedHardware.isEmpty()) {
             throw new InvalidHardwareIdException(macAddress);
         }
 
@@ -57,7 +57,7 @@ public class HardwareController {
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
 
-        if(!storedHardware.isPresent()) {
+        if(storedHardware.isEmpty()) {
             throw new InvalidHardwareIdException(hardware.getMacAddress());
         }
 
@@ -87,7 +87,7 @@ public class HardwareController {
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
 
-        if(!storedHardware.isPresent()) {
+        if(storedHardware.isEmpty()) {
             throw new InvalidHardwareIdException(hardware.getMacAddress());
         }
 

@@ -215,7 +215,7 @@ public class SynchronizeManager {
 
             LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
         } catch (Exception e) {
-            LOG.warn("Failure in {} -> {} {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
+            LOG.warn("Failure in {} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
             result.setProblems();
         }
 

@@ -47,12 +47,11 @@ public class DbTree extends CompareRoot {
         }
 
         // Ignore nodes that are not the right type.
-        if(!(node instanceof DbCompareNode)) {
+        if(!(node instanceof DbCompareNode compareNode)) {
             return;
         }
 
-        // If this is a delete and not a directory, or a recreate as directory.
-        DbCompareNode compareNode = (DbCompareNode)node;
+        // If this is delete and not a directory, or a re-create as directory.
         if((compareNode.getActionType().equals(DbCompareNode.ActionType.REMOVE) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(DbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
             result.add(compareNode);
@@ -66,12 +65,11 @@ public class DbTree extends CompareRoot {
         }
 
         // Ignore nodes that are not the right type.
-        if(!(node instanceof DbCompareNode)) {
+        if(!(node instanceof DbCompareNode compareNode)) {
             return;
         }
 
         // If this is a delete and a directory, or a recreate as file.
-        DbCompareNode compareNode = (DbCompareNode)node;
         if((compareNode.getActionType().equals(DbCompareNode.ActionType.REMOVE) && compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(DbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
@@ -80,8 +78,7 @@ public class DbTree extends CompareRoot {
 
     @Override
     protected void findInsertDirectories(FileTreeNode node, List<FileTreeNode> result) {
-        if(node instanceof  DbCompareNode) {
-            DbCompareNode compareNode = (DbCompareNode)node;
+        if(node instanceof DbCompareNode compareNode) {
 
             // If this is an insert and not a directory, or recreate as file.
             if((compareNode.getActionType().equals(DbCompareNode.ActionType.COPY) && compareNode.isDirectory()) ||
@@ -102,12 +99,11 @@ public class DbTree extends CompareRoot {
         }
 
         // Ignore nodes that are not the right type.
-        if(!(node instanceof DbCompareNode)) {
+        if(!(node instanceof DbCompareNode compareNode)) {
             return;
         }
 
         // If this is a file, add a delete then add to the list now.
-        DbCompareNode compareNode = (DbCompareNode)node;
         if((compareNode.getActionType().equals(DbCompareNode.ActionType.COPY) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(DbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);

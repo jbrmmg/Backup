@@ -15,10 +15,10 @@ databaseChangeLog:
                   value: DELETE
               - column:
                   name: order
-                  value: 1
+                  value: "1"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -31,10 +31,10 @@ databaseChangeLog:
                   value: DELETE
               - column:
                   name: order
-                  value: 2
+                  value: "2"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
