@@ -5,18 +5,14 @@ import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.*;
-import org.hibernate.sql.Select;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -91,33 +87,8 @@ public class FileController {
         return synchronizeManager.synchronize();
     }
 
-    @PostMapping(path="/print")
-    public @ResponseBody Integer print(@RequestBody Integer id) {
-        return fileSystemObjectManager.select(id);
-    }
-
-    @PutMapping(path="/print")
-    public @ResponseBody Integer updatePrint(@RequestBody SelectedPrintDTO selected) {
-        return fileSystemObjectManager.updatePrint(selected);
-    }
-
-    @PostMapping(path="/unprint")
-    public @ResponseBody Integer unprint(@RequestBody Integer id) {
-        return fileSystemObjectManager.unselect(id);
-    }
-
-    @GetMapping(path="/prints")
-    public @ResponseBody List<SelectedPrintDTO> prints() {
-        return fileSystemObjectManager.getPrints();
-    }
-
-    @DeleteMapping(path="/prints")
-    public @ResponseBody List<Integer> deletePrints() {
-        return fileSystemObjectManager.deletePrints();
-    }
-
     private int getParentId(Optional<FileSystemObject> optParent) {
-        if(!optParent.isPresent()) {
+        if(optParent.isEmpty()) {
             return -1;
         }
 
@@ -206,7 +177,7 @@ public class FileController {
     public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
@@ -218,11 +189,9 @@ public class FileController {
         Iterable<FileSystemObject> sameName = fileSystemObjectManager.findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
 
         for(FileSystemObject nextSameName: sameName) {
-            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo) ) {
+            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo nextFile) ) {
                 continue;
             }
-
-            FileInfo nextFile = (FileInfo)nextSameName;
 
             if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
                 associatedFile = fileSystemObjectManager.getFile(nextFile);
@@ -289,7 +258,7 @@ public class FileController {
     public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
@@ -309,7 +278,7 @@ public class FileController {
     public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
@@ -329,21 +298,12 @@ public class FileController {
     public @ResponseBody ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
         // Create a delete request.
         FileInfo loadedFile = (FileInfo)file.get();
         return actionManager.createFileDeleteAction(loadedFile);
-    }
-
-    @PostMapping(path="/generate")
-    public @ResponseBody OkStatus doSomething() {
-        LOG.info("Get a list of the P files");
-
-        fileSystemObjectManager.gatherList();
-
-        return OkStatus.getOkStatus();
     }
 }
