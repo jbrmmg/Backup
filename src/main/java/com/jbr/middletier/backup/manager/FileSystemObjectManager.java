@@ -310,6 +310,15 @@ public class FileSystemObjectManager {
         return null;
     }
 
+    private void removePrintRow(int fileId) {
+        for(Print next : printRepository.findAll()) {
+            if(next.getId().getFileId() == fileId) {
+                printRepository.delete(next);
+                break;
+            }
+        }
+    }
+
     public Integer unselect(Integer id) {
         // Find the file.
         Optional<FileInfo> file = fileRepository.findById(id);
@@ -318,8 +327,8 @@ public class FileSystemObjectManager {
             file.get().setFlags(null);
             fileRepository.save(file.get());
 
-            // Remove the print rows.
-//            printRepository.deleteByIdFileId(id);
+            // If any print row exists remove it.
+            removePrintRow(id);
 
             return id;
         }
@@ -383,31 +392,19 @@ public class FileSystemObjectManager {
         // Update the print
         LOG.info("Update print details - {} {} {} {} {}", print.getFileId(), print.getSizeId(), print.getSizeName(), print.getBlackWhite(), print.getBorder());
 
-        // Does this already exist?
-        boolean update = false;
-        for(Print next : printRepository.findAll()) {
-            if(next.getId().getFileId() == print.getFileId()) {
-                update = true;
-                next.getId().setSizeId(print.getSizeId());
-                next.setBorder(print.getBorder());
-                next.setBlackWhite(print.getBlackWhite());
-                printRepository.save(next);
-                break;
-            }
-        }
+        // Delete if exists.
+        removePrintRow(print.getFileId());
 
-        // Save the print.
-        if(!update) {
-            Print newPrint = new Print();
-            PrintId newPrintId = new PrintId();
-            newPrintId.setFileId(print.getFileId());
-            newPrintId.setSizeId(print.getSizeId());
-            newPrint.setId(newPrintId);
-            newPrint.setBlackWhite(print.getBlackWhite());
-            newPrint.setBorder(print.getBorder());
+        // Create a print.
+        Print newPrint = new Print();
+        PrintId newPrintId = new PrintId();
+        newPrintId.setFileId(print.getFileId());
+        newPrintId.setSizeId(print.getSizeId());
+        newPrint.setId(newPrintId);
+        newPrint.setBlackWhite(print.getBlackWhite());
+        newPrint.setBorder(print.getBorder());
 
-            printRepository.save(newPrint);
-        }
+        printRepository.save(newPrint);
 
         return print.getFileId();
     }
