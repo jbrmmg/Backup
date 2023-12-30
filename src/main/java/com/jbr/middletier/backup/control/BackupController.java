@@ -82,9 +82,8 @@ public class BackupController {
             throw new BackupAlreadyExistsException(backup.getId());
         }
 
-        Backup newBackup = modelMapper.map(backup,Backup.class);
+        Backup newBackup = backupRepository.save(modelMapper.map(backup,Backup.class));
         LOG.info("Create backup - {}", newBackup.getId());
-        backupRepository.save(newBackup);
 
         return OkStatus.getOkStatus();
     }
