@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import com.jbr.middletier.backup.manager.LabelManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.modelmapper.ModelMapper;
@@ -29,6 +30,7 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         DirectoryInfo directory = new DirectoryInfo();
         directory.setName("Test");
@@ -41,7 +43,8 @@ public class TestFsoExtra {
                 ignoreFileRepository,
                 associatedFileDataManager,
                 importFileRepository,
-                modelMapper);
+                modelMapper,
+                labelManager);
 
         AtomicInteger count = new AtomicInteger(0);
         manager.findAllByType(FileSystemObjectType.FSO_DIRECTORY).forEach(nextDirectory -> {
@@ -60,6 +63,7 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         DirectoryInfo directory = new DirectoryInfo();
         directory.setName("Test");
@@ -71,7 +75,9 @@ public class TestFsoExtra {
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
-                importFileRepository, modelMapper);
+                importFileRepository,
+                modelMapper,
+                labelManager);
 
         AtomicInteger count = new AtomicInteger(0);
         manager.findAllByType(FileSystemObjectType.FSO_SOURCE).forEach(nextDirectory -> {
@@ -89,6 +95,7 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObject fso = mock(FileSystemObject.class);
         when(fso.getIdAndType()).thenReturn(new FileSystemObjectId(0, FileSystemObjectType.FSO_SOURCE));
@@ -97,7 +104,9 @@ public class TestFsoExtra {
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
-                importFileRepository, modelMapper);
+                importFileRepository,
+                modelMapper,
+                labelManager);
 
         try {
             manager.save(fso);
@@ -115,6 +124,7 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObject fso = mock(FileSystemObject.class);
         when(fso.getIdAndType()).thenReturn(new FileSystemObjectId(0, FileSystemObjectType.FSO_SOURCE));
@@ -123,7 +133,9 @@ public class TestFsoExtra {
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
-                importFileRepository, modelMapper);
+                importFileRepository,
+                modelMapper,
+                labelManager);
 
         try {
             manager.delete(fso);
@@ -141,6 +153,7 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         when(ignoreFileRepository.findById(1)).thenReturn(Optional.empty());
 
@@ -149,7 +162,8 @@ public class TestFsoExtra {
                 ignoreFileRepository,
                 associatedFileDataManager,
                 importFileRepository,
-                modelMapper);
+                modelMapper,
+                labelManager);
 
         Optional<FileSystemObject> result = manager.findFileSystemObject(new FileSystemObjectId(1, FileSystemObjectType.FSO_IGNORE_FILE));
         Assert.assertFalse(result.isPresent());
@@ -163,6 +177,7 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         when(importFileRepository.findById(1)).thenReturn(Optional.empty());
 
@@ -170,7 +185,9 @@ public class TestFsoExtra {
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
-                importFileRepository, modelMapper);
+                importFileRepository,
+                modelMapper,
+                labelManager);
 
         Optional<FileSystemObject> result = manager.findFileSystemObject(new FileSystemObjectId(1, FileSystemObjectType.FSO_IMPORT_FILE));
         Assert.assertFalse(result.isPresent());
@@ -184,12 +201,15 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
-                importFileRepository, modelMapper);
+                importFileRepository,
+                modelMapper,
+                labelManager);
 
         Optional<FileSystemObject> result = manager.findFileSystemObject(new FileSystemObjectId(1, FileSystemObjectType.FSO_SOURCE));
         Assert.assertFalse(result.isPresent());
@@ -203,13 +223,15 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
                 importFileRepository,
-                modelMapper);
+                modelMapper,
+                labelManager);
 
         AtomicInteger count = new AtomicInteger(0);
         manager.findFileSystemObjectByName("Test", FileSystemObjectType.FSO_SOURCE).forEach(nextDirectory -> {
@@ -227,12 +249,15 @@ public class TestFsoExtra {
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
-                importFileRepository, modelMapper);
+                importFileRepository,
+                modelMapper,
+                labelManager);
 
         FileSystemObject testFso = mock(FileSystemObject.class);
         when(testFso.getParentId()).thenReturn(Optional.of(new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY)));
