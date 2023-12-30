@@ -9,7 +9,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: 1
+                  value: "1"
               - column:
                   name: name
                   value: Main Shared Drive
@@ -22,7 +22,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: 2
+                  value: "2"
               - column:
                   name: name
                   value: Backup Drive
@@ -35,7 +35,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: 3
+                  value: "3"
               - column:
                   name: name
                   value: Google Drive

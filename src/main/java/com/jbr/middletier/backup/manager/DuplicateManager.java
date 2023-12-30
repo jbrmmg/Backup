@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Component
 public class DuplicateManager {
     private static final Logger LOG = LoggerFactory.getLogger(DuplicateManager.class);
@@ -70,7 +72,7 @@ public class DuplicateManager {
                 checkDuplicateOfFile(files
                         .stream()
                         .filter(file -> file.getName().equals(nextEntry.getKey()))
-                        .collect(Collectors.toList()),
+                        .collect(toList()),
                         data);
                 data.increment(DuplicateDataDTO.DuplicateCountType.CHECKED);
             }

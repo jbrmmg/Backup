@@ -64,9 +64,6 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-021-refactorimport.yaml
 
   - include:
-      file: /db/changelog/db.changelog-022-refactoraction.yaml
-
-  - include:
       file: /db/changelog/db.changelog-023-createpk.yaml
 
   - include:

@@ -32,7 +32,6 @@ public class FileController {
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
-    private final LabelManager labelManager;
 
     @Contract(pure = true)
     @Autowired
@@ -42,8 +41,7 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager,
-                          FileSystem fileSystem,
-                          LabelManager labelManager) {
+                          FileSystem fileSystem) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -51,7 +49,6 @@ public class FileController {
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
         this.fileSystem = fileSystem;
-        this.labelManager = labelManager;
     }
 
     @GetMapping(path="/files")
@@ -175,36 +172,7 @@ public class FileController {
 
     @GetMapping(path="/file")
     public FileInfoExtra getFile(@RequestParam Integer id) throws InvalidFileIdException {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
-
-        if(file.isEmpty()) {
-            throw new InvalidFileIdException(id);
-        }
-
-        FileInfo originalFile = (FileInfo)file.get();
-        File associatedFile = fileSystemObjectManager.getFile(originalFile);
-        FileInfoExtra result = new FileInfoExtra(originalFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
-
-        // Are there backups of this file?
-        Iterable<FileSystemObject> sameName = fileSystemObjectManager.findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
-
-        for(FileSystemObject nextSameName: sameName) {
-            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo nextFile) ) {
-                continue;
-            }
-
-            if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
-                associatedFile = fileSystemObjectManager.getFile(nextFile);
-                result.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
-            }
-        }
-
-        // Get any labels.
-        for(String nextLabel : labelManager.getLabelsForFile(file.get().getIdAndType())) {
-            result.addLabel(nextLabel);
-        }
-
-        return result;
+        return fileSystemObjectManager.getFileExtra(id);
     }
 
     @PutMapping(path="/expire")
@@ -217,41 +185,6 @@ public class FileController {
         fileSystemObjectManager.setFileExpiry(file.get().getIdAndType(), expiry.getExpiry());
 
         return getFile(expiry.getId());
-    }
-
-    @PostMapping(path="label")
-    public FileInfoExtra addLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
-
-        if(file.isEmpty()) {
-            throw new InvalidFileIdException(fileLabelDTO.getFileId());
-        }
-
-        for(Integer label : fileLabelDTO.getLabels()) {
-            labelManager.addLabelToFile(file.get().getIdAndType(), label);
-        }
-
-        return getFile(fileLabelDTO.getFileId());
-    }
-
-    @DeleteMapping(path="label")
-    public FileInfoExtra removeLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
-
-        if(file.isEmpty()) {
-            throw new InvalidFileIdException(fileLabelDTO.getFileId());
-        }
-
-        for(Integer label : fileLabelDTO.getLabels()) {
-            labelManager.removeLabelFromFile(file.get().getIdAndType(), label);
-        }
-
-        return getFile(fileLabelDTO.getFileId());
-    }
-
-    @GetMapping(path="labels")
-    public List<LabelDTO> labels() {
-        return labelManager.getLabels();
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)

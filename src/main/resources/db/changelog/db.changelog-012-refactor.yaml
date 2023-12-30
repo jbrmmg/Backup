@@ -92,7 +92,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  value: 4
+                  value: "4"
               - column:
                   name: name
                   value: Import

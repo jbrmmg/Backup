@@ -61,44 +61,45 @@ public class BackupController {
 
     @PutMapping()
     public OkStatus update(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
-        LOG.info("Update backup - {}", backup.getId());
-
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
 
         if(storedBackup.isEmpty()) {
+            LOG.warn("Invalid backup id");
             throw new InvalidBackupIdException(backup.getId());
         }
 
+        LOG.info("Update backup - {}", storedBackup.get().getId());
         backupRepository.save(modelMapper.map(backup, Backup.class));
         return OkStatus.getOkStatus();
     }
 
     @PostMapping()
     public OkStatus create(@NotNull @RequestBody BackupDTO backup) throws BackupAlreadyExistsException {
-        LOG.info("Create backup - {}", backup.getId());
-
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
         if(storedBackup.isPresent()) {
+            LOG.info("Backup already exist {}",storedBackup.get().getId());
             throw new BackupAlreadyExistsException(backup.getId());
         }
 
-        backupRepository.save(modelMapper.map(backup,Backup.class));
+        Backup newBackup = modelMapper.map(backup,Backup.class);
+        LOG.info("Create backup - {}", newBackup.getId());
+        backupRepository.save(newBackup);
 
         return OkStatus.getOkStatus();
     }
 
     @PostMapping(path="/run")
     public OkStatus performBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
-        LOG.info("Perform backup - {}", id);
-
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(id);
         if(storedBackup.isEmpty()) {
+            LOG.warn("Invalid backup");
             throw new InvalidBackupIdException(id);
         }
 
+        LOG.info("Perform the backup {}", storedBackup.get().getId());
         this.backupCtrl.performBackup(storedBackup.get());
 
         return OkStatus.getOkStatus();
@@ -106,15 +107,15 @@ public class BackupController {
 
     @DeleteMapping()
     public OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
-        LOG.info("Delete backup - {}", backup.getId());
-
         // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
 
         if(storedBackup.isEmpty()) {
+            LOG.info("Invalid backup id");
             throw new InvalidBackupIdException(backup.getId());
         }
 
+        LOG.info("Delete the backup {}", storedBackup.get().getId());
         backupRepository.delete(storedBackup.get());
 
         return OkStatus.getOkStatus();

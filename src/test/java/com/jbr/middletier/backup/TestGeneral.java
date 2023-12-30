@@ -1304,8 +1304,9 @@ public class TestGeneral extends WebTester {
         //noinspection RedundantCast
         Assert.assertEquals(id, (Object)id);
         Assert.assertNotEquals(id,null);
-        //noinspection SimplifiableAssertion,EqualsBetweenInconvertibleTypes
-        Assert.assertFalse(id.equals(idString));
+        //noinspection EqualsBetweenInconvertibleTypes
+        boolean check = id.equals(idString);
+        Assert.assertFalse(check);
 
         FileLabelId id2 = new FileLabelId();
         id2.setLabelId(10);

@@ -7,19 +7,15 @@ databaseChangeLog:
         - dropForeignKeyConstraint:
             constraintName: fk_source_directory
             baseTableName: directory
-            baseColumnNames: source_id
 
         - dropForeignKeyConstraint:
             constraintName: fk_action_file
             baseTableName: action_confirm
-            baseColumnNames: file_id
 
         - dropForeignKeyConstraint:
             constraintName: fk_import_file
             baseTableName: import_file
-            baseColumnNames: file_id
 
         - dropForeignKeyConstraint:
             constraintName: fk_directory_file
             baseTableName: file
-            baseColumnNames: directory_id

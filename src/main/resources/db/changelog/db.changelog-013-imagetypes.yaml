@@ -17,12 +17,12 @@ databaseChangeLog:
             columns:
               - column:
                   name: is_image
-                  valueBoolean: false
+                  valueBoolean: "false"
             tableName: classification
 
         - update:
             columns:
               - column:
                   name: is_video
-                  valueBoolean: false
+                  valueBoolean: "false"
             tableName: classification

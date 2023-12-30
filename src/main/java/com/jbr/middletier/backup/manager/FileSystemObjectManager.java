@@ -3,6 +3,8 @@ package com.jbr.middletier.backup.manager;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
+import com.jbr.middletier.backup.dto.FileInfoExtra;
+import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -27,6 +29,7 @@ public class FileSystemObjectManager {
     private final AssociatedFileDataManager associatedFileDataManager;
     private final ImportFileRepository importFileRepository;
     private final ModelMapper modelMapper;
+    private final LabelManager labelManager;
 
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
@@ -34,7 +37,8 @@ public class FileSystemObjectManager {
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
                                    ImportFileRepository importFileRepository,
-                                   ModelMapper modelMapper) {
+                                   ModelMapper modelMapper,
+                                   LabelManager labelManager) {
         LOG.trace("FSO CTOR");
 
         this.fileRepository = fileRepository;
@@ -43,6 +47,7 @@ public class FileSystemObjectManager {
         this.associatedFileDataManager = associatedFileDataManager;
         this.importFileRepository = importFileRepository;
         this.modelMapper = modelMapper;
+        this.labelManager = labelManager;
     }
 
     public FileInfoDTO convertToDTO(FileInfo fileInfo) {
@@ -290,6 +295,39 @@ public class FileSystemObjectManager {
 
         for(FileInfo next : fileRepository.findByFlagsContaining(flag)) {
             result.add(next);
+        }
+
+        return result;
+    }
+
+    public FileInfoExtra getFileExtra(Integer id) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
+
+        if(file.isEmpty()) {
+            throw new InvalidFileIdException(id);
+        }
+
+        FileInfo originalFile = (FileInfo)file.get();
+        File associatedFile = getFile(originalFile);
+        FileInfoExtra result = new FileInfoExtra(originalFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
+
+        // Are there backups of this file?
+        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
+
+        for(FileSystemObject nextSameName: sameName) {
+            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo nextFile) ) {
+                continue;
+            }
+
+            if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
+                associatedFile = getFile(nextFile);
+                result.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
+            }
+        }
+
+        // Get any labels.
+        for(String nextLabel : labelManager.getLabelsForFile(file.get().getIdAndType())) {
+            result.addLabel(nextLabel);
         }
 
         return result;
