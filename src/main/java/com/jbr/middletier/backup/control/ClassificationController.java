@@ -37,26 +37,26 @@ public class ClassificationController {
     }
 
     @GetMapping(path="/classification")
-    public @ResponseBody List<ClassificationDTO> getClassification() {
+    public List<ClassificationDTO> getClassification() {
         return getLocations();
     }
 
     @PostMapping(path="/classification")
-    public @ResponseBody List<ClassificationDTO> createClassification(@NotNull @RequestBody ClassificationDTO classification) throws ClassificationIdException {
+    public List<ClassificationDTO> createClassification(@NotNull @RequestBody ClassificationDTO classification) throws ClassificationIdException {
         LOG.info("create classification {}", classification);
         associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(classification));
         return getLocations();
     }
 
     @PutMapping(path="/classification")
-    public @ResponseBody List<ClassificationDTO> updateClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
+    public List<ClassificationDTO> updateClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
         LOG.info("update classification {}", classification);
         associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(classification));
         return getLocations();
     }
 
     @DeleteMapping(path="/classification")
-    public @ResponseBody List<ClassificationDTO> deleteClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
+    public List<ClassificationDTO> deleteClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
         LOG.info("delete classification {}", classification);
         associatedFileDataManager.deleteClassification(associatedFileDataManager.convertToEntity(classification));
         return getLocations();

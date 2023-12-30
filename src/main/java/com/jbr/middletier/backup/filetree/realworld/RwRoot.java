@@ -26,7 +26,7 @@ public class RwRoot extends RootFileTreeNode {
             for (int directoryIdx = rootOfRealWorld.getNameCount(); directoryIdx < path.getNameCount() - 1; directoryIdx++) {
                 nextIterator = nextIterator.get().getNamedChild(path.getName(directoryIdx).toString());
 
-                if(!nextIterator.isPresent())
+                if(nextIterator.isEmpty())
                     return;
             }
 
@@ -56,7 +56,7 @@ public class RwRoot extends RootFileTreeNode {
 
     public void removeFilteredChildren(String filter) {
         // Remove anything from realworld that does not meet the source filter.
-        if(filter != null && filter.length() > 0) {
+        if(filter != null && !filter.isEmpty()) {
             List<FileTreeNode> toBeRemoved = new ArrayList<>();
 
             for(FileTreeNode nextNode : this.children) {

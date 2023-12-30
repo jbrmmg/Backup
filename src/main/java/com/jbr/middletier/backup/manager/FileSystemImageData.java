@@ -124,25 +124,25 @@ public class FileSystemImageData {
             case IDD_QUICKTIME:
                 extractFromQuickTime(tag,value);
                 break;
-            case IDD_PNG_ICCP:
-            case IDD_EXIF_IFD0:
-            case IDD_XMP:
-            case IDD_FILE_TYPE:
-            case IDD_FILE:
-            case IDD_JFIF:
-            case IDD_APPLE_MAKERNOTE:
-            case IDD_APPLE_RUN_TIME:
-            case IDD_GPS:
-            case IDD_HUFFMAN:
-            case IDD_MP4_SOUND:
-            case IDD_MP4_VIDEO:
-            case IDD_QUICKTIME_SOUND:
-            case IDD_QUICKTIME_VIDEO:
-            case IDD_QUICKTIME_METADATA:
-            case IDD_PNG_SRGB:
-            case IDD_EXIF_THUMBNAIL:
-            case IDD_PHOTOSHOP:
-            case IDD_IPTC:
+            case IDD_PNG_ICCP,
+                IDD_EXIF_IFD0,
+                IDD_XMP,
+                IDD_FILE_TYPE,
+                IDD_FILE,
+                IDD_JFIF,
+                IDD_APPLE_MAKERNOTE,
+                IDD_APPLE_RUN_TIME,
+                IDD_GPS,
+                IDD_HUFFMAN,
+                IDD_MP4_SOUND,
+                IDD_MP4_VIDEO,
+                IDD_QUICKTIME_SOUND,
+                IDD_QUICKTIME_VIDEO,
+                IDD_QUICKTIME_METADATA,
+                IDD_PNG_SRGB,
+                IDD_EXIF_THUMBNAIL,
+                IDD_PHOTOSHOP,
+                IDD_IPTC:
                 // Ignore these headers.
                 break;
             case IDD_UNKNOWN:

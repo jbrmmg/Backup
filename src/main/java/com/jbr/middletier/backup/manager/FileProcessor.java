@@ -50,7 +50,7 @@ abstract class FileProcessor {
         }
 
         // Only process if RW DB Compare.
-        if (!(node instanceof RwDbCompareNode)) {
+        if (!(node instanceof RwDbCompareNode compareNode)) {
             return;
         }
 
@@ -58,9 +58,6 @@ abstract class FileProcessor {
         if(((RwDbCompareNode) node).getActionType() != RwDbCompareNode.ActionType.NONE) {
             return;
         }
-
-        // Get details of the file
-        RwDbCompareNode compareNode = (RwDbCompareNode)node;
 
         // Is this file marked for delete?
         for(ActionConfirm next : deletes) {
@@ -114,15 +111,12 @@ abstract class FileProcessor {
     private Optional<FileSystemObjectId> getParentId(RwDbCompareNode node) {
         FileTreeNode parentNode = node.getParent();
         Optional<FileSystemObjectId> parentId = Optional.empty();
-        if(parentNode instanceof RwDbCompareNode) {
-            RwDbCompareNode rwDbParentNode = (RwDbCompareNode)parentNode;
+        if(parentNode instanceof RwDbCompareNode rwDbParentNode) {
 
             Objects.requireNonNull(rwDbParentNode.getDatabaseObjectId(),"NPE: cannot add or update directory with no known parent.");
 
             parentId = Optional.of(rwDbParentNode.getDatabaseObjectId());
-        } else if(parentNode instanceof RwDbTree) {
-            RwDbTree rwDbSource = (RwDbTree)parentNode;
-
+        } else if(parentNode instanceof RwDbTree rwDbSource) {
             parentId = Optional.of(rwDbSource.getDbSource().getSource().getIdAndType());
         }
 
@@ -138,7 +132,7 @@ abstract class FileProcessor {
             existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
         }
 
-        if(!existingDirectory.isPresent()) {
+        if(existingDirectory.isEmpty()) {
             existingDirectory = Optional.of(new DirectoryInfo());
         }
 
@@ -146,7 +140,7 @@ abstract class FileProcessor {
         RwNode rwNode = getRwNode(node);
 
         // Insert a new directory.
-        if(!rwNode.getName().isPresent())
+        if(rwNode.getName().isEmpty())
             throw new IllegalStateException("Cannot insert a directory with no name.");
 
         DirectoryInfo directory = (DirectoryInfo) existingDirectory.get();
@@ -166,14 +160,14 @@ abstract class FileProcessor {
             existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
         }
 
-        if(!existingFile.isPresent()) {
+        if(existingFile.isEmpty()) {
             existingFile = Optional.of(createNewFile());
         }
 
         // Get the real world object.
         RwFile rwNode = (RwFile)getRwNode(node);
 
-        if(!rwNode.getName().isPresent())
+        if(rwNode.getName().isEmpty())
             throw new IllegalStateException("Cannot insert a file with no name.");
 
         FileInfo file = (FileInfo) existingFile.get();
@@ -230,8 +224,7 @@ abstract class FileProcessor {
         List<FileTreeNode> orderedNodeList = compare.getOrderedNodeList();
         LOG.info("Actions {}", orderedNodeList.size());
         for(FileTreeNode nextNode : orderedNodeList) {
-            if(nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode)nextNode;
+            if(nextNode instanceof RwDbCompareNode compareNode) {
                 switch(Objects.requireNonNull(section,"Section has not been initialised")) {
                     case FILE_FOR_REMOVE:
                         processFileRemoval(compareNode);

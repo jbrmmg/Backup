@@ -37,7 +37,7 @@ public class FileSystem {
     public boolean directoryIsEmpty(Path path) throws IOException {
         if (Files.isDirectory(path)) {
             try (Stream<Path> entries = Files.list(path)) {
-                return !entries.findFirst().isPresent();
+                return entries.findFirst().isEmpty();
             }
         }
 
@@ -78,7 +78,7 @@ public class FileSystem {
                 FileUtils.deleteDirectory(file);
             }
         } catch (IOException e) {
-            LOG.warn("Failed to delete file {} {}", file, e);
+            LOG.warn("Failed to delete file {}", file, e);
             dbLoggingManager.error(String.format("Directory delete failure: %s", file));
             processResult.setProblems();
         }
@@ -210,7 +210,7 @@ public class FileSystem {
     }
 
     public boolean validateMountCheck(Optional<File> file) {
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             LOG.warn("Mount check - skipped");
             return true;
         }

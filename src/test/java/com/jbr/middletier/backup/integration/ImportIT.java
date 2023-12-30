@@ -98,7 +98,7 @@ public class ImportIT extends FileTester {
         associatedFileDataManager.deleteAllImportSource();
 
         Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
-        if (!existingLocation.isPresent())
+        if (existingLocation.isEmpty())
             fail();
 
         LocationDTO location = associatedFileDataManager.convertToDTO(existingLocation.get());
@@ -123,7 +123,7 @@ public class ImportIT extends FileTester {
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
         preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         preImportSourceDTO.setStatus("OK");
-        preImportSourceDTO.setPath(sourceDirectory);
+        preImportSourceDTO.setPath(preImportDirectory);
 
         this.preImportSource = associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
     }
@@ -145,6 +145,14 @@ public class ImportIT extends FileTester {
         Assert.assertEquals(alreadyImported, result.get(0).getCount(ImportDataDTO.ImportDataCountType.ALREADY_IMPORTED));
         Assert.assertEquals(ignored, result.get(0).getCount(ImportDataDTO.ImportDataCountType.IGNORED));
         Assert.assertEquals(nonBackup, result.get(0).getCount(ImportDataDTO.ImportDataCountType.NON_BACKUP_CLASSIFICATIONS));
+    }
+
+    private void checkPreImport(List<ImportProcessDTO> result, int processed, int alreadyPresent, int imageFiles, int movFiles) {
+        Assert.assertEquals(1, result.size());
+        Assert.assertEquals(processed, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.FILES_PROCESSED));
+        Assert.assertEquals(alreadyPresent, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.ALREADY_PRESENT));
+        Assert.assertEquals(imageFiles, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.IMAGE_FILES));
+        Assert.assertEquals(movFiles, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.MOV_FILES));
     }
 
     private void confirmActions() {
@@ -318,11 +326,20 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testHeicFile() throws IOException {
+    public void testHeicFile() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test17");
         copyFiles(sourceDescription, sourceDirectory);
 
-        List<StructureDescription> importDesciption = getTestStructure("test17_import");
-        copyFiles(importDesciption, importDirectory);
+        List<StructureDescription> importDescription = getTestStructure("test17_import");
+        copyFiles(importDescription, preImportDirectory);
+
+        // Import the source data
+        driveManager.gather();
+
+        List<ImportProcessDTO> convertData = importManager.convertImportFiles();
+        checkPreImport(convertData,1,0,1,0);
+
+        List<GatherDataDTO> result = importManager.importPhoto();
+        checkGather(result, 1, 0);
     }
 }

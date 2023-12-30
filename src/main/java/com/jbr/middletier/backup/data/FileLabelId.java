@@ -3,10 +3,9 @@ package com.jbr.middletier.backup.data;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 
 @Embeddable
-public class FileLabelId implements Serializable {
+public class FileLabelId extends BaseComparable {
     @NotNull
     @Column(name="file_id")
     private Integer fileId;
@@ -32,23 +31,17 @@ public class FileLabelId implements Serializable {
     }
 
     @Override
+    public String toString() {
+        return this.fileId.toString() + "-" + this.labelId.toString();
+    }
+
+    @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
-
-        if (!(o instanceof FileLabelId fileLabelId)) {
-            return false;
-        }
-
-        return this.toString().equalsIgnoreCase(fileLabelId.toString());
+        return super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        return toString().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return this.fileId.toString() + "-" + this.labelId.toString();
+        return super.hashCode();
     }
 }

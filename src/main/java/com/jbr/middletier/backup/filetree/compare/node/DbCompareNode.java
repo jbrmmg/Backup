@@ -86,19 +86,16 @@ public class DbCompareNode  extends FileTreeNode {
         }
 
         private static String getClassificationKey(DbNode source) {
-            if(source instanceof DbFile) {
-                DbFile file = (DbFile) source;
-                if(file.getClassification() != null) {
-                    switch (file.getClassification().getAction()) {
-                        case CA_WARN:
-                            return "WARN";
-                        case CA_IGNORE:
-                            return "IGNORE";
-                        case CA_DELETE:
-                            return "DELETE";
-                        default:
-                            // Nothing further, continue.
-                    }
+            if((source instanceof DbFile file) &&  (file.getClassification() != null)) {
+                switch (file.getClassification().getAction()) {
+                    case CA_WARN:
+                        return "WARN";
+                    case CA_IGNORE:
+                        return "IGNORE";
+                    case CA_DELETE:
+                        return "DELETE";
+                    default:
+                        // Nothing further, continue.
                 }
             }
 

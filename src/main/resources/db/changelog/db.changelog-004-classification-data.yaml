@@ -15,10 +15,10 @@ databaseChangeLog:
                   value: DELETE
               - column:
                   name: order
-                  value: 1
+                  value: "1"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -31,10 +31,10 @@ databaseChangeLog:
                   value: DELETE
               - column:
                   name: order
-                  value: 2
+                  value: "2"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -47,10 +47,10 @@ databaseChangeLog:
                   value: WARN
               - column:
                   name: order
-                  value: 3
+                  value: "3"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -63,10 +63,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 4
+                  value: "4"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -79,10 +79,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 5
+                  value: "5"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -95,10 +95,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 6
+                  value: "6"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -111,10 +111,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 7
+                  value: "7"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -127,10 +127,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 8
+                  value: "8"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -143,10 +143,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 9
+                  value: "9"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -159,10 +159,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 10
+                  value: "10"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -175,10 +175,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 11
+                  value: "11"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -191,10 +191,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 12
+                  value: "12"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -207,10 +207,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 13
+                  value: "13"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -223,10 +223,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 14
+                  value: "14"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -239,10 +239,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 15
+                  value: "15"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -255,10 +255,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 16
+                  value: "16"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -271,10 +271,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 17
+                  value: "17"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -287,10 +287,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 18
+                  value: "18"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -303,10 +303,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 19
+                  value: "19"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -319,10 +319,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 20
+                  value: "20"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -335,10 +335,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 21
+                  value: "21"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -351,10 +351,10 @@ databaseChangeLog:
                   value: WARN
               - column:
                   name: order
-                  value: 22
+                  value: "22"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -367,10 +367,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 23
+                  value: "23"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -383,10 +383,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 24
+                  value: "24"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -399,10 +399,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 25
+                  value: "25"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -415,10 +415,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 26
+                  value: "26"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -431,10 +431,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 27
+                  value: "27"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -447,10 +447,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 28
+                  value: "28"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -463,10 +463,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 29
+                  value: "29"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -479,10 +479,10 @@ databaseChangeLog:
                   value: BACKUP
               - column:
                   name: order
-                  value: 30
+                  value: "30"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -495,10 +495,10 @@ databaseChangeLog:
                   value: WARN
               - column:
                   name: order
-                  value: 31
+                  value: "31"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"
 
         - insert:
             tableName: classification
@@ -511,7 +511,7 @@ databaseChangeLog:
                   value: IGNORE
               - column:
                   name: order
-                  value: 32
+                  value: "32"
               - column:
                   name: useMD5
-                  valueBoolean: false
+                  valueBoolean: "false"

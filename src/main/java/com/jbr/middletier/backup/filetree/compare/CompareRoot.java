@@ -13,13 +13,13 @@ public abstract class CompareRoot extends RootFileTreeNode {
     private void matchesAndLhs(FileTreeNode result, Iterable<FileTreeNode> lhs, Iterable<FileTreeNode> rhs, List<String> added) {
         for(FileTreeNode nextLHS : lhs) {
             String lhsName = nextLHS.getName().orElse("");
-            if(lhsName.length() == 0) {
+            if(lhsName.isEmpty()) {
                 continue;
             }
 
             for(FileTreeNode nextRHS : rhs) {
                 String rhsName = nextRHS.getName().orElse("");
-                if(rhsName.length() == 0) {
+                if(rhsName.isEmpty()) {
                     continue;
                 }
 
@@ -43,7 +43,7 @@ public abstract class CompareRoot extends RootFileTreeNode {
     private void rhsOnly(FileTreeNode result, Iterable<FileTreeNode> rhs, List<String> added) {
         for(FileTreeNode nextRHS : rhs) {
             String rhsName = nextRHS.getName().orElse("");
-            if(rhsName.length() == 0) {
+            if(rhsName.isEmpty()) {
                 continue;
             }
 

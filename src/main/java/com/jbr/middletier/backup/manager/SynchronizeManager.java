@@ -191,8 +191,7 @@ public class SynchronizeManager {
             List<FileTreeNode> orderedNodeList = dbTree.getOrderedNodeList();
             LOG.info("Actions {}", orderedNodeList.size());
             for (FileTreeNode nextNode : orderedNodeList) {
-                if (nextNode instanceof DbCompareNode) {
-                    DbCompareNode compareNode = (DbCompareNode) nextNode;
+                if (nextNode instanceof DbCompareNode compareNode) {
                     switch (Objects.requireNonNull(section,"Section not initialised")) {
                         case FILE_FOR_REMOVE:
                             deleteFile(compareNode, result);
@@ -215,7 +214,7 @@ public class SynchronizeManager {
 
             LOG.info("{} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
         } catch (Exception e) {
-            LOG.warn("Failure in {} -> {} {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
+            LOG.warn("Failure in {} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
             result.setProblems();
         }
 

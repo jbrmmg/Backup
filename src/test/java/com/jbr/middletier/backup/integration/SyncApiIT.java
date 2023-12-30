@@ -130,7 +130,7 @@ public class SyncApiIT extends FileTester {
 
         // Create the standard sources
         Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
-        if(!existingLocation.isPresent())
+        if(existingLocation.isEmpty())
             fail();
 
         LocationDTO location = associatedFileDataManager.convertToDTO(existingLocation.get());
@@ -152,7 +152,7 @@ public class SyncApiIT extends FileTester {
         this.destination = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         Optional<Location> importLocation = associatedFileDataManager.findLocationById(4);
-        if(!importLocation.isPresent())
+        if(importLocation.isEmpty())
             fail();
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();

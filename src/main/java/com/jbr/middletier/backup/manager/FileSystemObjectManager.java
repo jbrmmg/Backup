@@ -1,12 +1,10 @@
 package com.jbr.middletier.backup.manager;
 
-
-import com.jbr.middletier.backup.control.FileController;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
-import com.jbr.middletier.backup.dto.PrintSizeDTO;
-import com.jbr.middletier.backup.dto.SelectedPrintDTO;
+import com.jbr.middletier.backup.dto.FileInfoExtra;
+import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -31,17 +29,16 @@ public class FileSystemObjectManager {
     private final AssociatedFileDataManager associatedFileDataManager;
     private final ImportFileRepository importFileRepository;
     private final ModelMapper modelMapper;
-    private final PrintRepository printRepository;
-    private final PrintManager printManager;
+    private final LabelManager labelManager;
 
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
                                    DirectoryRepository directoryRepository,
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
-                                   ImportFileRepository importFileRepository, ModelMapper modelMapper,
-                                   PrintRepository printRepository,
-                                   PrintManager printManager) {
+                                   ImportFileRepository importFileRepository,
+                                   ModelMapper modelMapper,
+                                   LabelManager labelManager) {
         LOG.trace("FSO CTOR");
 
         this.fileRepository = fileRepository;
@@ -50,8 +47,7 @@ public class FileSystemObjectManager {
         this.associatedFileDataManager = associatedFileDataManager;
         this.importFileRepository = importFileRepository;
         this.modelMapper = modelMapper;
-        this.printRepository = printRepository;
-        this.printManager = printManager;
+        this.labelManager = labelManager;
     }
 
     public FileInfoDTO convertToDTO(FileInfo fileInfo) {
@@ -71,20 +67,16 @@ public class FileSystemObjectManager {
     public Iterable<FileSystemObject> findAllByType(FileSystemObjectType type) {
         List<FileSystemObject> empty = new ArrayList<>();
 
-        switch(type) {
-            case FSO_FILE:
-                return copyOfList(fileRepository.findAllByOrderByIdAsc());
-            case FSO_DIRECTORY:
-                return copyOfList(directoryRepository.findAllByOrderByIdAsc());
-            case FSO_IGNORE_FILE:
-                return copyOfList(ignoreFileRepository.findAllByOrderByIdAsc());
-            case FSO_IMPORT_FILE:
-                return copyOfList(importFileRepository.findAllByOrderByIdAsc());
-            default:
+        return switch (type) {
+            case FSO_FILE -> copyOfList(fileRepository.findAllByOrderByIdAsc());
+            case FSO_DIRECTORY -> copyOfList(directoryRepository.findAllByOrderByIdAsc());
+            case FSO_IGNORE_FILE -> copyOfList(ignoreFileRepository.findAllByOrderByIdAsc());
+            case FSO_IMPORT_FILE -> copyOfList(importFileRepository.findAllByOrderByIdAsc());
+            default ->
                 // Nothing to return for the others.
-        }
+                empty;
+        };
 
-        return empty;
     }
 
     public void save(FileSystemObject fso) {
@@ -150,53 +142,37 @@ public class FileSystemObjectManager {
             return result;
         }
 
-        switch(id.getType()) {
-            case FSO_IMPORT_SOURCE:
-                return copyOf(associatedFileDataManager.findImportSourceIfExists(id.getId()));
-
-            case FSO_PRE_IMPORT_SOURCE:
-                return copyOf(associatedFileDataManager.findPreImportSourceIfExists(id.getId()));
-
-            case FSO_DIRECTORY:
-                return copyOf(directoryRepository.findById(id.getId()));
-
-            case FSO_FILE:
-                return copyOf(fileRepository.findById(id.getId()));
-
-            case FSO_IGNORE_FILE:
-                return copyOf(ignoreFileRepository.findById(id.getId()));
-
-            case FSO_IMPORT_FILE:
-                return copyOf(importFileRepository.findById(id.getId()));
-
-            case FSO_SOURCE:
-                return copyOf(associatedFileDataManager.findSourceIfExists(id.getId()));
-
-            default:
+        return switch (id.getType()) {
+            case FSO_IMPORT_SOURCE -> copyOf(associatedFileDataManager.findImportSourceIfExists(id.getId()));
+            case FSO_PRE_IMPORT_SOURCE -> copyOf(associatedFileDataManager.findPreImportSourceIfExists(id.getId()));
+            case FSO_DIRECTORY -> copyOf(directoryRepository.findById(id.getId()));
+            case FSO_FILE -> copyOf(fileRepository.findById(id.getId()));
+            case FSO_IGNORE_FILE -> copyOf(ignoreFileRepository.findById(id.getId()));
+            case FSO_IMPORT_FILE -> copyOf(importFileRepository.findById(id.getId()));
+            case FSO_SOURCE -> copyOf(associatedFileDataManager.findSourceIfExists(id.getId()));
+            default ->
                 // Nothing else is supported
-        }
+                    result;
+        };
 
-        return result;
     }
 
     public Iterable<FileSystemObject> findFileSystemObjectByName(String name, FileSystemObjectType type) {
         List<FileSystemObject> empty = new ArrayList<>();
 
-        switch (type) {
-            case FSO_FILE:
-                return copyOfList(fileRepository.findByName(name));
-            case FSO_IMPORT_FILE:
-                return copyOfList(importFileRepository.findByName(name));
-            default:
+        return switch (type) {
+            case FSO_FILE -> copyOfList(fileRepository.findByName(name));
+            case FSO_IMPORT_FILE -> copyOfList(importFileRepository.findByName(name));
+            default ->
                 // Nothing else supported for this method.
-        }
+                    empty;
+        };
 
-        return empty;
     }
 
     private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) {
         Optional<FileSystemObject> parent = findFileSystemObject(fso.getParentId().orElse(null));
-        if(!parent.isPresent())
+        if(parent.isEmpty())
             return;
 
         fileNameParts.add(parent.get());
@@ -285,150 +261,6 @@ public class FileSystemObjectManager {
         directories.addAll(directoryRepository.findByParentId(id));
     }
 
-    public Integer select(Integer id) {
-        // Find the file.
-        Optional<FileInfo> file = fileRepository.findById(id);
-
-        if(file.isPresent()) {
-            file.get().setFlags("P");
-            fileRepository.save(file.get());
-
-            // Create a print (default size = 12)
-            Print newPrint = new Print();
-            PrintId newPrintId = new PrintId();
-            newPrint.setId(newPrintId);
-            newPrint.getId().setFileId(id);
-            newPrint.getId().setSizeId(12);
-            newPrint.setBorder(false);
-            newPrint.setBlackWhite(false);
-
-            printRepository.save(newPrint);
-
-            return id;
-        }
-
-        return null;
-    }
-
-    private void removePrintRow(int fileId) {
-        for(Print next : printRepository.findAll()) {
-            if(next.getId().getFileId() == fileId) {
-                printRepository.delete(next);
-                break;
-            }
-        }
-    }
-
-    public Integer unselect(Integer id) {
-        // Find the file.
-        Optional<FileInfo> file = fileRepository.findById(id);
-
-        if(file.isPresent()) {
-            file.get().setFlags(null);
-            fileRepository.save(file.get());
-
-            // If any print row exists remove it.
-            removePrintRow(id);
-
-            return id;
-        }
-
-        return null;
-    }
-
-    public List<SelectedPrintDTO> getPrints() {
-        List<SelectedPrintDTO> result = new ArrayList<>();
-
-        // Get the print rows.
-        for(Print next : printRepository.findAll()) {
-            SelectedPrintDTO nextPrint = new SelectedPrintDTO();
-            nextPrint.setFileId(next.getId().getFileId());
-            nextPrint.setSizeId(next.getId().getSizeId());
-            nextPrint.setBorder(next.getBorder());
-            nextPrint.setBlackWhite(next.getBlackWhite());
-
-            for(PrintSizeDTO nextSize : printManager.getPrintSizes()) {
-                if(nextPrint.getSizeId() == nextSize.getId()) {
-                    nextPrint.setSizeName(nextSize.getName());
-                }
-            }
-
-            Optional<FileInfo> file = fileRepository.findById(next.getId().getFileId());
-            if(file.isPresent()) {
-                nextPrint.setFileName(file.get().getName());
-            }
-
-            result.add(nextPrint);
-        }
-
-        // Check to see if any files have a P flag (legacy).
-        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
-            // Is this already in the list?
-            boolean already = false;
-            for(SelectedPrintDTO existing : result) {
-                if(existing.getFileId() == next.getIdAndType().getId()) {
-                    already = true;
-                    break;
-                }
-            }
-
-            if(!already) {
-                SelectedPrintDTO nextPrint = new SelectedPrintDTO();
-                nextPrint.setFileId(next.getIdAndType().getId());
-                nextPrint.setSizeName("6x4 in");
-                nextPrint.setSizeId(12);
-                nextPrint.setFileName(next.getName());
-                nextPrint.setBorder(false);
-                nextPrint.setBlackWhite(false);
-
-                result.add(nextPrint);
-            }
-        }
-
-        return result;
-    }
-
-    public Integer updatePrint(SelectedPrintDTO print) {
-        // Update the print
-        LOG.info("Update print details - {} {} {} {} {}", print.getFileId(), print.getSizeId(), print.getSizeName(), print.getBlackWhite(), print.getBorder());
-
-        // Delete if exists.
-        removePrintRow(print.getFileId());
-
-        // Create a print.
-        Print newPrint = new Print();
-        PrintId newPrintId = new PrintId();
-        newPrintId.setFileId(print.getFileId());
-        newPrintId.setSizeId(print.getSizeId());
-        newPrint.setId(newPrintId);
-        newPrint.setBlackWhite(print.getBlackWhite());
-        newPrint.setBorder(print.getBorder());
-
-        printRepository.save(newPrint);
-
-        return print.getFileId();
-    }
-
-    public List<Integer> deletePrints() {
-        List<Integer> result = new ArrayList<>();
-
-        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
-            next.setFlags(null);
-
-            fileRepository.save(next);
-        }
-
-        return result;
-    }
-
-    public void gatherList() {
-        // Find the P files.
-        for(FileInfo next : fileRepository.findByFlagsContaining("P")) {
-            File printFile = getFile(next);
-            LOG.info("cp " + printFile.getAbsolutePath() + " /media/jason/6263-3935/" + printFile.getName());
-        }
-    }
-
     public void setFileExpiry(FileSystemObjectId id, LocalDateTime expiry) {
         // This action is only valid on files.
         if(id.getType() != FileSystemObjectType.FSO_FILE) {
@@ -442,5 +274,62 @@ public class FileSystemObjectManager {
 
         file.get().setExpiry(expiry);
         fileRepository.save(file.get());
+    }
+
+    public void clearFlags(FileSystemObject fso) {
+        // Only applies to FILE objects.
+        if(!fso.getIdAndType().getType().equals(FileSystemObjectType.FSO_FILE)) {
+            return;
+        }
+
+        Optional<FileInfo> file = fileRepository.findById(fso.getIdAndType().getId());
+
+        if(file.isPresent()) {
+            file.get().setFlags(null);
+            fileRepository.save(file.get());
+        }
+    }
+
+    public List<FileInfo> getFilesByFlag(String flag) {
+        List<FileInfo> result = new ArrayList<>();
+
+        for(FileInfo next : fileRepository.findByFlagsContaining(flag)) {
+            result.add(next);
+        }
+
+        return result;
+    }
+
+    public FileInfoExtra getFileExtra(Integer id) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
+
+        if(file.isEmpty()) {
+            throw new InvalidFileIdException(id);
+        }
+
+        FileInfo originalFile = (FileInfo)file.get();
+        File associatedFile = getFile(originalFile);
+        FileInfoExtra result = new FileInfoExtra(originalFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
+
+        // Are there backups of this file?
+        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
+
+        for(FileSystemObject nextSameName: sameName) {
+            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo nextFile) ) {
+                continue;
+            }
+
+            if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
+                associatedFile = getFile(nextFile);
+                result.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
+            }
+        }
+
+        // Get any labels.
+        for(String nextLabel : labelManager.getLabelsForFile(file.get().getIdAndType())) {
+            result.addLabel(nextLabel);
+        }
+
+        return result;
     }
 }

@@ -5,23 +5,18 @@ import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.*;
-import org.hibernate.sql.Select;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-
 import static java.util.Comparator.comparing;
 
 @RestController
@@ -36,7 +31,6 @@ public class FileController {
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
-    private final LabelManager labelManager;
 
     @Contract(pure = true)
     @Autowired
@@ -46,8 +40,7 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager,
-                          FileSystem fileSystem,
-                          LabelManager labelManager) {
+                          FileSystem fileSystem) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -55,11 +48,10 @@ public class FileController {
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
         this.fileSystem = fileSystem;
-        this.labelManager = labelManager;
     }
 
     @GetMapping(path="/files")
-    public @ResponseBody List<FileInfoDTO> getFiles() {
+    public List<FileInfoDTO> getFiles() {
         List<FileInfoDTO> result = new ArrayList<>();
         for(FileSystemObject nextFile: fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE)) {
             result.add(fileSystemObjectManager.convertToDTO((FileInfo)nextFile));
@@ -71,53 +63,25 @@ public class FileController {
     }
 
     @PostMapping(path="/gather")
-    public @ResponseBody List<GatherDataDTO> gather(@RequestBody String reason) {
-        LOG.info("Process drive - {}", reason);
-
+    public List<GatherDataDTO> gather() {
+        LOG.info("Gather");
         return driveManager.gather();
     }
 
     @PostMapping(path="/duplicate")
-    public @ResponseBody List<DuplicateDataDTO> duplicate(@RequestBody String temp) {
-        LOG.info("Duplicate process drive - {}", temp);
-
+    public List<DuplicateDataDTO> duplicate() {
+        LOG.info("Duplicate check");
         return duplicateManager.duplicateCheck();
     }
 
     @PostMapping(path="/sync")
-    public @ResponseBody List<SyncDataDTO> synchronize(@RequestBody String temp) {
-        LOG.info("Synchronize drives - {}", temp);
-
+    public List<SyncDataDTO> synchronize() {
+        LOG.info("Synchronize");
         return synchronizeManager.synchronize();
     }
 
-    @PostMapping(path="/print")
-    public @ResponseBody Integer print(@RequestBody Integer id) {
-        return fileSystemObjectManager.select(id);
-    }
-
-    @PutMapping(path="/print")
-    public @ResponseBody Integer updatePrint(@RequestBody SelectedPrintDTO selected) {
-        return fileSystemObjectManager.updatePrint(selected);
-    }
-
-    @PostMapping(path="/unprint")
-    public @ResponseBody Integer unprint(@RequestBody Integer id) {
-        return fileSystemObjectManager.unselect(id);
-    }
-
-    @GetMapping(path="/prints")
-    public @ResponseBody List<SelectedPrintDTO> prints() {
-        return fileSystemObjectManager.getPrints();
-    }
-
-    @DeleteMapping(path="/prints")
-    public @ResponseBody List<Integer> deletePrints() {
-        return fileSystemObjectManager.deletePrints();
-    }
-
     private int getParentId(Optional<FileSystemObject> optParent) {
-        if(!optParent.isPresent()) {
+        if(optParent.isEmpty()) {
             return -1;
         }
 
@@ -126,7 +90,7 @@ public class FileController {
     }
 
     @PostMapping(path="/hierarchy")
-    public @ResponseBody List<HierarchyResponse> hierarchy( @RequestBody HierarchyResponse lastResponse ) {
+    public List<HierarchyResponse> hierarchy( @RequestBody HierarchyResponse lastResponse ) {
         List<HierarchyResponse> result = new ArrayList<>();
 
         // Get the options for directory and their ids.
@@ -203,43 +167,12 @@ public class FileController {
     }
 
     @GetMapping(path="/file")
-    public @ResponseBody FileInfoExtra getFile(@RequestParam Integer id) throws InvalidFileIdException {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
-
-        if(!file.isPresent()) {
-            throw new InvalidFileIdException(id);
-        }
-
-        FileInfo originalFile = (FileInfo)file.get();
-        File associatedFile = fileSystemObjectManager.getFile(originalFile);
-        FileInfoExtra result = new FileInfoExtra(originalFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
-
-        // Are there backups of this file?
-        Iterable<FileSystemObject> sameName = fileSystemObjectManager.findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
-
-        for(FileSystemObject nextSameName: sameName) {
-            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo) ) {
-                continue;
-            }
-
-            FileInfo nextFile = (FileInfo)nextSameName;
-
-            if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
-                associatedFile = fileSystemObjectManager.getFile(nextFile);
-                result.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
-            }
-        }
-
-        // Get any labels.
-        for(String nextLabel : labelManager.getLabelsForFile(file.get().getIdAndType())) {
-            result.addLabel(nextLabel);
-        }
-
-        return result;
+    public FileInfoExtra getFile(@RequestParam Integer id) throws InvalidFileIdException {
+        return fileSystemObjectManager.getFileExtra(id);
     }
 
     @PutMapping(path="/expire")
-    public @ResponseBody FileInfoExtra expireFile(@RequestBody FileExpiryDTO expiry) throws InvalidFileIdException {
+    public FileInfoExtra expireFile(@RequestBody FileExpiryDTO expiry) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(expiry.getId(),FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {
@@ -250,46 +183,11 @@ public class FileController {
         return getFile(expiry.getId());
     }
 
-    @PostMapping(path="label")
-    public @ResponseBody FileInfoExtra addLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
-
-        if(file.isEmpty()) {
-            throw new InvalidFileIdException(fileLabelDTO.getFileId());
-        }
-
-        for(Integer label : fileLabelDTO.getLabels()) {
-            labelManager.addLabelToFile(file.get().getIdAndType(), label);
-        }
-
-        return getFile(fileLabelDTO.getFileId());
-    }
-
-    @DeleteMapping(path="label")
-    public @ResponseBody FileInfoExtra removeLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
-
-        if(file.isEmpty()) {
-            throw new InvalidFileIdException(fileLabelDTO.getFileId());
-        }
-
-        for(Integer label : fileLabelDTO.getLabels()) {
-            labelManager.removeLabelFromFile(file.get().getIdAndType(), label);
-        }
-
-        return getFile(fileLabelDTO.getFileId());
-    }
-
-    @GetMapping(path="labels")
-    public @ResponseBody List<LabelDTO> labels() {
-        return labelManager.getLabels();
-    }
-
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    public byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
@@ -306,10 +204,10 @@ public class FileController {
     }
 
     @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    public byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
@@ -326,24 +224,15 @@ public class FileController {
     }
 
     @DeleteMapping(path="/file")
-    public @ResponseBody ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
+    public ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
-        if(!file.isPresent()) {
+        if(file.isEmpty()) {
             throw new InvalidFileIdException(id);
         }
 
         // Create a delete request.
         FileInfo loadedFile = (FileInfo)file.get();
         return actionManager.createFileDeleteAction(loadedFile);
-    }
-
-    @PostMapping(path="/generate")
-    public @ResponseBody OkStatus doSomething() {
-        LOG.info("Get a list of the P files");
-
-        fileSystemObjectManager.gatherList();
-
-        return OkStatus.getOkStatus();
     }
 }

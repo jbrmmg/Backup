@@ -57,12 +57,11 @@ public class RwDbTree extends CompareRoot {
         }
 
         // Ignore nodes that are not the right type.
-        if(!(node instanceof RwDbCompareNode)) {
+        if(!(node instanceof RwDbCompareNode compareNode)) {
             return;
         }
 
         // If this is a delete and not a directory, or a recreate as directory.
-        RwDbCompareNode compareNode = (RwDbCompareNode)node;
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
             result.add(compareNode);
@@ -76,12 +75,11 @@ public class RwDbTree extends CompareRoot {
         }
 
         // Ignore nodes that are not the right type.
-        if(!(node instanceof RwDbCompareNode)) {
+        if(!(node instanceof RwDbCompareNode compareNode)) {
             return;
         }
 
         // If this is a delete and a directory, or a recreate as file.
-        RwDbCompareNode compareNode = (RwDbCompareNode)node;
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) && compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
@@ -90,14 +88,11 @@ public class RwDbTree extends CompareRoot {
 
     @Override
     protected void findInsertDirectories (FileTreeNode node, List<FileTreeNode> result) {
-        if(node instanceof  RwDbCompareNode) {
-            RwDbCompareNode compareNode = (RwDbCompareNode)node;
-
-            // If this is an insert and not a directory, or recreate as file.
-            if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && compareNode.isDirectory()) ||
-                    compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
-                result.add(compareNode);
-            }
+        // If this is an insert and not a directory, or recreate as file.
+        if((node instanceof RwDbCompareNode compareNode) &&
+            ((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && compareNode.isDirectory()) ||
+                    compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY))) {
+            result.add(compareNode);
         }
 
         for(FileTreeNode next : node.getChildren()) {
@@ -112,12 +107,11 @@ public class RwDbTree extends CompareRoot {
         }
 
         // Ignore nodes that are not the right type.
-        if(!(node instanceof RwDbCompareNode)) {
+        if(!(node instanceof RwDbCompareNode compareNode)) {
             return;
         }
 
         // If this is a file, add a delete then add to the list now.
-        RwDbCompareNode compareNode = (RwDbCompareNode)node;
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && !compareNode.isDirectory()) ||
                 (compareNode.getActionType().equals(RwDbCompareNode.ActionType.UPDATE) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {

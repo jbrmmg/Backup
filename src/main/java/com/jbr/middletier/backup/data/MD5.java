@@ -8,7 +8,7 @@ public class MD5 {
     }
 
     public MD5(String md5) {
-        if((md5 != null) && (md5.length() > 0)) {
+        if((md5 != null) && (!md5.isEmpty())) {
             this.md5Value = md5;
             return;
         }

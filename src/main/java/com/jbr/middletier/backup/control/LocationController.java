@@ -37,26 +37,26 @@ public class LocationController {
     }
 
     @GetMapping(path="/location")
-    public @ResponseBody List<LocationDTO> getLocation() {
+    public List<LocationDTO> getLocation() {
         return getLocations();
     }
 
     @PostMapping(path="/location")
-    public @ResponseBody List<LocationDTO> createLocation(@NotNull @RequestBody LocationDTO location) throws LocationAlreadyExistsException {
+    public List<LocationDTO> createLocation(@NotNull @RequestBody LocationDTO location) throws LocationAlreadyExistsException {
         LOG.info("create location {}", location);
         associatedFileDataManager.createLocation(associatedFileDataManager.convertToEntity(location));
         return getLocations();
     }
 
     @PutMapping(path="/location")
-    public @ResponseBody List<LocationDTO> updateLocation(@NotNull @RequestBody LocationDTO location) throws InvalidLocationIdException {
+    public List<LocationDTO> updateLocation(@NotNull @RequestBody LocationDTO location) throws InvalidLocationIdException {
         LOG.info("update location {}", location);
         associatedFileDataManager.updateLocation(associatedFileDataManager.convertToEntity(location));
         return getLocations();
     }
 
     @DeleteMapping(path="/location")
-    public @ResponseBody List<LocationDTO> deleteLocation(@NotNull @RequestBody LocationDTO location) throws InvalidLocationIdException {
+    public List<LocationDTO> deleteLocation(@NotNull @RequestBody LocationDTO location) throws InvalidLocationIdException {
         LOG.info("delete location {}", location);
         associatedFileDataManager.deleteLocation(associatedFileDataManager.convertToEntity(location));
         return getLocations();

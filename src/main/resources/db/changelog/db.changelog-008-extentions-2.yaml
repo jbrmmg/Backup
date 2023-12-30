@@ -21,7 +21,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: auto_gather
-                  valueBoolean: true
+                  valueBoolean: "true"
             tableName: source
 
 
@@ -29,5 +29,5 @@ databaseChangeLog:
             columns:
               - column:
                   name: check_duplicates
-                  valueBoolean: false
+                  valueBoolean: "false"
             tableName: location

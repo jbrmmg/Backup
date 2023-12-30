@@ -39,21 +39,21 @@ public class ActionController {
     }
 
     @GetMapping(path="/actions")
-    public @ResponseBody List<ActionConfirmDTO> getActions() {
+    public List<ActionConfirmDTO> getActions() {
         LOG.info("Get actions");
 
         return actionManager.externalFindByConfirmed(false);
     }
 
     @GetMapping(path="/confirmed-actions")
-    public @ResponseBody List<ActionConfirmDTO> getConfirmedActions() {
+    public List<ActionConfirmDTO> getConfirmedActions() {
         LOG.info("Get actions");
 
         return actionManager.externalFindByConfirmed(true);
     }
 
     @GetMapping(path="/ignore")
-    public @ResponseBody List<FileInfoDTO> getIgnoreFiles() {
+    public List<FileInfoDTO> getIgnoreFiles() {
         LOG.info("Get ignore files");
 
         List<FileInfoDTO> result = new ArrayList<>();
@@ -66,22 +66,21 @@ public class ActionController {
     }
 
     @PostMapping(path="/actions")
-    public @ResponseBody ActionConfirmDTO confirm (@NotNull @RequestBody ConfirmActionRequest action) {
+    public ActionConfirmDTO confirm (@NotNull @RequestBody ConfirmActionRequest action) {
         LOG.info("Confirm action");
 
         return actionManager.confirmAction(action);
     }
 
     @PostMapping(path="/actionemail")
-    public @ResponseBody  OkStatus emailActions() {
+    public  OkStatus emailActions() {
         actionManager.sendActionEmail();
 
         return OkStatus.getOkStatus();
     }
 
     @GetMapping(path="/summary")
-    public @ResponseBody
-    Summary summary() {
+    public Summary summary() {
         return this.summary;
     }
 }

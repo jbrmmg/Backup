@@ -37,24 +37,24 @@ public class SynchronizeController {
     }
 
     @GetMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> getSynchronize() {
+    public List<SynchronizeDTO> getSynchronize() {
         return getSynchronizations();
     }
 
     @PostMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException {
+    public List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException {
         associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }
 
     @PutMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
+    public List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         associatedFileDataManager.updateSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }
 
     @DeleteMapping(path="/synchronize")
-    public @ResponseBody List<SynchronizeDTO> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
+    public List<SynchronizeDTO> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         associatedFileDataManager.deleteSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }
