@@ -30,9 +30,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
-import static com.jbr.middletier.backup.util.CleanStringForLog.cleanString;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -1405,10 +1403,5 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(21,(long)id.getSizeId());
         Assert.assertEquals(1,(long)id.getFileId());
         Assert.assertEquals("1-21",id.toString());
-    }
-
-    @Test
-    public void testCleanString() {
-        Assert.assertEquals("    ABCD  abc 89", cleanString("£*)\"ABCD'#abc%89"));
     }
 }
