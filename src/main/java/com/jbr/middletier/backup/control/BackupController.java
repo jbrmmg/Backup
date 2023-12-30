@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+import static com.jbr.middletier.backup.util.CleanStringForLog.cleanString;
+
 /**
  * Created by jason on 08/02/17.
  */
@@ -84,7 +86,7 @@ public class BackupController {
         }
 
         Backup newBackup = modelMapper.map(backup,Backup.class);
-        LOG.info("Create backup - {}", newBackup.getId());
+        LOG.info("Create backup - {}", cleanString(newBackup.getId()));
         backupRepository.save(newBackup);
 
         return OkStatus.getOkStatus();
@@ -107,7 +109,7 @@ public class BackupController {
 
     @DeleteMapping()
     public OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
-        // Check that the item exists.
+            // Check that the item exists.
         Optional<Backup> storedBackup = backupRepository.findById(backup.getId());
 
         if(storedBackup.isEmpty()) {
