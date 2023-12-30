@@ -1,18 +1,14 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.data.DirectoryInfo;
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.Location;
-import com.jbr.middletier.backup.data.Source;
-import com.jbr.middletier.backup.dto.LocationDTO;
-import com.jbr.middletier.backup.dto.PrintSizeDTO;
-import com.jbr.middletier.backup.dto.SelectedPrintDTO;
-import com.jbr.middletier.backup.dto.SourceDTO;
+import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.LabelRepository;
+import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidLocationIdException;
 import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import com.jbr.middletier.backup.manager.LabelManager;
 import com.jbr.middletier.backup.manager.PrintManager;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -31,6 +27,7 @@ import org.testcontainers.containers.MySQLContainer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +75,12 @@ public class PrintIT extends FileTester {
     @Autowired
     PrintManager printManager;
 
+    @Autowired
+    LabelManager labelManager;
+
+    @Autowired
+    LabelRepository labelRepository;
+
     private Source source;
 
     @Before
@@ -110,6 +113,7 @@ public class PrintIT extends FileTester {
         associatedFileDataManager.deleteAllPreImportSource();
         associatedFileDataManager.deleteAllImportSource();
         associatedFileDataManager.deleteAllSource();
+        labelRepository.deleteAll();
     }
 
     private String setupPrint(String name) throws Exception {
@@ -117,6 +121,16 @@ public class PrintIT extends FileTester {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
         copyFiles(sourceDescription, sourceDirectory);
+
+        // Create labels.
+        Label label = new Label();
+        label.setId(1);
+        label.setName("HOUSE");
+        labelRepository.save(label);
+        label = new Label();
+        label.setId(2);
+        label.setName("PASSPORT");
+        labelRepository.save(label);
 
         // Import the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -247,5 +261,61 @@ public class PrintIT extends FileTester {
         Assert.assertEquals(1,prints.size());
 
         printManager.deletePrints();
+
+        // Check labels
+        List<LabelDTO> label = labelManager.getLabels();
+        Assert.assertEquals(2,label.size());
+        label = labelManager.getLabels();
+        Assert.assertEquals(2,label.size());
+
+        labelManager.addLabelToFile(testFile.get().getIdAndType(),1);
+        List<String> labels = labelManager.getLabelsForFile(testFile.get().getIdAndType());
+        Assert.assertEquals(1,labels.size());
+
+        labelManager.removeLabelFromFile(testFile.get().getIdAndType(),1);
+        labels = labelManager.getLabelsForFile(testFile.get().getIdAndType());
+        Assert.assertEquals(0,labels.size());
+    }
+
+    @Test
+    public void testExpireAndLabel() throws Exception {
+        String id = setupPrint("IMG_3891.jpeg");
+
+        FileExpiryDTO fileExpiry = new FileExpiryDTO();
+        fileExpiry.setExpiry(LocalDateTime.of(2023,12,3,10,25,8,9));
+        fileExpiry.setId(Integer.parseInt(id));
+
+        getMockMvc().perform(put("/jbr/int/backup/expire")
+                        .content(this.json(fileExpiry))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        fileExpiry = new FileExpiryDTO();
+        fileExpiry.setId(Integer.parseInt(id));
+
+        getMockMvc().perform(put("/jbr/int/backup/expire")
+                        .content(this.json(fileExpiry))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        FileLabelDTO fileLabel = new FileLabelDTO();
+        fileLabel.setFileId(Integer.parseInt(id));
+        fileLabel.getLabels().add(1);
+
+        getMockMvc().perform(post("/jbr/int/backup/label")
+                        .content(this.json(fileLabel))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("labels[0]",is("HOUSE")));
+
+        fileLabel = new FileLabelDTO();
+        fileLabel.setFileId(Integer.parseInt(id));
+        fileLabel.getLabels().add(1);
+
+        getMockMvc().perform(delete("/jbr/int/backup/label")
+                        .content(this.json(fileLabel))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("labels.length()",is(0)));
     }
 }
