@@ -2,6 +2,10 @@ package com.jbr.middletier.backup.util;
 
 public class CleanStringForLog {
     public static String cleanString(String input) {
+        if(input == null) {
+            return null;
+        }
+
         StringBuilder result = new StringBuilder();
 
         for(int i = 0; i < input.length(); i++) {
