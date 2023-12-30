@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-
-import static com.jbr.middletier.backup.util.CleanStringForLog.cleanString;
 import static java.util.Comparator.comparing;
 
 @RestController
@@ -65,23 +63,20 @@ public class FileController {
     }
 
     @PostMapping(path="/gather")
-    public List<GatherDataDTO> gather(@RequestBody String reason) {
-        LOG.info("Process drive - {}", cleanString(reason));
-
+    public List<GatherDataDTO> gather() {
+        LOG.info("Gather");
         return driveManager.gather();
     }
 
     @PostMapping(path="/duplicate")
-    public List<DuplicateDataDTO> duplicate(@RequestBody String temp) {
-        LOG.info("Duplicate process drive - {}", cleanString(temp));
-
+    public List<DuplicateDataDTO> duplicate() {
+        LOG.info("Duplicate check");
         return duplicateManager.duplicateCheck();
     }
 
     @PostMapping(path="/sync")
-    public List<SyncDataDTO> synchronize(@RequestBody String temp) {
-        LOG.info("Synchronize drives - {}", cleanString(temp));
-
+    public List<SyncDataDTO> synchronize() {
+        LOG.info("Synchronize");
         return synchronizeManager.synchronize();
     }
 

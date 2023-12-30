@@ -13,10 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Optional;
-
-import static com.jbr.middletier.backup.util.CleanStringForLog.cleanString;
 
 @RestController
 @RequestMapping("/jbr/ext/hardware")
@@ -54,45 +51,45 @@ public class HardwareController {
 
     @PutMapping()
     public OkStatus update(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
-        LOG.info("Update hardware - {}", cleanString(hardware.getMacAddress()));
-
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
 
         if(storedHardware.isEmpty()) {
+            LOG.warn("Cannot find hardware specified.");
             throw new InvalidHardwareIdException(hardware.getMacAddress());
         }
 
+        LOG.info("Update hardware {}", storedHardware.get().getMacAddress());
         hardwareRepository.save(modelMapper.map(hardware, Hardware.class));
         return OkStatus.getOkStatus();
     }
 
     @PostMapping()
     public OkStatus create(@NotNull @RequestBody HardwareDTO hardware) throws HardwareAlreadyExistsException {
-        LOG.info("Create hardware - {}", cleanString(hardware.getMacAddress()));
-
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
         if(storedHardware.isPresent()) {
+            LOG.warn("Specified hardware already exists {}", storedHardware.get().getMacAddress());
             throw new HardwareAlreadyExistsException(hardware.getMacAddress());
         }
 
-        hardwareRepository.save(modelMapper.map(hardware, Hardware.class));
+        Hardware created = hardwareRepository.save(modelMapper.map(hardware, Hardware.class));
+        LOG.info("Created new hardware {}", created.getMacAddress());
 
         return OkStatus.getOkStatus();
     }
 
     @DeleteMapping()
     public OkStatus delete(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
-        LOG.info("Delete hardware - {}", cleanString(hardware.getMacAddress()));
-
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
 
         if(storedHardware.isEmpty()) {
+            LOG.info("Specified hardware is not in the database.");
             throw new InvalidHardwareIdException(hardware.getMacAddress());
         }
 
+        LOG.info("Delete hardware {}", storedHardware.get().getMacAddress());
         hardwareRepository.delete(storedHardware.get());
 
         return OkStatus.getOkStatus();
