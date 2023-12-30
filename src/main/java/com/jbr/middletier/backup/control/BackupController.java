@@ -41,7 +41,7 @@ public class BackupController {
     }
 
     @GetMapping(path="/byId")
-    public @ResponseBody BackupDTO specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
+    public BackupDTO specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         LOG.info("List hardware.");
         // Check that the item exists.
         Optional<Backup> storedHardware = backupRepository.findById(id);
@@ -54,13 +54,13 @@ public class BackupController {
     }
 
     @GetMapping()
-    public @ResponseBody Iterable<Backup> backups() {
+    public Iterable<Backup> backups() {
         LOG.info("List backups Backup.");
         return backupRepository.findAllByOrderByIdAsc();
     }
 
     @PutMapping()
-    public @ResponseBody OkStatus update(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
+    public OkStatus update(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
         LOG.info("Update backup - {}", backup.getId());
 
         // Check that the item exists.
@@ -75,7 +75,7 @@ public class BackupController {
     }
 
     @PostMapping()
-    public @ResponseBody OkStatus create(@NotNull @RequestBody BackupDTO backup) throws BackupAlreadyExistsException {
+    public OkStatus create(@NotNull @RequestBody BackupDTO backup) throws BackupAlreadyExistsException {
         LOG.info("Create backup - {}", backup.getId());
 
         // Check that the item exists.
@@ -90,7 +90,7 @@ public class BackupController {
     }
 
     @PostMapping(path="/run")
-    public @ResponseBody OkStatus performBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
+    public OkStatus performBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         LOG.info("Perform backup - {}", id);
 
         // Check that the item exists.
@@ -105,7 +105,7 @@ public class BackupController {
     }
 
     @DeleteMapping()
-    public @ResponseBody OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
+    public OkStatus delete(@NotNull @RequestBody BackupDTO backup) throws InvalidBackupIdException {
         LOG.info("Delete backup - {}", backup.getId());
 
         // Check that the item exists.

@@ -6,12 +6,14 @@ import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dto.LocationDTO;
+import com.jbr.middletier.backup.dto.PrintSizeDTO;
 import com.jbr.middletier.backup.dto.SelectedPrintDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.InvalidLocationIdException;
 import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import com.jbr.middletier.backup.manager.PrintManager;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -73,6 +75,9 @@ public class PrintIT extends FileTester {
     @Autowired
     AssociatedFileDataManager associatedFileDataManager;
 
+    @Autowired
+    PrintManager printManager;
+
     private Source source;
 
     @Before
@@ -107,8 +112,7 @@ public class PrintIT extends FileTester {
         associatedFileDataManager.deleteAllSource();
     }
 
-    @Test
-    public void basicTest() throws Exception {
+    private String setupPrint(String name) throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
@@ -133,14 +137,18 @@ public class PrintIT extends FileTester {
         fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
         Optional<FileInfo> testFile = Optional.empty();
         for(FileInfo nextFile : files) {
-            if(nextFile.getName().equals("IMG_8231.jpg")) {
+            if(nextFile.getName().equals(name)) {
                 testFile = Optional.of(nextFile);
             }
         }
 
         Assert.assertTrue(testFile.isPresent());
+        return testFile.get().getIdAndType().getId().toString();
+    }
 
-        String id = testFile.get().getIdAndType().getId().toString();
+    @Test
+    public void testPrintController() throws Exception {
+        String id = setupPrint("IMG_8231.jpg");
         getMockMvc().perform(post("/jbr/int/backup/print")
                     .content(id)
                     .contentType(getContentType()))
@@ -159,6 +167,7 @@ public class PrintIT extends FileTester {
         getMockMvc().perform(get("/jbr/int/backup/prints")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].fileId",is(Integer.parseInt(id))))
                 .andExpect(jsonPath("$", hasSize(1)));
 
         getMockMvc().perform(post("/jbr/int/backup/generate")
@@ -189,5 +198,54 @@ public class PrintIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
+    }
+
+    @Test
+    public void testPrintManager() throws Exception {
+        String id = setupPrint("IMG_3891.jpeg");
+
+        List<PrintSizeDTO> size = printManager.getPrintSizes();
+        Assert.assertEquals(25,size.size());
+
+        Assert.assertEquals("6x4 in",printManager.getPrintSize(12).getName());
+
+        Assert.assertEquals(Integer.parseInt(id),(long)printManager.select(Integer.parseInt(id)));
+
+        List<FileInfo> files = new ArrayList<>();
+        List<DirectoryInfo> directories = new ArrayList<>();
+        Optional<FileInfo> testFile = Optional.empty();
+        fileSystemObjectManager.loadByParent(source.getIdAndType().getId(), directories, files);
+        int nonExistentId = 1;
+        boolean clash = true;
+        while(clash) {
+            clash = false;
+            for (FileInfo nextFile : files) {
+                if(testFile.isEmpty()) {
+                    if(nextFile.getName().equalsIgnoreCase("IMG_3891.jpeg")) {
+                        testFile = Optional.of(nextFile);
+                    }
+                }
+                if(nextFile.getIdAndType().getId().equals(nonExistentId)) {
+                    clash = true;
+                    break;
+                }
+            }
+
+            if(clash) {
+                nonExistentId++;
+            }
+        }
+        Assert.assertFalse(testFile.isEmpty());
+        Assert.assertNull(printManager.select(nonExistentId));
+        Assert.assertNull(printManager.unselect(nonExistentId));
+        printManager.deletePrints();
+
+        testFile.get().setFlags("P");
+        fileSystemObjectManager.save(testFile.get());
+
+        List<SelectedPrintDTO> prints = printManager.getPrints();
+        Assert.assertEquals(1,prints.size());
+
+        printManager.deletePrints();
     }
 }

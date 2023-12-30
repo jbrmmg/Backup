@@ -22,38 +22,38 @@ public class PrintController {
     }
 
     @GetMapping(path="/print-size")
-    public @ResponseBody List<PrintSizeDTO> printSizes() {
+    public List<PrintSizeDTO> printSizes() {
         LOG.info("Get print sizes");
         return printManager.getPrintSizes();
     }
 
     @PostMapping(path="/print")
-    public @ResponseBody Integer print(@RequestBody Integer id) {
+    public Integer print(@RequestBody Integer id) {
         return printManager.select(id);
     }
 
     @PutMapping(path="/print")
-    public @ResponseBody Integer updatePrint(@RequestBody SelectedPrintDTO selected) {
+    public Integer updatePrint(@RequestBody SelectedPrintDTO selected) {
         return printManager.updatePrint(selected);
     }
 
     @PostMapping(path="/unprint")
-    public @ResponseBody Integer unprint(@RequestBody Integer id) {
+    public Integer unprint(@RequestBody Integer id) {
         return printManager.unselect(id);
     }
 
     @GetMapping(path="/prints")
-    public @ResponseBody List<SelectedPrintDTO> prints() {
+    public List<SelectedPrintDTO> prints() {
         return printManager.getPrints();
     }
 
     @DeleteMapping(path="/prints")
-    public @ResponseBody List<Integer> deletePrints() {
+    public List<Integer> deletePrints() {
         return printManager.deletePrints();
     }
 
     @PostMapping(path="/generate")
-    public @ResponseBody OkStatus doSomething() {
+    public OkStatus doSomething() {
         LOG.info("Get a list of the P files");
 
         printManager.gatherList();

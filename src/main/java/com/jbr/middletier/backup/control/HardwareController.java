@@ -32,7 +32,7 @@ public class HardwareController {
     }
 
     @GetMapping(path="/byId")
-    public @ResponseBody HardwareDTO specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
+    public HardwareDTO specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
         LOG.info("List hardware.");
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(macAddress);
@@ -45,13 +45,13 @@ public class HardwareController {
     }
 
     @GetMapping()
-    public @ResponseBody Iterable<Hardware> hardware() {
+    public Iterable<Hardware> hardware() {
         LOG.info("List hardware.");
         return hardwareRepository.findAllByOrderByMacAddressAsc();
     }
 
     @PutMapping()
-    public @ResponseBody OkStatus update(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
+    public OkStatus update(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
         LOG.info("Update hardware - {}", hardware.getMacAddress());
 
         // Check that the item exists.
@@ -66,7 +66,7 @@ public class HardwareController {
     }
 
     @PostMapping()
-    public @ResponseBody OkStatus create(@NotNull @RequestBody HardwareDTO hardware) throws HardwareAlreadyExistsException {
+    public OkStatus create(@NotNull @RequestBody HardwareDTO hardware) throws HardwareAlreadyExistsException {
         LOG.info("Create hardware - {}", hardware.getMacAddress());
 
         // Check that the item exists.
@@ -81,7 +81,7 @@ public class HardwareController {
     }
 
     @DeleteMapping()
-    public @ResponseBody OkStatus delete(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
+    public OkStatus delete(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
         LOG.info("Delete hardware - {}", hardware.getMacAddress());
 
         // Check that the item exists.

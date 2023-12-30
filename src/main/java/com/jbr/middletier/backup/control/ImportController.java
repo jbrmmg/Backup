@@ -26,35 +26,35 @@ public class ImportController {
     }
 
     @PostMapping(path = "/convert")
-    public @ResponseBody List<ImportProcessDTO> processImports() {
+    public List<ImportProcessDTO> processImports() {
         LOG.info("Convert files from pre import to import");
 
         return importManager.convertImportFiles();
     }
 
     @PostMapping(path = "/import")
-    public @ResponseBody List<GatherDataDTO> importPhotoDirectory() throws ImportRequestException, IOException {
+    public List<GatherDataDTO> importPhotoDirectory() throws ImportRequestException, IOException {
         LOG.info("Import the files");
 
         return importManager.importPhoto();
     }
 
     @PostMapping(path = "/importprocess")
-    public @ResponseBody List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
+    public List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
         LOG.info("Process the import files.");
 
         return importManager.processImportFiles();
     }
 
     @GetMapping(path = "/importfiles")
-    public @ResponseBody List<ImportFileDTO> getImportFiles() {
+    public List<ImportFileDTO> getImportFiles() {
         LOG.info("Get the import files.");
 
         return importManager.externalFindImportFiles();
     }
 
     @GetMapping(path = "/importfile")
-    public @ResponseBody ImportFileDTO getFile(@RequestParam Integer id) throws InvalidFileIdException {
+    public ImportFileDTO getFile(@RequestParam Integer id) throws InvalidFileIdException {
         LOG.info("Get the import files.");
 
         return importManager.externalFindImportFile(id);
