@@ -32,9 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -97,7 +98,12 @@ public class PrintIT extends FileTester {
 
     @After
     public void cleanUpTest() {
-
+        // Remove the sources, files & directories.
+        associatedFileDataManager.deleteAllSynchronize();
+        fileSystemObjectManager.deleteAllFileObjects();
+        associatedFileDataManager.deleteAllPreImportSource();
+        associatedFileDataManager.deleteAllImportSource();
+        associatedFileDataManager.deleteAllSource();
     }
 
     @Test
@@ -138,5 +144,39 @@ public class PrintIT extends FileTester {
                     .content(id)
                     .contentType(getContentType()))
                 .andExpect(status().isOk());
+
+        getMockMvc().perform(post("/jbr/int/backup/unprint")
+                        .content(id)
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(post("/jbr/int/backup/print")
+                        .content(id)
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/int/backup/prints")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+
+        getMockMvc().perform(post("/jbr/int/backup/generate")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(delete("/jbr/int/backup/prints")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+
+        getMockMvc().perform(get("/jbr/int/backup/prints")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        getMockMvc().perform(get("/jbr/int/backup/print-size")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(25)));
+
     }
 }
