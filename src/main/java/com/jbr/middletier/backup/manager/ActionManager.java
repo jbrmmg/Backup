@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.ActionConfirmRepository;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.exception.ActionNotFoundException;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -247,13 +248,7 @@ public class ActionManager {
 
             // Send the email.
             LOG.info("Sending the actions email.");
-            Properties properties = new Properties();
-            properties.put("mail.smtp.auth", applicationProperties.getEmail().getAuthenticate().toString());
-            properties.put("mail.smtp.starttls.enable", "true");
-            properties.put("mail.smtp.host", applicationProperties.getEmail().getHost());
-            properties.put("mail.smtp.port", applicationProperties.getEmail().getPort().toString());
-            properties.put("mail.smtp.starttls.required", "true");
-            properties.put("mail.smtp.ssl.protocols", "TLSv1.2");
+            Properties properties = getProperties();
 
             Session session = Session.getInstance(properties,
                     new javax.mail.Authenticator() {
@@ -275,5 +270,17 @@ public class ActionManager {
         } catch (Exception ex) {
             LOG.error("Failed to send email ", ex);
         }
+    }
+
+    @NotNull
+    private Properties getProperties() {
+        Properties properties = new Properties();
+        properties.put("mail.smtp.auth", applicationProperties.getEmail().getAuthenticate().toString());
+        properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.smtp.host", applicationProperties.getEmail().getHost());
+        properties.put("mail.smtp.port", applicationProperties.getEmail().getPort().toString());
+        properties.put("mail.smtp.starttls.required", "true");
+        properties.put("mail.smtp.ssl.protocols", "TLSv1.2");
+        return properties;
     }
 }

@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.Location;
 import com.jbr.middletier.backup.data.Source;
 import com.jbr.middletier.backup.dto.LocationDTO;
+import com.jbr.middletier.backup.dto.SelectedPrintDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.InvalidLocationIdException;
 import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
@@ -177,6 +178,16 @@ public class PrintIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(25)));
+
+        SelectedPrintDTO testUpdate = new SelectedPrintDTO();
+        testUpdate.setFileId(Integer.parseInt(id));
+        testUpdate.setSizeId(16);
+        testUpdate.setBorder(false);
+        testUpdate.setBlackWhite(false);
+        getMockMvc().perform(put("/jbr/int/backup/print")
+                        .content(this.json(testUpdate))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
 
     }
 }
