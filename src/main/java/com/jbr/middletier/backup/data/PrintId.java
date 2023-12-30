@@ -32,4 +32,9 @@ public class PrintId extends BaseComparable {
     public String toString() {
         return this.fileId.toString() + "-" + this.sizeId.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
 }

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+import static com.jbr.middletier.backup.util.CleanStringForLog.cleanString;
+
 @RestController
 @RequestMapping("/jbr/ext/hardware")
 public class HardwareController {
@@ -52,7 +54,7 @@ public class HardwareController {
 
     @PutMapping()
     public OkStatus update(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
-        LOG.info("Update hardware - {}", hardware.getMacAddress());
+        LOG.info("Update hardware - {}", cleanString(hardware.getMacAddress()));
 
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
@@ -67,7 +69,7 @@ public class HardwareController {
 
     @PostMapping()
     public OkStatus create(@NotNull @RequestBody HardwareDTO hardware) throws HardwareAlreadyExistsException {
-        LOG.info("Create hardware - {}", hardware.getMacAddress());
+        LOG.info("Create hardware - {}", cleanString(hardware.getMacAddress()));
 
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());
@@ -82,7 +84,7 @@ public class HardwareController {
 
     @DeleteMapping()
     public OkStatus delete(@NotNull @RequestBody HardwareDTO hardware) throws InvalidHardwareIdException {
-        LOG.info("Delete hardware - {}", hardware.getMacAddress());
+        LOG.info("Delete hardware - {}", cleanString(hardware.getMacAddress()));
 
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(hardware.getMacAddress());

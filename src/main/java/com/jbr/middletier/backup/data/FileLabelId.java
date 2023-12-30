@@ -34,4 +34,9 @@ public class FileLabelId extends BaseComparable {
     public String toString() {
         return this.fileId.toString() + "-" + this.labelId.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
 }

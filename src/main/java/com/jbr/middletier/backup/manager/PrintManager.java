@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.jbr.middletier.backup.util.CleanStringForLog.cleanString;
+
 @Component
 public class PrintManager {
     private static final Logger LOG = LoggerFactory.getLogger(PrintManager.class);
@@ -184,7 +186,8 @@ public class PrintManager {
 
     public Integer updatePrint(SelectedPrintDTO print) {
         // Update the print
-        LOG.info("Update print details - {} {} {} {} {}", print.getFileId(), print.getSizeId(), print.getSizeName(), print.getBlackWhite(), print.getBorder());
+        LOG.info("Update print details - {} {} {} {} {}",
+                print.getFileId(), print.getSizeId(), cleanString(print.getSizeName()), print.getBlackWhite(), print.getBorder());
 
         // Delete if exists.
         removePrintRow(print.getFileId());
