@@ -231,10 +231,34 @@ public class PrintManager {
     }
 
     public void gatherList() {
-        // Find the P files.
-        for(FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
-            File printFile = fileSystemObjectManager.getFile(next);
-            LOG.info("cp {} /media/jason/6263-3935/{}", printFile.getAbsoluteFile(), next.getName());
+        try {
+            List<Integer> ids = new ArrayList<>();
+
+            for (Print next : printRepository.findAll()) {
+                Optional<FileSystemObject> printFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getId().getFileId(), FileSystemObjectType.FSO_FILE));
+
+                if(printFile.isPresent()) {
+                    File file = fileSystemObjectManager.getFile(printFile.get());
+                    PrintSizeDTO size = getPrintSize(next.getId().getSizeId());
+
+                    ids.add(printFile.get().getIdAndType().getId());
+                    String border = next.getBorder() ? "B" : "_";
+                    String blackWhite = next.getBlackWhite() ? "BW" : "__";
+                    String cleanName = size.getName().replace("[", "_").replace("]", "_").replace(" ", "");
+                    LOG.info("cp {} ~/Documents/ForPrint/{}_{}_{}_{}", file.getAbsoluteFile().toString().replace(" ", "\\ "), cleanName, border, blackWhite, printFile.get().getName());
+                }
+            }
+
+            // Find the P files.
+            for (FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
+                if(!ids.contains(next.getIdAndType().getId())) {
+                    File printFile = fileSystemObjectManager.getFile(next);
+                    LOG.info("cp {} ~/Documents/ForPrint/{}", printFile.getAbsoluteFile(), next.getName());
+                }
+            }
+        }
+        catch(Exception e) {
+            LOG.warn("Failed to gather");
         }
     }
 }
