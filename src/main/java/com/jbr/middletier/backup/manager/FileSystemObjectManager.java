@@ -276,30 +276,6 @@ public class FileSystemObjectManager {
         fileRepository.save(file.get());
     }
 
-    public void clearFlags(FileSystemObject fso) {
-        // Only applies to FILE objects.
-        if(!fso.getIdAndType().getType().equals(FileSystemObjectType.FSO_FILE)) {
-            return;
-        }
-
-        Optional<FileInfo> file = fileRepository.findById(fso.getIdAndType().getId());
-
-        if(file.isPresent()) {
-            file.get().setFlags(null);
-            fileRepository.save(file.get());
-        }
-    }
-
-    public List<FileInfo> getFilesByFlag(String flag) {
-        List<FileInfo> result = new ArrayList<>();
-
-        for(FileInfo next : fileRepository.findByFlagsContaining(flag)) {
-            result.add(next);
-        }
-
-        return result;
-    }
-
     public FileInfoExtra getFileExtra(Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 

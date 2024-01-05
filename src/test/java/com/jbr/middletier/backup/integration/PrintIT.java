@@ -163,8 +163,15 @@ public class PrintIT extends FileTester {
     @Test
     public void testPrintController() throws Exception {
         String id = setupPrint("IMG_8231.jpg");
+
+        SelectedPrintDTO print = new SelectedPrintDTO();
+        print.setFileId(Integer.parseInt(id));
+        print.setSizeId(12);
+        print.setBorder(false);
+        print.setBlackWhite(false);
+
         getMockMvc().perform(post("/jbr/int/backup/print")
-                    .content(id)
+                    .content(this.json(print))
                     .contentType(getContentType()))
                 .andExpect(status().isOk());
 
@@ -174,7 +181,7 @@ public class PrintIT extends FileTester {
                 .andExpect(status().isOk());
 
         getMockMvc().perform(post("/jbr/int/backup/print")
-                        .content(id)
+                        .content(this.json(print))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
@@ -223,7 +230,12 @@ public class PrintIT extends FileTester {
 
         Assert.assertEquals("6x4 in",printManager.getPrintSize(12).getName());
 
-        Assert.assertEquals(Integer.parseInt(id),(long)printManager.select(Integer.parseInt(id)));
+        SelectedPrintDTO printRequest = new SelectedPrintDTO();
+        printRequest.setFileId(Integer.parseInt(id));
+        printRequest.setSizeId(12);
+        printRequest.setBlackWhite(false);
+        printRequest.setBorder(false);
+        Assert.assertEquals(Integer.parseInt(id),(long)printManager.select(printRequest));
 
         List<FileInfo> files = new ArrayList<>();
         List<DirectoryInfo> directories = new ArrayList<>();
@@ -250,16 +262,9 @@ public class PrintIT extends FileTester {
             }
         }
         Assert.assertFalse(testFile.isEmpty());
-        Assert.assertNull(printManager.select(nonExistentId));
+        printRequest.setFileId(nonExistentId);
+        Assert.assertNull(printManager.select(printRequest));
         Assert.assertNull(printManager.unselect(nonExistentId));
-        printManager.deletePrints();
-
-        testFile.get().setFlags("P");
-        fileSystemObjectManager.save(testFile.get());
-
-        List<SelectedPrintDTO> prints = printManager.getPrints();
-        Assert.assertEquals(1,prints.size());
-
         printManager.deletePrints();
 
         // Check labels

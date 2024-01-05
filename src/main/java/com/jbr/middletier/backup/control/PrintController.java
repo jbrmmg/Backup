@@ -28,8 +28,8 @@ public class PrintController {
     }
 
     @PostMapping(path="/print")
-    public Integer print(@RequestBody Integer id) {
-        return printManager.select(id);
+    public Integer print(@RequestBody SelectedPrintDTO print) {
+        return printManager.select(print);
     }
 
     @PutMapping(path="/print")

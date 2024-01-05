@@ -12,6 +12,4 @@ public interface FileRepository extends CrudRepository<FileInfo, Integer>, JpaSp
     Iterable<FileInfo> findAllByOrderByIdAsc();
 
     Iterable<FileInfo> findByParentId(Integer parentId);
-
-    Iterable<FileInfo> findByFlagsContaining(String flags);
 }

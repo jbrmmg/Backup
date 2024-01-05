@@ -19,9 +19,6 @@ import java.util.Optional;
 public class PrintManager {
     private static final Logger LOG = LoggerFactory.getLogger(PrintManager.class);
 
-    private static final int DEFAULT_PRINT_SIZE_ID = 12;
-    private static final String PRINT_FLAG = "P";
-
     private final PrintRepository printRepository;
     private final PrintSizeRepository printSizeRepository;
     private final FileSystemObjectManager fileSystemObjectManager;
@@ -61,29 +58,30 @@ public class PrintManager {
         return null;
     }
 
-    public Integer select(Integer id) {
+    public Integer select(SelectedPrintDTO print) {
         // Find the file.
-        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(print.getFileId(),FileSystemObjectType.FSO_FILE));
 
-        // Get the default size
-        PrintSizeDTO defaultSize = getPrintSize(DEFAULT_PRINT_SIZE_ID);
-        if(defaultSize == null) {
-            LOG.error("Default print size is missing (select for print)");
+        // Get the specified size
+        PrintSizeDTO printSize = getPrintSize(print.getSizeId());
+        if(printSize == null) {
+            LOG.error("Invalid print size");
+            throw new IllegalStateException("Invalid print size");
         }
 
-        if(file.isPresent() && defaultSize != null) {
+        if(file.isPresent()) {
             // Create a print
             Print newPrint = new Print();
             PrintId newPrintId = new PrintId();
-            newPrintId.setFileId(id);
-            newPrintId.setSizeId(defaultSize.getId());
+            newPrintId.setFileId(print.getFileId());
+            newPrintId.setSizeId(print.getSizeId());
             newPrint.setId(newPrintId);
-            newPrint.setBorder(false);
-            newPrint.setBlackWhite(false);
+            newPrint.setBorder(print.getBorder());
+            newPrint.setBlackWhite(print.getBlackWhite());
 
             printRepository.save(newPrint);
 
-            return id;
+            return newPrint.getId().getFileId();
         }
 
         return null;
@@ -103,9 +101,6 @@ public class PrintManager {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isPresent()) {
-            // Remove the legacy flag.
-            fileSystemObjectManager.clearFlags(file.get());
-
             // If any print row exists remove it.
             removePrintRow(id);
 
@@ -115,8 +110,10 @@ public class PrintManager {
         return null;
     }
 
-    private void getPrintRows(List<SelectedPrintDTO> rows) {
-        // Get the print rows.
+    public List<SelectedPrintDTO> getPrints() {
+        List<SelectedPrintDTO> result = new ArrayList<>();
+
+        // Get the details of prints.
         for(Print next : printRepository.findAll()) {
             SelectedPrintDTO nextPrint = new SelectedPrintDTO();
             nextPrint.setFileId(next.getId().getFileId());
@@ -135,49 +132,9 @@ public class PrintManager {
             Optional<FileSystemObject> fso = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getId().getFileId(),FileSystemObjectType.FSO_FILE));
             fso.ifPresent(fileSystemObject -> nextPrint.setFileName(fileSystemObject.getName()));
 
-            rows.add(nextPrint);
+            result.add(nextPrint);
         }
-    }
 
-    private void getFlaggedFiles(List<SelectedPrintDTO> rows) {
-        // Get the default size (id = 12)
-        PrintSizeDTO defaultSize = getPrintSize(DEFAULT_PRINT_SIZE_ID);
-
-        // Check to see if any files have a P flag (legacy).
-        for(FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
-            // Is this already in the list?
-            boolean already = false;
-            for(SelectedPrintDTO existing : rows) {
-                if(existing.getFileId() == next.getIdAndType().getId()) {
-                    already = true;
-                    break;
-                }
-            }
-
-            if(defaultSize == null) {
-                LOG.error("Default print size is missing (legacy print)");
-            }
-
-            if(!already && defaultSize != null) {
-                SelectedPrintDTO nextPrint = new SelectedPrintDTO();
-                nextPrint.setFileId(next.getIdAndType().getId());
-                nextPrint.setSizeName(defaultSize.getName());
-                nextPrint.setSizeId(defaultSize.getId());
-                nextPrint.setFileName(next.getName());
-                nextPrint.setBorder(false);
-                nextPrint.setBlackWhite(false);
-
-                rows.add(nextPrint);
-            }
-        }
-    }
-
-    public List<SelectedPrintDTO> getPrints() {
-        List<SelectedPrintDTO> result = new ArrayList<>();
-
-        // Get the details of prints.
-        getPrintRows(result);
-        getFlaggedFiles(result);
 
         return result;
     }
@@ -216,24 +173,11 @@ public class PrintManager {
 
         printRepository.deleteAll();
 
-        // Legacy
-        for(FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
-            next.setFlags(null);
-
-            if(!result.contains(next.getIdAndType().getId())) {
-                result.add(next.getIdAndType().getId());
-            }
-
-            fileSystemObjectManager.save(next);
-        }
-
         return result;
     }
 
     public void gatherList() {
         try {
-            List<Integer> ids = new ArrayList<>();
-
             for (Print next : printRepository.findAll()) {
                 Optional<FileSystemObject> printFile = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(next.getId().getFileId(), FileSystemObjectType.FSO_FILE));
 
@@ -241,19 +185,10 @@ public class PrintManager {
                     File file = fileSystemObjectManager.getFile(printFile.get());
                     PrintSizeDTO size = getPrintSize(next.getId().getSizeId());
 
-                    ids.add(printFile.get().getIdAndType().getId());
                     String border = next.getBorder() ? "B" : "_";
                     String blackWhite = next.getBlackWhite() ? "BW" : "__";
                     String cleanName = size.getName().replace("[", "_").replace("]", "_").replace(" ", "");
                     LOG.info("cp {} ~/Documents/ForPrint/{}_{}_{}_{}", file.getAbsoluteFile().toString().replace(" ", "\\ "), cleanName, border, blackWhite, printFile.get().getName());
-                }
-            }
-
-            // Find the P files.
-            for (FileInfo next : fileSystemObjectManager.getFilesByFlag(PRINT_FLAG)) {
-                if(!ids.contains(next.getIdAndType().getId())) {
-                    File printFile = fileSystemObjectManager.getFile(next);
-                    LOG.info("cp {} ~/Documents/ForPrint/{}", printFile.getAbsoluteFile(), next.getName());
                 }
             }
         }
