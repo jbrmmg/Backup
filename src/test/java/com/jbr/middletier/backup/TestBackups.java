@@ -138,7 +138,7 @@ public class TestBackups {
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
 
         cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
-        verify(dbLoggingManager,times(1)).error("Failed to convert directory java.time.format.DateTimeParseException: Text '20201401' could not be parsed at index 0");
+        verify(dbLoggingManager,times(1)).error("Failed to convert directory java.time.format.DateTimeParseException: Text '20201401' could not be parsed at index 0",null,null);
     }
 
     @Test
