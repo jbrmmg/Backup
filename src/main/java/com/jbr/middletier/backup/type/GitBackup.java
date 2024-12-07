@@ -36,7 +36,7 @@ public class GitBackup extends FileBackup {
 
         // Copy file if not already created.
         LOG.info("File {} copy to {}", listOfFile.getName(), destinationPath);
-        performFileBackup(dbLoggingManager, fileSystem, backup.getDirectory(), destinationPath.toString(), listOfFile.getName());
+        performFileBackup(dbLoggingManager, fileSystem, backup.getDirectory(), destinationPath.toString(), listOfFile.getName(), backup.getId());
     }
 
     private void processDirectory(FileSystem fileSystem, File listOfFile, Path destinationPath, DbLoggingManager dbLoggingManager, Backup backup) throws IOException {
@@ -54,7 +54,7 @@ public class GitBackup extends FileBackup {
         FileSystem.TemporaryResultDTO result = new FileSystem.TemporaryResultDTO();
         fileSystem.copyDirectory(source, destination.toFile(),result);
 
-        dbLoggingManager.info(String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath, listOfFile.getName()));
+        dbLoggingManager.info(String.format("DirectoryInfo %s copy to %s/%s", listOfFile.getName(), destinationPath, listOfFile.getName()),null, backup.getId());
     }
 
     @Override
@@ -91,7 +91,7 @@ public class GitBackup extends FileBackup {
             LOG.info("Backup completed.");
         } catch (Exception ex) {
             LOG.error("Failed to perform git backup", ex);
-            dbLoggingManager.error("git backup " + ex);
+            dbLoggingManager.error("git backup " + ex,null,backup.getId());
         }
     }
 }

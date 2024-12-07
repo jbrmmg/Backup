@@ -180,7 +180,7 @@ public class ActionManager {
 
     void deleteFileIfConfirmed(FileInfo fileInfo, ProcessResultDTO processResult) {
         if(checkAction(fileInfo, ActionConfirmType.AC_DELETE)) {
-            fileSystem.deleteFile(fileSystemObjectManager.getFile(fileInfo), processResult);
+            fileSystem.deleteFile(fileSystemObjectManager.getFile(fileInfo), processResult,fileInfo.getIdAndType().getId());
         }
     }
 

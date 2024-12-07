@@ -82,5 +82,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-028-expiry.yaml
 
   - include:
+      file: /db/changelog/db.changelog-029-log-update.yaml
+
+  - include:
       file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

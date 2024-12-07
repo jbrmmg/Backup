@@ -30,7 +30,7 @@ public class CleanBackup implements PerformBackup {
         this.applicationProperties = applicationProperties;
     }
 
-    private boolean shouldDirectoryBeDeleted(DbLoggingManager loggingManager, String directory) {
+    private boolean shouldDirectoryBeDeleted(DbLoggingManager loggingManager, String directory, String id) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(applicationProperties.getDirectory().getDateFormat());
 
@@ -45,40 +45,40 @@ public class CleanBackup implements PerformBackup {
             }
         } catch ( DateTimeParseException ex ) {
             LOG.warn(String.format("Failed to convert directory name %s to a date",directory));
-            loggingManager.error("Failed to convert directory " + ex);
+            loggingManager.error("Failed to convert directory " + ex,null,id);
         }
 
         return false;
     }
 
-    private void deleleDirectory(DbLoggingManager loggingManager, String directory) {
+    private void deleleDirectory(DbLoggingManager loggingManager, String directory, String id) {
         try {
             File directoryToDelete = new File(directory);
             FileUtils.deleteDirectory(directoryToDelete);
             LOG.info("Deleted {}",directory);
-            loggingManager.info(String.format("Deleted %s",directory));
+            loggingManager.info(String.format("Deleted %s",directory),null,id);
         } catch ( IOException ex ) {
             LOG.warn(String.format("Failed to deleted %s",directory));
-            loggingManager.error("delete directory " + ex);
+            loggingManager.error("delete directory " + ex,null,id);
         }
     }
 
     @Override
     public void performBackup(BackupManager backupManager, DbLoggingManager loggingManager, FileSystem fileSystem, Backup backup) {
-        loggingManager.info("Clean Backup.");
+        loggingManager.info("Clean Backup.",null, backup.getId());
 
         // Remove any backup directories older than x days
         File folder = new File(applicationProperties.getDirectory().getName());
         if(!folder.exists()) {
-            loggingManager.warn("Backup directory does not exist.");
+            loggingManager.warn("Backup directory does not exist.",null, backup.getId());
             throw new IllegalStateException("Backup directory does not exist.");
         }
 
         File[] listOfFiles = folder.listFiles();
         if(listOfFiles != null) {
             for (File listOfFile : listOfFiles) {
-                if (listOfFile.isDirectory() && shouldDirectoryBeDeleted(loggingManager, listOfFile.getName())) {
-                    deleleDirectory(loggingManager, String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()));
+                if (listOfFile.isDirectory() && shouldDirectoryBeDeleted(loggingManager, listOfFile.getName(), backup.getId())) {
+                    deleleDirectory(loggingManager, String.format("%s/%s", applicationProperties.getDirectory().getName(), listOfFile.getName()),backup.getId());
                 }
             }
         }
