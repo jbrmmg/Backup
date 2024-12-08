@@ -100,7 +100,7 @@ public class SynchronizeManager {
         DbFile dbFile = (DbFile)node.getDestination();
 
         // Delete the file specified in the node.
-        dbLoggingManager.info(String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()),node.getSource().getFSO().getIdAndType().getId(),null);
+        dbLoggingManager.info(String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()),dbFile.getFSO().getIdAndType().getId(),null);
         actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO(), result);
 
         // If there is a sub-action of remove source then that should be deleted too.
@@ -115,7 +115,7 @@ public class SynchronizeManager {
         File directory = fileSystemObjectManager.getFile(dbDirectory.getFSO());
 
         // Delete the file specified in the node.
-        dbLoggingManager.info(String.format(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()),node.getSource().getFSO().getIdAndType().getId(), null);
+        dbLoggingManager.info(String.format(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()),dbDirectory.getFSO().getIdAndType().getId(), null);
         fileSystem.deleteDirectoryIfEmpty(directory);
     }
 
