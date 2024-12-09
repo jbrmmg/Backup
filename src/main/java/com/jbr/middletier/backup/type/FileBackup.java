@@ -21,7 +21,7 @@ public class FileBackup implements PerformBackup {
 
     private static final String PATH_FILE_FORMAT = "%s/%s";
 
-    void performFileBackup(DbLoggingManager dbLoggingManager, FileSystem fileSystem, String sourceDirectory, String destinationDirectory, String artifactName) throws IOException {
+    void performFileBackup(DbLoggingManager dbLoggingManager, FileSystem fileSystem, String sourceDirectory, String destinationDirectory, String artifactName, String id) throws IOException {
         // Perform a file backup.
 
         // Check that the source directory exists.
@@ -54,7 +54,7 @@ public class FileBackup implements PerformBackup {
 
         // Perform the file copy.
         LOG.info("Copy {}/{} to {}/{}",sourceDirectory,artifactName,destinationDirectory,artifactName);
-        dbLoggingManager.info(String.format("Copy %s/%s to %s/%s", sourceDirectory, artifactName, destinationDirectory, artifactName));
+        dbLoggingManager.info(String.format("Copy %s/%s to %s/%s", sourceDirectory, artifactName, destinationDirectory, artifactName),null, id);
         FileSystem.TemporaryResultDTO result = new FileSystem.TemporaryResultDTO();
         fileSystem.copyFile(sourceFile,destinationFile,result);
     }
@@ -65,10 +65,10 @@ public class FileBackup implements PerformBackup {
             LOG.info("File Backup {} {} {} {} {}", backup.getId(), backup.getBackupName(), backup.getFileName(), backup.getArtifact(), backup.getDirectory());
 
             // Perform a file backup.
-            performFileBackup(dbLoggingManager, fileSystem,backup.getDirectory(),String.format(PATH_FILE_FORMAT,backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact());
+            performFileBackup(dbLoggingManager, fileSystem,backup.getDirectory(),String.format(PATH_FILE_FORMAT,backupManager.todaysDirectory(), backup.getBackupName()),backup.getArtifact(),backup.getId());
         } catch (Exception ex) {
             LOG.error("Failed to perform file backup",ex);
-            dbLoggingManager.error("file backup " + ex);
+            dbLoggingManager.error("file backup " + ex,null,backup.getId());
         }
     }
 }

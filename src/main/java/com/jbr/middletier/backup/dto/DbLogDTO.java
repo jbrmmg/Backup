@@ -11,11 +11,15 @@ public class DbLogDTO {
     private DbLogType type;
     private LocalDateTime date;
     private String message;
+    private Integer fso;
+    private String backup;
 
     public DbLogDTO() {
         this.type = DbLogType.DLT_DEBUG;
         this.message = "";
         this.date = LocalDateTime.now();
+        this.fso = null;
+        this.backup = null;
     }
 
     public DbLogType getType() {
@@ -41,4 +45,12 @@ public class DbLogDTO {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public Integer getFso() { return this.fso; }
+
+    public void setFso(Integer fso) { this.fso = fso; }
+
+    public String getBackup() { return this.backup; }
+
+    public void setBackup(String backup) { this.backup = backup; }
 }

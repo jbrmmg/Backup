@@ -66,7 +66,7 @@ public class TypeManager {
             return zipupBackup;
         }
 
-        dbLoggingManager.error(String.format("%s invalid type requested.",type));
+        dbLoggingManager.error(String.format("%s invalid type requested.",type),null,null);
         throw new IllegalArgumentException(String.format("%s invalid type requested.",type));
     }
 }

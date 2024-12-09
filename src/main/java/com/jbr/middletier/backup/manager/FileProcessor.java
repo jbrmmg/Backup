@@ -55,7 +55,7 @@ abstract class FileProcessor {
         }
 
         // Only nodes that are the same as the DB can be deleted
-        if(((RwDbCompareNode) node).getActionType() != RwDbCompareNode.ActionType.NONE) {
+        if(compareNode.getActionType() != RwDbCompareNode.ActionType.NONE) {
             return;
         }
 
@@ -65,7 +65,7 @@ abstract class FileProcessor {
                     compareNode.getDatabaseObjectId().getId().equals(next.getPath().getIdAndType().getId())) {
                 Optional<File> fileToDelete = compareNode.getFileForDelete();
                 if(fileToDelete.isPresent()) {
-                    fileSystem.deleteFile(fileToDelete.get(), gatherData);
+                    fileSystem.deleteFile(fileToDelete.get(), gatherData,next.getPath().getIdAndType().getId());
 
                     if (!fileSystem.fileExists(fileToDelete.get())) {
                         // If the file has been removed, then remove the action.
@@ -190,7 +190,7 @@ abstract class FileProcessor {
             file.setSize(rwNode.getFile().length());
             file.setDate(fileDate);
             if(!skipMD5) {
-                file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification()));
+                file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification(),file.getIdAndType().getId()));
             }
         }
 
