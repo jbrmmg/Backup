@@ -49,7 +49,7 @@ public class BackupManager {
         // If not exists, create it.
         if(!fileSystem.directoryExists(todaysDirectoryPath.toPath())) {
             fileSystem.createDirectory(todaysDirectoryPath.toPath());
-            dbLoggingManager.info("Created directory + " + todaysDirectoryPath);
+            dbLoggingManager.info("Created directory + " + todaysDirectoryPath,null,null);
         }
     }
 }

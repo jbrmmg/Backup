@@ -21,6 +21,12 @@ public class DbLogSerializer  extends StdSerializer<DbLogDTO> {
         serializerProvider.defaultSerializeField("date", dbLogDTO.getDate(), jsonGenerator);
         serializerProvider.defaultSerializeField("type", dbLogDTO.getType().getDisplayName(), jsonGenerator);
         serializerProvider.defaultSerializeField("message", dbLogDTO.getMessage(), jsonGenerator);
+        if(dbLogDTO.getFso() != null){
+            serializerProvider.defaultSerializeField("fso", dbLogDTO.getFso(), jsonGenerator);
+        }
+        if(dbLogDTO.getBackup() != null){
+            serializerProvider.defaultSerializeField("backup", dbLogDTO.getBackup(), jsonGenerator);
+        }
         jsonGenerator.writeEndObject();
     }
 }

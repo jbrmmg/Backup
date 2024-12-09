@@ -265,12 +265,10 @@ public class FileProcessingIT extends FileTester {
         Assert.assertEquals(5, nodes.size());
         int sectionCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof SectionNode) {
-                SectionNode sectionNode = (SectionNode) nextNode;
+            if (nextNode instanceof SectionNode sectionNode) {
                 Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
-            } else if (nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+            } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 Assert.assertFalse(compareNode.getName().isPresent());
                 Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                 Assert.assertFalse(compareNode.isDirectory());
@@ -325,12 +323,10 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof SectionNode) {
-                SectionNode sectionNode = (SectionNode) nextNode;
+            if (nextNode instanceof SectionNode sectionNode) {
                 Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
-            } else if (nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+            } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
                 Assert.assertFalse(compareNode.isDirectory());
                 compareCount++;
@@ -398,12 +394,10 @@ public class FileProcessingIT extends FileTester {
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof SectionNode) {
-                SectionNode sectionNode = (SectionNode) nextNode;
+            if (nextNode instanceof SectionNode sectionNode) {
                 Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
-            } else if (nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+            } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 if (compareNode.isDirectory()) {
                     Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compareNode.getActionType());
                     compareDirectoryCount++;
@@ -476,12 +470,10 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof SectionNode) {
-                SectionNode sectionNode = (SectionNode) nextNode;
+            if (nextNode instanceof SectionNode sectionNode) {
                 Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
-            } else if (nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+            } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
                 Assert.assertFalse(compareNode.isDirectory());
                 compareCount++;
@@ -549,12 +541,10 @@ public class FileProcessingIT extends FileTester {
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof SectionNode) {
-                SectionNode sectionNode = (SectionNode) nextNode;
+            if (nextNode instanceof SectionNode sectionNode) {
                 Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
-            } else if (nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+            } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
                 Assert.assertTrue(compareNode.isDirectory());
                 compareCount++;
@@ -604,12 +594,10 @@ public class FileProcessingIT extends FileTester {
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
         for (FileTreeNode nextNode : nodes) {
-            if (nextNode instanceof SectionNode) {
-                SectionNode sectionNode = (SectionNode) nextNode;
+            if (nextNode instanceof SectionNode sectionNode) {
                 Assert.assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
-            } else if (nextNode instanceof RwDbCompareNode) {
-                RwDbCompareNode compareNode = (RwDbCompareNode) nextNode;
+            } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 if (compareNode.isDirectory()) {
                     Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                     compareDirectoryCount++;
@@ -738,7 +726,7 @@ public class FileProcessingIT extends FileTester {
 
         ProcessResultDTO result = mock(ProcessResultDTO.class);
 
-        fileSystem.deleteFile(nonExistFile,result);
+        fileSystem.deleteFile(nonExistFile,result,null);
         verify(nonExistFile, times(1)).exists();
         verify(result, times(0)).setProblems();
     }
@@ -754,7 +742,7 @@ public class FileProcessingIT extends FileTester {
 
         ProcessResultDTO result = mock(ProcessResultDTO.class);
 
-        fileSystem.deleteFile(directory,result);
+        fileSystem.deleteFile(directory,result,null);
         verify(directory, times(1)).exists();
         verify(directory, times(1)).isDirectory();
         verify(result, times(0)).setProblems();
@@ -770,7 +758,7 @@ public class FileProcessingIT extends FileTester {
 
         ProcessResultDTO result = mock(ProcessResultDTO.class);
 
-        fileSystem.deleteDirectory(nonExistFile,result);
+        fileSystem.deleteDirectory(nonExistFile,result,null);
         verify(nonExistFile, times(1)).exists();
         verify(result, times(0)).setProblems();
     }
@@ -786,7 +774,7 @@ public class FileProcessingIT extends FileTester {
 
         ProcessResultDTO result = mock(ProcessResultDTO.class);
 
-        fileSystem.deleteDirectory(directory,result);
+        fileSystem.deleteDirectory(directory,result,null);
         verify(directory, times(1)).exists();
         verify(directory, times(1)).isDirectory();
         verify(result, times(0)).setProblems();

@@ -21,14 +21,22 @@ public class DbLog {
     @Column(name="message")
     private String message;
 
+    @Column(name="fso")
+    private Integer fso;
+
+    @Column(name="backup")
+    private String backup;
+
     public DbLog() {
-        this(DbLogType.DLT_ERROR,"Unknown");
+        this(DbLogType.DLT_ERROR,"Unknown",null,null);
     }
 
-    public DbLog(DbLogType type, String message) {
+    public DbLog(DbLogType type, String message, Integer fso, String backup) {
         this.type = type.getTypeName();
         this.message = message;
         this.date = LocalDateTime.now();
+        this.fso = fso;
+        this.backup = backup;
     }
 
     public Integer getId() {
@@ -62,4 +70,12 @@ public class DbLog {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public Integer getFso() { return this.fso; }
+
+    public void setFso(Integer fso) { this.fso = fso; }
+
+    public String getBackup() { return this.backup; }
+
+    public void setBackup(String backup) { this.backup = backup; }
 }

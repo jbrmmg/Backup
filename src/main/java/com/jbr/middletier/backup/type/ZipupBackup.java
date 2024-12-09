@@ -83,7 +83,7 @@ public class ZipupBackup implements PerformBackup  {
     @Override
     public void performBackup(BackupManager backupManager, DbLoggingManager dbLoggingManager, FileSystem fileSystem, Backup backup) {
         try {
-            dbLoggingManager.info("Zipup backup");
+            dbLoggingManager.info("Zipup backup",null,backup.getId());
             String zipFilename = String.format("%s/backups.zip", applicationProperties.getZipDirectory());
 
             // If zip file exists, delete it.
@@ -107,7 +107,7 @@ public class ZipupBackup implements PerformBackup  {
             LOG.info("Done");
         } catch (Exception ex) {
             LOG.error("Failed to perform zip backup",ex);
-            dbLoggingManager.error("zipup backup " + ex);
+            dbLoggingManager.error("zipup backup " + ex,null,backup.getId());
         }
     }
 }

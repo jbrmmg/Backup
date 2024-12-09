@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 29
+      author: jason
+      changes:
+
+        - addColumn:
+            columns:
+              - column:
+                  name: fso
+                  type: int
+            tableName: log
+
+        - addColumn:
+            columns:
+              - column:
+                  name: backup
+                  type: char(4)
+            tableName: log
