@@ -601,4 +601,39 @@ public class ImportManager extends FileProcessor {
 
         throw new InvalidFileIdException(id);
     }
+
+    public List<ImportFileDTO> externalFindPreImportFiles() {
+        // Get data from the pre-import directory.
+        List<ImportFileDTO> result = new ArrayList<>();
+
+        // Get the actual files that are in the pre-import directory.
+        Optional<PreImportSource> preImportSource = findPreImportSource();
+        if(preImportSource.isEmpty()) {
+            LOG.warn("Invalid Pre Import Source, returning empty list.");
+            return result;
+        }
+
+        LOG.info("Read files from {}", preImportSource.get().getPath());
+        File source = new File(preImportSource.get().getPath());
+
+        // Check that the source exists.
+        if(!fileSystem.directoryExists(source.toPath())) {
+            LOG.warn("Invalid Pre Import Source, returning empty list.");
+            return result;
+        }
+
+        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+            ImportFileDTO importFile = new ImportFileDTO();
+
+            importFile.setFilename(nextFilename);
+            importFile.setStatus(ImportFileStatusType.IFS_AWAITING_ACTION);
+            importFile.setId(0);
+            importFile.setSize(0L);
+            importFile.setMd5(new MD5());
+
+            result.add(importFile);
+        }
+
+        return result;
+    }
 }
