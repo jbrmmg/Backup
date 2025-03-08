@@ -626,10 +626,22 @@ public class ImportManager extends FileProcessor {
             ImportFileDTO importFile = new ImportFileDTO();
 
             importFile.setFilename(nextFilename);
-            importFile.setStatus(ImportFileStatusType.IFS_AWAITING_ACTION);
+            importFile.setStatus(ImportFileStatusType.IFS_READ);
             importFile.setId(0);
             importFile.setSize(0L);
             importFile.setMd5(new MD5());
+
+            // Has this file been processed for import?
+            for(FileInfo next: importFileRepository.findByName(nextFilename)) {
+                // Update the details of the file.
+                importFile.setSize(next.getSize());
+                importFile.setMd5(next.getMD5());
+                importFile.setId(next.getIdAndType().getId());
+                importFile.setStatus(ImportFileStatusType.IFS_AWAITING_ACTION);
+            }
+
+            // Are there any files that match the details of this file.
+
 
             result.add(importFile);
         }
