@@ -637,6 +637,7 @@ public class ImportManager extends FileProcessor {
                 importFile.setSize(next.getSize());
                 importFile.setMd5(next.getMD5());
                 importFile.setId(next.getIdAndType().getId());
+                importFile.setDate(next.getDate());
                 importFile.setStatus(ImportFileStatusType.IFS_AWAITING_ACTION);
             }
 
