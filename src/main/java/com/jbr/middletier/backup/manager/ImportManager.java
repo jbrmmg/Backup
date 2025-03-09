@@ -627,9 +627,8 @@ public class ImportManager extends FileProcessor {
 
             importFile.setFilename(nextFilename);
             importFile.setStatus(ImportFileStatusType.IFS_READ);
-            importFile.setId(0);
+            importFile.setId(-1);
             importFile.setSize(0L);
-            importFile.setMd5(new MD5());
 
             // Has this file been processed for import?
             for(FileInfo next: importFileRepository.findByName(nextFilename)) {
@@ -641,8 +640,40 @@ public class ImportManager extends FileProcessor {
                 importFile.setStatus(ImportFileStatusType.IFS_AWAITING_ACTION);
             }
 
-            // Are there any files that match the details of this file.
+            // Are there any files that match the name - except the import file already linked.
+            for(FileSystemObject next: fileSystemObjectManager.findFileSystemObjectByName(nextFilename,FileSystemObjectType.FSO_FILE)) {
+                if(importFile.getId() == -1 || !importFile.getId().equals(next.getIdAndType().getId())) {
+                    if(next instanceof FileInfo nextFI) {
+                        ImportFileBaseDTO similar = new ImportFileBaseDTO();
+                        similar.setFilename(nextFI.getName());
+                        similar.setSize(nextFI.getSize());
+                        similar.setMd5(nextFI.getMD5());
+                        similar.setDate(nextFI.getDate());
 
+                        importFile.addSimilarFile(similar);
+                    }
+                }
+            }
+
+            // Are there any files with the same MD5?
+            if(importFile.getMd5() != null) {
+                for (FileSystemObject next : fileSystemObjectManager.findFileSystemObjectByMd5(importFile.getMd5(),FileSystemObjectType.FSO_FILE)) {
+                    if(!importFile.getId().equals(next.getIdAndType().getId())) {
+                        if (next instanceof FileInfo nextFI) {
+                            // Is the name different?
+                            if(!nextFI.getName().equals(importFile.getFilename())) {
+                                ImportFileBaseDTO similar = new ImportFileBaseDTO();
+                                similar.setFilename(nextFI.getName());
+                                similar.setSize(nextFI.getSize());
+                                similar.setMd5(nextFI.getMD5());
+                                similar.setDate(nextFI.getDate());
+
+                                importFile.addSimilarFile(similar);
+                            }
+                        }
+                    }
+                }
+            }
 
             result.add(importFile);
         }
