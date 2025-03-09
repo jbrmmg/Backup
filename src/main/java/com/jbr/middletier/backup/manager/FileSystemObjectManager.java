@@ -178,6 +178,17 @@ public class FileSystemObjectManager {
         return empty;
     }
 
+    private void addFileToResult(FileInfo fileInfo, List<String> result) {
+        File file = getFile(fileInfo);
+
+        if(file.getName().equalsIgnoreCase(file.getPath())) {
+            result.add(file.getName() + "[" + fileInfo.getIdAndType().getType().getTypeName() + "]");
+            return;
+        }
+
+        result.add(file.getPath());
+    }
+
     public List<String> findFiles(String search) {
         FileSearch fileSearch = new FileSearch(search);
         List<String> result = new ArrayList<>();
@@ -186,14 +197,12 @@ public class FileSystemObjectManager {
         switch(fileSearch.getSearchType()) {
             case MD5 -> {
                 for(FileInfo fileInfo : fileRepository.findByMd5(fileSearch.getSearch())) {
-                    File file = getFile(fileInfo);
-                    result.add(file.getPath());
+                    addFileToResult(fileInfo, result);
                 }
             }
             case NAME -> {
                 for(FileInfo fileInfo : fileRepository.findByName(fileSearch.getSearch())) {
-                    File file = getFile(fileInfo);
-                    result.add(file.getName());
+                    addFileToResult(fileInfo, result);
                 }
             }
         }

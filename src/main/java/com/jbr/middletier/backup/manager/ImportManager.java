@@ -630,6 +630,12 @@ public class ImportManager extends FileProcessor {
         similar.setMd5(fileInfo.getMD5());
         similar.setDate(fileInfo.getDate());
 
+        // Get the full filename.
+        File file = fileSystemObjectManager.getFile(fileInfo);
+        if(!file.getPath().equalsIgnoreCase(file.getName())) {
+            similar.setFilename(file.getPath());
+        }
+
         return similar;
     }
 
