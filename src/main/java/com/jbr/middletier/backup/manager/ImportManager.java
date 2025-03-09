@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -30,10 +31,29 @@ import static java.util.Comparator.comparing;
 public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
+    static private class ImportFileCache {
+        private final ImportFileDTO importFile;
+        private final LocalDateTime timestamp;
+
+        public ImportFileCache(ImportFileDTO importFile) {
+            this.importFile = importFile;
+            this.timestamp = LocalDateTime.now();
+        }
+
+        public ImportFileDTO getImportFile() {
+            return this.importFile;
+        }
+
+        public boolean expired() {
+            return this.timestamp.isBefore(LocalDateTime.now().minusDays(1));
+        }
+    }
+
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final ApplicationProperties applicationProperties;
     private final ModelMapper modelMapper;
+    private final Map<String,ImportFileCache> importFileCache;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
@@ -50,6 +70,7 @@ public class ImportManager extends FileProcessor {
         this.ignoreFileRepository = ignoreFileRepository;
         this.applicationProperties = applicationProperties;
         this.modelMapper = modelMapper;
+        this.importFileCache = new HashMap<>();
     }
 
     private boolean ignoreFile(FileInfo importFile) {
@@ -602,6 +623,16 @@ public class ImportManager extends FileProcessor {
         throw new InvalidFileIdException(id);
     }
 
+    private ImportFileBaseDTO getSimilar(FileInfo fileInfo) {
+        ImportFileBaseDTO similar = new ImportFileBaseDTO();
+        similar.setFilename(fileInfo.getName() + " [" + fileInfo.getIdAndType().getType().getTypeName() + "]");
+        similar.setSize(fileInfo.getSize());
+        similar.setMd5(fileInfo.getMD5());
+        similar.setDate(fileInfo.getDate());
+
+        return similar;
+    }
+
     public List<ImportFileDTO> externalFindPreImportFiles() {
         // Get data from the pre-import directory.
         List<ImportFileDTO> result = new ArrayList<>();
@@ -623,6 +654,16 @@ public class ImportManager extends FileProcessor {
         }
 
         for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+            // Is this file in the cache?
+            if(this.importFileCache.containsKey(nextFilename)) {
+                ImportFileCache cache = this.importFileCache.get(nextFilename);
+                if(cache != null && !cache.expired()) {
+                    result.add(cache.getImportFile());
+                    continue;
+                }
+            }
+
+            // Lookup the data.
             ImportFileDTO importFile = new ImportFileDTO();
 
             importFile.setFilename(nextFilename);
@@ -644,13 +685,7 @@ public class ImportManager extends FileProcessor {
             for(FileSystemObject next: fileSystemObjectManager.findFileSystemObjectByName(nextFilename,FileSystemObjectType.FSO_FILE)) {
                 if(importFile.getId() == -1 || !importFile.getId().equals(next.getIdAndType().getId())) {
                     if(next instanceof FileInfo nextFI) {
-                        ImportFileBaseDTO similar = new ImportFileBaseDTO();
-                        similar.setFilename(nextFI.getName());
-                        similar.setSize(nextFI.getSize());
-                        similar.setMd5(nextFI.getMD5());
-                        similar.setDate(nextFI.getDate());
-
-                        importFile.addSimilarFile(similar);
+                        importFile.addSimilarFile(getSimilar(nextFI));
                     }
                 }
             }
@@ -662,19 +697,14 @@ public class ImportManager extends FileProcessor {
                         if (next instanceof FileInfo nextFI) {
                             // Is the name different?
                             if(!nextFI.getName().equals(importFile.getFilename())) {
-                                ImportFileBaseDTO similar = new ImportFileBaseDTO();
-                                similar.setFilename(nextFI.getName());
-                                similar.setSize(nextFI.getSize());
-                                similar.setMd5(nextFI.getMD5());
-                                similar.setDate(nextFI.getDate());
-
-                                importFile.addSimilarFile(similar);
+                                importFile.addSimilarFile(getSimilar(nextFI));
                             }
                         }
                     }
                 }
             }
 
+            this.importFileCache.put(nextFilename,new ImportFileCache(importFile));
             result.add(importFile);
         }
 
