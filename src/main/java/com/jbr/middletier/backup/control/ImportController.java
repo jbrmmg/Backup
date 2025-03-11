@@ -61,7 +61,7 @@ public class ImportController {
     }
 
     @GetMapping(path = "/preimportfiles")
-    public List<ImportFileDTO> getPreImportFiles() {
+    public List<PreImportFileDTO> getPreImportFiles() {
         LOG.info("Get the pre import files.");
 
         return importManager.externalFindPreImportFiles();
