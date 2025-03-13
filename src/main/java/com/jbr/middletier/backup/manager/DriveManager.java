@@ -43,7 +43,7 @@ public class DriveManager extends FileProcessor {
         }
 
         associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_GATHERING);
-        dbLoggingManager.info("Gather - " + nextSource.getPath());
+        dbLoggingManager.info("Gather - " + nextSource.getPath(),nextSource.getIdAndType().getId(),null);
 
         GatherDataDTO gatherData = new GatherDataDTO(nextSource.getIdAndType().getId());
 
@@ -56,7 +56,7 @@ public class DriveManager extends FileProcessor {
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
             associatedFileDataManager.updateSourceStatus(nextSource, SourceStatusType.SST_ERROR);
-            dbLoggingManager.error("Failed to gather " + e);
+            dbLoggingManager.error("Failed to gather " + e, nextSource.getIdAndType().getId(), null);
             gatherData.setProblems();
         }
 

@@ -44,7 +44,7 @@ public class FileSystem {
         return false;
     }
 
-    public void deleteFile(File file, ProcessResultDTO processResult) {
+    public void deleteFile(File file, ProcessResultDTO processResult, Integer id) {
         LOG.info("Delete the file - {}", file );
         try {
             // Does it exist?
@@ -59,12 +59,12 @@ public class FileSystem {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {}", file);
-            dbLoggingManager.error(String.format("File delete failure: %s", file));
+            dbLoggingManager.error(String.format("File delete failure: %s", file),id,null);
             processResult.setProblems();
         }
     }
 
-    public void deleteDirectory(File file, ProcessResultDTO processResult) {
+    public void deleteDirectory(File file, ProcessResultDTO processResult, Integer id) {
         LOG.info("Delete the directory - {}", file );
         try {
             // Does it exist?
@@ -79,7 +79,7 @@ public class FileSystem {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {}", file, e);
-            dbLoggingManager.error(String.format("Directory delete failure: %s", file));
+            dbLoggingManager.error(String.format("Directory delete failure: %s", file),id,null);
             processResult.setProblems();
         }
     }
@@ -94,7 +94,7 @@ public class FileSystem {
         if(directoryIsEmpty(file.toPath())) {
             TemporaryResultDTO result = new TemporaryResultDTO();
 
-            deleteDirectory(file, result);
+            deleteDirectory(file, result,null);
 
             if(result.hasProblems()) {
                 throw new IOException("Failed to delete the directory " + file);
@@ -142,7 +142,7 @@ public class FileSystem {
         return new String(hexChars);
     }
 
-    public MD5 getClassifiedFileMD5(Path path, Classification classification) {
+    public MD5 getClassifiedFileMD5(Path path, Classification classification, Integer id) {
         if(classification == null || !classification.getUseMD5()) {
             return new MD5();
         }
@@ -160,7 +160,7 @@ public class FileSystem {
             return new MD5(bytesToHex(md.digest()));
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
-            dbLoggingManager.error("Cannot get MD5 - " + path.toString());
+            dbLoggingManager.error("Cannot get MD5 - " + path.toString(), id, null);
         }
 
         return new MD5();
@@ -174,7 +174,7 @@ public class FileSystem {
         try(Stream<Path> pathStream = Files.walk(path)) {
             pathStream.forEach(walker::processNextPath);
         } catch(IOException e) {
-            dbLoggingManager.error("Failed to walk + " + path);
+            dbLoggingManager.error("Failed to walk + " + path, null, null);
             throw e;
         }
     }

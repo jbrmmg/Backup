@@ -65,10 +65,10 @@ public class LoggingIT extends WebTester {
     public void basicTest() throws Exception {
         LOG.info("Basic logging test.");
 
-        dbLoggingManager.debug("Debug message");
-        dbLoggingManager.info("Information message");
-        dbLoggingManager.warn("Warning message");
-        dbLoggingManager.error("Error message");
+        dbLoggingManager.debug("Debug message",1, "BKUP");
+        dbLoggingManager.info("Information message", 2, "BKUP");
+        dbLoggingManager.warn("Warning message",3, "SCRD");
+        dbLoggingManager.error("Error message",4,"SHFS");
 
         getMockMvc().perform(get("/jbr/int/backup/log")
                         .contentType(getContentType()))
@@ -78,12 +78,20 @@ public class LoggingIT extends WebTester {
                 .andExpect(jsonPath("$[0].message", is("Starting up")))
                 .andExpect(jsonPath("$[1].type", is("Debug")))
                 .andExpect(jsonPath("$[1].message", is("Debug message")))
+                .andExpect(jsonPath("$[1].fso",is(1)))
+                .andExpect(jsonPath("$[1].backup",is("BKUP")))
                 .andExpect(jsonPath("$[2].type", is("Info")))
                 .andExpect(jsonPath("$[2].message", is("Information message")))
+                .andExpect(jsonPath("$[2].fso",is(2)))
+                .andExpect(jsonPath("$[2].backup",is("BKUP")))
                 .andExpect(jsonPath("$[3].type", is("Warning")))
                 .andExpect(jsonPath("$[3].message", is("Warning message")))
+                .andExpect(jsonPath("$[3].fso",is(3)))
+                .andExpect(jsonPath("$[3].backup",is("SCRD")))
                 .andExpect(jsonPath("$[4].type", is("Error")))
-                .andExpect(jsonPath("$[4].message", is("Error message")));
+                .andExpect(jsonPath("$[4].message", is("Error message")))
+                .andExpect(jsonPath("$[4].fso",is(4)))
+                .andExpect(jsonPath("$[4].backup",is("SHFS")));
     }
 
     @Test
@@ -94,7 +102,7 @@ public class LoggingIT extends WebTester {
 
         dbLoggingManager.removeOldLogs();
 
-        dbLoggingManager.error("Error Message");
+        dbLoggingManager.error("Error Message",null,null);
 
         Assert.assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
     }

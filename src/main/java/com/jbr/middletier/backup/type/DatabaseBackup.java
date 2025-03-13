@@ -68,7 +68,7 @@ public class DatabaseBackup implements PerformBackup {
     @Override
     public void performBackup(BackupManager backupManager, DbLoggingManager dbLoggingManager, FileSystem fileSystem, Backup backup) {
         try {
-            dbLoggingManager.info(String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()));
+            dbLoggingManager.info(String.format("Database Backup %s %s %s %s", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory()),null,backup.getId());
             LOG.info("Database Backup {} {} {} {}", backup.getId(), backup.getBackupName(), backup.getArtifact(), backup.getDirectory());
 
             // Perform a database backup.
@@ -105,7 +105,7 @@ public class DatabaseBackup implements PerformBackup {
 
             LOG.info("Backup completed.");
         } catch (Exception ex) {
-            dbLoggingManager.error("db backup " + ex);
+            dbLoggingManager.error("db backup " + ex,null,backup.getId());
             LOG.error("Failed to perform database backup",ex);
             Thread.currentThread().interrupt();
         }

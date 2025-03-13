@@ -96,7 +96,7 @@ public class ImportManager extends FileProcessor {
         if((importFile.getClassification() == null) || !importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
             result.increment(ImportDataDTO.ImportDataCountType.NON_BACKUP_CLASSIFICATIONS);
             LOG.info("{} not a backed up file, deleting", path);
-            fileSystem.deleteFile(path.toFile(),result);
+            fileSystem.deleteFile(path.toFile(),result,importFile.getIdAndType().getId());
             return false;
         }
 
@@ -108,7 +108,7 @@ public class ImportManager extends FileProcessor {
             result.increment(ImportDataDTO.ImportDataCountType.IGNORED_IMPORTS);
             // Delete the file from import.
             LOG.info("{} marked for ignore, deleting", path);
-            fileSystem.deleteFile(path.toFile(), result);
+            fileSystem.deleteFile(path.toFile(), result,importFile.getClassification().getId());
             return false;
         }
 
@@ -132,7 +132,7 @@ public class ImportManager extends FileProcessor {
 
                 // Delete the file from import.
                 LOG.info("{} exists in source, deleting",path);
-                fileSystem.deleteFile(path.toFile(),result);
+                fileSystem.deleteFile(path.toFile(),result,importFile.getIdAndType().getId());
                 return testResult;
             }
         }
@@ -211,7 +211,7 @@ public class ImportManager extends FileProcessor {
 
         // Get details of the file to import.
         if(!importFile.getMD5().isSet()) {
-            importFile.setMD5(fileSystem.getClassifiedFileMD5(path, importFile.getClassification()));
+            importFile.setMD5(fileSystem.getClassifiedFileMD5(path, importFile.getClassification(), importFile.getIdAndType().getId()));
 
             fileSystemObjectManager.save(importFile);
         }
@@ -243,7 +243,7 @@ public class ImportManager extends FileProcessor {
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
     private boolean md5StillMissing(Path path, FileInfo fileInfo, Classification classification) {
-        fileInfo.setMD5(fileSystem.getClassifiedFileMD5(path,classification));
+        fileInfo.setMD5(fileSystem.getClassifiedFileMD5(path,classification,fileInfo.getIdAndType().getId()));
 
         if(fileInfo.getMD5().isSet()) {
             fileSystemObjectManager.save(fileInfo);
@@ -598,7 +598,7 @@ public class ImportManager extends FileProcessor {
                 searchSimilarFileData(nextFile, database);
             }
         } catch (Exception ex) {
-            dbLoggingManager.error("Failed to add similar data " + ex);
+            dbLoggingManager.error("Failed to add similar data " + ex,null,null);
         }
     }
 

@@ -39,7 +39,7 @@ public class DuplicateManager {
 
             data.increment(DuplicateDataDTO.DuplicateCountType.DELETED);
             File fileToDelete = fileSystemObjectManager.getFile(potentialDuplicate);
-            fileSystem.deleteFile(fileToDelete, data);
+            fileSystem.deleteFile(fileToDelete, data, potentialDuplicate.getIdAndType().getId());
         }
     }
 

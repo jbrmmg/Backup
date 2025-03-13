@@ -28,7 +28,7 @@ public class DbLoggingManager {
 
     @PostConstruct
     public void initialise() {
-        info("Starting up");
+        info("Starting up",null,null);
     }
 
     public DbLoggingManager(ApplicationProperties applicationProperties, DbLogRepository dbLogRepository, ModelMapper modelMapper) {
@@ -67,28 +67,28 @@ public class DbLoggingManager {
         messages.add(message);
     }
 
-    public void debug(String message) {
+    public void debug(String message, Integer fso, String backup) {
         LOG.debug(message);
         cacheMessageIfRequired(DbLogType.DLT_DEBUG,message);
-        dbLogRepository.save(new DbLog(DbLogType.DLT_DEBUG,message));
+        dbLogRepository.save(new DbLog(DbLogType.DLT_DEBUG,message,fso,backup));
     }
 
-    public void info(String message) {
+    public void info(String message, Integer fso, String backup) {
         LOG.info(message);
         cacheMessageIfRequired(DbLogType.DLT_INFO,message);
-        dbLogRepository.save(new DbLog(DbLogType.DLT_INFO,message));
+        dbLogRepository.save(new DbLog(DbLogType.DLT_INFO,message,fso,backup));
     }
 
-    public void warn(String message) {
+    public void warn(String message, Integer fso, String backup) {
         LOG.warn(message);
         cacheMessageIfRequired(DbLogType.DLT_WARNING,message);
-        dbLogRepository.save(new DbLog(DbLogType.DLT_WARNING,message));
+        dbLogRepository.save(new DbLog(DbLogType.DLT_WARNING,message,fso,backup));
     }
 
-    public void error(String message) {
+    public void error(String message, Integer fso, String backup) {
         LOG.error(message);
         cacheMessageIfRequired(DbLogType.DLT_ERROR,message);
-        dbLogRepository.save(new DbLog(DbLogType.DLT_ERROR,message));
+        dbLogRepository.save(new DbLog(DbLogType.DLT_ERROR,message,fso,backup));
     }
 
     public List<DbLog> findDbLogs() {

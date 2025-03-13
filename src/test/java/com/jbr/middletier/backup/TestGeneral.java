@@ -406,9 +406,13 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void synchronizeProblem1() {
+        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
+        when(idAndType.getId()).thenReturn(1);
+
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(null);
         when(syncSource.getPath()).thenReturn("Source");
+        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(null);
@@ -440,14 +444,18 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",1,null);
     }
 
     @Test
     public void synchronizeProblem2() {
+        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
+        when(idAndType.getId()).thenReturn(3);
+
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
         when(syncSource.getPath()).thenReturn("Source");
+        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(null);
@@ -479,18 +487,23 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",3,null);
     }
 
     @Test
     public void synchronizeProblem3() {
+        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
+        when(idAndType.getId()).thenReturn(5);
+
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
+        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(null);
         when(syncDestination.getPath()).thenReturn("Destination");
+        when(syncDestination.getIdAndType()).thenReturn(idAndType);
 
         Synchronize synchronize = mock(Synchronize.class);
         when(synchronize.getSource()).thenReturn(syncSource);
@@ -518,18 +531,23 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",5,null);
     }
 
     @Test
     public void synchronizeProblem4() {
+        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
+        when(idAndType.getId()).thenReturn(6);
+
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
+        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
         when(syncDestination.getPath()).thenReturn("Destination");
+        when(syncDestination.getIdAndType()).thenReturn(idAndType);
 
         Synchronize synchronize = mock(Synchronize.class);
         when(synchronize.getSource()).thenReturn(syncSource);
@@ -557,7 +575,7 @@ public class TestGeneral extends WebTester {
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK");
+        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",6,null);
     }
 
     @Test
