@@ -806,7 +806,7 @@ public class ImportManager extends FileProcessor {
 
         // (2) remove from the import directory.
         ProcessResultDTO deleteResult = new ImportProcessDTO();
-        fileSystem.deleteFile(importFile, deleteResult);
+        fileSystem.deleteFile(importFile, deleteResult,0);
 
         if(deleteResult.hasProblems()) {
             LOG.warn("Failed to delete the file from import - {}", filename);
@@ -815,7 +815,7 @@ public class ImportManager extends FileProcessor {
 
         // (3) remove from the pre-import directory
         deleteResult = new ImportProcessDTO();
-        fileSystem.deleteFile(preImportFile, deleteResult);
+        fileSystem.deleteFile(preImportFile, deleteResult, 0);
 
         if(deleteResult.hasProblems()) {
             LOG.warn("Failed to delete the file from pre-import - {}", filename);
