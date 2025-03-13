@@ -2,11 +2,14 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.TrafficLightType;
 
+import java.time.LocalDateTime;
+
 public class PreImportFileDTO extends ImportFileDTO {
     private TrafficLightType ignored;
     private TrafficLightType immediateImported;
     private TrafficLightType imported;
     private TrafficLightType duplicated;
+    private LocalDateTime updateTime;
 
     public TrafficLightType getIgnored() {
         return ignored;
@@ -38,5 +41,17 @@ public class PreImportFileDTO extends ImportFileDTO {
 
     public void setDuplicated(TrafficLightType duplicated) {
         this.duplicated = duplicated;
+    }
+
+    public void update() {
+        this.updateTime = LocalDateTime.now();
+    }
+
+    public boolean updatedSince(LocalDateTime time) {
+        if(this.updateTime == null){
+            return false;
+        }
+
+        return this.updateTime.isAfter(time);
     }
 }
