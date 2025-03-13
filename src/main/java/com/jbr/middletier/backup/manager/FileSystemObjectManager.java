@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.FileInfoDTO;
 import com.jbr.middletier.backup.dto.FileInfoExtra;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
+import com.jbr.middletier.backup.util.FileSearch;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 public class FileSystemObjectManager {
@@ -168,6 +166,48 @@ public class FileSystemObjectManager {
                     empty;
         };
 
+    }
+
+    public Iterable<FileSystemObject> findFileSystemObjectByMd5(String md5, FileSystemObjectType type) {
+        List<FileSystemObject> empty = new ArrayList<>();
+
+        if (Objects.requireNonNull(type) == FileSystemObjectType.FSO_FILE) {
+            return copyOfList(fileRepository.findByMd5(md5));
+        }
+
+        return empty;
+    }
+
+    private void addFileToResult(FileInfo fileInfo, List<String> result) {
+        File file = getFile(fileInfo);
+
+        if(file.getName().equalsIgnoreCase(file.getPath())) {
+            result.add(file.getName() + "[" + fileInfo.getIdAndType().getType().getTypeName() + "]");
+            return;
+        }
+
+        result.add(file.getPath());
+    }
+
+    public List<String> findFiles(String search) {
+        FileSearch fileSearch = new FileSearch(search);
+        List<String> result = new ArrayList<>();
+
+        // Perform the required search.
+        switch(fileSearch.getSearchType()) {
+            case MD5 -> {
+                for(FileInfo fileInfo : fileRepository.findByMd5(fileSearch.getSearch())) {
+                    addFileToResult(fileInfo, result);
+                }
+            }
+            case NAME -> {
+                for(FileInfo fileInfo : fileRepository.findByName(fileSearch.getSearch())) {
+                    addFileToResult(fileInfo, result);
+                }
+            }
+        }
+
+        return result;
     }
 
     private void populateFileNamePartsList(FileSystemObject fso, List<FileSystemObject> fileNameParts) {

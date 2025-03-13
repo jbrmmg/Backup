@@ -171,6 +171,11 @@ public class FileController {
         return fileSystemObjectManager.getFileExtra(id);
     }
 
+    @GetMapping(path="/findfile")
+    public List<String> findFile(@RequestParam String search) throws InvalidFileIdException {
+        return fileSystemObjectManager.findFiles(search);
+    }
+
     @PutMapping(path="/expire")
     public FileInfoExtra expireFile(@RequestBody FileExpiryDTO expiry) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(expiry.getId(),FileSystemObjectType.FSO_FILE));
