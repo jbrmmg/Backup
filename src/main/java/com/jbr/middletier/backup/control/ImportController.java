@@ -59,4 +59,22 @@ public class ImportController {
 
         return importManager.externalFindImportFile(id);
     }
+
+    @GetMapping(path = "/preimportfiles")
+    public List<PreImportFileDTO> getPreImportFiles() {
+        LOG.info("Get the pre import files.");
+
+        return importManager.externalFindPreImportFiles();
+    }
+
+    @DeleteMapping(path = "/preimportfile")
+    public String deletePreImportFile(@RequestBody String filename) {
+        LOG.info("Delete pre import file - {}", filename);
+
+        if(importManager.deletePreImportFile(filename)) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
 }
