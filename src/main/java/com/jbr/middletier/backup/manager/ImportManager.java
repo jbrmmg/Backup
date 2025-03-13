@@ -55,6 +55,7 @@ public class ImportManager extends FileProcessor {
     private final ApplicationProperties applicationProperties;
     private final ModelMapper modelMapper;
     private final Map<String,ImportFileCache> importFileCache;
+    private final FileRepository fileRepository;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
@@ -65,13 +66,15 @@ public class ImportManager extends FileProcessor {
                          ActionManager actionManager,
                          FileSystem fileSystem,
                          ApplicationProperties applicationProperties,
-                         ModelMapper modelMapper) {
+                         ModelMapper modelMapper,
+                         FileRepository fileRepository) {
         super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.applicationProperties = applicationProperties;
         this.modelMapper = modelMapper;
         this.importFileCache = new HashMap<>();
+        this.fileRepository = fileRepository;
     }
 
     private boolean ignoreFile(FileInfo importFile) {
@@ -779,5 +782,49 @@ public class ImportManager extends FileProcessor {
         }
 
         return result;
+    }
+
+    public boolean deletePreImportFile(String filename) {
+        // Get the actual files that are in the pre-import directory.
+        Optional<PreImportSource> preImportSource = findPreImportSource();
+        if(preImportSource.isEmpty()) {
+            LOG.warn("Invalid Pre Import Source, returning empty list.");
+            return false;
+        }
+        File preImportFile = new File(preImportSource.get().getPath().trim(), filename);
+
+        Optional<ImportSource> importSource = findImportSource();
+        if(importSource.isEmpty()) {
+            return false;
+        }
+        File importFile = new File(importSource.get().getPath().trim(), filename);
+
+        // Delete the file named from the pre-import directory, the import directory and the import table.
+
+        // (1) remove from the file import table.
+        fileRepository.deleteAll(importFileRepository.findByName(filename));
+
+        // (2) remove from the import directory.
+        ProcessResultDTO deleteResult = new ImportProcessDTO();
+        fileSystem.deleteFile(importFile, deleteResult);
+
+        if(deleteResult.hasProblems()) {
+            LOG.warn("Failed to delete the file from import - {}", filename);
+            return false;
+        }
+
+        // (3) remove from the pre-import directory
+        deleteResult = new ImportProcessDTO();
+        fileSystem.deleteFile(preImportFile, deleteResult);
+
+        if(deleteResult.hasProblems()) {
+            LOG.warn("Failed to delete the file from pre-import - {}", filename);
+            return false;
+        }
+
+        // Remove from the cache
+        this.importFileCache.remove(filename);
+
+        return true;
     }
 }
