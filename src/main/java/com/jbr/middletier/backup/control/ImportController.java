@@ -3,14 +3,18 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
-import com.jbr.middletier.backup.manager.ImportManager;
+import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -18,11 +22,21 @@ public class ImportController {
     private static final Logger LOG = LoggerFactory.getLogger(ImportController.class);
 
     private final ImportManager importManager;
+    private final Flux<ServerSentEvent<List<PreImportFileDTO>>> updateNotifier;
 
     @Contract(pure = true)
     @Autowired
     public ImportController(ImportManager importManager) {
         this.importManager = importManager;
+        this.updateNotifier = Flux.interval(Duration.ofSeconds(2))
+                .map(this::checkFileUpdates);
+    }
+
+    private ServerSentEvent<List<PreImportFileDTO>> checkFileUpdates(long unused) {
+        // Return the update information.
+        return ServerSentEvent.<List<PreImportFileDTO>> builder()
+                .data(importManager.getUpdates())
+                .build();
     }
 
     @PostMapping(path = "/convert")
@@ -76,5 +90,21 @@ public class ImportController {
         }
 
         return "FAILED";
+    }
+
+    @GetMapping(path="/file-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<List<PreImportFileDTO>>> fileUpdate() {
+        try {
+            return this.updateNotifier;
+        } catch (Exception e) {
+            LOG.info("Exception");
+        }
+
+        return null;
+    }
+
+    @PostMapping(path="/importgather")
+    public void restartRefresh() {
+        importManager.restartQueue();
     }
 }
