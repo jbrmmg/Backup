@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportFileWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(ImportFileWorker.class);
@@ -20,7 +19,6 @@ public class ImportFileWorker implements Runnable {
     private final ImportManager manager;
     private final FileSystem fileSystem;
     private final File preImportSource;
-    private boolean running = false;
 
     public ImportFileWorker(ImportFileWorkQueue queue, ImportManager manager, FileSystem fileSystem) {
         this.queue = queue;
@@ -71,12 +69,21 @@ public class ImportFileWorker implements Runnable {
     }
 
     private void getImportData(PreImportFileDTO file) {
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        // Has this file been processed and imported?
+        List<FileInfo> similar = manager.getImport(file.getFilename());
+
+        // If there is an import file then add it as a similar file.
+        for(FileInfo fileInfo : similar) {
+            if(fileInfo.getName().equals(file.getFilename())) {
+                // Add this to the list of similar files.
+                file.addSimilarFile(getSimilar(fileInfo));
+                file.setImported(TrafficLightType.TL_GREEN);
+                file.update();
+                return;
+            }
         }
-        file.setImported(TrafficLightType.TL_AMBER);
+
+        file.setImported(TrafficLightType.TL_RED);
         file.update();
     }
 
@@ -86,24 +93,6 @@ public class ImportFileWorker implements Runnable {
         similar.setSize(fileInfo.getSize());
         similar.setMd5(fileInfo.getMD5());
         similar.setDate(fileInfo.getDate());
-
-        // Get the full filename.
-/*        File file = fileSystemObjectManager.getFile(fileInfo);
-        if(!file.getPath().equalsIgnoreCase(file.getName())) {
-            // Only accept file if its from the valid source.
-            AtomicBoolean accept = new AtomicBoolean(false);
-            validSources.forEach(source -> {
-                if(file.getPath().contains(source.getPath())) {
-                    accept.set(true);
-                }
-            });
-
-            if(!accept.get()) {
-                return null;
-            }
-
-            similar.setFilename(file.getPath());
-        }*/
 
         return similar;
     }
@@ -140,12 +129,55 @@ public class ImportFileWorker implements Runnable {
     }
 
     private void getDuplicateStatus(PreImportFileDTO file) {
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        // Get details of files that already exist that match on name or MD5.
+        List<ImportFileBaseDTO> similar = manager.getSimilarImported(file.getFilename(), file.getMd5());
+
+        // If there are no similar files then, this file is yet to be imported.
+        if(similar.isEmpty()) {
+            file.setDuplicated(TrafficLightType.TL_AMBER);
+            file.update();
+            return;
         }
-        file.setDuplicated(TrafficLightType.TL_RED);
+
+        // How many of these files have the same MD5?
+        int matchMd5 = 0;
+        for(ImportFileBaseDTO fileInfo : similar) {
+            if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5())) {
+                matchMd5++;
+            }
+        }
+
+        // If there is one file with the right MD5, and it matches on name and also md5, then this file has been imported successfully.
+        if(matchMd5 == 1) {
+            for(ImportFileBaseDTO fileInfo : similar) {
+                if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5()) && fileInfo.getFilename().toLowerCase().endsWith(file.getFilename().toLowerCase())) {
+                    file.setDuplicated(TrafficLightType.TL_GREEN);
+                    file.update();
+                    file.addSimilarFile(fileInfo);
+                    return;
+                }
+            }
+        }
+
+        // If there is a file that matches on MD5 then this is a potential duplicate.
+        if(matchMd5 > 1) {
+            file.setDuplicated(TrafficLightType.TL_RED);
+            for(ImportFileBaseDTO fileInfo : similar) {
+                if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5())) {
+                    // Add all the files that have the same MD5.
+                    file.addSimilarFile(fileInfo);
+                }
+            }
+            file.update();
+            return;
+        }
+
+        // This means none of the existing files match on the MD5 but happen to have different names (so the file is still to be actually imported).
+        file.setDuplicated(TrafficLightType.TL_AMBER);
+        for(ImportFileBaseDTO fileInfo : similar) {
+            // Add all the files that have the same MD5.
+            file.addSimilarFile(fileInfo);
+        }
         file.update();
     }
 
@@ -174,27 +206,17 @@ public class ImportFileWorker implements Runnable {
 
     @Override
     public void run() {
-        this.running = true;
-
         // Process instructions from the queue.
-        while (running) {
+        while (true) {
             if(queue.isEmpty()) {
                 try {
                     queue.waitIsNotEmpty();
                 } catch (InterruptedException e) {
-//                    log.severe("Error while waiting to Consume messages.");
                     break;
                 }
-            }
-            if (!running) {
-                break;
             }
 
             processFile(queue.poll());
         }
-    }
-
-    public void stop() {
-        this.running = false;
     }
 }
