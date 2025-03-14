@@ -1,4 +1,4 @@
-package com.jbr.middletier.backup.manager;
+package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
@@ -9,14 +9,13 @@ import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
-import com.jbr.middletier.backup.util.ImportFileCache;
-import com.jbr.middletier.backup.util.ImportFileWorkQueue;
-import com.jbr.middletier.backup.util.ImportFileWorker;
+import com.jbr.middletier.backup.manager.*;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import com.jbr.middletier.backup.manager.FileProcessor;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,7 +42,6 @@ public class ImportManager extends FileProcessor {
     private final ImportFileCache importFileCache;
     private final FileRepository fileRepository;
     private final ImportFileWorkQueue importFileWorkQueue;
-    private final ImportFileWorker importFileWorker;
     private LocalDateTime currentTime;
     private LocalDateTime previousTime;
 
@@ -56,21 +55,19 @@ public class ImportManager extends FileProcessor {
                          FileSystem fileSystem,
                          ApplicationProperties applicationProperties,
                          ModelMapper modelMapper,
-                         FileRepository fileRepository) {
+                         FileRepository fileRepository,
+                         ImportFileCache importFileCache,
+                         ImportFileWorkQueue importFileWorkQueue) {
         super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.applicationProperties = applicationProperties;
         this.modelMapper = modelMapper;
-        this.importFileCache = new ImportFileCache();
+        this.importFileCache = importFileCache;
         this.fileRepository = fileRepository;
-        this.importFileWorkQueue = new ImportFileWorkQueue();
-        this.importFileWorker = new ImportFileWorker(importFileWorkQueue);
+        this.importFileWorkQueue = importFileWorkQueue;
         this.currentTime = LocalDateTime.now();
         this.previousTime = currentTime;
-
-        Thread workerThread = new Thread(importFileWorker);
-        workerThread.start();
     }
 
     private boolean ignoreFile(FileInfo importFile) {
@@ -396,7 +393,7 @@ public class ImportManager extends FileProcessor {
         data.increment(ImportProcessDTO.ImportProcessCountType.FILES_PROCESSED);
     }
 
-    private Optional<PreImportSource> findPreImportSource() {
+    public Optional<PreImportSource> findPreImportSource() {
         Optional<PreImportSource> result = Optional.empty();
 
         int count = 0;
@@ -623,40 +620,12 @@ public class ImportManager extends FileProcessor {
         throw new InvalidFileIdException(id);
     }
 
-    private ImportFileBaseDTO getSimilar(FileInfo fileInfo, List<Source> validSources) {
-        ImportFileBaseDTO similar = new ImportFileBaseDTO();
-        similar.setFilename(fileInfo.getName() + " [" + fileInfo.getIdAndType().getType().getTypeName() + "]");
-        similar.setSize(fileInfo.getSize());
-        similar.setMd5(fileInfo.getMD5());
-        similar.setDate(fileInfo.getDate());
-
-        // Get the full filename.
-        File file = fileSystemObjectManager.getFile(fileInfo);
-        if(!file.getPath().equalsIgnoreCase(file.getName())) {
-            // Only accept file if its from the valid source.
-            AtomicBoolean accept = new AtomicBoolean(false);
-            validSources.forEach(source -> {
-                if(file.getPath().contains(source.getPath())) {
-                    accept.set(true);
-                }
-            });
-
-            if(!accept.get()) {
-                return null;
-            }
-
-            similar.setFilename(file.getPath());
-        }
-
-        return similar;
-    }
-
     public void restartQueue() {
         this.importFileWorkQueue.restart();
     }
 
     public List<PreImportFileDTO> getUpdates() {
-        this.previousTime = this.currentTime;
+        this.previousTime = this.currentTime.minusSeconds(1);
         this.currentTime = LocalDateTime.now();
         List<PreImportFileDTO> result = new ArrayList<>();
 
@@ -670,6 +639,15 @@ public class ImportManager extends FileProcessor {
         }
 
         return result;
+    }
+
+    public void queueForUpdates(PreImportFileDTO importFile) {
+        if( importFile.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
+                importFile.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
+                importFile.getDuplicated().equals(TrafficLightType.TL_UNKNOWN) ||
+                importFile.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ) {
+            this.importFileWorkQueue.add(importFile);
+        }
     }
 
     public List<PreImportFileDTO> externalFindPreImportFiles() {
@@ -712,27 +690,36 @@ public class ImportManager extends FileProcessor {
             return result;
         }
 
+        int tempCount = 0;
         for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
-            // Is this file in the cache?
-            if(this.importFileCache.containsKey(nextFilename)) {
-                result.add(this.importFileCache.get(nextFilename));
-                continue;
+            if(tempCount++ > 30) { // Tempory limit
+                break;
             }
 
-            // Lookup the data.
-            PreImportFileDTO importFile = new PreImportFileDTO();
+            // Is this file in the cache?
+            PreImportFileDTO importFile = null;
+            if(this.importFileCache.containsKey(nextFilename)) {
+                importFile = this.importFileCache.get(nextFilename);
+            } else {
+                // Lookup the data.
+                importFile = new PreImportFileDTO();
 
-            importFile.setFilename(nextFilename);
-            importFile.setStatus(ImportFileStatusType.IFS_READ);
-            importFile.setId(-1);
-            importFile.setSize(0L);
-            importFile.setImported(TrafficLightType.TL_RED);
-            importFile.setImmediateImported(TrafficLightType.TL_RED);
-            importFile.setDuplicated(TrafficLightType.TL_GREEN);
-            importFile.setIgnored(TrafficLightType.TL_GREEN);
+                importFile.setFilename(nextFilename);
+                importFile.setStatus(ImportFileStatusType.IFS_READ);
+                importFile.setId(-1);
+                importFile.setSize(0L);
+                importFile.setImmediateImported(TrafficLightType.TL_UNKNOWN);
+                importFile.setImported(TrafficLightType.TL_UNKNOWN);
+                importFile.setDuplicated(TrafficLightType.TL_UNKNOWN);
+                importFile.setIgnored(TrafficLightType.TL_UNKNOWN);
 
-            // Queue up a task to read the file size.
-            this.importFileWorkQueue.add(importFile);
+                this.importFileCache.put(nextFilename,importFile);
+            }
+
+            result.add(importFile);
+
+            // If required queue the file to get updated.
+            queueForUpdates(importFile);
 
             /*
             // Has this file been processed for import?
@@ -798,9 +785,17 @@ public class ImportManager extends FileProcessor {
                 }
             }
              */
+        }
 
-            this.importFileCache.put(nextFilename,importFile);
-            result.add(importFile);
+        return result;
+    }
+
+    public List<FileInfo> getSimilarIgnore(String filename, String md5) {
+        // Return ignore files that match either the name or the MD5.
+        List<FileInfo> result = new ArrayList<>(ignoreFileRepository.findByName(filename));
+
+        if(md5 != null && !md5.isEmpty()) {
+            result.addAll(ignoreFileRepository.findByMd5(md5));
         }
 
         return result;

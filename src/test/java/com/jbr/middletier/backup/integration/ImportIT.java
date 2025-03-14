@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;

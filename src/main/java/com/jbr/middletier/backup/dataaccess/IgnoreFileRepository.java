@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface IgnoreFileRepository extends CrudRepository<IgnoreFile, Integer>, JpaSpecificationExecutor<IgnoreFile> {
     List<IgnoreFile> findByName(String name);
+    List<IgnoreFile> findByMd5(String md5);
 
     Iterable<IgnoreFile> findAllByOrderByIdAsc();
 }

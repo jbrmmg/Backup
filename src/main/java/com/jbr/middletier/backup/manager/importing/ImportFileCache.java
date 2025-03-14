@@ -1,11 +1,13 @@
-package com.jbr.middletier.backup.util;
+package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Component
 public class ImportFileCache {
     /*
      * Used to cache the details of the files in the import directory.

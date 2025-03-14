@@ -1,21 +1,31 @@
-package com.jbr.middletier.backup.util;
+package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
+@Component
 public class ImportFileWorkQueue {
     private final Queue<PreImportFileDTO> queue = new LinkedList<>();
     private final Queue<PreImportFileDTO> backupQueue = new LinkedList<>();
     private boolean useBackup;
     private final Object IS_NOT_EMPTY = new Object();
+    private List<ImportFileWorker> workers;
+
+    private void createThreads() {
+        if(this.workers.size() < 10) {
+
+        }
+    }
 
     public ImportFileWorkQueue() {
         useBackup = true;
+        workers = new LinkedList<>();
     }
 
-    // other methods
     public void add(PreImportFileDTO file) {
         if(useBackup){
             backupQueue.add(file);

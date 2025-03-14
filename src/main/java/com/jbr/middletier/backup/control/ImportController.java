@@ -3,7 +3,7 @@ package com.jbr.middletier.backup.control;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
-import com.jbr.middletier.backup.manager.ImportManager;
+import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
