@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.manager;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
+import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +18,18 @@ public class FileSystemImageData {
     private ImageDataDirectoryType dateSource;
     private int width;
     private int height;
+    private String latitude;
+    private String latitudeRef;
+    private String longitude;
+    private String longitudeRef;
     private boolean valid;
 
     private static final String TAG_IMAGE_WIDTH = "Image Width";
     private static final String TAG_IMAGE_HEIGHT = "Image Height";
+    private static final String TAG_GPS_LATITUDE = "GPS Latitude";
+    private static final String TAG_GPS_LATITUDE_REF = "GPS Latitude Ref";
+    private static final String TAG_GPS_LONGITUDE = "GPS Longitude";
+    private static final String TAG_GPS_LONGITUDE_REF = "GPS Longitude Ref";
     private static final String TAG_ICC_PROFILE_DATETIME = "Profile Date/Time";
     private static final String TAG_EXIF_SUBIFD = "Date/Time Original";
     private static final String TAG_CREATION_TIME = "Creation Time";
@@ -102,6 +111,23 @@ public class FileSystemImageData {
         setDateTime(value,QUICKTIME_DATE_FORMAT,ImageDataDirectoryType.IDD_QUICKTIME);
     }
 
+    private void extractFromGps(String tag, String value) {
+        switch (tag) {
+            case TAG_GPS_LATITUDE:
+                this.latitude = value;
+                break;
+            case TAG_GPS_LATITUDE_REF:
+                this.latitudeRef = value;
+                break;
+            case TAG_GPS_LONGITUDE:
+                this.longitude = value;
+                break;
+            case TAG_GPS_LONGITUDE_REF:
+                this.longitudeRef = value;
+                break;
+        }
+    }
+
     private void extractFrom(String directory, String tag, String value) {
         ImageDataDirectoryType directoryType = ImageDataDirectoryType.getImageDataDirectoryType(directory);
         
@@ -124,6 +150,9 @@ public class FileSystemImageData {
             case IDD_QUICKTIME:
                 extractFromQuickTime(tag,value);
                 break;
+            case IDD_GPS:
+                extractFromGps(tag,value);
+                break;
             case IDD_PNG_ICCP,
                 IDD_EXIF_IFD0,
                 IDD_XMP,
@@ -132,7 +161,6 @@ public class FileSystemImageData {
                 IDD_JFIF,
                 IDD_APPLE_MAKERNOTE,
                 IDD_APPLE_RUN_TIME,
-                IDD_GPS,
                 IDD_HUFFMAN,
                 IDD_MP4_SOUND,
                 IDD_MP4_VIDEO,
@@ -177,6 +205,10 @@ public class FileSystemImageData {
     public int getWidth() { return this.width; }
 
     public int getHeight() { return this.height; }
+
+    public LatLong getLatLong() {
+        return new LatLong(this.latitude,this.latitudeRef,this.longitude,this.longitudeRef);
+    }
 
     public boolean isValid() {
         return valid;

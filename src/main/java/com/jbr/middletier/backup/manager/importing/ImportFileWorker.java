@@ -5,6 +5,8 @@ import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
+import com.jbr.middletier.backup.manager.FileSystemImageData;
+import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,22 @@ public class ImportFileWorker implements Runnable {
         }
     }
 
+    private void readAdditionalDataFromFile(File realWorldFile, PreImportFileDTO file) {
+        try {
+            // Attempt to read the additional data from the file.
+            Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(realWorldFile);
+
+            if(imageData.isPresent()) {
+                LatLong latLong = imageData.get().getLatLong();
+                LOG.info("LAT/LONG = {} {}", latLong.getLatitude(), latLong.getLongitude());
+            }
+
+            LOG.info("Read image.");
+        } catch (Exception e) {
+            LOG.warn(e.getMessage(), e);
+        }
+    }
+
     private void readFileData(PreImportFileDTO file) {
         try {
             if(preImportSource == null) {
@@ -59,6 +77,8 @@ public class ImportFileWorker implements Runnable {
             file.setDate(FileProcessor.getFileLastModified(realWorldFile));
 
             boolean md5OK = getMD5(file, realWorldFile);
+
+            readAdditionalDataFromFile(realWorldFile, file);
 
             file.setImmediateImported(md5OK ? TrafficLightType.TL_GREEN : TrafficLightType.TL_AMBER);
         } catch (Exception e) {
