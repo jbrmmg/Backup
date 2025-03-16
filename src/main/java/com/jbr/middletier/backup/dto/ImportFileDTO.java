@@ -12,10 +12,14 @@ public class ImportFileDTO extends ImportFileBaseDTO {
     private String status;
     private LatLong location;
     private ImageSize imageSize;
+    private boolean image;
+    private boolean video;
     List<ImportFileBaseDTO> similarFileList;
 
     public ImportFileDTO() {
-        similarFileList = new ArrayList<>();
+        this.image = false;
+        this.video = false;
+        this.similarFileList = new ArrayList<>();
     }
 
     public Integer getId() {
@@ -54,5 +58,21 @@ public class ImportFileDTO extends ImportFileBaseDTO {
 
     public void setImageSize(ImageSize imageSize) {
         this.imageSize = imageSize;
+    }
+
+    public boolean isImage() {
+        return image;
+    }
+
+    public void setImage(boolean image) {
+        this.image = image;
+    }
+
+    public boolean isVideo() {
+        return video;
+    }
+
+    public void setVideo(boolean video) {
+        this.video = video;
     }
 }

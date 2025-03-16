@@ -1,8 +1,13 @@
 package com.jbr.middletier.backup.control;
 
+import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.FileSystemObject;
+import com.jbr.middletier.backup.data.FileSystemObjectId;
+import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
+import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
@@ -11,9 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
+
 import reactor.core.publisher.Flux;
 
 @RestController
@@ -106,5 +115,10 @@ public class ImportController {
     @PostMapping(path="/importgather")
     public void restartRefresh() {
         importManager.restartQueue();
+    }
+
+    @GetMapping(path="/import-image",produces= MediaType.IMAGE_JPEG_VALUE)
+    public byte[] getFileImage(@RequestParam String name) {
+        return importManager.getImage(name);
     }
 }

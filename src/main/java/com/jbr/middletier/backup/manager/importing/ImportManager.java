@@ -862,4 +862,24 @@ public class ImportManager extends FileProcessor {
 
         return true;
     }
+
+    public byte[] getImage(String name) {
+        try {
+            // read the specified file.
+            Optional<PreImportSource> preImportSource = findPreImportSource();
+            if (preImportSource.isEmpty()) {
+                LOG.warn("Invalid Pre Import Source, returning empty list.");
+                return null;
+            }
+
+            LOG.info("Read files from {}", preImportSource.get().getPath());
+            File source = new File(preImportSource.get().getPath(), name);
+
+            return fileSystem.readAllBytes(source);
+        } catch (IOException e) {
+            LOG.warn("Read files from {} failed", name, e);
+        }
+
+        return null;
+    }
 }

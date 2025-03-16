@@ -2,9 +2,9 @@ package com.jbr.middletier.backup.util;
 
 public class LatLong {
     private final String latitude;
-    private final EastWest latitudeRef;
+    private final NorthSouth latitudeRef;
     private final String longitude;
-    private final NorthSouth longitudeRef;
+    private final EastWest longitudeRef;
 
     private static class ReferenceType {
         private final int multiplier;
@@ -20,7 +20,7 @@ public class LatLong {
 
     private static class EastWest extends ReferenceType {
         private static boolean getMultiplier(String latitudeReference) {
-            if(!latitudeReference.equalsIgnoreCase("E")) {
+            if(latitudeReference.equalsIgnoreCase("E")) {
                 return true;
             }
 
@@ -38,7 +38,7 @@ public class LatLong {
 
     private static class NorthSouth extends ReferenceType {
         private static boolean getMultiplier(String latitudeReference) {
-            if(!latitudeReference.equalsIgnoreCase("N")) {
+            if(latitudeReference.equalsIgnoreCase("N")) {
                 return true;
             }
 
@@ -57,7 +57,7 @@ public class LatLong {
     private double getDegrees(String degrees) {
         degrees = degrees.replace("°", "").trim();
 
-        return Double.parseDouble(degrees);
+        return Math.abs(Double.parseDouble(degrees));
     }
 
     private double getMinutes(String minutes) {
@@ -108,9 +108,9 @@ public class LatLong {
 
     public LatLong(String latitude, String latitudeRef, String longitude, String longitudeRef) {
         this.latitude = latitude;
-        this.latitudeRef = new EastWest(latitudeRef);
+        this.latitudeRef = new NorthSouth(latitudeRef);
         this.longitude = longitude;
-        this.longitudeRef = new NorthSouth(longitudeRef);
+        this.longitudeRef = new EastWest(longitudeRef);
     }
 
     public double getLatitude() {
