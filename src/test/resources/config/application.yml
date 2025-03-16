@@ -32,6 +32,8 @@ backup:
   gather-enabled: true
   service-name: test-backup
   enabled: true
+  summary-enabled: false
+  import-threads: 0
   directory:
     name: ./target/testfiles/Backup
     days: 10

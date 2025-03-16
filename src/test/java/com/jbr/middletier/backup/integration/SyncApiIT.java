@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
@@ -67,10 +68,6 @@ public class SyncApiIT extends FileTester {
         }
     }
 
-
-    @Autowired
-    BackupManager backupManager;
-
     @Autowired
     DbLoggingManager dbLoggingManager;
 
@@ -79,6 +76,9 @@ public class SyncApiIT extends FileTester {
 
     @Autowired
     AssociatedFileDataManager associatedFileDataManager;
+
+    @Autowired
+    ApplicationProperties applicationProperties;
 
     @Autowired
     ActionManager actionManager;
@@ -2030,8 +2030,8 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
-        Summary.forceInstance(associatedFileDataManager, fileSystemObjectManager);
-        Summary summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager);
+        Summary.forceInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
+        Summary summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
 
         Assert.assertTrue(summary.isValid());
         List<SourceDTO> sources = summary.getSources();

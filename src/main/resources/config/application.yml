@@ -35,6 +35,8 @@ backup:
   gather-enabled: false
   schedule: 0 20 0/1 * * ?
   enabled: false
+  summary-enabled: true
+  import-threads: 10
   service-name: middletier-backup-dbg
   web-log-url:
   cache-web-log: false
