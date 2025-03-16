@@ -2,9 +2,57 @@ package com.jbr.middletier.backup.util;
 
 public class LatLong {
     private final String latitude;
-    private final String latitudeRef;
+    private final EastWest latitudeRef;
     private final String longitude;
-    private final String longitudeRef;
+    private final NorthSouth longitudeRef;
+
+    private static class ReferenceType {
+        private final int multiplier;
+
+        public ReferenceType(boolean positive) {
+            this.multiplier = positive ? 1 : -1;
+        }
+
+        public double multiply (double value) {
+            return value * this.multiplier;
+        }
+    }
+
+    private static class EastWest extends ReferenceType {
+        private static boolean getMultiplier(String latitudeReference) {
+            if(!latitudeReference.equalsIgnoreCase("E")) {
+                return true;
+            }
+
+            if(latitudeReference.equalsIgnoreCase("W")) {
+                return false;
+            }
+
+            throw new IllegalArgumentException("East west reference must be 'E' or 'W'");
+        }
+
+        public EastWest(String latitudeReference) {
+            super(EastWest.getMultiplier(latitudeReference));
+        }
+    }
+
+    private static class NorthSouth extends ReferenceType {
+        private static boolean getMultiplier(String latitudeReference) {
+            if(!latitudeReference.equalsIgnoreCase("N")) {
+                return true;
+            }
+
+            if(latitudeReference.equalsIgnoreCase("S")) {
+                return false;
+            }
+
+            throw new IllegalArgumentException("East west reference must be 'N' or 'S'");
+        }
+
+        public NorthSouth(String latitudeReference) {
+            super(NorthSouth.getMultiplier(latitudeReference));
+        }
+    }
 
     private double getDegrees(String degrees) {
         degrees = degrees.replace("°", "").trim();
@@ -42,7 +90,7 @@ public class LatLong {
         return 0.0;
     }
 
-    private double getCoordinate(String source, String reference) {
+    private double getCoordinate(String source, ReferenceType reference) {
         try {
             String[] elements = source.split(" ");
 
@@ -51,11 +99,7 @@ public class LatLong {
                 value += getValue(next);
             }
 
-            if (reference.equalsIgnoreCase("s") || reference.equalsIgnoreCase("w")) {
-                value *= -1;
-            }
-
-            return value;
+            return reference.multiply(value);
         } catch (Exception ignored) {
         }
 
@@ -64,9 +108,9 @@ public class LatLong {
 
     public LatLong(String latitude, String latitudeRef, String longitude, String longitudeRef) {
         this.latitude = latitude;
-        this.latitudeRef = latitudeRef;
+        this.latitudeRef = new EastWest(latitudeRef);
         this.longitude = longitude;
-        this.longitudeRef = longitudeRef;
+        this.longitudeRef = new NorthSouth(longitudeRef);
     }
 
     public double getLatitude() {

@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
+import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,14 @@ public class ImportFileWorker implements Runnable {
 
             if(imageData.isPresent()) {
                 LatLong latLong = imageData.get().getLatLong();
-                LOG.info("LAT/LONG = {} {}", latLong.getLatitude(), latLong.getLongitude());
+
+                LOG.info("LAT/LONG = {} {}", latLong != null ? latLong.getLatitude() : null, latLong != null ? latLong.getLongitude() : null);
+                file.setLocation(latLong);
+
+                ImageSize imageSize = imageData.get().getImageSize();
+
+                LOG.info("HEIGHT/WIDTH = {} {}", imageSize != null ? imageSize.getHeight() : null, imageSize != null ? imageSize.getWidth() : null );
+                file.setImageSize(imageSize);
             }
 
             LOG.info("Read image.");

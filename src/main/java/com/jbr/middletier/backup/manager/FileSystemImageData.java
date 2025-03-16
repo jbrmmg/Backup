@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.manager;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
+import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,6 +185,10 @@ public class FileSystemImageData {
             this.dateSource = null;
             this.height = 0;
             this.width = 0;
+            this.latitude = "";
+            this.latitudeRef = "X";
+            this.longitude = "";
+            this.longitudeRef = "X";
 
             if(metaData != null) {
                 this.valid = false;
@@ -202,12 +207,20 @@ public class FileSystemImageData {
         return dateTime;
     }
 
-    public int getWidth() { return this.width; }
+    public ImageSize getImageSize() {
+        if(this.width > 0 && this.height > 0) {
+            return new ImageSize(this.width, this.height);
+        }
 
-    public int getHeight() { return this.height; }
+        return null;
+    }
 
     public LatLong getLatLong() {
-        return new LatLong(this.latitude,this.latitudeRef,this.longitude,this.longitudeRef);
+        if(!this.latitudeRef.equals("X") && !this.longitudeRef.equals("X")) {
+            return new LatLong(this.latitude,this.latitudeRef,this.longitude,this.longitudeRef);
+        }
+
+        return null;
     }
 
     public boolean isValid() {
