@@ -33,35 +33,35 @@ public class ApplicationProperties {
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 
-        Converter<String,SourceStatusType> stringSourceStatusConverter = new AbstractConverter<String, SourceStatusType>() {
+        Converter<String,SourceStatusType> stringSourceStatusConverter = new AbstractConverter<>() {
             @Override
             protected SourceStatusType convert(String s) {
                 return SourceStatusType.getSourceStatusType(s);
             }
         };
 
-        Converter<SourceStatusType,String> sourceStatusStringConverter = new AbstractConverter<SourceStatusType, String>() {
+        Converter<SourceStatusType,String> sourceStatusStringConverter = new AbstractConverter<>() {
             @Override
             protected String convert(SourceStatusType s) {
                 return s.getTypeName();
             }
         };
 
-        Converter<ActionConfirmType,String> actionConfirmStringConverter = new AbstractConverter<ActionConfirmType, String>() {
+        Converter<ActionConfirmType,String> actionConfirmStringConverter = new AbstractConverter<>() {
             @Override
             protected String convert(ActionConfirmType ac) {
                 return ac.getTypeName();
             }
         };
 
-        PropertyMap<Source, SourceDTO> sourceMap = new PropertyMap<Source, SourceDTO>() {
+        PropertyMap<Source, SourceDTO> sourceMap = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map().setId(source.getIdAndType().getId());
             }
         };
 
-        PropertyMap<ImportSource, ImportSourceDTO> importSourceMap = new PropertyMap<ImportSource, ImportSourceDTO>() {
+        PropertyMap<ImportSource, ImportSourceDTO> importSourceMap = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map().setId(source.getIdAndType().getId());
@@ -69,63 +69,63 @@ public class ApplicationProperties {
             }
         };
 
-        PropertyMap<PreImportSource, PreImportSourceDTO> preImportSourceMap = new PropertyMap<PreImportSource, PreImportSourceDTO>() {
+        PropertyMap<PreImportSource, PreImportSourceDTO> preImportSourceMap = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map().setId(source.getIdAndType().getId());
             }
         };
 
-        PropertyMap<ImportSource, SourceDTO> importSource2Map = new PropertyMap<ImportSource, SourceDTO>() {
+        PropertyMap<ImportSource, SourceDTO> importSource2Map = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map().setId(source.getIdAndType().getId());
             }
         };
 
-        PropertyMap<PreImportSource, SourceDTO> importSource3Map = new PropertyMap<PreImportSource, SourceDTO>() {
+        PropertyMap<PreImportSource, SourceDTO> importSource3Map = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map().setId(source.getIdAndType().getId());
             }
         };
 
-        Converter<Optional<FileSystemObjectId>,String> fsoIdTypeConverter = new AbstractConverter<Optional<FileSystemObjectId>, String>() {
+        Converter<Optional<FileSystemObjectId>,String> fsoIdTypeConverter = new AbstractConverter<>() {
             @Override
             protected String convert(Optional<FileSystemObjectId> fileSystemObjectId) {
                 return fileSystemObjectId.map(systemObjectId -> systemObjectId.getType().getTypeName()).orElse(null);
             }
         };
 
-        Converter<Optional<FileSystemObjectId>,Integer> fsoIdIntegerConverter = new AbstractConverter<Optional<FileSystemObjectId>, Integer>() {
+        Converter<Optional<FileSystemObjectId>,Integer> fsoIdIntegerConverter = new AbstractConverter<>() {
             @Override
             protected Integer convert(Optional<FileSystemObjectId> fileSystemObjectId) {
                 return fileSystemObjectId.map(FileSystemObjectId::getId).orElse(null);
             }
         };
 
-        Converter<FileSystemObjectId,Integer> fsoIdIntegerConverter2 = new AbstractConverter<FileSystemObjectId, Integer>() {
+        Converter<FileSystemObjectId,Integer> fsoIdIntegerConverter2 = new AbstractConverter<>() {
             @Override
             protected Integer convert(FileSystemObjectId fileSystemObjectId) {
                 return fileSystemObjectId.getId();
             }
         };
 
-        Converter<FileInfo,Boolean> actionToIsImage = new AbstractConverter<FileInfo, Boolean>() {
+        Converter<FileInfo,Boolean> actionToIsImage = new AbstractConverter<>() {
             @Override
             protected Boolean convert(FileInfo file) {
                 return getIsImageOrVideo(file,true);
             }
         };
 
-        Converter<FileInfo,Boolean> actionToIsVideo = new AbstractConverter<FileInfo, Boolean>() {
+        Converter<FileInfo,Boolean> actionToIsVideo = new AbstractConverter<>() {
             @Override
             protected Boolean convert(FileInfo file) {
                 return getIsImageOrVideo(file,false);
             }
         };
 
-        Converter<FileInfo,Integer> fileToIdConverter = new AbstractConverter<FileInfo, Integer>() {
+        Converter<FileInfo,Integer> fileToIdConverter = new AbstractConverter<>() {
             @Override
             protected Integer convert(FileInfo file) {
                 if(null == file) {
@@ -136,7 +136,7 @@ public class ApplicationProperties {
             }
         };
 
-        Converter<FileInfo,String> fileToNameConverter = new AbstractConverter<FileInfo, String>() {
+        Converter<FileInfo,String> fileToNameConverter = new AbstractConverter<>() {
             @Override
             protected String convert(FileInfo file) {
                 if(null == file) {
@@ -147,7 +147,7 @@ public class ApplicationProperties {
             }
         };
 
-        Converter<FileInfo, LocalDateTime> fileToDateConverter = new AbstractConverter<FileInfo, LocalDateTime>() {
+        Converter<FileInfo, LocalDateTime> fileToDateConverter = new AbstractConverter<>() {
             @Override
             protected LocalDateTime convert(FileInfo file) {
                 if(null == file) {
@@ -158,7 +158,7 @@ public class ApplicationProperties {
             }
         };
 
-        Converter<FileInfo,Long> fileToSizeConverter = new AbstractConverter<FileInfo, Long>() {
+        Converter<FileInfo,Long> fileToSizeConverter = new AbstractConverter<>() {
             @Override
             protected Long convert(FileInfo file) {
                 if(null == file) {
@@ -305,6 +305,8 @@ public class ApplicationProperties {
     private boolean cacheWebLog;
     private String schedule;
     private boolean enabled;
+    private Boolean summaryEnabled;
+    private Integer importThreads;
     private String gatherSchedule;
     private boolean gatherEnabled;
     private String reviewDirectory;
@@ -378,5 +380,21 @@ public class ApplicationProperties {
 
     public void setFfmpegCommand(String ffmpegCommand) {
         this.ffmpegCommand = ffmpegCommand;
+    }
+
+    public Boolean getSummaryEnabled() {
+        return summaryEnabled;
+    }
+
+    public void setSummaryEnabled(Boolean summaryEnabled) {
+        this.summaryEnabled = summaryEnabled;
+    }
+
+    public Integer getImportThreads() {
+        return importThreads;
+    }
+
+    public void setImportThreads(Integer importThreads) {
+        this.importThreads = importThreads;
     }
 }

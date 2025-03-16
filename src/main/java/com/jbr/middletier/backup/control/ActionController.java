@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.control;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.ActionConfirmDTO;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
@@ -32,10 +33,11 @@ public class ActionController {
     @Autowired
     public ActionController(FileSystemObjectManager fileSystemObjectManager,
                             ActionManager actionManager,
+                            ApplicationProperties applicationProperties,
                             AssociatedFileDataManager associatedFileDataManager) {
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
-        this.summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager);
+        this.summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
     }
 
     @GetMapping(path="/actions")
