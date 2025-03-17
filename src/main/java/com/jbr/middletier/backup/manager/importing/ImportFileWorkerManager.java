@@ -34,7 +34,7 @@ public class ImportFileWorkerManager {
         // Set up the threads if the count is greater than zero.
         if(applicationProperties.getImportThreads() != null &&  applicationProperties.getImportThreads() > 0) {
             // Create the threads.
-            for(int i = 0; i < 10; i++) {
+            for(int i = 0; i < applicationProperties.getImportThreads(); i++) {
                 ImportFileWorker worker = new ImportFileWorker(queue,manager,fileSystem);
                 workers.add(worker);
             }

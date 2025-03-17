@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.util.LatLong;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportFileDTO extends ImportFileBaseDTO {
     private Integer id;
@@ -39,7 +40,17 @@ public class ImportFileDTO extends ImportFileBaseDTO {
     }
 
     public void addSimilarFile(ImportFileBaseDTO file) {
-        this.similarFileList.add(file);
+        // Only add if the file is not already in the list (by name)
+        AtomicBoolean alreadyExists = new AtomicBoolean(false);
+        this.similarFileList.forEach(f -> {
+            if(f.getFilename().equalsIgnoreCase(file.getFilename())) {
+                alreadyExists.set(true);
+            }
+        });
+
+        if(!alreadyExists.get()){
+            this.similarFileList.add(file);
+        }
     }
 
     public List<ImportFileBaseDTO> getSimilarFiles() { return this.similarFileList; }

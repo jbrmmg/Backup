@@ -619,10 +619,6 @@ public class ImportManager extends FileProcessor {
         throw new InvalidFileIdException(id);
     }
 
-    public void restartQueue() {
-        this.importFileWorkQueue.restart();
-    }
-
     public List<PreImportFileDTO> getUpdates() {
         this.previousTime = this.currentTime.minusSeconds(1);
         this.currentTime = LocalDateTime.now();
@@ -649,7 +645,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    public List<PreImportFileDTO> externalFindPreImportFiles() {
+    public List<PreImportFileDTO> externalFindPreImportFiles(int limit) {
         this.importFileWorkQueue.clear();
         this.currentTime = LocalDateTime.now();
 
@@ -689,10 +685,9 @@ public class ImportManager extends FileProcessor {
             return result;
         }
 
-        int tempCount = 0;
         for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
-            // TODO - when completed remove this
-            if(tempCount++ > 30) { // Temporary limit
+            // If we have reached the limit, then return.
+            if(limit-- <= 0) {
                 break;
             }
 
