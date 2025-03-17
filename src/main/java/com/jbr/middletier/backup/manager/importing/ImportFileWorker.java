@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
+import com.jbr.middletier.backup.manager.ImageDataDirectoryType;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
@@ -56,6 +57,14 @@ public class ImportFileWorker implements Runnable {
                 file.setLocation(latLong);
 
                 ImageSize imageSize = imageData.get().getImageSize();
+                if(imageSize != null) {
+                    file.setImage(true);
+                } else {
+                    // Is this video?
+                    if(imageData.get().getDateSourceType() == ImageDataDirectoryType.IDD_QUICKTIME) {
+                        file.setVideo(true);
+                    }
+                }
 
                 LOG.info("HEIGHT/WIDTH = {} {}", imageSize != null ? imageSize.getHeight() : null, imageSize != null ? imageSize.getWidth() : null );
                 file.setImageSize(imageSize);
@@ -96,21 +105,47 @@ public class ImportFileWorker implements Runnable {
         file.update();
     }
 
-    private void getImportData(PreImportFileDTO file) {
+    private boolean checkImport(PreImportFileDTO file, String filename, boolean update) {
         // Has this file been processed and imported?
-        List<FileInfo> similar = manager.getImport(file.getFilename());
+        List<FileInfo> similar = manager.getImport(filename);
 
         // If there is an import file then add it as a similar file.
         for(FileInfo fileInfo : similar) {
-            if(fileInfo.getName().equals(file.getFilename())) {
+            if(fileInfo.getName().equalsIgnoreCase(filename)) {
                 // Add this to the list of similar files.
                 file.addSimilarFile(getSimilar(fileInfo));
                 file.setImported(TrafficLightType.TL_GREEN);
+
+                if(update) {
+                    file.setSearchFilename(file.getFilename().toLowerCase().replace(".mov", ".mp4"));
+                    file.setSize(fileInfo.getSize());
+                    file.setMd5(fileInfo.getMD5());
+                    file.setDate(fileInfo.getDate());
+                }
+
                 file.update();
-                return;
+                return true;
             }
         }
 
+        return false;
+    }
+
+    private void getImportData(PreImportFileDTO file) {
+        // Has this file been processed and imported?
+        boolean found = checkImport(file, file.getFilename(), false);
+
+        // For 'MOV' files additionally check 'MP4'
+        if(file.getFilename().toLowerCase().contains(".mov")) {
+            // Check for the mp4 file
+            found = found || checkImport(file, file.getFilename().toLowerCase().replace(".mov", ".mp4"),true);
+        }
+
+        if(found) {
+            return;
+        }
+
+        // If not found then it's not imported.
         file.setImported(TrafficLightType.TL_RED);
         file.update();
     }
@@ -158,7 +193,7 @@ public class ImportFileWorker implements Runnable {
 
     private void getDuplicateStatus(PreImportFileDTO file) {
         // Get details of files that already exist that match on name or MD5.
-        List<ImportFileBaseDTO> similar = manager.getSimilarImported(file.getFilename(), file.getMd5());
+        List<ImportFileBaseDTO> similar = manager.getSimilarImported(file.getSearchFilename(), file.getMd5());
 
         // If there are no similar files then, this file is yet to be imported.
         if(similar.isEmpty()) {
@@ -178,7 +213,7 @@ public class ImportFileWorker implements Runnable {
         // If there is one file with the right MD5, and it matches on name and also md5, then this file has been imported successfully.
         if(matchMd5 == 1) {
             for(ImportFileBaseDTO fileInfo : similar) {
-                if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5()) && fileInfo.getFilename().toLowerCase().endsWith(file.getFilename().toLowerCase())) {
+                if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5()) && fileInfo.getFilename().toLowerCase().endsWith(file.getSearchFilename().toLowerCase())) {
                     file.setDuplicated(TrafficLightType.TL_GREEN);
                     file.update();
                     file.addSimilarFile(fileInfo);

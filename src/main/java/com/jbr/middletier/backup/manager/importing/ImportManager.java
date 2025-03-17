@@ -19,6 +19,7 @@ import com.jbr.middletier.backup.manager.FileProcessor;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -626,7 +627,7 @@ public class ImportManager extends FileProcessor {
 
         // Return the list of files that have been updated.
         for(String filename: this.importFileCache.getFiles()){
-            PreImportFileDTO next = this.importFileCache.get(filename);
+            PreImportFileDTO next = this.importFileCache.get(filename.toLowerCase());
 
             if(next.updatedSince(this.previousTime)) {
                 result.add(next);
@@ -693,8 +694,8 @@ public class ImportManager extends FileProcessor {
 
             // Is this file in the cache?
             PreImportFileDTO importFile;
-            if(this.importFileCache.containsKey(nextFilename)) {
-                importFile = this.importFileCache.get(nextFilename);
+            if(this.importFileCache.containsKey(nextFilename.toLowerCase())) {
+                importFile = this.importFileCache.get(nextFilename.toLowerCase());
             } else {
                 // Lookup the data.
                 importFile = new PreImportFileDTO();
@@ -708,7 +709,7 @@ public class ImportManager extends FileProcessor {
                 importFile.setDuplicated(TrafficLightType.TL_UNKNOWN);
                 importFile.setIgnored(TrafficLightType.TL_UNKNOWN);
 
-                this.importFileCache.put(nextFilename,importFile);
+                this.importFileCache.put(nextFilename.toLowerCase(),importFile);
             }
 
             result.add(importFile);
@@ -815,6 +816,45 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    public boolean reimportFile(String filename) {
+        LOG.info("Reimport {}", filename);
+
+        // Get the file that needs to be re-imported.
+        Optional<PreImportSource> preImportSource = findPreImportSource();
+        if(preImportSource.isEmpty()) {
+            LOG.warn("Invalid Pre Import Source for delete, returning empty list.");
+            return false;
+        }
+
+        File preImportFile = new File(preImportSource.get().getPath().trim(), filename);
+        if(!Files.exists(preImportFile.toPath())) {
+            LOG.warn("Pre Import File does not exist.");
+            return false;
+        }
+
+        // Find the import details
+        Optional<ImportSource> importSource = findImportSource();
+        if(importSource.isEmpty()) {
+            LOG.warn("Invalid Import Source - skipping import.");
+            return false;
+        }
+
+        //TODO - delete the import file and from the database.
+
+        ImportProcessDTO resultCount = new ImportProcessDTO();
+        processFile(preImportSource.get().getPath(),
+                filename,
+                importSource.get().getPath(),
+                resultCount );
+
+        // Remove the file from the cache.
+        if(this.importFileCache.containsKey(filename.toLowerCase())) {
+            this.importFileCache.remove(filename.toLowerCase());
+        }
+
+        return true;
+    }
+
     public boolean deletePreImportFile(String filename) {
         // Get the actual files that are in the pre-import directory.
         Optional<PreImportSource> preImportSource = findPreImportSource();
@@ -854,12 +894,12 @@ public class ImportManager extends FileProcessor {
         }
 
         // Remove from the cache
-        this.importFileCache.remove(filename);
+        this.importFileCache.remove(filename.toLowerCase());
 
         return true;
     }
 
-    public byte[] getImage(String name) {
+    public byte[] getFileContent(String name) {
         try {
             // read the specified file.
             Optional<PreImportSource> preImportSource = findPreImportSource();

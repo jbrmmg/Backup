@@ -10,6 +10,11 @@ public class PreImportFileDTO extends ImportFileDTO {
     private TrafficLightType imported;
     private TrafficLightType duplicated;
     private LocalDateTime updateTime;
+    private String searchFilename;
+
+    public PreImportFileDTO() {
+        this.searchFilename = "";
+    }
 
     public TrafficLightType getIgnored() {
         return ignored;
@@ -53,5 +58,17 @@ public class PreImportFileDTO extends ImportFileDTO {
         }
 
         return this.updateTime.isAfter(time);
+    }
+
+    public void setSearchFilename(String searchFilename) {
+        this.searchFilename = searchFilename;
+    }
+
+    public String getSearchFilename() {
+        if(this.searchFilename == null || this.searchFilename.isEmpty()) {
+            return getFilename();
+        }
+
+        return this.searchFilename;
     }
 }

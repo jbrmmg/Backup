@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
+
 import reactor.core.publisher.Flux;
 
 @RestController
@@ -92,6 +93,17 @@ public class ImportController {
         return "FAILED";
     }
 
+    @PostMapping(path = "/reimportfile")
+    public String reimportFile(@RequestBody String filename) {
+        LOG.info("Re-import a pre import file - {}", filename);
+
+        if(importManager.reimportFile(filename)) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
     @GetMapping(path="/file-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<List<PreImportFileDTO>>> fileUpdate() {
         try {
@@ -105,6 +117,11 @@ public class ImportController {
 
     @GetMapping(path="/import-image",produces= MediaType.IMAGE_JPEG_VALUE)
     public byte[] getFileImage(@RequestParam String name) {
-        return importManager.getImage(name);
+        return importManager.getFileContent(name);
+    }
+
+    @GetMapping(path="/import-video",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public byte[] getFileVideo(@RequestParam String name) {
+        return importManager.getFileContent(name);
     }
 }
