@@ -63,6 +63,8 @@ public class ImportFileWorker implements Runnable {
                     // Is this video?
                     if(imageData.get().getDateSourceType() == ImageDataDirectoryType.IDD_QUICKTIME) {
                         file.setVideo(true);
+                    } else if (file.getFilename().toLowerCase().endsWith(".mp4")) {
+                        file.setVideo(true);
                     }
                 }
 
