@@ -691,6 +691,7 @@ public class ImportManager extends FileProcessor {
 
         int tempCount = 0;
         for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+            // TODO - when completed remove this
             if(tempCount++ > 30) { // Temporary limit
                 break;
             }
