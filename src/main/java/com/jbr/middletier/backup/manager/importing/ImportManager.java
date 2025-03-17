@@ -19,7 +19,6 @@ import com.jbr.middletier.backup.manager.FileProcessor;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -816,41 +815,186 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
-    public boolean reimportFile(String filename) {
-        LOG.info("Reimport {}", filename);
+    public boolean ignoreSelectedFile(String filename) {
+        // This file must be in the cache for this action to be performed.
+        if(importFileCache.containsKey(filename.toLowerCase())) {
+            PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
+
+            // Make sure the status of this file is known.
+            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
+                file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
+                file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
+                file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
+                LOG.info("Failed to ignore {} because one or more status is unknown", filename);
+                return false;
+            }
+
+            // Insert the details into the ignore table.
+            IgnoreFile ignoreFile = new IgnoreFile();
+            ignoreFile.setName(filename);
+            ignoreFile.setDate(file.getDate());
+            ignoreFile.setSize(file.getSize());
+            ignoreFile.setMD5(new MD5(file.getMd5()));
+
+            ignoreFileRepository.save(ignoreFile);
+
+            // Remove the file from the system.
+            return deletePreImportFile(filename);
+        }
+
+        LOG.info("Failed to ignore {} as its not in the cache.", filename);
+        return false;
+    }
+
+    public boolean recipeFile(String filename) {
+        // This file must be in the cache for this action to be performed.
+        if(importFileCache.containsKey(filename.toLowerCase())) {
+            PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
+
+            // Make sure the status of this file is known.
+            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
+                    file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
+                    file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
+                    file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
+                LOG.info("Failed to mark {} as a recipe because one or more status is unknown", filename);
+                return false;
+            }
+
+            // Move the file to the recipe directory.
+            //TODO
+            LOG.info("Not yet implemented");
+            return false;
+
+            // Remove the file from the system.
+//            return deletePreImportFile(filename);
+        }
+
+        LOG.info("Failed to mark {} as a recipe as its not in the cache.", filename);
+        return false;
+    }
+
+    public boolean removeDuplicates() {
+        LOG.info("Remove any files in the import directory that are duplicates of files already in the system.");
 
         // Get the file that needs to be re-imported.
         Optional<PreImportSource> preImportSource = findPreImportSource();
         if(preImportSource.isEmpty()) {
-            LOG.warn("Invalid Pre Import Source for delete, returning empty list.");
+            LOG.warn("Remove Duplicates: Invalid Pre Import Source for delete, returning empty list.");
             return false;
         }
 
-        File preImportFile = new File(preImportSource.get().getPath().trim(), filename);
-        if(!Files.exists(preImportFile.toPath())) {
-            LOG.warn("Pre Import File does not exist.");
+        File source = new File(preImportSource.get().getPath());
+
+        // Check that the source exists.
+        if(!fileSystem.directoryExists(source.toPath())) {
+            LOG.warn("Remove duplicates: Pre import does not exist, returning empty list.");
             return false;
         }
 
-        // Find the import details
-        Optional<ImportSource> importSource = findImportSource();
-        if(importSource.isEmpty()) {
-            LOG.warn("Invalid Import Source - skipping import.");
+        List<String> removes = new ArrayList<>();
+        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+            // This depends on the file having been imported (mov files are imported as mp4).
+            List<FileInfo> imported = getImport(nextFilename.toLowerCase().replace(".mov",".mp4"));
+
+            // Is this file in the ignored list?
+            for(FileInfo nextImported : imported) {
+                for(ImportFileBaseDTO nextSimilar : getSimilarImported(nextImported.getName(),nextImported.getMD5().toString())) {
+                    // Does this file match on name, size, date and MD5?
+                    if(!nextImported.getMD5().toString().equalsIgnoreCase(nextSimilar.getMd5())) {
+                        continue;
+                    }
+
+                    if(!nextImported.getSize().equals(nextSimilar.getSize())) {
+                        continue;
+                    }
+
+                    if(!nextImported.getDate().equals(nextSimilar.getDate())) {
+                        continue;
+                    }
+
+                    if(!nextSimilar.getFilename().toLowerCase().endsWith(nextImported.getName().toLowerCase())) {
+                        continue;
+                    }
+
+                    LOG.info("Will remove {}", nextFilename);
+                    removes.add(nextFilename);
+                }
+            }
+        }
+
+        // Process the removes.
+        removes.forEach(this::deletePreImportFile);
+
+        return true;
+    }
+
+    public boolean importFiles() {
+        try {
+            // Perform the convert following by the import.
+            convertImportFiles();
+            importPhoto();
+        } catch (Exception e) {
+            LOG.error("Error while importing files", e);
             return false;
         }
 
-        //TODO - delete the import file and from the database.
+        return true;
+    }
 
-        ImportProcessDTO resultCount = new ImportProcessDTO();
-        processFile(preImportSource.get().getPath(),
-                filename,
-                importSource.get().getPath(),
-                resultCount );
+    public boolean removeIgnored() {
+        LOG.info("Remove any files in the import directory that are ignored.");
 
-        // Remove the file from the cache.
-        if(this.importFileCache.containsKey(filename.toLowerCase())) {
-            this.importFileCache.remove(filename.toLowerCase());
+        // Get the file that needs to be re-imported.
+        Optional<PreImportSource> preImportSource = findPreImportSource();
+        if(preImportSource.isEmpty()) {
+            LOG.warn("Remove ignored: Invalid Pre Import Source for delete, returning empty list.");
+            return false;
         }
+
+        File source = new File(preImportSource.get().getPath());
+
+        // Check that the source exists.
+        if(!fileSystem.directoryExists(source.toPath())) {
+            LOG.warn("Remove ignored: Pre import does not exist, returning empty list.");
+            return false;
+        }
+
+        List<String> removes = new ArrayList<>();
+        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+            // Is this file in the ignored list?
+            for(FileInfo nextFile: getSimilarIgnore(nextFilename,null)) {
+                // Need to validate that all the details are the same - date, size & MD5.
+                File realWorldFile = new File(source.getPath(),nextFilename);
+
+                // Check the size.
+                if(nextFile.getSize() != realWorldFile.length()) {
+                    LOG.info("{} different size {} {}", nextFilename, nextFile.getSize(), realWorldFile.length());
+                    continue;
+                }
+
+                // Check the date.
+                if(!nextFile.getDate().equals(FileProcessor.getFileLastModified(realWorldFile))) {
+                    LOG.info("{} different date {} {}", nextFilename, nextFile.getDate(), realWorldFile.lastModified());
+                    continue;
+                }
+
+                // Check the MD5
+                Classification dummyClassification = new Classification();
+                dummyClassification.setUseMD5(true);
+                MD5 md5 = fileSystem.getClassifiedFileMD5(realWorldFile.toPath(), dummyClassification, 0);
+
+                if(!nextFile.getMD5().equals(md5)) {
+                    LOG.info("{} different MD5 {} {}", nextFilename, nextFile.getMD5(), md5);
+                    continue;
+                }
+
+                LOG.info("Will remove {}", nextFilename);
+                removes.add(nextFilename);
+            }
+        }
+
+        // Process the removes.
+        removes.forEach(this::deletePreImportFile);
 
         return true;
     }

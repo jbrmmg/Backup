@@ -93,11 +93,55 @@ public class ImportController {
         return "FAILED";
     }
 
-    @PostMapping(path = "/reimportfile")
-    public String reimportFile(@RequestBody String filename) {
-        LOG.info("Re-import a pre import file - {}", filename);
+    @PostMapping(path = "/removeignored")
+    public String reimportFile() {
+        LOG.info("Check the import directory and remove any that are ignored");
 
-        if(importManager.reimportFile(filename)) {
+        if(importManager.removeIgnored()) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
+    @PostMapping(path = "/importfiles")
+    public String importFiles() {
+        LOG.info("Import the files in the pre-import directory.");
+
+        if(importManager.importFiles()) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
+    @PostMapping(path = "/removeduplicates")
+    public String removeduplicates() {
+        LOG.info("Remove any files that are already imported.");
+
+        if(importManager.removeDuplicates()) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
+    @PostMapping(path = "/ignorefile")
+    public String ignoreFile(@RequestBody String filename) {
+        LOG.info("Ignore the file.");
+
+        if(importManager.ignoreSelectedFile(filename)) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
+    @PostMapping(path = "/recipefile")
+    public String recipeFile(@RequestBody String filename) {
+        LOG.info("Ignore the file.");
+
+        if(importManager.recipeFile(filename)) {
             return "OK";
         }
 
