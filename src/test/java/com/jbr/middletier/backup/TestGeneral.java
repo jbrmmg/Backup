@@ -14,6 +14,7 @@ import com.jbr.middletier.backup.exception.ApiError;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
+import com.jbr.middletier.backup.util.ImageSize;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
@@ -964,6 +965,59 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
+    public void testPostImportSourceEntity() {
+        LocationDTO locationDTO = new LocationDTO();
+        locationDTO.setId(1);
+        locationDTO.setSize("1TB");
+        locationDTO.setName("Test");
+        locationDTO.setCheckDuplicates(true);
+        PostImportSourceDTO sourceDTO = new PostImportSourceDTO();
+        sourceDTO.setId(1);
+        sourceDTO.setPath("Cheese");
+        sourceDTO.setStatus("OK");
+        sourceDTO.setLocation(locationDTO);
+        sourceDTO.setMountCheck("Check");
+        sourceDTO.setFilter("Blah");
+
+        PostImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
+        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
+        Assert.assertEquals("Cheese", source.getPath());
+        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        Assert.assertEquals(1,source.getLocation().getId());
+        Assert.assertEquals("1TB", source.getLocation().getSize());
+        Assert.assertEquals("Test", source.getLocation().getName());
+        Assert.assertTrue(source.getMountCheck().isPresent());
+        Assert.assertEquals("Check", source.getMountCheck().get().toString());
+        Assert.assertEquals("Blah", source.getFilter());
+    }
+
+    @Test
+    public void testPostImportSourceDTO() {
+        Location location = new Location();
+        location.setId(1);
+        location.setSize("1TB");
+        location.setName("Test");
+        location.setCheckDuplicates(true);
+        PostImportSource source = new PostImportSource();
+        source.setId(1);
+        source.setPath("Cheese");
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setLocation(location);
+        source.setMountCheck("Check");
+        source.setFilter("Blah");
+
+        PostImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
+        Assert.assertEquals(1, sourceDTO.getId().intValue());
+        Assert.assertEquals("Cheese", sourceDTO.getPath());
+        Assert.assertEquals("OK", sourceDTO.getStatus());
+        Assert.assertEquals(1, sourceDTO.getLocation().getId().intValue());
+        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
+        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
+        Assert.assertEquals("Check", sourceDTO.getMountCheck());
+        Assert.assertEquals("Blah", sourceDTO.getFilter());
+    }
+
+    @Test
     public void testSynchronizeEntity() {
         SynchronizeDTO synchronizeDTO = getSynchronizeDTO();
 
@@ -1207,8 +1261,9 @@ public class TestGeneral extends WebTester {
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertTrue(fileSystemImageData.isValid());
-        Assert.assertEquals(120,fileSystemImageData.getHeight());
-        Assert.assertEquals(121,fileSystemImageData.getWidth());
+        ImageSize size = fileSystemImageData.getImageSize();
+        Assert.assertEquals(120,size.getHeight());
+        Assert.assertEquals(121,size.getWidth());
         Assert.assertEquals("21-January-2022 11:04 IDD_ICC_PROFILE",fileSystemImageData.toString());
     }
 

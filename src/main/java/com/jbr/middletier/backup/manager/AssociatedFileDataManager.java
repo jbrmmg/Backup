@@ -85,8 +85,16 @@ public class AssociatedFileDataManager {
         return modelMapper.map(source, PreImportSourceDTO.class);
     }
 
+    public PostImportSourceDTO convertToDTO(PostImportSource source) {
+        return modelMapper.map(source, PostImportSourceDTO.class);
+    }
+
     public PreImportSource convertToEntity(PreImportSourceDTO source) {
         return modelMapper.map(source, PreImportSource.class);
+    }
+
+    public PostImportSource convertToEntity(PostImportSourceDTO source) {
+        return modelMapper.map(source, PostImportSource.class);
     }
 
     public SynchronizeDTO convertToDTO(Synchronize synchronize) {
@@ -324,10 +332,6 @@ public class AssociatedFileDataManager {
         return preImportSourceRepository.findById(id);
     }
 
-    public Optional<PostImportSource> findPostImportSourceIfExists(Integer id) {
-        return postImportSourceRepository.findById(id);
-    }
-
     public PreImportSource createPreImportSource(PreImportSource source) throws SourceAlreadyExistsException {
         if(source.getIdAndType().getId() != null) {
             throw new SourceAlreadyExistsException(source.getIdAndType().getId());
@@ -352,6 +356,36 @@ public class AssociatedFileDataManager {
 
     public void deleteAllPreImportSource() {
         preImportSourceRepository.deleteAll();
+    }
+
+    public Optional<PostImportSource> findPostImportSourceIfExists(Integer id) {
+        return postImportSourceRepository.findById(id);
+    }
+
+    public PostImportSource createPostImportSource(PostImportSource source) throws SourceAlreadyExistsException {
+        if(source.getIdAndType().getId() != null) {
+            throw new SourceAlreadyExistsException(source.getIdAndType().getId());
+        }
+
+        return postImportSourceRepository.save(source);
+    }
+
+    public void updatePostImportSource(PostImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        postImportSourceRepository.save(source);
+    }
+
+    public void deletePostImportSource(PostImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        postImportSourceRepository.deleteById(source.getIdAndType().getId());
+    }
+
+    public void deleteAllPostImportSource() {
+        postImportSourceRepository.deleteAll();
     }
 
     /* --------------------------------------------------------------------------------------------------

@@ -28,6 +28,7 @@ public class FileTester extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FileTester.class);
     protected static final String importDirectory = "./target/it_test/import";
     protected static final String preImportDirectory = "./target/it_test/preimport";
+    protected static final String postImportDirectory = "./target/it_test/postimport";
     protected static final String sourceDirectory = "./target/it_test/source";
     protected static final String destinationDirectory = "./target/it_test/destination";
 

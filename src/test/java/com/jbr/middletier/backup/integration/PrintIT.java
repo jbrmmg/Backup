@@ -111,6 +111,7 @@ public class PrintIT extends FileTester {
         associatedFileDataManager.deleteAllSynchronize();
         fileSystemObjectManager.deleteAllFileObjects();
         associatedFileDataManager.deleteAllPreImportSource();
+        associatedFileDataManager.deleteAllPostImportSource();
         associatedFileDataManager.deleteAllImportSource();
         associatedFileDataManager.deleteAllSource();
         labelRepository.deleteAll();

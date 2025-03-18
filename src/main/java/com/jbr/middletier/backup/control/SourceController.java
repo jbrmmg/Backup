@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
+import com.jbr.middletier.backup.dto.PostImportSourceDTO;
 import com.jbr.middletier.backup.dto.PreImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.InvalidSourceIdException;
@@ -95,6 +96,24 @@ public class SourceController {
     @DeleteMapping(path="/preImportSource")
     public List<SourceDTO> deletePreImportSource(@RequestBody PreImportSourceDTO source) throws InvalidSourceIdException {
         associatedFileDataManager.deletePreImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @PostMapping(path="/postImportSource")
+    public List<SourceDTO> createPosImportSource(@NotNull @RequestBody PostImportSourceDTO source) throws SourceAlreadyExistsException {
+        associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @PutMapping(path="/postImportSource")
+    public List<SourceDTO> updatePostImportSource(@NotNull @RequestBody PostImportSourceDTO source) throws InvalidSourceIdException {
+        associatedFileDataManager.updatePostImportSource(associatedFileDataManager.convertToEntity(source));
+        return getSources();
+    }
+
+    @DeleteMapping(path="/postImportSource")
+    public List<SourceDTO> deletePostImportSource(@RequestBody PostImportSourceDTO source) throws InvalidSourceIdException {
+        associatedFileDataManager.deletePostImportSource(associatedFileDataManager.convertToEntity(source));
         return getSources();
     }
 }

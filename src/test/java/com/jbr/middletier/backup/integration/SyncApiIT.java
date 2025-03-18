@@ -186,6 +186,7 @@ public class SyncApiIT extends FileTester {
         actionManager.deleteAllActions();
         fileSystemObjectManager.deleteAllFileObjects();
         associatedFileDataManager.deleteAllPreImportSource();
+        associatedFileDataManager.deleteAllPostImportSource();
         associatedFileDataManager.deleteAllImportSource();
         associatedFileDataManager.deleteAllSource();
     }

@@ -72,6 +72,7 @@ public class ImportIT extends FileTester {
     Source source;
     ImportSource importSource;
     PreImportSource preImportSource;
+    PostImportSource postImportSource;
 
     @Before
     public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException {
@@ -127,6 +128,13 @@ public class ImportIT extends FileTester {
         preImportSourceDTO.setPath(preImportDirectory);
 
         this.preImportSource = associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
+
+        PostImportSourceDTO postImportSourceDTO = new PostImportSourceDTO();
+        postImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
+        postImportSourceDTO.setStatus("OK");
+        postImportSourceDTO.setPath(postImportDirectory);
+
+        this.postImportSource = associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(postImportSourceDTO));
     }
 
     private void checkGather(List<GatherDataDTO> result, int fileInsert, int dirInsert) {

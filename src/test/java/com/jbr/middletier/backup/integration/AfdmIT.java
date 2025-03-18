@@ -219,6 +219,7 @@ public class AfdmIT {
         ModelMapper modelMapper = mock(ModelMapper.class);
         SourceRepository sourceRepository = mock(SourceRepository.class);
         PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
+        PostImportSourceRepository postImportSourceRepository = mock(PostImportSourceRepository.class);
         LocationRepository locationRepository = mock(LocationRepository.class);
         ClassificationRepository classificationRepository = mock(ClassificationRepository.class);
         SynchronizeRepository synchronizeRepository = mock(SynchronizeRepository.class);
@@ -231,6 +232,7 @@ public class AfdmIT {
                 synchronizeRepository,
                 importSourceRepository,
                 preImportSourceRepository,
+                postImportSourceRepository,
                 modelMapper);
 
         try {
@@ -248,6 +250,7 @@ public class AfdmIT {
         ModelMapper modelMapper = mock(ModelMapper.class);
         SourceRepository sourceRepository = mock(SourceRepository.class);
         PreImportSourceRepository preImportSourceRepository = mock(PreImportSourceRepository.class);
+        PostImportSourceRepository postImportSourceRepository = mock(PostImportSourceRepository.class);
         LocationRepository locationRepository = mock(LocationRepository.class);
         ClassificationRepository classificationRepository = mock(ClassificationRepository.class);
         SynchronizeRepository synchronizeRepository = mock(SynchronizeRepository.class);
@@ -258,7 +261,7 @@ public class AfdmIT {
                 locationRepository,
                 classificationRepository,
                 synchronizeRepository,
-                importSourceRepository, preImportSourceRepository, modelMapper);
+                importSourceRepository, preImportSourceRepository, postImportSourceRepository, modelMapper);
 
         try {
             testAFDM.updateSourceStatus(testSource, SourceStatusType.SST_OK);
