@@ -83,3 +83,6 @@ databaseChangeLog:
 
   - include:
       file: /db/changelog/db.changelog-029-log-update.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-030-postimport.yaml

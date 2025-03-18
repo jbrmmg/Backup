@@ -24,17 +24,26 @@ public class AssociatedFileDataManager {
     private final SynchronizeRepository synchronizeRepository;
     private final ImportSourceRepository importSourceRepository;
     private final PreImportSourceRepository preImportSourceRepository;
+    private final PostImportSourceRepository postImportSourceRepository;
     private List<Classification> cachedClassifications;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository, PreImportSourceRepository preImportSourceRepository, ModelMapper modelMapper) {
+    public AssociatedFileDataManager(SourceRepository sourceRepository,
+                                     LocationRepository locationRepository,
+                                     ClassificationRepository classificationRepository,
+                                     SynchronizeRepository synchronizeRepository,
+                                     ImportSourceRepository importSourceRepository,
+                                     PreImportSourceRepository preImportSourceRepository,
+                                     PostImportSourceRepository postImportSourceRepository,
+                                     ModelMapper modelMapper) {
         this.sourceRepository = sourceRepository;
         this.locationRepository = locationRepository;
         this.classificationRepository = classificationRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.importSourceRepository = importSourceRepository;
         this.preImportSourceRepository = preImportSourceRepository;
+        this.postImportSourceRepository = postImportSourceRepository;
         this.modelMapper = modelMapper;
         this.cachedClassifications = null;
     }
@@ -313,6 +322,10 @@ public class AssociatedFileDataManager {
 
     public Optional<PreImportSource> findPreImportSourceIfExists(Integer id) {
         return preImportSourceRepository.findById(id);
+    }
+
+    public Optional<PostImportSource> findPostImportSourceIfExists(Integer id) {
+        return postImportSourceRepository.findById(id);
     }
 
     public PreImportSource createPreImportSource(PreImportSource source) throws SourceAlreadyExistsException {
