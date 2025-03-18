@@ -226,6 +226,7 @@ public class FileSystem {
 
     public Optional<FileSystemImageData> readImageMetaData(File file) {
         try {
+            // Try apache tika
             FileSystemImageData imageData = new FileSystemImageData(ImageMetadataReader.readMetadata(file));
             if(imageData.isValid()) {
                 return Optional.of(imageData);

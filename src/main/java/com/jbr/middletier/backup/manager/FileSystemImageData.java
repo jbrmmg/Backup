@@ -23,6 +23,7 @@ public class FileSystemImageData {
     private String latitudeRef;
     private String longitude;
     private String longitudeRef;
+    private String mimeType;
     private boolean valid;
 
     private static final String TAG_IMAGE_WIDTH = "Image Width";
@@ -34,6 +35,7 @@ public class FileSystemImageData {
     private static final String TAG_ICC_PROFILE_DATETIME = "Profile Date/Time";
     private static final String TAG_EXIF_SUBIFD = "Date/Time Original";
     private static final String TAG_CREATION_TIME = "Creation Time";
+    private static final String TAG_DETECTED_MIME_TYPE = "Detected MIME Type";
     private static final String EXIF_DATE_FORMAT = "uuuu:MM:dd HH:mm:ss";
     private static final String MP4_DATE_FORMAT = "EEE MMM dd HH:mm:ss z uuuu";
     private static final String QUICKTIME_DATE_FORMAT = "EEE MMM dd HH:mm:ss xxx uuuu";
@@ -112,6 +114,12 @@ public class FileSystemImageData {
         setDateTime(value,QUICKTIME_DATE_FORMAT,ImageDataDirectoryType.IDD_QUICKTIME);
     }
 
+    private void extractFileType(String tag, String value) {
+        if (tag.equals(TAG_DETECTED_MIME_TYPE)) {
+            this.mimeType = value;
+        }
+    }
+
     private void extractFromGps(String tag, String value) {
         switch (tag) {
             case TAG_GPS_LATITUDE:
@@ -131,7 +139,7 @@ public class FileSystemImageData {
 
     private void extractFrom(String directory, String tag, String value) {
         ImageDataDirectoryType directoryType = ImageDataDirectoryType.getImageDataDirectoryType(directory);
-        
+
         switch (directoryType) {
             case IDD_PNG_IHDR:
                 extractFromPngIhdr(tag,value);
@@ -154,10 +162,12 @@ public class FileSystemImageData {
             case IDD_GPS:
                 extractFromGps(tag,value);
                 break;
+            case IDD_FILE_TYPE:
+                extractFileType(tag,value);
+                break;
             case IDD_PNG_ICCP,
                 IDD_EXIF_IFD0,
                 IDD_XMP,
-                IDD_FILE_TYPE,
                 IDD_FILE,
                 IDD_JFIF,
                 IDD_APPLE_MAKERNOTE,
@@ -189,6 +199,7 @@ public class FileSystemImageData {
             this.latitudeRef = "X";
             this.longitude = "";
             this.longitudeRef = "X";
+            this.mimeType = "";
 
             if(metaData != null) {
                 this.valid = false;
@@ -221,6 +232,10 @@ public class FileSystemImageData {
         }
 
         return null;
+    }
+
+    public String getMimeType() {
+        return this.mimeType;
     }
 
     public boolean isValid() {
