@@ -297,7 +297,7 @@ public class ImportManager extends FileProcessor {
 
     private ProcessType getFileType(Optional<FileSystemImageData> imageData) {
         if(imageData.isPresent() && imageData.get().isValid()) {
-            if(imageData.get().getDateSourceType().equals(ImageDataDirectoryType.IDD_QUICKTIME)) {
+            if(imageData.get().getMimeType().equals("video/quicktime")) {
                 return ProcessType.CONVERT_QUICKTIME;
             }
 

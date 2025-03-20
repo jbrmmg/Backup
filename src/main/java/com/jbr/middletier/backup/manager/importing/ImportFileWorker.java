@@ -6,7 +6,6 @@ import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
-import com.jbr.middletier.backup.manager.ImageDataDirectoryType;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
@@ -57,15 +56,12 @@ public class ImportFileWorker implements Runnable {
                 file.setLocation(latLong);
 
                 ImageSize imageSize = imageData.get().getImageSize();
-                if(imageSize != null) {
+
+                // Use the mime type to determine if its an image or video.
+                if(imageData.get().getMimeType().trim().toLowerCase().startsWith("image")) {
                     file.setImage(true);
-                } else {
-                    // Is this video?
-                    if(imageData.get().getDateSourceType() == ImageDataDirectoryType.IDD_QUICKTIME) {
-                        file.setVideo(true);
-                    } else if (file.getFilename().toLowerCase().endsWith(".mp4")) {
-                        file.setVideo(true);
-                    }
+                } else if(imageData.get().getMimeType().trim().toLowerCase().startsWith("video")) {
+                    file.setVideo(true);
                 }
 
                 LOG.info("HEIGHT/WIDTH = {} {}", imageSize != null ? imageSize.getHeight() : null, imageSize != null ? imageSize.getWidth() : null );

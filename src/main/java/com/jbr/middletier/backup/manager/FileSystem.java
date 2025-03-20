@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.manager;
 
-import com.drew.imaging.ImageMetadataReader;
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
@@ -9,15 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -226,16 +222,33 @@ public class FileSystem {
 
     public Optional<FileSystemImageData> readImageMetaData(File file) {
         try {
-            // Try apache tika
-            FileSystemImageData imageData = new FileSystemImageData(ImageMetadataReader.readMetadata(file));
-            if(imageData.isValid()) {
-                return Optional.of(imageData);
+            // Use the Exif tool to read meta data from the specified file.
+            Process process = new ProcessBuilder("exiftool", file.getPath()).start();
+
+            InputStream processInputStream = process.getInputStream();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(processInputStream));
+
+            List<String> tmp = reader.lines().toList();
+            Map<String,String> map = new HashMap<>();
+
+            for(String line : tmp) {
+                String key = line.substring(0,line.indexOf(":")).trim().toLowerCase();
+                String value = line.substring(line.indexOf(":")+1).trim().toLowerCase();
+
+                if(map.containsKey(key)) {
+                    LOG.info("Line {} is a duplicate key {}", line, key);
+                } else {
+                    map.put(key,value);
+                }
             }
-        }
-        catch (Exception e) {
-            LOG.error("Unable to get image data from file {}", file.getName());
+
+            return Optional.of(new FileSystemImageData(map));
+        } catch (IOException e) {
+            LOG.info("Failed to read any meta data from file",e);
         }
 
+        // Return nothing
         return Optional.empty();
     }
 

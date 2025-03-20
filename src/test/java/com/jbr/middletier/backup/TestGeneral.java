@@ -1,10 +1,5 @@
 package com.jbr.middletier.backup;
 
-import com.drew.imaging.png.PngChunkType;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.icc.IccDirectory;
-import com.drew.metadata.mp4.Mp4Directory;
-import com.drew.metadata.png.PngDirectory;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.config.DefaultProfileUtil;
@@ -1257,7 +1252,7 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void testFileSystemImageData() {
-        Metadata metadata = getMetadata("2022:01:21 11:04:10");
+        Map<String,String> metadata = getMetadata("2022:01:21 11:04:10");
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertTrue(fileSystemImageData.isValid());
@@ -1268,24 +1263,23 @@ public class TestGeneral extends WebTester {
     }
 
     @NotNull
-    private static Metadata getMetadata(String value) {
-        PngDirectory pngDirectory = new PngDirectory(PngChunkType.IHDR);
-        pngDirectory.setInt(PngDirectory.TAG_IMAGE_WIDTH, 121);
-        pngDirectory.setInt(PngDirectory.TAG_IMAGE_HEIGHT, 120);
-        pngDirectory.setInt(PngDirectory.TAG_COMPRESSION_TYPE, 0);
+    private static Map<String,String> getMetadata(String value) {
+        Map<String,String> metadata = new HashMap<>();
+        metadata.put("date/time original",value + "+00:00");
+        metadata.put("image size","10x10");
+        metadata.put("gps position","51 deg 27' 22.32\" N, 2 deg 37' 32.52\" W");
+        if(value.trim().toLowerCase().startsWith("invalid")) {
+            metadata.put("mime type", "something/else");
+        } else {
+            metadata.put("mime type", "image/jpeg");
+        }
 
-        IccDirectory iccDirectory = new IccDirectory();
-        iccDirectory.setString(IccDirectory.TAG_PROFILE_DATETIME, value);
-
-        Metadata metadata = new Metadata();
-        metadata.addDirectory(pngDirectory);
-        metadata.addDirectory(iccDirectory);
         return metadata;
     }
 
     @Test
     public void testFileSystemImageDataInvalid() {
-        Metadata metadata = getMetadata("invalid");
+        Map<String,String> metadata = getMetadata("invalid");
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertFalse(fileSystemImageData.isValid());
@@ -1296,11 +1290,12 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void testFileSystemImageDataMp4() {
-        Mp4Directory mp4Directory = new Mp4Directory();
-        mp4Directory.setString(Mp4Directory.TAG_CREATION_TIME, "Fri Jan 21 11:04:12 GMT 2022");
+        Map<String,String> metadata = new HashMap<>();
+        metadata.put("date/time original","2022:01:21 11:04:12");
+        metadata.put("image size","10x10");
+        metadata.put("gps position","51 deg 27' 22.32\" N, 2 deg 37' 32.52\" W");
+        metadata.put("mime type", "video/mp4");
 
-        Metadata metadata = new Metadata();
-        metadata.addDirectory(mp4Directory);
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertTrue(fileSystemImageData.isValid());

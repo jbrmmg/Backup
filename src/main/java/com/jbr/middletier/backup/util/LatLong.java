@@ -55,7 +55,7 @@ public class LatLong {
     }
 
     private double getDegrees(String degrees) {
-        degrees = degrees.replace("°", "").trim();
+        degrees = degrees.replace("deg", "").trim();
 
         return Math.abs(Double.parseDouble(degrees));
     }
@@ -75,7 +75,7 @@ public class LatLong {
     private double getValue(String element) {
         element = element.trim();
 
-        if(element.endsWith("°")) {
+        if(element.endsWith("deg")) {
             return getDegrees(element);
         }
 
@@ -92,7 +92,7 @@ public class LatLong {
 
     private double getCoordinate(String source, ReferenceType reference) {
         try {
-            String[] elements = source.split(" ");
+            String[] elements = source.replace(" deg", "deg").split(" ");
 
             double value = 0.0;
             for (String next : elements) {

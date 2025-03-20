@@ -1,8 +1,5 @@
 package com.jbr.middletier.backup.manager;
 
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.Tag;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
@@ -10,208 +7,128 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class FileSystemImageData {
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemImageData.class);
 
+    private static final String META_DATETIME_FORMAT = "yyyy:MM:dd HH:mm:ss";
+
     private LocalDateTime dateTime;
-    private ImageDataDirectoryType dateSource;
-    private int width;
-    private int height;
-    private String latitude;
-    private String latitudeRef;
-    private String longitude;
-    private String longitudeRef;
+    private ImageSize size;
+    private LatLong latLong;
     private String mimeType;
     private boolean valid;
 
-    private static final String TAG_IMAGE_WIDTH = "Image Width";
-    private static final String TAG_IMAGE_HEIGHT = "Image Height";
-    private static final String TAG_GPS_LATITUDE = "GPS Latitude";
-    private static final String TAG_GPS_LATITUDE_REF = "GPS Latitude Ref";
-    private static final String TAG_GPS_LONGITUDE = "GPS Longitude";
-    private static final String TAG_GPS_LONGITUDE_REF = "GPS Longitude Ref";
-    private static final String TAG_ICC_PROFILE_DATETIME = "Profile Date/Time";
-    private static final String TAG_EXIF_SUBIFD = "Date/Time Original";
-    private static final String TAG_CREATION_TIME = "Creation Time";
-    private static final String TAG_DETECTED_MIME_TYPE = "Detected MIME Type";
-    private static final String EXIF_DATE_FORMAT = "uuuu:MM:dd HH:mm:ss";
-    private static final String MP4_DATE_FORMAT = "EEE MMM dd HH:mm:ss z uuuu";
-    private static final String QUICKTIME_DATE_FORMAT = "EEE MMM dd HH:mm:ss xxx uuuu";
+    private LocalDateTime getMimeDateTime(String dateTime) {
+        if(dateTime == null || dateTime.length() < META_DATETIME_FORMAT.length())
+            return null;
 
-    private void extractFromPngIhdr(String tag, String value) {
-        switch (tag) {
-            case TAG_IMAGE_WIDTH:
-                this.width = Integer.parseInt(value);
-                break;
-            case TAG_IMAGE_HEIGHT:
-                this.height = Integer.parseInt(value);
-                break;
-            default:
-                // Ignore any other types.
+        //2025:03:01 13:56:44
+        //2025:03:01 13:56:43+00:00
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(META_DATETIME_FORMAT);
+        return LocalDateTime.parse(dateTime.substring(0,META_DATETIME_FORMAT.length()), formatter);
+    }
+
+    private ImageSize getMimeImageSize(String size) {
+        try {
+            // Format of the string is width x height
+            String[] split = size.split("x");
+
+            int width = Integer.parseInt(split[0].trim());
+            int height = Integer.parseInt(split[1].trim());
+
+            return new ImageSize(width, height);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
-    private void extractFromJpeg(String tag, String value) {
-        switch (tag) {
-            case TAG_IMAGE_WIDTH:
-                this.width = Integer.parseInt(value.replace(" pixels", ""));
-                break;
-            case TAG_IMAGE_HEIGHT:
-                this.height = Integer.parseInt(value.replace(" pixels", ""));
-                break;
-            default:
-                // Ignore any other types.
+
+
+    private LatLong getMimeLatLong(String gps) {
+        try {
+            if(gps == null || gps.isEmpty()) {
+                return null;
+            }
+
+            // 51 deg 27' 22.41" N, 2 deg 37' 32.56" W
+            // 51 deg 27' 22.32" N, 2 deg 37' 32.52" W
+            // Format of the string is:     a deg b' c.cc" d, a deg b' c.cc" d
+            // Where a = degrees, b = minutes, c.cc = seconds and d = reference (N/S) or (E/W)
+
+            String[] split = gps.split(",");
+
+            String lat = split[0].trim();
+            String lng = split[1].trim();
+
+            split = lat.split("\"");
+
+            String latCoord = split[0].trim() + "\"";
+            String latRef = split[1].trim();
+
+            split = lng.split("\"");
+
+            String lngCoord = split[0].trim() + "\"";
+            String lngRef = split[1].trim();
+
+            return new  LatLong(latCoord, latRef, lngCoord, lngRef);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
-    private void setDateTime(String value, String format, ImageDataDirectoryType source) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        LocalDateTime newDateTime = LocalDateTime.parse(value,formatter);
-
-        LocalDateTime minDateTime = LocalDateTime.of(1990,1, 1, 0, 0);
-        if(minDateTime.isBefore(newDateTime)) {
-            this.dateTime = newDateTime;
-            this.dateSource = source;
-            this.valid = true;
-        }
+    private void processImageMetaData(Map<String,String> metaData) {
+        this.dateTime = getMimeDateTime(metaData.get("date/time original"));
+        this.size = getMimeImageSize(metaData.get("image size"));
+        this.latLong = getMimeLatLong(metaData.get("gps position"));
     }
 
-    private void extractFromIccProfile(String tag, String value) {
-        if(!tag.equals(TAG_ICC_PROFILE_DATETIME)) {
-            return;
-        }
-
+    private void processVideoMetaData(Map<String,String> metaData) {
+        this.dateTime = getMimeDateTime(metaData.get("creation date"));
         if(this.dateTime == null) {
-            setDateTime(value,EXIF_DATE_FORMAT,ImageDataDirectoryType.IDD_ICC_PROFILE);
+            this.dateTime = getMimeDateTime(metaData.get("media create date"));
         }
+        this.size = getMimeImageSize(metaData.get("image size"));
+        this.latLong = getMimeLatLong(metaData.get("gps position"));
     }
 
-    private void extractFromExifSubIfd(String tag, String value) {
-        if(!tag.equals(TAG_EXIF_SUBIFD)) {
-            return;
-        }
-
-        if(this.dateTime == null || this.dateSource.equals(ImageDataDirectoryType.IDD_ICC_PROFILE)) {
-            setDateTime(value,EXIF_DATE_FORMAT,ImageDataDirectoryType.IDD_EXIF_SUBIFD);
-        }
-    }
-
-    private void extractFromMp4(String tag, String value) {
-        if(!tag.equals(TAG_CREATION_TIME)) {
-            return;
-        }
-
-        setDateTime(value,MP4_DATE_FORMAT,ImageDataDirectoryType.IDD_EXIF_SUBIFD);
-    }
-
-    private void extractFromQuickTime(String tag, String value) {
-        if(!tag.equals(TAG_CREATION_TIME)) {
-            return;
-        }
-
-        setDateTime(value,QUICKTIME_DATE_FORMAT,ImageDataDirectoryType.IDD_QUICKTIME);
-    }
-
-    private void extractFileType(String tag, String value) {
-        if (tag.equals(TAG_DETECTED_MIME_TYPE)) {
-            this.mimeType = value;
-        }
-    }
-
-    private void extractFromGps(String tag, String value) {
-        switch (tag) {
-            case TAG_GPS_LATITUDE:
-                this.latitude = value;
-                break;
-            case TAG_GPS_LATITUDE_REF:
-                this.latitudeRef = value;
-                break;
-            case TAG_GPS_LONGITUDE:
-                this.longitude = value;
-                break;
-            case TAG_GPS_LONGITUDE_REF:
-                this.longitudeRef = value;
-                break;
-        }
-    }
-
-    private void extractFrom(String directory, String tag, String value) {
-        ImageDataDirectoryType directoryType = ImageDataDirectoryType.getImageDataDirectoryType(directory);
-
-        switch (directoryType) {
-            case IDD_PNG_IHDR:
-                extractFromPngIhdr(tag,value);
-                break;
-            case IDD_ICC_PROFILE:
-                extractFromIccProfile(tag,value);
-                break;
-            case IDD_EXIF_SUBIFD:
-                extractFromExifSubIfd(tag,value);
-                break;
-            case IDD_JPEG:
-                extractFromJpeg(tag,value);
-                break;
-            case IDD_MP4:
-                extractFromMp4(tag,value);
-                break;
-            case IDD_QUICKTIME:
-                extractFromQuickTime(tag,value);
-                break;
-            case IDD_GPS:
-                extractFromGps(tag,value);
-                break;
-            case IDD_FILE_TYPE:
-                extractFileType(tag,value);
-                break;
-            case IDD_PNG_ICCP,
-                IDD_EXIF_IFD0,
-                IDD_XMP,
-                IDD_FILE,
-                IDD_JFIF,
-                IDD_APPLE_MAKERNOTE,
-                IDD_APPLE_RUN_TIME,
-                IDD_HUFFMAN,
-                IDD_MP4_SOUND,
-                IDD_MP4_VIDEO,
-                IDD_QUICKTIME_SOUND,
-                IDD_QUICKTIME_VIDEO,
-                IDD_QUICKTIME_METADATA,
-                IDD_PNG_SRGB,
-                IDD_EXIF_THUMBNAIL,
-                IDD_PHOTOSHOP,
-                IDD_IPTC:
-                // Ignore these headers.
-                break;
-            case IDD_UNKNOWN:
-                LOG.warn("Directory - {} not handled.", directory);
-        }
-    }
-
-    public FileSystemImageData(Metadata metaData) {
+    public FileSystemImageData(Map<String,String> metaData) {
         try {
             this.dateTime = null;
-            this.dateSource = null;
-            this.height = 0;
-            this.width = 0;
-            this.latitude = "";
-            this.latitudeRef = "X";
-            this.longitude = "";
-            this.longitudeRef = "X";
+            this.size = null;
+            this.latLong = null;
             this.mimeType = "";
 
             if(metaData != null) {
                 this.valid = false;
-                for (Directory directory : metaData.getDirectories()) {
-                    for (Tag tag : directory.getTags()) {
-                        extractFrom(directory.getName(), tag.getTagName(), tag.getDescription());
-                    }
+
+                // Get the mime type
+                if(!metaData.containsKey("mime type")) {
+                    throw new IllegalArgumentException("Missing mime type, cannot determine the file meta data type");
+                }
+
+                this.mimeType = metaData.get("mime type");
+
+                // Only expect there to be an image or video.
+                String[] mimeTypeElements = mimeType.split("/");
+                switch (mimeTypeElements[0].trim()) {
+                    case "image":
+                        processImageMetaData(metaData);
+                        break;
+                    case "video":
+                        processVideoMetaData(metaData);
+                        break;
+                    default:
+                        throw new  IllegalArgumentException("Expect the mime type to be image or video.");
                 }
             }
         } catch(Exception e) {
             this.valid = false;
         }
+
+        this.valid = true;
     }
 
     public LocalDateTime getDateTime() {
@@ -219,19 +136,11 @@ public class FileSystemImageData {
     }
 
     public ImageSize getImageSize() {
-        if(this.width > 0 && this.height > 0) {
-            return new ImageSize(this.width, this.height);
-        }
-
-        return null;
+        return this.size;
     }
 
     public LatLong getLatLong() {
-        if(!this.latitudeRef.equals("X") && !this.longitudeRef.equals("X")) {
-            return new LatLong(this.latitude,this.latitudeRef,this.longitude,this.longitudeRef);
-        }
-
-        return null;
+        return this.latLong;
     }
 
     public String getMimeType() {
@@ -242,15 +151,11 @@ public class FileSystemImageData {
         return valid;
     }
 
-    public ImageDataDirectoryType getDateSourceType() {
-        return this.dateSource;
-    }
-
     @Override
     public String toString() {
         if(this.valid) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMMM-uuuu hh:mm");
-            return this.dateTime.format(formatter) + " " + this.dateSource;
+            return this.dateTime.format(formatter) + " " + this.mimeType;
         }
 
         return "(no valid meta date)";
