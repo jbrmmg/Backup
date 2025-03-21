@@ -19,6 +19,7 @@ public class FileSystemImageData {
     private ImageSize size;
     private LatLong latLong;
     private String mimeType;
+    private Double duration;
     private boolean valid;
 
     private LocalDateTime getMimeDateTime(String dateTime) {
@@ -44,8 +45,6 @@ public class FileSystemImageData {
             return null;
         }
     }
-
-
 
     private LatLong getMimeLatLong(String gps) {
         try {
@@ -79,6 +78,14 @@ public class FileSystemImageData {
         }
     }
 
+    private Double getMimeDuration(String duration) {
+        if(duration == null || duration.isEmpty()) {
+            return null;
+        }
+
+        return Double.parseDouble(duration.replaceAll(" s", "").trim());
+    }
+
     private void processImageMetaData(Map<String,String> metaData) {
         this.dateTime = getMimeDateTime(metaData.get("date/time original"));
         this.size = getMimeImageSize(metaData.get("image size"));
@@ -92,6 +99,7 @@ public class FileSystemImageData {
         }
         this.size = getMimeImageSize(metaData.get("image size"));
         this.latLong = getMimeLatLong(metaData.get("gps position"));
+        this.duration = getMimeDuration(metaData.get("duration"));
     }
 
     public FileSystemImageData(Map<String,String> metaData) {
@@ -99,6 +107,7 @@ public class FileSystemImageData {
             this.dateTime = null;
             this.size = null;
             this.latLong = null;
+            this.duration = null;
             this.mimeType = "";
 
             if(metaData != null) {
@@ -126,6 +135,7 @@ public class FileSystemImageData {
             }
         } catch(Exception e) {
             this.valid = false;
+            return;
         }
 
         this.valid = true;
@@ -145,6 +155,10 @@ public class FileSystemImageData {
 
     public String getMimeType() {
         return this.mimeType;
+    }
+
+    public Double getDuration() {
+        return this.duration;
     }
 
     public boolean isValid() {

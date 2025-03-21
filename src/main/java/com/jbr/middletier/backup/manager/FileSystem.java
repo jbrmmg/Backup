@@ -243,7 +243,10 @@ public class FileSystem {
                 }
             }
 
-            return Optional.of(new FileSystemImageData(map));
+            FileSystemImageData imageData = new FileSystemImageData(map);
+            if(imageData.isValid()) {
+                return Optional.of(imageData);
+            }
         } catch (IOException e) {
             LOG.info("Failed to read any meta data from file",e);
         }

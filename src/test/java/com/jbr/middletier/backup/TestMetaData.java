@@ -94,7 +94,16 @@ public class TestMetaData {
 
     @Test
     public void testMetaDataPDF() {
-        File pdf = new File("src/test/resources/synchronise/IMG_1015.PDF");
+        File pdf = new File("src/test/resources/synchronise/Document.PDF");
+
+        Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(pdf);
+
+        Assert.assertFalse(meta.isPresent());
+    }
+
+    @Test
+    public void testMetaDataODT() {
+        File pdf = new File("src/test/resources/synchronise/Document.odt");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(pdf);
 
@@ -103,10 +112,59 @@ public class TestMetaData {
 
     @Test
     public void testMetaDataText() {
-        File text = new File("src/test/resources/synchronise/IMG_1015.txt");
+        File text = new File("src/test/resources/synchronise/Text.txt");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
 
         Assert.assertFalse(meta.isPresent());
+    }
+
+    @Test
+    public void testMetaDataHEIC() {
+        File text = new File("src/test/resources/synchronise/Photo.HEIC");
+
+        Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
+
+        Assert.assertTrue(meta.isPresent());
+        Assert.assertTrue(meta.get().isValid());
+        Assert.assertNotNull(meta.get().getImageSize());
+        Assert.assertNotNull(meta.get().getDateTime());
+        Assert.assertNotNull(meta.get().getLatLong());
+        Assert.assertEquals("image/heic",meta.get().getMimeType());
+        Assert.assertEquals(53.26959,meta.get().getLatLong().getLatitude(),0.00001);
+        Assert.assertEquals(-9.05526,meta.get().getLatLong().getLongitude(),0.00001);
+        Assert.assertEquals(3024,meta.get().getImageSize().getWidth());
+        Assert.assertEquals(4032,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(2022,meta.get().getDateTime().getYear());
+        Assert.assertEquals(Month.AUGUST,meta.get().getDateTime().getMonth());
+        Assert.assertEquals(20,meta.get().getDateTime().getDayOfMonth());
+        Assert.assertEquals(9,meta.get().getDateTime().getHour());
+        Assert.assertEquals(13,meta.get().getDateTime().getMinute());
+        Assert.assertEquals(37,meta.get().getDateTime().getSecond());
+    }
+
+    @Test
+    public void testMetaDataPNG() {
+        File text = new File("src/test/resources/synchronise/Photo.png");
+
+        Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
+
+        Assert.assertTrue(meta.isPresent());
+        Assert.assertTrue(meta.get().isValid());
+        Assert.assertNotNull(meta.get().getImageSize());
+        Assert.assertNotNull(meta.get().getDateTime());
+        Assert.assertNotNull(meta.get().getLatLong());
+        Assert.assertNull(meta.get().getDuration());
+        Assert.assertEquals("image/png",meta.get().getMimeType());
+        Assert.assertEquals(51.601416666666665,meta.get().getLatLong().getLatitude(),0.00001);
+        Assert.assertEquals(-0.37810,meta.get().getLatLong().getLongitude(),0.00001);
+        Assert.assertEquals(3024,meta.get().getImageSize().getWidth());
+        Assert.assertEquals(4032,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(2022,meta.get().getDateTime().getYear());
+        Assert.assertEquals(Month.MAY,meta.get().getDateTime().getMonth());
+        Assert.assertEquals(20,meta.get().getDateTime().getDayOfMonth());
+        Assert.assertEquals(13,meta.get().getDateTime().getHour());
+        Assert.assertEquals(21,meta.get().getDateTime().getMinute());
+        Assert.assertEquals(59,meta.get().getDateTime().getSecond());
     }
 }
