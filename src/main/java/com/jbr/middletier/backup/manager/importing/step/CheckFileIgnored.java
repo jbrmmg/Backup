@@ -1,8 +1,11 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
+import com.jbr.middletier.backup.data.IgnoreFile;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.dataaccess.IgnoreFileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
+import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
@@ -15,10 +18,14 @@ import org.springframework.stereotype.Component;
 public class CheckFileIgnored extends ImportStep {
     private static final Logger LOG = LoggerFactory.getLogger(CheckFileIgnored.class);
 
+    private final IgnoreFileRepository ignoreFileRepository;
+
     @Autowired
     protected CheckFileIgnored(ImportFileRepository importFileRepository,
-                               AssociatedFileDataManager associatedFileDataManager) {
+                               AssociatedFileDataManager associatedFileDataManager,
+                               IgnoreFileRepository ignoreFileRepository) {
         super(importFileRepository, associatedFileDataManager);
+        this.ignoreFileRepository = ignoreFileRepository;
     }
 
     @Override
@@ -26,14 +33,65 @@ public class CheckFileIgnored extends ImportStep {
         return FileProcessingStepType.FPS_CHECK_FILE_IGNORED;
     }
 
+    private ImportFileBaseDTO getSimilarFile(IgnoreFile ignoreFile) {
+        ImportFileBaseDTO similar = new ImportFileBaseDTO();
+        similar.setFilename(ignoreFile.getName());
+        similar.setDate(ignoreFile.getDate());
+        similar.setSize(ignoreFile.getSize());
+        similar.setMd5(ignoreFile.getMD5());
+
+        return similar;
+    }
+
+    private boolean checkOnMd5(PreImportFileDTO file) {
+        boolean result = false;
+        for(IgnoreFile nextIgnoreFile : ignoreFileRepository.findAllByOrderByIdAsc()) {
+            // Does it match on the MD5.
+            if(nextIgnoreFile.getMD5().toString().equalsIgnoreCase(file.getMd5()) ||
+                    nextIgnoreFile.getMD5().toString().equalsIgnoreCase(file.getImportMd5())) {
+                result = true;
+                file.addSimilarFile(getSimilarFile(nextIgnoreFile));
+            }
+        }
+
+        return result;
+    }
+
+    private boolean checkOnNameDateOrSize(PreImportFileDTO file) {
+        boolean result = false;
+        for(IgnoreFile nextIgnoreFile : ignoreFileRepository.findAllByOrderByIdAsc()) {
+            // Does it match on the MD5.
+            if(nextIgnoreFile.getName().equalsIgnoreCase(file.getFilename()) ||
+                    nextIgnoreFile.getName().equalsIgnoreCase(file.getImportName()) ||
+                    nextIgnoreFile.getDate().equals(file.getDate()) ||
+                    nextIgnoreFile.getDate().equals(file.getImportDate()) ||
+                    nextIgnoreFile.getSize().equals(file.getSize()) ||
+                    nextIgnoreFile.getSize().equals(file.getImportSize()) ) {
+                result = true;
+                file.addSimilarFile(getSimilarFile(nextIgnoreFile));
+            }
+        }
+
+        return result;
+    }
+
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
-        LOG.info("Checking file ignored");
-        return TrafficLightType.TL_RED;
+        // Does the file match MD5 (then don't check anything else.
+        if(checkOnMd5(file)) {
+            return TrafficLightType.TL_AMBER;
+        }
+
+        if(checkOnNameDateOrSize(file)) {
+            return TrafficLightType.TL_AMBER;
+        }
+
+        return TrafficLightType.TL_GREEN;
     }
 
     @Override
     protected boolean transferData(PreImportFileDTO file, ImportFile record) {
+        // Don't save this - it will be checked each time.
         return false;
     }
 }

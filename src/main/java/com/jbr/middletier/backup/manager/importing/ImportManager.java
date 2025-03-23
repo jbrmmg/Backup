@@ -1233,19 +1233,27 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
-    @Deprecated
     public byte[] getFileContent(String name) {
         try {
-            // read the specified file.
-            //TODO
-            Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
-            if (preImportSource.isEmpty()) {
-                LOG.warn("Invalid Pre Import Source, returning empty list.");
-                return null;
+            if(!this.valid) {
+                throw new IllegalStateException("The Import manager is in an invalid state.");
             }
 
-            LOG.info("Read files from {}", preImportSource.get().getPath());
-            File source = new File(preImportSource.get().getPath(), name);
+            // Get the cached data of the file.
+            PreImportFileDTO importFile = this.importFileCache.get(name);
+
+            // Get the name of the import file.
+            if(importFile == null) {
+                throw new IllegalStateException("getFileContent - file not in cache.");
+            }
+
+            if(importFile.getImportName() == null || importFile.getImportName().trim().isEmpty()) {
+                throw new IllegalStateException("getFileContent - import name not set.");
+            }
+
+            // read the specified file.
+            LOG.info("Read file from {}", getImportDirectory(this.associatedFileDataManager));
+            File source = new File(Objects.requireNonNull(getImportDirectory(this.associatedFileDataManager)).getPath(), name);
 
             return fileSystem.readAllBytes(source);
         } catch (IOException e) {
