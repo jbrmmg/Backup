@@ -1,7 +1,7 @@
 package com.jbr.middletier.backup.data;
 
 public enum TrafficLightType {
-    TL_UNKNOWN("TL_UNKNOWN"),
+    TL_UNKNOWN("UNKNOWN"),
     TL_RED("RED"),
     TL_AMBER("AMBER"),
     TL_GREEN("GREEN");

@@ -75,7 +75,12 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         return image;
     }
 
-    public void setImage(boolean image) {
+    public void setImage(Boolean image) {
+        if(image == null){
+            this.image = false;
+            return;
+        }
+
         this.image = image;
     }
 
@@ -83,7 +88,12 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         return video;
     }
 
-    public void setVideo(boolean video) {
+    public void setVideo(Boolean video) {
+        if(video == null){
+            this.video = false;
+            return;
+        }
+
         this.video = video;
     }
 }

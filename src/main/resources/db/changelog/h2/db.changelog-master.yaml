@@ -88,5 +88,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-030-postimport.yaml
 
   - include:
+      file: /db/changelog/db.changelog-031-import.yaml
+
+  - include:
       file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

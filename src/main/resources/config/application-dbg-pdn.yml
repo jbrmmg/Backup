@@ -1,8 +1,13 @@
 
 logging:
+  file:
+    name: /home/jason/Working/MiddleTier-Backup-DBG.log
+    max-history: 3
+    max-size: 100MB
   level:
     ROOT: INFO
     com.jbr.middletier: DEBUG
+#    org.hibernate.orm.jdbc.bind: TRACE
 #    org.hibernate.type.descriptor.sql: TRACE
 
 spring:

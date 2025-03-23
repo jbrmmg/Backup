@@ -61,8 +61,8 @@ public class ImportController {
         return importManager.processImportFiles();
     }
 
-    @GetMapping(path = "/importfiles")
-    public List<ImportFileDTO> getImportFiles() {
+    @GetMapping(path = "/ximportfiles")
+    public List<ImportFileDTO> getXImportFiles() {
         LOG.info("Get the import files.");
 
         return importManager.externalFindImportFiles();
@@ -75,11 +75,11 @@ public class ImportController {
         return importManager.externalFindImportFile(id);
     }
 
-    @GetMapping(path = "/preimportfiles")
-    public List<PreImportFileDTO> getPreImportFiles(@RequestParam Integer limit) {
+    @GetMapping(path = "/import-files")
+    public List<PreImportFileDTO> getImportFiles(@RequestParam Integer limit) {
         LOG.info("Get the pre import files.");
 
-        return importManager.externalFindPreImportFiles(limit != null ? limit : 0);
+        return importManager.getImportFiles(limit != null ? limit : 0);
     }
 
     @DeleteMapping(path = "/preimportfile")
@@ -167,5 +167,27 @@ public class ImportController {
     @GetMapping(path="/import-video",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public byte[] getFileVideo(@RequestParam String name) {
         return importManager.getFileContent(name);
+    }
+
+    @DeleteMapping(path="/clear-import-data")
+    public String clearImportData() {
+        LOG.info("Clear the import data.");
+
+        if(importManager.clearImportData()) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
+    @DeleteMapping(path="/clear-cache")
+    public String clearCache() {
+        LOG.info("Clear the cached data.");
+
+        if(importManager.clearCacheData()) {
+            return "OK";
+        }
+
+        return "FAILED";
     }
 }

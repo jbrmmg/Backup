@@ -10,13 +10,18 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.util.ImageSize;
+import com.jbr.middletier.backup.util.LatLong;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import com.jbr.middletier.backup.manager.FileProcessor;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -40,9 +45,13 @@ public class ImportManager extends FileProcessor {
     private final ModelMapper modelMapper;
     private final ImportFileCache importFileCache;
     private final FileRepository fileRepository;
-    private final ImportFileWorkQueue importFileWorkQueue;
+//    private final ImportFileWorkQueue importFileWorkQueue;
     private LocalDateTime currentTime;
     private LocalDateTime previousTime;
+
+    private boolean valid;
+
+    private final List<Pair<String,String>> equivilentFileTypes;
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
@@ -55,8 +64,7 @@ public class ImportManager extends FileProcessor {
                          ApplicationProperties applicationProperties,
                          ModelMapper modelMapper,
                          FileRepository fileRepository,
-                         ImportFileCache importFileCache,
-                         ImportFileWorkQueue importFileWorkQueue) {
+                         ImportFileCache importFileCache) {
         super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
@@ -64,11 +72,330 @@ public class ImportManager extends FileProcessor {
         this.modelMapper = modelMapper;
         this.importFileCache = importFileCache;
         this.fileRepository = fileRepository;
-        this.importFileWorkQueue = importFileWorkQueue;
-        this.currentTime = LocalDateTime.now();
-        this.previousTime = currentTime;
+//        this.importFileWorkQueue = importFileWorkQueue;
+        this.valid = false;
+        this.equivilentFileTypes = new ArrayList<>();
+
+        // Add the equivalence of file types (make sure these are lowercase.).
+        this.equivilentFileTypes.add(Pair.of("mov","mp4"));
     }
 
+    @PostConstruct
+    private void init() {
+        // Initialise the time.
+        this.currentTime = LocalDateTime.now();
+        this.previousTime = currentTime;
+
+        File preImportDirectory = null;
+        File importDirectory = null;
+        File postImportDirectory = null;
+
+        // check directories
+        Optional<Source> preImportSource = findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE, this.associatedFileDataManager);
+        if (preImportSource.isPresent()) {
+            preImportDirectory = new File(preImportSource.get().getPath());
+
+            if(!preImportDirectory.exists()) {
+                preImportDirectory = null;
+            }
+        }
+
+        Optional<Source>  importSource = findSource(FileSystemObjectType.FSO_IMPORT_SOURCE, this.associatedFileDataManager);
+        if (importSource.isPresent()) {
+            importDirectory = new File(importSource.get().getPath());
+
+            if(!importDirectory.exists()) {
+                importDirectory = null;
+            }
+        }
+
+        Optional<Source> postImportSource = findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE, this.associatedFileDataManager);
+        if(postImportSource.isPresent()) {
+            postImportDirectory = new File(postImportSource.get().getPath());
+
+            if(!postImportDirectory.exists()) {
+                postImportDirectory = null;
+            }
+        }
+
+        // All 3 directories must exist.
+        if(preImportDirectory == null || importDirectory == null || postImportDirectory == null) {
+            LOG.info("Invalid import directories, import is not valid.");
+            return;
+        }
+
+        this.valid = true;
+
+        // Read the files currently in the import directories.
+        updateCache();
+    }
+
+    @PreDestroy
+    private void preDestroy() {
+    }
+
+    public boolean clearImportData() {
+        // Clear the data from the import table.
+        try {
+            this.importFileRepository.deleteAll(this.importFileRepository.findAll());
+            return true;
+        } catch (Exception ignored) {
+        }
+
+        return false;
+    }
+
+    public boolean clearCacheData() {
+        // Clear the data from the import table.
+        try {
+            this.importFileCache.clear();
+            return true;
+        } catch (Exception ignored) {
+        }
+
+        return false;
+    }
+
+    public static File getPreImportDirectory(AssociatedFileDataManager associatedFileDataManager) {
+        Optional<Source> preImportSource = findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE, associatedFileDataManager);
+        if (preImportSource.isEmpty()) {
+            return null;
+        }
+
+        File preImportDirectory = new File(preImportSource.get().getPath());
+
+        if(!preImportDirectory.exists()) {
+            return null;
+        }
+
+        return preImportDirectory;
+    }
+
+    public static File getImportDirectory(AssociatedFileDataManager associatedFileDataManager) {
+        Optional<Source> importSource = findSource(FileSystemObjectType.FSO_IMPORT_SOURCE, associatedFileDataManager);
+        if (importSource.isEmpty()) {
+            return null;
+        }
+
+        File importDirectory = new File(importSource.get().getPath());
+
+        if(!importDirectory.exists()) {
+            return null;
+        }
+
+        return importDirectory;
+    }
+
+    public static File getPostImportDirectory(AssociatedFileDataManager associatedFileDataManager) {
+        Optional<Source> postImportSource = findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE, associatedFileDataManager);
+        if (postImportSource.isEmpty()) {
+            return null;
+        }
+
+        File postImportDirectory = new File(postImportSource.get().getPath());
+
+        if(!postImportDirectory.exists()) {
+            return null;
+        }
+
+        return postImportDirectory;
+    }
+
+    private static List<Source> getSourceIterator(FileSystemObjectType sourceType, AssociatedFileDataManager associatedFileDataManager) {
+        List<Source> result = new ArrayList<>();
+
+        switch (sourceType) {
+            case FSO_PRE_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllPreImportSource());
+            case FSO_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllImportSource());
+            case FSO_POST_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllPostImportSource());
+        }
+
+        return result;
+    }
+
+    private static Optional<Source> findSource(FileSystemObjectType sourceType, AssociatedFileDataManager associatedFileDataManager) {
+        Optional<Source> result = Optional.empty();
+
+        int count = 0;
+        for(Source nextSource : getSourceIterator(sourceType, associatedFileDataManager)) {
+            result = Optional.of(nextSource);
+
+            if(count > 0) {
+                LOG.warn("Too many sources specified, do not import.");
+                return Optional.empty();
+            }
+
+            count++;
+        }
+
+        return result;
+    }
+
+    private boolean filenamesMatch(String lhs, String rhs) {
+        if(lhs.equalsIgnoreCase(rhs)) {
+            return true;
+        }
+
+        for(Pair<String, String> pair : this.equivilentFileTypes) {
+            // Check first replaced by second.
+            String tempLhs = lhs.toLowerCase().replace("." + pair.getFirst(), "." + pair.getSecond());
+            if(tempLhs.equalsIgnoreCase(rhs)) {
+                return true;
+            }
+
+            // Check the second replaced by first.
+            tempLhs = lhs.toLowerCase().replace("." + pair.getSecond(), "." + pair.getFirst());
+            if(tempLhs.equalsIgnoreCase(rhs)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private PreImportFileDTO getOrCreateCachedData(String nextFilename) {
+        String lowerNextFilename = nextFilename.toLowerCase();
+
+        if(this.importFileCache.containsKey(lowerNextFilename)) {
+            return this.importFileCache.get(lowerNextFilename);
+        }
+
+        // Create a cache entry.
+        PreImportFileDTO importFile = new PreImportFileDTO();
+        importFile.setFilename(nextFilename);
+        for(FileProcessingStepType step : FileProcessingStepType.getStepsInOrder()) {
+            importFile.setStepStatus(step, TrafficLightType.TL_UNKNOWN);
+        }
+
+        this.importFileCache.put(lowerNextFilename, importFile);
+        return importFile;
+    }
+
+    private void updateCache() {
+        // Only perform this operation if the manager is valid.
+        if(!this.valid) {
+            return;
+        }
+
+        // Get a list of files from the 3 directories and the database.
+        Set<String> preImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(getPreImportDirectory(this.associatedFileDataManager),"Pre Import Directory cannot be null."));
+        Set<String> importFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(getImportDirectory(this.associatedFileDataManager), "Import Directory cannot be null."));
+        Set<String> postImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(getPostImportDirectory(this.associatedFileDataManager), "Post Import Directory cannot be null."));
+        Map<String,ImportFile> importFilesDb = new HashMap<>();
+        for(ImportFile next: this.importFileRepository.findAll()) {
+            // If the name is null, delete the record.
+            if(next.getName() == null) {
+                this.importFileRepository.delete(next);
+            } else {
+                importFilesDb.put(next.getName().toLowerCase(), next);
+            }
+        }
+
+        // The id of the file is the name, however some files get a different name in the import and post
+        // import directories.
+
+        // There should be one row for each file in the pre-import directory.
+        for(String nextPreImport : preImportFiles) {
+            // Get cached data.
+            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport);
+
+            // Is this in the import directory?
+            for(String nextImport : importFiles) {
+                if(filenamesMatch(nextPreImport, nextImport)) {
+                    importFile.setInImport(true);
+                    break;
+                }
+            }
+
+            // Is this in the import directory?
+            for(String postImportFIle : postImportFiles) {
+                if(filenamesMatch(nextPreImport, postImportFIle)) {
+                    importFile.setInPostImport(true);
+                    break;
+                }
+            }
+
+            // Is this in the database?
+            if(importFilesDb.containsKey(nextPreImport.toLowerCase())) {
+                // Indicate that the file is in the database and copy the information.
+                importFile.setInDatabase(true);
+
+                // Transfer the data from the database.
+                ImportFile dbFile = importFilesDb.get(nextPreImport.toLowerCase());
+
+                importFile.setDestination(dbFile.getDestination());
+                importFile.setId(dbFile.getIdAndType().getId());
+                importFile.setDate(dbFile.getDate());
+                importFile.setSize(dbFile.getSize());
+                importFile.setMd5(new MD5(dbFile.getMD5()));
+                importFile.setDuration(dbFile.getDuration());
+                importFile.setImage(dbFile.getImage());
+                if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
+                    importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageWidth()));
+                } else {
+                    importFile.setImageSize(null);
+                }
+                importFile.setImportMd5(dbFile.getImportMd5());
+                importFile.setImportName(dbFile.getImportName());
+                importFile.setImportDate(dbFile.getImportDate());
+                importFile.setImportSize(dbFile.getImportSize());
+                if(dbFile.getLatitude() != null && dbFile.getLongitude() != null) {
+                    importFile.setLocation(new LatLong(dbFile.getLatitude(),dbFile.getLongitude()));
+                } else {
+                    importFile.setLocation(null);
+                }
+                importFile.setProcessed(dbFile.getProcessed());
+                importFile.setVideo(dbFile.getVideo());
+            }
+        }
+
+        // Error states:
+        //  (1) a file that is in the post import directory that is not in the pre-import directory.
+        for(String nextPostImport : postImportFiles) {
+            // Is this file in the pre-import directory?
+            for(String  nextPreImport : preImportFiles) {
+                if(filenamesMatch(nextPreImport, nextPostImport)) {
+                    break;
+                }
+
+                // This is a problem.
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport);
+                importFileError.setErrorInPostImport(true);
+            }
+        }
+
+        //  (2) a file that is in the import directory that is not in the pre-import directory.
+        for(String nextPostImport : postImportFiles) {
+            // Is this file in the pre-import directory?
+            for(String  nextPreImport : preImportFiles) {
+                if(filenamesMatch(nextPreImport, nextPostImport)) {
+                    break;
+                }
+
+                // This is a problem.
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport);
+                importFileError.setErrorInImport(true);
+            }
+        }
+
+        // Delete anything from the database that is not in the import directory.
+        for(Map.Entry<String,ImportFile> next: importFilesDb.entrySet()) {
+            boolean dbOK = false;
+            for(String nextPreImport : preImportFiles) {
+                if(next.getKey().equalsIgnoreCase(nextPreImport)) {
+                    dbOK = true;
+                    break;
+                }
+            }
+
+            if(!dbOK) {
+                // Delete the entry.
+                this.importFileRepository.delete(next.getValue());
+            }
+        }
+    }
+
+    @Deprecated
     private boolean ignoreFile(FileInfo importFile) {
         // Is this a file to ignore?
         List<IgnoreFile> ignoreFiles = ignoreFileRepository.findByName(importFile.getName());
@@ -84,6 +411,7 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
+    @Deprecated
     private boolean processClassification(ImportFile importFile, Path path, ImportDataDTO result) {
         if((importFile.getClassification() == null) || !importFile.getClassification().getAction().equals(ClassificationActionType.CA_BACKUP)) {
             result.increment(ImportDataDTO.ImportDataCountType.NON_BACKUP_CLASSIFICATIONS);
@@ -95,6 +423,7 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     private boolean processIgnored(ImportFile importFile, Path path, ImportDataDTO result) {
         if(ignoreFile(importFile)) {
             result.increment(ImportDataDTO.ImportDataCountType.IGNORED_IMPORTS);
@@ -107,6 +436,7 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     private FileTestResultType processExisting(ImportFile importFile, Path path, ImportDataDTO result) {
         // Find files with the same name.
         Iterable<FileSystemObject> existingFiles = fileSystemObjectManager.findFileSystemObjectByName(importFile.getName(), FileSystemObjectType.FSO_FILE);
@@ -132,6 +462,7 @@ public class ImportManager extends FileProcessor {
         return FileTestResultType.DIFFERENT;
     }
 
+    @Deprecated
     private void processConfirmedAction(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, String parameter, ImportDataDTO result) throws IOException {
         actionManager.deleteActions(confirmedActions);
 
@@ -173,6 +504,7 @@ public class ImportManager extends FileProcessor {
         fileSystem.moveFile(path.toFile(), new File(newFilename), result);
     }
 
+    @Deprecated
     private void processImportActions(ImportFile importFile, Path path, List<ActionConfirm> confirmedActions, Source source, ImportDataDTO result) throws IOException {
         boolean confirmed = false;
         String parameter = "";
@@ -188,6 +520,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
+    @Deprecated
     private ImportFileStatusType processImport(ImportFile importFile, Source source, ImportDataDTO result) throws IOException {
         if(importFile.getStatus() == ImportFileStatusType.IFS_REMOVED) {
             return ImportFileStatusType.IFS_REMOVED;
@@ -234,6 +567,7 @@ public class ImportManager extends FileProcessor {
 
     enum FileTestResultType {EXACT, CLOSE, DIFFERENT}
 
+    @Deprecated
     private boolean md5StillMissing(Path path, FileInfo fileInfo, Classification classification) {
         fileInfo.setMD5(fileSystem.getClassifiedFileMD5(path,classification,fileInfo.getIdAndType().getId()));
 
@@ -245,6 +579,7 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     private FileTestResultType fileAlreadyExists(Path path, FileInfo fileInfo, FileInfo importFile) {
         // Check the size.
         long size = path.toFile().length();
@@ -274,6 +609,7 @@ public class ImportManager extends FileProcessor {
         return FileTestResultType.EXACT;
     }
 
+    @Deprecated
     public Iterable<ImportFile> findImportFiles() {
         return importFileRepository.findAllByOrderByIdAsc();
     }
@@ -287,6 +623,7 @@ public class ImportManager extends FileProcessor {
 
     private enum ProcessType { USE_EXIF_DATE, CONVERT_QUICKTIME, NORMAL }
 
+    @Deprecated
     private String getDestinationFilename(String filename, ProcessType processType) {
         if(processType.equals(ProcessType.CONVERT_QUICKTIME)) {
             return filename.replace(".MOV", ".mp4");
@@ -295,19 +632,7 @@ public class ImportManager extends FileProcessor {
         return filename;
     }
 
-    private ProcessType getFileType(Optional<FileSystemImageData> imageData) {
-        if(imageData.isPresent() && imageData.get().isValid()) {
-            if(imageData.get().getMimeType().equals("video/quicktime")) {
-                return ProcessType.CONVERT_QUICKTIME;
-            }
-
-            return ProcessType.USE_EXIF_DATE;
-        }
-
-        // Everything else is a normal copy
-        return ProcessType.NORMAL;
-    }
-
+    @Deprecated
     private void copyFileWithExifMetadata(String source, String filename, String destination, Optional<FileSystemImageData> imageData, ImportProcessDTO data) {
         File imageFile = new File(source,filename);
 
@@ -321,113 +646,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
-    private void copyAndConvertQuicktime(String source, String filename, String destination, ImportProcessDTO data) {
-        try {
-            File movFile = new File(source, filename);
-            File mp4File = new File(destination, filename.replace(".MOV", ".mp4"));
-
-            long fileTime = movFile.lastModified();
-            Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(movFile);
-            if(imageData.isPresent() && imageData.get().getDateTime() != null) {
-                ZonedDateTime zonedFileTime = imageData.get().getDateTime().atZone(ZoneId.systemDefault());
-                fileTime = zonedFileTime.toInstant().toEpochMilli();
-            }
-
-            String copyCommand = applicationProperties.getFfmpegCommand();
-            copyCommand = copyCommand.replace("%%INPUT%%", movFile.toString().replace(" ", "\\ "));
-            copyCommand = copyCommand.replace("%%OUTPUT%%", mp4File.toString().replace(" ", "\\ "));
-
-            LOG.info("Command: {}", copyCommand);
-
-            String[] cmd = new String[]{"bash", "-c", copyCommand};
-            final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)
-                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                    .start();
-
-            backupProcess.waitFor(20L, TimeUnit.MINUTES);
-            backupProcess.destroyForcibly();
-
-            data.increment(ImportProcessDTO.ImportProcessCountType.MOV_FILES);
-            fileSystem.setFileDateTime(mp4File, fileTime);
-        } catch (Exception e) {
-            LOG.error("Failed to copy MOV file", e);
-            data.setProblems();
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private void copyFile(String source, String filename, String destination, ImportProcessDTO data) {
-        File sourceFile = new File(source, filename);
-        File destinationFile = new File(destination, filename);
-        long fileTime = sourceFile.lastModified();
-
-        fileSystem.copyFile(sourceFile, destinationFile, data);
-
-        fileSystem.setFileDateTime(destinationFile, fileTime);
-    }
-
-    private void processFile(String source, String filename, String destination, ImportProcessDTO data) {
-        Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(new File(source,filename));
-
-        ProcessType processType = getFileType(imageData);
-        String destinationFilename = getDestinationFilename(filename, processType);
-
-        // If the destination already exists then we are done.
-        if(fileSystem.fileExists(new File(destination, destinationFilename))) {
-            data.increment(ImportProcessDTO.ImportProcessCountType.ALREADY_PRESENT);
-            return;
-        }
-
-        switch(processType) {
-            case USE_EXIF_DATE:
-                copyFileWithExifMetadata(source, filename, destination, imageData, data);
-                break;
-            case CONVERT_QUICKTIME:
-                copyAndConvertQuicktime(source, filename, destination, data);
-                break;
-            case NORMAL:
-                copyFile(source, filename, destination, data);
-                break;
-        }
-        data.increment(ImportProcessDTO.ImportProcessCountType.FILES_PROCESSED);
-    }
-
-    public Optional<PreImportSource> findPreImportSource() {
-        Optional<PreImportSource> result = Optional.empty();
-
-        int count = 0;
-        for(PreImportSource nextSource : associatedFileDataManager.findAllPreImportSource()) {
-            result = Optional.of(nextSource);
-
-            if(count > 0) {
-                LOG.warn("Too many pre import source, do not import.");
-                return Optional.empty();
-            }
-
-            count++;
-        }
-
-        return result;
-    }
-
-    private Optional<ImportSource> findImportSource() {
-        Optional<ImportSource> result = Optional.empty();
-
-        int count = 0;
-        for(ImportSource nextSource : associatedFileDataManager.findAllImportSource()) {
-            result = Optional.of(nextSource);
-
-            if(count > 0) {
-                LOG.warn("Too many import source, do not import.");
-                return Optional.empty();
-            }
-
-            count++;
-        }
-
-        return result;
-    }
-
+    @Deprecated
     public List<ImportProcessDTO> convertImportFiles() {
         List<ImportProcessDTO> result = new ArrayList<>();
         ImportProcessDTO resultCount = new ImportProcessDTO();
@@ -435,7 +654,8 @@ public class ImportManager extends FileProcessor {
 
         try {
             // Find the pre-import details.
-            Optional<PreImportSource> preImportSource = findPreImportSource();
+            // TODO
+            Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
             if(preImportSource.isEmpty()) {
                 resultCount.setProblems();
                 LOG.warn("Invalid Pre Import Source - skipping import.");
@@ -443,7 +663,8 @@ public class ImportManager extends FileProcessor {
             }
 
             // Find the import details
-            Optional<ImportSource> importSource = findImportSource();
+            // TODO
+            Optional<ImportSource> importSource = Optional.empty(); //findImportSource();
             if(importSource.isEmpty()) {
                 resultCount.setProblems();
                 LOG.warn("Invalid Import Source - skipping import.");
@@ -466,13 +687,6 @@ public class ImportManager extends FileProcessor {
             if(!fileSystem.directoryExists(destination.toPath())) {
                 throw new IllegalStateException(importSource.get().getPath() + " does not exist.");
             }
-
-            for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
-                processFile(preImportSource.get().getPath(),
-                        nextFilename,
-                        importSource.get().getPath(),
-                        resultCount );
-            }
         } catch (Exception e) {
             resultCount.setProblems();
             LOG.error("Problems",e);
@@ -483,11 +697,13 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     public List<GatherDataDTO> importPhoto() throws ImportRequestException, IOException {
         List<GatherDataDTO> result = new ArrayList<>();
 
         // Find the import source
-        Optional<ImportSource> importSource = findImportSource();
+        //TODO
+        Optional<ImportSource> importSource = Optional.empty();//findImportSource();
         if(importSource.isEmpty()) {
             throw new ImportRequestException("No import source is defined.");
         }
@@ -512,6 +728,7 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     public List<ImportDataDTO> processImportFiles() throws ImportRequestException {
         LOG.info("Import Photo Process");
         List<ImportDataDTO> result = new ArrayList<>();
@@ -553,14 +770,17 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     private String removeFileExtension(String filename) {
         return filename.replaceFirst("[.][^.]+$","");
     }
 
+    @Deprecated
     private boolean similarFileName(String lhs, String rhs) {
         return removeFileExtension(lhs).equalsIgnoreCase(removeFileExtension(rhs));
     }
 
+    @Deprecated
     private void searchSimilarFileData(ImportFileDTO file, FileTreeNode node) {
         // Is this node a file?
         if(node instanceof DbFile dbFile) {
@@ -577,9 +797,11 @@ public class ImportManager extends FileProcessor {
         }
     }
 
+    @Deprecated
     private void addSimilarFileData(List<ImportFileDTO> files) {
         try {
-            Optional<ImportSource> importSource = findImportSource();
+            //TODO
+            Optional<ImportSource> importSource = Optional.empty();// findImportSource();
             if(importSource.isEmpty()) {
                 return;
             }
@@ -594,6 +816,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
+    @Deprecated
     public List<ImportFileDTO> externalFindImportFiles() {
         List<ImportFileDTO> result = new ArrayList<>();
         for(ImportFile nextFile: findImportFiles()) {
@@ -609,6 +832,7 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     public ImportFileDTO externalFindImportFile(Integer id) throws InvalidFileIdException {
         for(ImportFileDTO nextImportFile : externalFindImportFiles()) {
             if(nextImportFile.getId().equals(id)) {
@@ -636,90 +860,36 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
-    public void queueForUpdates(PreImportFileDTO importFile) {
-        if( importFile.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
-                importFile.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
-                importFile.getDuplicated().equals(TrafficLightType.TL_UNKNOWN) ||
-                importFile.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ) {
-            this.importFileWorkQueue.add(importFile);
-        }
-    }
+    public List<PreImportFileDTO> getImportFiles(int limit) {
+        updateCache();
 
-    public List<PreImportFileDTO> externalFindPreImportFiles(int limit) {
-        this.importFileWorkQueue.clear();
-        this.currentTime = LocalDateTime.now();
-
-        // Set up the sources that we will restrict results to.
-        List<Source> validSources = new ArrayList<>();
-        for(Synchronize synchronize: this.associatedFileDataManager.findAllSynchronize()) {
-            if(!validSources.contains(synchronize.getSource())) {
-                validSources.add(synchronize.getSource());
-            }
-        }
-
-        for(Source source: this.associatedFileDataManager.findAllSource()) {
-            if(source.getIdAndType().getType().equals(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE) ||
-               source.getIdAndType().getType().equals(FileSystemObjectType.FSO_IMPORT_SOURCE)) {
-                if(!validSources.contains(source)) {
-                    validSources.add(source);
-                }
-            }
+        // If the limit is zero, return all the files.
+        if(limit == 0) {
+            limit = this.importFileCache.getFiles().size();
         }
 
         // Get data from the pre-import directory.
         List<PreImportFileDTO> result = new ArrayList<>();
 
-        // Get the actual files that are in the pre-import directory.
-        Optional<PreImportSource> preImportSource = findPreImportSource();
-        if(preImportSource.isEmpty()) {
-            LOG.warn("Invalid Pre Import Source, returning empty list.");
-            return result;
-        }
+        // Get the top 'limit' files from the cache.
+        for(String next: this.importFileCache.getFiles()) {
+            PreImportFileDTO nextFile = this.importFileCache.get(next.toLowerCase());
 
-        LOG.info("Read files from {}", preImportSource.get().getPath());
-        File source = new File(preImportSource.get().getPath());
+            if(nextFile != null) {
+                result.add(nextFile);
+            }
 
-        // Check that the source exists.
-        if(!fileSystem.directoryExists(source.toPath())) {
-            LOG.warn("Pre import does not exist, returning empty list.");
-            return result;
-        }
-
-        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
-            // If we have reached the limit, then return.
-            if(limit-- <= 0) {
+            if(result.size() >= limit) {
                 break;
             }
-
-            // Is this file in the cache?
-            PreImportFileDTO importFile;
-            if(this.importFileCache.containsKey(nextFilename.toLowerCase())) {
-                importFile = this.importFileCache.get(nextFilename.toLowerCase());
-            } else {
-                // Lookup the data.
-                importFile = new PreImportFileDTO();
-
-                importFile.setFilename(nextFilename);
-                importFile.setStatus(ImportFileStatusType.IFS_READ);
-                importFile.setId(-1);
-                importFile.setSize(0L);
-                importFile.setImmediateImported(TrafficLightType.TL_UNKNOWN);
-                importFile.setImported(TrafficLightType.TL_UNKNOWN);
-                importFile.setDuplicated(TrafficLightType.TL_UNKNOWN);
-                importFile.setIgnored(TrafficLightType.TL_UNKNOWN);
-
-                this.importFileCache.put(nextFilename.toLowerCase(),importFile);
-            }
-
-            result.add(importFile);
-
-            // If required queue the file to get updated.
-            queueForUpdates(importFile);
         }
 
+        // Return the result.
+        this.currentTime = LocalDateTime.now();
         return result;
     }
 
+    @Deprecated
     private ImportFileBaseDTO getSimilar(FileInfo fileInfo, List<Source> validSources) {
         ImportFileBaseDTO similar = new ImportFileBaseDTO();
         similar.setFilename(fileInfo.getName() + " [" + fileInfo.getIdAndType().getType().getTypeName() + "]");
@@ -748,6 +918,7 @@ public class ImportManager extends FileProcessor {
         return similar;
     }
 
+    @Deprecated
     public List<FileInfo> getSimilarIgnore(String filename, String md5) {
         // Return ignore files that match either the name or the MD5.
         List<FileInfo> result = new ArrayList<>(ignoreFileRepository.findByName(filename));
@@ -759,6 +930,7 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     private void addFileToListIfRequired(FileInfo file, List<Source> validSources, List<ImportFileBaseDTO> result) {
         if (!file.getIdAndType().getType().equals(FileSystemObjectType.FSO_IGNORE_FILE) &&
                 !file.getIdAndType().getType().equals(FileSystemObjectType.FSO_IMPORT_FILE)) {
@@ -777,6 +949,7 @@ public class ImportManager extends FileProcessor {
         }
     }
 
+    @Deprecated
     public List<ImportFileBaseDTO> getSimilarImported(String filename, String md5) {
         List<ImportFileBaseDTO> result = new ArrayList<>();
 
@@ -805,6 +978,7 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     public List<FileInfo> getImport(String filename) {
         // Return ignore files that match either the name or the MD5.
         List<FileInfo> result = new ArrayList<>();
@@ -815,19 +989,21 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    @Deprecated
     public boolean ignoreSelectedFile(String filename) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Make sure the status of this file is known.
-            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
-                file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
-                file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
-                file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
-                LOG.info("Failed to ignore {} because one or more status is unknown", filename);
-                return false;
-            }
+            // TODO
+//            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
+//                file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
+//                file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
+//                file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
+//                LOG.info("Failed to ignore {} because one or more status is unknown", filename);
+//                return false;
+//            }
 
             // Insert the details into the ignore table.
             IgnoreFile ignoreFile = new IgnoreFile();
@@ -846,19 +1022,21 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
+    @Deprecated
     public boolean recipeFile(String filename) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Make sure the status of this file is known.
-            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
-                    file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
-                    file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
-                    file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
-                LOG.info("Failed to mark {} as a recipe because one or more status is unknown", filename);
-                return false;
-            }
+            //TODO
+//            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
+//                    file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
+//                    file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
+//                    file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
+//                LOG.info("Failed to mark {} as a recipe because one or more status is unknown", filename);
+//                return false;
+//            }
 
             // Move the file to the recipe directory.
             //TODO
@@ -873,11 +1051,13 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
+    @Deprecated
     public boolean removeDuplicates() {
         LOG.info("Remove any files in the import directory that are duplicates of files already in the system.");
 
         // Get the file that needs to be re-imported.
-        Optional<PreImportSource> preImportSource = findPreImportSource();
+        // TODO
+        Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
         if(preImportSource.isEmpty()) {
             LOG.warn("Remove Duplicates: Invalid Pre Import Source for delete, returning empty list.");
             return false;
@@ -892,7 +1072,9 @@ public class ImportManager extends FileProcessor {
         }
 
         List<String> removes = new ArrayList<>();
-        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+        // TODO
+//        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+        for(String nextFilename : fileSystem.listFilesInDirectory(new File("xyz"))) {
             // This depends on the file having been imported (mov files are imported as mp4).
             List<FileInfo> imported = getImport(nextFilename.toLowerCase().replace(".mov",".mp4"));
 
@@ -928,6 +1110,7 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     public boolean importFiles() {
         try {
             // Perform the convert following by the import.
@@ -941,11 +1124,13 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     public boolean removeIgnored() {
         LOG.info("Remove any files in the import directory that are ignored.");
 
         // Get the file that needs to be re-imported.
-        Optional<PreImportSource> preImportSource = findPreImportSource();
+        // TODO
+        Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
         if(preImportSource.isEmpty()) {
             LOG.warn("Remove ignored: Invalid Pre Import Source for delete, returning empty list.");
             return false;
@@ -960,7 +1145,9 @@ public class ImportManager extends FileProcessor {
         }
 
         List<String> removes = new ArrayList<>();
-        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+        // TODO
+//        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
+        for(String nextFilename : fileSystem.listFilesInDirectory(new File("xyz"))) {
             // Is this file in the ignored list?
             for(FileInfo nextFile: getSimilarIgnore(nextFilename,null)) {
                 // Need to validate that all the details are the same - date, size & MD5.
@@ -999,16 +1186,19 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     public boolean deletePreImportFile(String filename) {
         // Get the actual files that are in the pre-import directory.
-        Optional<PreImportSource> preImportSource = findPreImportSource();
+        //TODO
+        Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
         if(preImportSource.isEmpty()) {
             LOG.warn("Invalid Pre Import Source for delete, returning empty list.");
             return false;
         }
         File preImportFile = new File(preImportSource.get().getPath().trim(), filename);
 
-        Optional<ImportSource> importSource = findImportSource();
+        //TODO
+        Optional<ImportSource> importSource = Optional.empty();// findImportSource();
         if(importSource.isEmpty()) {
             return false;
         }
@@ -1043,10 +1233,12 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    @Deprecated
     public byte[] getFileContent(String name) {
         try {
             // read the specified file.
-            Optional<PreImportSource> preImportSource = findPreImportSource();
+            //TODO
+            Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
             if (preImportSource.isEmpty()) {
                 LOG.warn("Invalid Pre Import Source, returning empty list.");
                 return null;

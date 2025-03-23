@@ -11,21 +11,18 @@ import java.util.List;
 
 @Component
 public class ImportFileWorkerManager {
-    private final ImportManager manager;
-    private final ImportFileWorkQueue queue;
-    private final FileSystem fileSystem;
     private final List<ImportFileWorker> workers;
+    private final ImportFileWorkQueue queue;
     private final ApplicationProperties applicationProperties;
+    private final ImportFileCache cache;
 
     @Autowired
-    public ImportFileWorkerManager(ImportManager manager,
-                                   ImportFileWorkQueue queue,
-                                   FileSystem fileSystem,
-                                   ApplicationProperties applicationProperties) {
-        this.manager = manager;
+    public ImportFileWorkerManager(ImportFileWorkQueue queue,
+                                   ApplicationProperties applicationProperties,
+                                   ImportFileCache importFileCache) {
         this.queue = queue;
-        this.fileSystem = fileSystem;
         this.applicationProperties = applicationProperties;
+        this.cache = importFileCache;
         this.workers = new ArrayList<>();
     }
 
@@ -35,7 +32,7 @@ public class ImportFileWorkerManager {
         if(applicationProperties.getImportThreads() != null &&  applicationProperties.getImportThreads() > 0) {
             // Create the threads.
             for(int i = 0; i < applicationProperties.getImportThreads(); i++) {
-                ImportFileWorker worker = new ImportFileWorker(queue,manager,fileSystem);
+                ImportFileWorker worker = new ImportFileWorker(queue,cache);
                 workers.add(worker);
             }
 

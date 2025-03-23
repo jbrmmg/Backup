@@ -144,6 +144,7 @@ public class FileSystem {
         }
 
         try {
+            LOG.debug("Start get MD5 for {}", path);
             // Calculate the MD5 for the file.
             MessageDigest md = MessageDigest.getInstance("MD5");
 
@@ -152,6 +153,7 @@ public class FileSystem {
                 while (dis.read() != -1) ;
                 md = dis.getMessageDigest();
             }
+            LOG.debug("End get MD5 for {}", path);
 
             return new MD5(bytesToHex(md.digest()));
         } catch (Exception ex) {
@@ -255,8 +257,8 @@ public class FileSystem {
         return Optional.empty();
     }
 
-    public Set<String> listFilesInDirectory(String directory) {
-        return Stream.of(Objects.requireNonNull(new File(directory).listFiles()))
+    public Set<String> listFilesInDirectory(File directory) {
+        return Stream.of(Objects.requireNonNull(directory.listFiles()))
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .collect(Collectors.toSet());

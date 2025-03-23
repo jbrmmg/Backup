@@ -1,9 +1,12 @@
 package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import com.jbr.middletier.backup.manager.importing.step.ImportStep;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 @Component
@@ -11,7 +14,11 @@ public class ImportFileWorkQueue {
     private final Queue<PreImportFileDTO> queue = new LinkedList<>();
     private final Object IS_NOT_EMPTY = new Object();
 
-    public ImportFileWorkQueue() {
+    private final List<ImportStep> stepProcessors;
+
+    @Autowired
+    public ImportFileWorkQueue(List<ImportStep> stepProcessors) {
+        this.stepProcessors = stepProcessors;
     }
 
     public void add(PreImportFileDTO file) {
@@ -41,5 +48,15 @@ public class ImportFileWorkQueue {
 
     public void clear() {
         queue.clear();
+    }
+
+    public ImportStep getStepProcessor(FileProcessingStepType stepType) {
+        for (ImportStep step : stepProcessors) {
+            if(step.getStepType().equals(stepType)) {
+                return step;
+            }
+        }
+
+        return null;
     }
 }

@@ -40,14 +40,14 @@ public class ImportFile extends FileInfo {
     @Column(name="lat")
     private Double latitude;
 
-    @Column(name="long")
+    @Column(name="\"long\"")
     private Double longitude;
 
     @Column(name="video")
     private Boolean video;
 
     @Column(name="duration")
-    private Long duration;
+    private Double duration;
 
     public ImportFile() {
         super(FileSystemObjectType.FSO_IMPORT_FILE);
@@ -157,11 +157,11 @@ public class ImportFile extends FileInfo {
         this.video = video;
     }
 
-    public Long getDuration() {
+    public Double getDuration() {
         return duration;
     }
 
-    public void setDuration(Long duration) {
+    public void setDuration(Double duration) {
         this.duration = duration;
     }
 }

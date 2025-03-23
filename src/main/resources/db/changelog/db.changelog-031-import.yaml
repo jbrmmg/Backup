@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 30
+      author: jason
+      changes:
+
+        - addColumn:
+            tableName: import_file
+            columns:
+              - column:
+                  name: import_name
+                  type: varchar(200)
+              - column:
+                  name: import_date
+                  type: datetime
+              - column:
+                  name: import_size
+                  type: int
+              - column:
+                  name: import_md5
+                  type: varchar(32)
+              - column:
+                  name: processed
+                  type: boolean
+              - column:
+                  name: destination
+                  type: varchar(200)
+              - column:
+                  name: image
+                  type: boolean
+              - column:
+                  name: image_height
+                  type: int
+              - column:
+                  name: image_width
+                  type: int
+              - column:
+                  name: lat
+                  type: decimal(10,7)
+              - column:
+                  name: long
+                  type: decimal(10,7)
+              - column:
+                  name: video
+                  type: boolean
+              - column:
+                  name: duration
+                  type: decimal(10,3)

@@ -13,9 +13,11 @@ public class ImportFileCache {
      * Used to cache the details of the files in the import directory.
      */
     final private Map<String,ImportFileCacheEntry> cache;
+    private final ImportFileWorkQueue importFileWorkQueue;
 
-    public ImportFileCache() {
+    public ImportFileCache(ImportFileWorkQueue importFileWorkQueue) {
         this.cache = new HashMap<>();
+        this.importFileWorkQueue = importFileWorkQueue;
     }
 
     public boolean containsKey(String filename) {
@@ -43,6 +45,7 @@ public class ImportFileCache {
 
     public void put(String filename, PreImportFileDTO importFile) {
         this.cache.put(filename.toLowerCase(),new ImportFileCacheEntry(importFile));
+        this.queueForUpdates(importFile);
     }
 
     public void remove(String filename) {
@@ -51,5 +54,13 @@ public class ImportFileCache {
 
     public Set<String> getFiles() {
         return this.cache.keySet();
+    }
+
+    public void queueForUpdates(PreImportFileDTO importFile) {
+        this.importFileWorkQueue.add(importFile);
+    }
+
+    public void clear() {
+        this.cache.clear();
     }
 }

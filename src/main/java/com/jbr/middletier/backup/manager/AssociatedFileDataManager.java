@@ -358,6 +358,18 @@ public class AssociatedFileDataManager {
         preImportSourceRepository.deleteAll();
     }
 
+    /* --------------------------------------------------------------------------------------------------
+     * POST-IMPORT SOURCE
+     * -------------------------------------------------------------------------------------------------- */
+
+    public List<PostImportSource> findAllPostImportSource() {
+        List<PostImportSource> result = new ArrayList<>();
+
+        this.postImportSourceRepository.findAllByOrderByIdAsc().forEach(result::add);
+
+        return result;
+    }
+
     public Optional<PostImportSource> findPostImportSourceIfExists(Integer id) {
         return postImportSourceRepository.findById(id);
     }

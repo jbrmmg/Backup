@@ -1,10 +1,14 @@
 package com.jbr.middletier.backup.util;
 
+import java.util.Objects;
+
 public class LatLong {
     private final String latitude;
     private final NorthSouth latitudeRef;
     private final String longitude;
     private final EastWest longitudeRef;
+    private final Double decimalLatitude;
+    private final Double decimalLongitude;
 
     private static class ReferenceType {
         private final int multiplier;
@@ -109,15 +113,26 @@ public class LatLong {
     public LatLong(String latitude, String latitudeRef, String longitude, String longitudeRef) {
         this.latitude = latitude;
         this.latitudeRef = new NorthSouth(latitudeRef);
+        this.decimalLatitude = null;
         this.longitude = longitude;
         this.longitudeRef = new EastWest(longitudeRef);
+        this.decimalLongitude = null;
+    }
+
+    public LatLong(Double latitude, Double longitude) {
+        this.latitude = null;
+        this.latitudeRef = null;
+        this.decimalLatitude = latitude;
+        this.longitude = null;
+        this.longitudeRef = null;
+        this.decimalLongitude = longitude;
     }
 
     public double getLatitude() {
-        return getCoordinate(latitude,latitudeRef);
+        return Objects.requireNonNullElseGet(this.decimalLatitude, () -> getCoordinate(latitude, latitudeRef));
     }
 
     public double getLongitude() {
-        return getCoordinate(longitude,longitudeRef);
+        return Objects.requireNonNullElseGet(this.decimalLongitude, () -> getCoordinate(longitude, longitudeRef));
     }
 }

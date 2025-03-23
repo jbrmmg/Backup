@@ -1,0 +1,78 @@
+package com.jbr.middletier.backup.manager.importing.step;
+
+import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.ImportFile;
+import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
+import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Optional;
+
+public abstract class ImportStep {
+    private static final Logger LOG = LoggerFactory.getLogger(ImportStep.class);
+
+    protected final ImportFileRepository importFileRepository;
+    private final AssociatedFileDataManager associatedFileDataManager;
+
+    protected ImportStep(ImportFileRepository importFileRepository,
+                         AssociatedFileDataManager associatedFileDataManager) {
+        LOG.trace("Creating ImportStep");
+        this.importFileRepository = importFileRepository;
+        this.associatedFileDataManager = associatedFileDataManager;
+    }
+
+    protected abstract boolean transferData(PreImportFileDTO file, ImportFile record);
+
+    private ImportFile getDbRecord(PreImportFileDTO file) {
+        // First get the record by ID if its present.
+        if(file.getId() != null) {
+            Optional<ImportFile> importFileOptional = importFileRepository.findById(file.getId());
+
+            if(importFileOptional.isPresent()) {
+                return importFileOptional.get();
+            }
+        }
+
+        // Get the record by name.
+        for(FileInfo next : importFileRepository.findByName(file.getFilename())) {
+            if(next instanceof ImportFile importFile) {
+                return importFile;
+            }
+        }
+
+        ImportFile newFile = new ImportFile();
+        newFile.setStatus("READ");
+        newFile.setName(file.getFilename());
+
+        return newFile;
+    }
+
+    protected void saveData(PreImportFileDTO file) {
+        // Get the record from the database?
+        ImportFile  importFile = getDbRecord(file);
+
+        // Transfer the data, and if required save it.
+        if(transferData(file, importFile)) {
+            LOG.info("Saving data for {}", file.getFilename());
+            importFileRepository.save(importFile);
+        }
+    }
+
+    protected File getPreImportFilename(PreImportFileDTO file) {
+        return new File(ImportManager.getPreImportDirectory(this.associatedFileDataManager), file.getFilename());
+    }
+
+    protected File getImportFilename(PreImportFileDTO file, String filename) {
+        return new File(ImportManager.getImportDirectory(this.associatedFileDataManager), filename);
+    }
+
+    public abstract FileProcessingStepType getStepType();
+
+    public abstract TrafficLightType performStep(PreImportFileDTO file);
+}

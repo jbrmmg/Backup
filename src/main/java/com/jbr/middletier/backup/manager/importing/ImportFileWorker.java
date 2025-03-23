@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
+import com.jbr.middletier.backup.manager.importing.step.ImportStep;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
@@ -19,19 +20,21 @@ public class ImportFileWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(ImportFileWorker.class);
 
     private final ImportFileWorkQueue queue;
-    private final ImportManager manager;
-    private final FileSystem fileSystem;
-    private final File preImportSource;
+    private final ImportFileCache cache;
+//    private final ImportManager manager;
+//    private final FileSystem fileSystem;
+//    private final File preImportSource;
 
-    public ImportFileWorker(ImportFileWorkQueue queue, ImportManager manager, FileSystem fileSystem) {
+    public ImportFileWorker(ImportFileWorkQueue queue,
+                            ImportFileCache cache) {
         this.queue = queue;
-        this.manager = manager;
-        this.fileSystem = fileSystem;
-
-        Optional<PreImportSource> source = this.manager.findPreImportSource();
-        preImportSource = source.map(importSource -> new File(importSource.getPath())).orElse(null);
+        this.cache = cache;
+//        this.manager = manager;
+//        this.fileSystem = fileSystem;
+//        this.preImportSource = this.manager.getPreImportDirectory();
     }
 
+    /*
     private boolean getMD5(PreImportFileDTO file, File realWorldFile) {
         try {
             Classification dummyClassification = new Classification();
@@ -74,6 +77,7 @@ public class ImportFileWorker implements Runnable {
         }
     }
 
+    @Deprecated
     private void readFileData(PreImportFileDTO file) {
         try {
             if(preImportSource == null) {
@@ -115,7 +119,8 @@ public class ImportFileWorker implements Runnable {
                 file.setImported(TrafficLightType.TL_GREEN);
 
                 if(update) {
-                    file.setSearchFilename(file.getFilename().toLowerCase().replace(".mov", ".mp4"));
+                    //TODO replace search filename
+//                    file.setSearchFilename(file.getFilename().toLowerCase().replace(".mov", ".mp4"));
                     file.setSize(fileInfo.getSize());
                     file.setMd5(fileInfo.getMD5());
                     file.setDate(fileInfo.getDate());
@@ -129,6 +134,7 @@ public class ImportFileWorker implements Runnable {
         return false;
     }
 
+    @Deprecated
     private void getImportData(PreImportFileDTO file) {
         // Has this file been processed and imported?
         boolean found = checkImport(file, file.getFilename(), false);
@@ -158,6 +164,7 @@ public class ImportFileWorker implements Runnable {
         return similar;
     }
 
+    @Deprecated
     private void getIgnoredStatus(PreImportFileDTO file) {
         // Get details of ignored files that match on name and or MD5.
         List<FileInfo> similar = manager.getSimilarIgnore(file.getFilename(), file.getMd5());
@@ -189,9 +196,11 @@ public class ImportFileWorker implements Runnable {
         file.update();
     }
 
+    @Deprecated
     private void getDuplicateStatus(PreImportFileDTO file) {
         // Get details of files that already exist that match on name or MD5.
-        List<ImportFileBaseDTO> similar = manager.getSimilarImported(file.getSearchFilename(), file.getMd5());
+        //TODO use alternative names too
+        List<ImportFileBaseDTO> similar = manager.getSimilarImported(file.getFilename(), file.getMd5());
 
         // If there are no similar files then, this file is yet to be imported.
         if(similar.isEmpty()) {
@@ -211,7 +220,8 @@ public class ImportFileWorker implements Runnable {
         // If there is one file with the right MD5, and it matches on name and also md5, then this file has been imported successfully.
         if(matchMd5 == 1) {
             for(ImportFileBaseDTO fileInfo : similar) {
-                if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5()) && fileInfo.getFilename().toLowerCase().endsWith(file.getSearchFilename().toLowerCase())) {
+                // TODO replace the alternative files
+                if(fileInfo.getMd5().equalsIgnoreCase(file.getMd5()) && fileInfo.getFilename().toLowerCase().endsWith(file.getFilename().toLowerCase())) {
                     file.setDuplicated(TrafficLightType.TL_GREEN);
                     file.update();
                     file.addSimilarFile(fileInfo);
@@ -241,6 +251,27 @@ public class ImportFileWorker implements Runnable {
         }
         file.update();
     }
+    */
+
+    private void performStep (FileProcessingStepType nextUnknown, PreImportFileDTO file) {
+        try {
+            ImportStep nextStep = this.queue.getStepProcessor(nextUnknown);
+
+            if (nextStep != null) {
+                LOG.info("Performing step {} for {}", nextStep, file.getFilename());
+                file.setStepStatus(nextUnknown, nextStep.performStep(file));
+
+                if(nextStep.getStepType() != FileProcessingStepType.FPS_FINAL_UPDATE) {
+                    this.cache.queueForUpdates(file);
+                }
+            } else {
+                throw new IllegalStateException("There is no processor for step " + nextUnknown);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+            file.setStepStatus(nextUnknown, TrafficLightType.TL_RED);
+        }
+    }
 
     private void processFile(PreImportFileDTO file) {
         try {
@@ -248,18 +279,9 @@ public class ImportFileWorker implements Runnable {
                 return;
             }
 
-            // Determine what to do on this file.
-            if (file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN)) {
-                readFileData(file);
-            } else if (file.getIgnored().equals(TrafficLightType.TL_UNKNOWN)) {
-                getIgnoredStatus(file);
-            }else if (file.getImported().equals(TrafficLightType.TL_UNKNOWN)) {
-                getImportData(file);
-            }  else if (file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
-                getDuplicateStatus(file);
-            }
-
-            this.manager.queueForUpdates(file);
+            // Get the next unknown step.
+            FileProcessingStepType nextUnknown = file.getNextUnknownStep();
+            performStep(nextUnknown, file);
         } catch (Exception e) {
             LOG.warn(e.getMessage(),e);
         }
@@ -269,7 +291,7 @@ public class ImportFileWorker implements Runnable {
     public void run() {
         // Process instructions from the queue.
         while (true) {
-            if(queue.isEmpty()) {
+            if (queue.isEmpty()) {
                 try {
                     queue.waitIsNotEmpty();
                 } catch (InterruptedException e) {
