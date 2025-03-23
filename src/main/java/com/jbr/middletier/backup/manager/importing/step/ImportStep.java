@@ -18,7 +18,7 @@ public abstract class ImportStep {
     private static final Logger LOG = LoggerFactory.getLogger(ImportStep.class);
 
     protected final ImportFileRepository importFileRepository;
-    private final AssociatedFileDataManager associatedFileDataManager;
+    protected final AssociatedFileDataManager associatedFileDataManager;
 
     protected ImportStep(ImportFileRepository importFileRepository,
                          AssociatedFileDataManager associatedFileDataManager) {

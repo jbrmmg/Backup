@@ -1,7 +1,9 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
+import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
@@ -15,15 +17,25 @@ import org.springframework.stereotype.Component;
 public class CheckDuplicateFile extends ImportStep {
     private static final Logger LOG = LoggerFactory.getLogger(CheckDuplicateFile.class);
 
+    private final FileRepository fileRepository;
+
     @Autowired
     protected CheckDuplicateFile(ImportFileRepository importFileRepository,
-                                 AssociatedFileDataManager associatedFileDataManager) {
+                                 AssociatedFileDataManager associatedFileDataManager,
+                                 FileRepository fileRepository) {
         super(importFileRepository, associatedFileDataManager);
+        this.fileRepository = fileRepository;
     }
 
     @Override
     public FileProcessingStepType getStepType() {
         return FileProcessingStepType.FPS_CHECK_DUPLICATE_FILE;
+    }
+
+    public boolean checkDuplicateByMD5(PreImportFileDTO file) {
+        for(FileInfo next : fileRepository.findByMd5(file.getMd5())) {
+            // Only check from the photo source.
+        }
     }
 
     @Override

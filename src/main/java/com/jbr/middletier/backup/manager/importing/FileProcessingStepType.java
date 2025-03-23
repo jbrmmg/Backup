@@ -15,16 +15,16 @@ public enum FileProcessingStepType {
     FPS_CHECK_FILE_CONFIRMED_IMPORTED (6),
     FPS_FINAL_UPDATE (7);
 
-    private final Integer value;
-    FileProcessingStepType(int value) {
-        this.value = value;
+    private final Integer order;
+    FileProcessingStepType(int order) {
+        this.order = order;
     }
 
     public static List<FileProcessingStepType> getStepsInOrder() {
         List<FileProcessingStepType> result = new ArrayList<>();
 
         Collections.addAll(result, FileProcessingStepType.values());
-        result.sort(Comparator.comparing(l -> l.value));
+        result.sort(Comparator.comparing(l -> l.order));
 
         return result;
     }
