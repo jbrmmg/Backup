@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.manager.importing;
 
-import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.*;
@@ -27,10 +26,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Comparator.comparing;
@@ -39,13 +35,12 @@ import static java.util.Comparator.comparing;
 public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
+    private static final String RECIPE_FILE_DESTINATION = "[** recipe **]";
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
-    private final ApplicationProperties applicationProperties;
     private final ModelMapper modelMapper;
     private final ImportFileCache importFileCache;
     private final FileRepository fileRepository;
-//    private final ImportFileWorkQueue importFileWorkQueue;
     private LocalDateTime currentTime;
     private LocalDateTime previousTime;
 
@@ -61,18 +56,15 @@ public class ImportManager extends FileProcessor {
                          DbLoggingManager dbLoggingManager,
                          ActionManager actionManager,
                          FileSystem fileSystem,
-                         ApplicationProperties applicationProperties,
                          ModelMapper modelMapper,
                          FileRepository fileRepository,
                          ImportFileCache importFileCache) {
         super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
-        this.applicationProperties = applicationProperties;
         this.modelMapper = modelMapper;
         this.importFileCache = importFileCache;
         this.fileRepository = fileRepository;
-//        this.importFileWorkQueue = importFileWorkQueue;
         this.valid = false;
         this.equivilentFileTypes = new ArrayList<>();
 
@@ -624,29 +616,6 @@ public class ImportManager extends FileProcessor {
     private enum ProcessType { USE_EXIF_DATE, CONVERT_QUICKTIME, NORMAL }
 
     @Deprecated
-    private String getDestinationFilename(String filename, ProcessType processType) {
-        if(processType.equals(ProcessType.CONVERT_QUICKTIME)) {
-            return filename.replace(".MOV", ".mp4");
-        }
-
-        return filename;
-    }
-
-    @Deprecated
-    private void copyFileWithExifMetadata(String source, String filename, String destination, Optional<FileSystemImageData> imageData, ImportProcessDTO data) {
-        File imageFile = new File(source,filename);
-
-        File destinationImageFile = new File(destination, filename);
-        fileSystem.copyFile(imageFile, destinationImageFile, data);
-        data.increment(ImportProcessDTO.ImportProcessCountType.IMAGE_FILES);
-
-        if(imageData.isPresent() && imageData.get().getDateTime() != null) {
-            ZonedDateTime zonedFileTime = imageData.get().getDateTime().atZone(ZoneId.systemDefault());
-            fileSystem.setFileDateTime(destinationImageFile, zonedFileTime.toInstant().toEpochMilli());
-        }
-    }
-
-    @Deprecated
     public List<ImportProcessDTO> convertImportFiles() {
         List<ImportProcessDTO> result = new ArrayList<>();
         ImportProcessDTO resultCount = new ImportProcessDTO();
@@ -989,21 +958,57 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
-    @Deprecated
+    public boolean unIgnoreSelectedFile(String filename) {
+        // This file must be in the cache for this action to be performed.
+        if(importFileCache.containsKey(filename.toLowerCase())) {
+            PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
+
+            // Cannot un-ignore a file unless all data is known.
+            if(file.getMd5() == null || file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
+                LOG.info("{} Cannot remove from ignore table because md5, size and/or date is missing.", filename);
+                return false;
+            }
+
+            // This must already be in the table
+            for(IgnoreFile next: ignoreFileRepository.findByMd5(file.getMd5())) {
+                if(next.getDate().equals(file.getDate()) &&
+                        next.getSize().equals(file.getSize()) &&
+                        next.getName().equals(filename)) {
+                    // Delete this record.
+                    LOG.info("{} has been removed from the ignore table.", filename);
+                    ignoreFileRepository.delete(next);
+                    return true;
+                }
+            }
+
+            LOG.info("{} was not ignored so nothing has changed.", filename);
+            return false;
+        }
+
+        LOG.info("Failed to un-ignore {} as its not in the cache.", filename);
+        return false;
+    }
+
     public boolean ignoreSelectedFile(String filename) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
-            // Make sure the status of this file is known.
-            // TODO
-//            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
-//                file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
-//                file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
-//                file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
-//                LOG.info("Failed to ignore {} because one or more status is unknown", filename);
-//                return false;
-//            }
+            // Insert the details of this file into the ignore table - we must have an MD5 to do this.
+            if(file.getMd5() == null || file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
+                LOG.info("{} Cannot ignore this file because md5, size and/or date is missing.", filename);
+                return false;
+            }
+
+            // Make sure this file is not ignored already
+            for(IgnoreFile next: ignoreFileRepository.findByMd5(file.getMd5())) {
+                if(next.getDate().equals(file.getDate()) &&
+                    next.getSize().equals(file.getSize())) {
+                    // Its already ignored.
+                    LOG.info("{} this file is already ignored.", filename);
+                    return false;
+                }
+            }
 
             // Insert the details into the ignore table.
             IgnoreFile ignoreFile = new IgnoreFile();
@@ -1012,39 +1017,36 @@ public class ImportManager extends FileProcessor {
             ignoreFile.setSize(file.getSize());
             ignoreFile.setMD5(new MD5(file.getMd5()));
 
+            LOG.info("{} has been inserted into the ignore table.", filename);
             ignoreFileRepository.save(ignoreFile);
-
-            // Remove the file from the system.
-            return deletePreImportFile(filename);
+            return true;
         }
 
         LOG.info("Failed to ignore {} as its not in the cache.", filename);
         return false;
     }
 
-    @Deprecated
     public boolean recipeFile(String filename) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
-            // Make sure the status of this file is known.
-            //TODO
-//            if(file.getIgnored().equals(TrafficLightType.TL_UNKNOWN) ||
-//                    file.getImported().equals(TrafficLightType.TL_UNKNOWN) ||
-//                    file.getImmediateImported().equals(TrafficLightType.TL_UNKNOWN) ||
-//                    file.getDuplicated().equals(TrafficLightType.TL_UNKNOWN)) {
-//                LOG.info("Failed to mark {} as a recipe because one or more status is unknown", filename);
-//                return false;
-//            }
+            // Has this already been marked as a recipe?
+            if(file.getDestination().equalsIgnoreCase(RECIPE_FILE_DESTINATION)) {
+                return true;
+            }
 
-            // Move the file to the recipe directory.
-            //TODO
-            LOG.info("Not yet implemented");
-            return false;
+            // Set the destination of the file and store in the database.
+            for(FileInfo next: this.importFileRepository.findByName(filename)) {
+                if(next instanceof ImportFile importFile) {
+                    importFile.setDestination(RECIPE_FILE_DESTINATION);
 
-            // Remove the file from the system.
-//            return deletePreImportFile(filename);
+                    importFileRepository.save(importFile);
+                }
+            }
+
+            file.setDestination(RECIPE_FILE_DESTINATION);
+            return true;
         }
 
         LOG.info("Failed to mark {} as a recipe as its not in the cache.", filename);
@@ -1106,20 +1108,6 @@ public class ImportManager extends FileProcessor {
 
         // Process the removes.
         removes.forEach(this::deletePreImportFile);
-
-        return true;
-    }
-
-    @Deprecated
-    public boolean importFiles() {
-        try {
-            // Perform the convert following by the import.
-            convertImportFiles();
-            importPhoto();
-        } catch (Exception e) {
-            LOG.error("Error while importing files", e);
-            return false;
-        }
 
         return true;
     }

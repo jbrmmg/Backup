@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.dto.*;
-import com.jbr.middletier.backup.exception.ImportRequestException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.jetbrains.annotations.Contract;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
@@ -40,39 +38,23 @@ public class ImportController {
                 .build();
     }
 
-    @PostMapping(path = "/convert")
-    public List<ImportProcessDTO> processImports() {
-        LOG.info("Convert files from pre import to import");
-
-        return importManager.convertImportFiles();
-    }
-
-    @PostMapping(path = "/import")
-    public List<GatherDataDTO> importPhotoDirectory() throws ImportRequestException, IOException {
-        LOG.info("Import the files");
-
-        return importManager.importPhoto();
-    }
-
-    @PostMapping(path = "/importprocess")
-    public List<ImportDataDTO> importPhotoProcess() throws ImportRequestException {
-        LOG.info("Process the import files.");
-
-        return importManager.processImportFiles();
-    }
-
-    @GetMapping(path = "/ximportfiles")
-    public List<ImportFileDTO> getXImportFiles() {
-        LOG.info("Get the import files.");
-
-        return importManager.externalFindImportFiles();
-    }
-
-    @GetMapping(path = "/importfile")
+    @GetMapping(path = "/process-imports")
     public ImportFileDTO getFile(@RequestParam Integer id) throws InvalidFileIdException {
-        LOG.info("Get the import files.");
+        LOG.info("Process the import files that have a destination.");
 
+        //TODO - different method name
         return importManager.externalFindImportFile(id);
+    }
+
+    @DeleteMapping(path = "/delete-ignored")
+    public String deleteIgnoredFiles() {
+        LOG.info("Delete any files that are ignored.");
+
+        if(importManager.removeIgnored()) {
+            return "OK";
+        }
+
+        return "FAILED";
     }
 
     @GetMapping(path = "/import-files")
@@ -82,41 +64,8 @@ public class ImportController {
         return importManager.getImportFiles(limit != null ? limit : 0);
     }
 
-    @DeleteMapping(path = "/preimportfile")
-    public String deletePreImportFile(@RequestBody String filename) {
-        LOG.info("Delete pre import file - {}", filename);
-
-        if(importManager.deletePreImportFile(filename)) {
-            return "OK";
-        }
-
-        return "FAILED";
-    }
-
-    @PostMapping(path = "/removeignored")
-    public String reimportFile() {
-        LOG.info("Check the import directory and remove any that are ignored");
-
-        if(importManager.removeIgnored()) {
-            return "OK";
-        }
-
-        return "FAILED";
-    }
-
-    @PostMapping(path = "/importfiles")
-    public String importFiles() {
-        LOG.info("Import the files in the pre-import directory.");
-
-        if(importManager.importFiles()) {
-            return "OK";
-        }
-
-        return "FAILED";
-    }
-
-    @PostMapping(path = "/removeduplicates")
-    public String removeduplicates() {
+    @DeleteMapping(path = "/delete-confirmed-imports")
+    public String deleteConfrimedImports() {
         LOG.info("Remove any files that are already imported.");
 
         if(importManager.removeDuplicates()) {
@@ -126,7 +75,18 @@ public class ImportController {
         return "FAILED";
     }
 
-    @PostMapping(path = "/ignorefile")
+    @PostMapping(path = "/un-ignore-file")
+    public String unIgnoreFile(@RequestBody String filename) {
+        LOG.info("remove file from ignore list.");
+
+        if(importManager.unIgnoreSelectedFile(filename)) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
+    @PostMapping(path = "/ignore-file")
     public String ignoreFile(@RequestBody String filename) {
         LOG.info("Ignore the file.");
 
@@ -137,9 +97,9 @@ public class ImportController {
         return "FAILED";
     }
 
-    @PostMapping(path = "/recipefile")
+    @PostMapping(path = "/recipe-file")
     public String recipeFile(@RequestBody String filename) {
-        LOG.info("Ignore the file.");
+        LOG.info("Import the file as a recipe file.");
 
         if(importManager.recipeFile(filename)) {
             return "OK";
