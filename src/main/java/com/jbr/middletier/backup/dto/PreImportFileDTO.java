@@ -1,11 +1,10 @@
 package com.jbr.middletier.backup.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
-
+import com.jbr.middletier.backup.manager.importing.step.StepStatus;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 public class PreImportFileDTO extends ImportFileDTO {
     private LocalDateTime updateTime;
@@ -21,37 +20,32 @@ public class PreImportFileDTO extends ImportFileDTO {
     private boolean inDatabase;
     private boolean inImport;
     private boolean inPostImport;
-    Map<FileProcessingStepType,TrafficLightType> stepStatus;
+    private final StepStatus stepStatus;
 
     public PreImportFileDTO() {
         this.inDatabase = false;
         this.inImport = false;
         this.inPostImport = false;
-        this.stepStatus = new HashMap<>();
-
-        for(FileProcessingStepType step :  FileProcessingStepType.getStepsInOrder()) {
-            this.stepStatus.put(step,TrafficLightType.TL_UNKNOWN);
-        }
+        this.stepStatus = new StepStatus();
     }
 
+    @JsonIgnore
     public FileProcessingStepType getNextUnknownStep() {
-        for(FileProcessingStepType step: FileProcessingStepType.getStepsInOrder()) {
-            TrafficLightType trafficLightType = stepStatus.get(step);
-            if(trafficLightType == TrafficLightType.TL_UNKNOWN) {
-                return step;
-            }
-        }
-
-        return FileProcessingStepType.FPS_FINAL_UPDATE;
+        return this.stepStatus.getNextUnknownStep();
     }
 
+    public StepStatus getStepStatus() {
+        return this.stepStatus;
+    }
+
+    @JsonIgnore
     public TrafficLightType getStepStatus(FileProcessingStepType step) {
-        return stepStatus.get(step);
+        return this.stepStatus.getStepStatus(step);
     }
 
-    public void setStepStatus(FileProcessingStepType step, TrafficLightType trafficLightType) {
+    public void setStepStatus(FileProcessingStepType step, TrafficLightType status) {
         // Update the status of the step.
-        this.stepStatus.put(step,trafficLightType);
+        this.stepStatus.setStepStatus(step,status);
         this.updateTime = LocalDateTime.now();
     }
 

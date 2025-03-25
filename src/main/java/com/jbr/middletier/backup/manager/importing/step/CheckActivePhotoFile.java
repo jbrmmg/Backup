@@ -1,6 +1,6 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
-import com.jbr.middletier.backup.data.IgnoreFile;
+import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
@@ -30,7 +30,8 @@ public class CheckActivePhotoFile extends ImportStep {
 
     private ImportFileBaseDTO getSimilarFile(ImportFile importFile) {
         ImportFileBaseDTO similar = new ImportFileBaseDTO();
-        similar.setFilename(importFile.getName());
+        similar.setType(FileSystemObjectType.FSO_IMPORT_FILE);
+        similar.setFilename(importFile.getName() + " [" + importFile.getIdAndType().getType() + "]");
         similar.setDate(importFile.getDate());
         similar.setSize(importFile.getSize());
         similar.setMd5(importFile.getMD5());
@@ -39,6 +40,15 @@ public class CheckActivePhotoFile extends ImportStep {
     }
 
     private boolean isWriteTypeForActivePhoto(PreImportFileDTO file) {
+        // Must be a video.
+        if(!file.isVideo()) {
+            return false;
+        }
+
+        if(file.getDuration() > 4) {
+            return false;
+        }
+
         return file.getFilename().toLowerCase().endsWith(".mov") && file.getImportName().toLowerCase().endsWith(".mp4");
     }
 
@@ -54,7 +64,7 @@ public class CheckActivePhotoFile extends ImportStep {
             return TrafficLightType.TL_GREEN;
         }
 
-        // Active photo is an MOV/mp4 that has the same name and the mp4 will have a close date.
+        // Active photo is a MOV/mp4 that has the same name and the mp4 will have a close date.
         for(ImportFile importFile : importFileRepository.findAll()) {
             if(importFile.getName().equalsIgnoreCase(file.getFilename())) {
                 continue;

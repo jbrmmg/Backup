@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
@@ -23,6 +24,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         this.similarFileList = new ArrayList<>();
     }
 
+    @JsonIgnore
     public Integer getId() {
         return id;
     }
@@ -31,6 +33,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         this.id = id;
     }
 
+    @JsonIgnore
     public String getStatus() {
         return status;
     }

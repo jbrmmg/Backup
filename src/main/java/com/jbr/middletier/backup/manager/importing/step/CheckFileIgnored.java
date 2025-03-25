@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
+import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.data.IgnoreFile;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
@@ -35,7 +36,8 @@ public class CheckFileIgnored extends ImportStep {
 
     private ImportFileBaseDTO getSimilarFile(IgnoreFile ignoreFile) {
         ImportFileBaseDTO similar = new ImportFileBaseDTO();
-        similar.setFilename(ignoreFile.getName());
+        similar.setType(FileSystemObjectType.FSO_IGNORE_FILE);
+        similar.setFilename(ignoreFile.getName() + " [" + ignoreFile.getIdAndType().getType() + "]");
         similar.setDate(ignoreFile.getDate());
         similar.setSize(ignoreFile.getSize());
         similar.setMd5(ignoreFile.getMD5());
