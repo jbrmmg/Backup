@@ -22,7 +22,7 @@ import java.time.ZoneOffset;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class CopyToImport extends ReadPreImportFIle {
+public class CopyToImport extends ReadPreImportFile {
     private static final Logger LOG = LoggerFactory.getLogger(CopyToImport.class);
 
     private final ApplicationProperties applicationProperties;

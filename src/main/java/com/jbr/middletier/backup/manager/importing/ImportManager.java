@@ -323,7 +323,7 @@ public class ImportManager extends FileProcessor {
                 importFile.setDuration(dbFile.getDuration());
                 importFile.setImage(dbFile.getImage());
                 if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
-                    importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageWidth()));
+                    importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageHeight()));
                 } else {
                     importFile.setImageSize(null);
                 }

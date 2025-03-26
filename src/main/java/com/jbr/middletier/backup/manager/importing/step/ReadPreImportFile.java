@@ -14,13 +14,13 @@ import com.jbr.middletier.backup.manager.FileProcessor;
 import java.io.File;
 
 @Component
-public class ReadPreImportFIle extends ImportStep {
-    private static final Logger LOG = LoggerFactory.getLogger(ReadPreImportFIle.class);
+public class ReadPreImportFile extends ImportStep {
+    private static final Logger LOG = LoggerFactory.getLogger(ReadPreImportFile.class);
 
     protected final FileSystem fileSystem;
 
     @Autowired
-    public ReadPreImportFIle(FileSystem fileSystem,
+    public ReadPreImportFile(FileSystem fileSystem,
                              ImportFileRepository importFileRepository,
                              AssociatedFileDataManager associatedFileDataManager) {
         super(importFileRepository, associatedFileDataManager);

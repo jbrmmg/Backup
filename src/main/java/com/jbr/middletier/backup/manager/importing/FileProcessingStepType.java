@@ -13,7 +13,8 @@ public enum FileProcessingStepType {
     FPS_CHECK_ACTIVE_PHOTO_FILE (4, "checkActivePhotoFile"),
     FPS_CHECK_DUPLICATE_FILE (5, "checkDuplicateFile"),
     FPS_CHECK_FILE_CONFIRMED_IMPORTED (6, "checkFileConfirmedImported"),
-    FPS_FINAL_UPDATE (7, "competed");
+    FPS_PROCESS_IMPORT (7, "processImport"),
+    FPS_FINAL_UPDATE (8, "completed");
 
     private final Integer order;
     private final String jsonName;
