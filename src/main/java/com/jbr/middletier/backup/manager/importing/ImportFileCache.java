@@ -48,12 +48,8 @@ public class ImportFileCache {
     }
 
     public void put(String filename, PreImportFileDTO importFile) {
-        try {
-            this.cache.put(filename.toLowerCase(), new ImportFileCacheEntry(importFile));
-            this.queueForUpdates(importFile);
-        } catch (InterruptedException e) {
-            LOG.info("Interrupted");
-        }
+        this.cache.put(filename.toLowerCase(), new ImportFileCacheEntry(importFile));
+        this.queueForUpdates(importFile);
     }
 
     public void remove(String filename) {
@@ -64,8 +60,12 @@ public class ImportFileCache {
         return this.cache.keySet();
     }
 
-    public void queueForUpdates(PreImportFileDTO importFile) throws InterruptedException {
-        this.importFileWorkQueue.put(importFile);
+    public void queueForUpdates(PreImportFileDTO importFile) {
+        try {
+            this.importFileWorkQueue.put(importFile);
+        } catch (InterruptedException e) {
+            LOG.info("Interrupted queue");
+        }
     }
 
     public void clear() {

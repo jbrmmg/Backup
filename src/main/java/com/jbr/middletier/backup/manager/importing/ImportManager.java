@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import com.jbr.middletier.backup.manager.FileProcessor;
@@ -1057,61 +1058,23 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    @Deprecated
-    public boolean removeDuplicates() {
-        LOG.info("Remove any files in the import directory that are duplicates of files already in the system.");
+    public boolean deleteConfirmedImports() {
+        LOG.info("Remove any files in the import directory have already been imported.");
 
-        // Get the file that needs to be re-imported.
-        // TODO
-        Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
-        if(preImportSource.isEmpty()) {
-            LOG.warn("Remove Duplicates: Invalid Pre Import Source for delete, returning empty list.");
-            return false;
-        }
+        // Any file in the cache that has a confirmed imported status of GREEN.
+        for(String nextFile: this.importFileCache.getFiles()) {
+            // Get the file.
+            PreImportFileDTO file = importFileCache.get(nextFile);
 
-        File source = new File(preImportSource.get().getPath());
-
-        // Check that the source exists.
-        if(!fileSystem.directoryExists(source.toPath())) {
-            LOG.warn("Remove duplicates: Pre import does not exist, returning empty list.");
-            return false;
-        }
-
-        List<String> removes = new ArrayList<>();
-        // TODO
-//        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
-        for(String nextFilename : fileSystem.listFilesInDirectory(new File("xyz"))) {
-            // This depends on the file having been imported (mov files are imported as mp4).
-            List<FileInfo> imported = getImport(nextFilename.toLowerCase().replace(".mov",".mp4"));
-
-            // Is this file in the ignored list?
-            for(FileInfo nextImported : imported) {
-                for(ImportFileBaseDTO nextSimilar : getSimilarImported(nextImported.getName(),nextImported.getMD5().toString())) {
-                    // Does this file match on name, size, date and MD5?
-                    if(!nextImported.getMD5().toString().equalsIgnoreCase(nextSimilar.getMd5())) {
-                        continue;
-                    }
-
-                    if(!nextImported.getSize().equals(nextSimilar.getSize())) {
-                        continue;
-                    }
-
-                    if(!nextImported.getDate().equals(nextSimilar.getDate())) {
-                        continue;
-                    }
-
-                    if(!nextSimilar.getFilename().toLowerCase().endsWith(nextImported.getName().toLowerCase())) {
-                        continue;
-                    }
-
-                    LOG.info("Will remove {}", nextFilename);
-                    removes.add(nextFilename);
-                }
+            // Is this a confirmed import?
+            TrafficLightType status = file.getStepStatus(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED);
+            if(status == TrafficLightType.TL_GREEN) {
+                // Setup this file to be processed.
+                file.setStatus(ImportFileStatusType.IFS_REMOVE_IMPORTED);
+                file.setStepStatus(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED, TrafficLightType.TL_UNKNOWN);
+                importFileCache.queueForUpdates(file);
             }
         }
-
-        // Process the removes.
-        removes.forEach(this::deletePreImportFile);
 
         return true;
     }

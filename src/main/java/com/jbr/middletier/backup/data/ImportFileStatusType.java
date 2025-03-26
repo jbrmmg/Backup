@@ -4,7 +4,8 @@ public enum ImportFileStatusType {
     IFS_READ("READ"),
     IFS_AWAITING_ACTION("AWAITING_ACTION"),
     IFS_COMPLETE("COMPLETE"),
-    IFS_REMOVED("REMOVED");
+    IFS_REMOVED("REMOVED"),
+    IFS_REMOVE_IMPORTED("REMOVE_IMPORTED");
 
     private final String type;
 

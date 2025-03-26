@@ -89,10 +89,10 @@ public class ImportController {
     }
 
     @DeleteMapping(path = "/delete-confirmed-imports")
-    public String deleteConfrimedImports() {
+    public String deleteConfirmedImports() {
         LOG.info("Remove any files that are already imported.");
 
-        if(importManager.removeDuplicates()) {
+        if(importManager.deleteConfirmedImports()) {
             return "OK";
         }
 

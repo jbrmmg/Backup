@@ -35,14 +35,19 @@ public class CheckFileConfirmedImported extends ImportStep {
         LOG.info("Checking if file has been imported");
 
         // If it's been imported then there will be a similar file with the same name, md5, date/time and size.
+        int count = 0;
         for(ImportFileBaseDTO next: file.getSimilarFiles()) {
             if(next.getType() == FileSystemObjectType.FSO_FILE &&
-                next.getMd5().equals(file.getMd5()) &&
-                next.getFilename().equals(file.getFilename()) &&
-                Objects.equals(next.getSize(), file.getSize()) &&
-                next.getDate().equals(file.getDate())) {
-                return TrafficLightType.TL_GREEN;
+                next.getMd5().equals(file.getImportMd5()) &&
+                next.getFilename().toLowerCase().endsWith(file.getImportName().toLowerCase()) &&
+                Objects.equals(next.getSize(), file.getImportSize()) &&
+                next.getDate().equals(file.getImportDate())) {
+                count++;
             }
+        }
+
+        if(count == 1) {
+            return TrafficLightType.TL_GREEN;
         }
 
         return TrafficLightType.TL_RED;

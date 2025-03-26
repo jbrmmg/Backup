@@ -28,9 +28,33 @@ public class ProcessImport extends ImportStep {
         return FileProcessingStepType.FPS_PROCESS_IMPORT;
     }
 
+    private void removeImported(PreImportFileDTO file) {
+        // Verify that the states of this file are correct - if they are remove the files from all imports.
+    }
+
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
         LOG.info("Perform the import for {}", file.getImportName());
+
+        if(file.getStatus() == null) {
+            return TrafficLightType.TL_RED;
+        }
+
+        // Check the status to see if there is a step to perform.
+        switch(file.getStatus()) {
+            case "REMOVE_IMPORTED":
+                LOG.info("Processing a remove imported status");
+                removeImported(file);
+                return TrafficLightType.TL_GREEN;
+
+            case "READ":
+                LOG.info("Status is read - nothing to do at this time.");
+                break;
+
+            default:
+                LOG.info("Status {} - nothing to do for this.", file.getStatus());
+        }
+
         return TrafficLightType.TL_RED;
     }
 }
