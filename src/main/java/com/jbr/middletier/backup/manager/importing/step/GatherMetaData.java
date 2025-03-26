@@ -34,10 +34,20 @@ public class GatherMetaData extends ImportStep {
         if(record.getImage() == null || record.getVideo() == null) {
             // Transfer the data.
             record.setDuration(file.getDuration());
-            record.setImageHeight(file.getImageSize().getHeight());
-            record.setImageWidth(file.getImageSize().getWidth());
-            record.setLatitude(file.getLocation().getLatitude());
-            record.setLongitude(file.getLocation().getLongitude());
+            if(file.getImageSize() != null) {
+                record.setImageHeight(file.getImageSize().getHeight());
+                record.setImageWidth(file.getImageSize().getWidth());
+            } else {
+                record.setImageHeight(null);
+                record.setImageWidth(null);
+            }
+            if(file.getLocation() != null) {
+                record.setLatitude(file.getLocation().getLatitude());
+                record.setLongitude(file.getLocation().getLongitude());
+            } else {
+                record.setLatitude(null);
+                record.setLongitude(null);
+            }
             record.setVideo(file.isVideo());
             record.setImage(file.isImage());
 

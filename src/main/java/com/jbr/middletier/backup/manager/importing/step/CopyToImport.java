@@ -18,7 +18,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.time.ZoneOffset;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -52,7 +55,8 @@ public class CopyToImport extends ReadPreImportFile {
 
     private void setDateTime(File destination, PreImportFileDTO file, long defaultTime) {
         if(file != null && file.getImportDate() != null) {
-            defaultTime = file.getImportDate().toInstant(ZoneOffset.UTC).toEpochMilli();
+            ZonedDateTime zonedDateTime = file.getImportDate().atZone(ZoneId.systemDefault());
+            defaultTime = zonedDateTime.toInstant().toEpochMilli();
         }
         fileSystem.setFileDateTime(destination, defaultTime);
     }
@@ -118,9 +122,12 @@ public class CopyToImport extends ReadPreImportFile {
     }
 
     private void gatherDataOfImport(File importFile, PreImportFileDTO file) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         // Gather the details of the file.
-        file.setSize(importFile.length());
-        file.setDate(FileProcessor.getFileLastModified(importFile));
+        LocalDateTime importDate = FileProcessor.getFileLastModified(importFile);
+        LOG.info("Gathering import data of {} {}", file.getFilename(), formatter.format(importDate));
+        file.setImportSize(importFile.length());
+        file.setImportDate(importDate);
         getMD5(file, importFile, true);
     }
 
@@ -168,8 +175,8 @@ public class CopyToImport extends ReadPreImportFile {
             LOG.info("Save details of the import file {}", file.getFilename());
             record.setImportName(file.getImportName());
             record.setImportMd5(file.getImportMd5());
-            record.setImportSize(file.getSize());
-            record.setImportDate(file.getDate());
+            record.setImportSize(file.getImportSize());
+            record.setImportDate(file.getImportDate());
             return true;
         }
 

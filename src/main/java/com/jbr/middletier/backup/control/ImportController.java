@@ -64,6 +64,13 @@ public class ImportController {
         return importManager.getImportFiles(limit != null ? limit : 0);
     }
 
+    @GetMapping(path = "/import-file")
+    public PreImportFileDTO getImportFile(@RequestParam String name) {
+        LOG.info("Get the specified file.");
+
+        return importManager.getImportFile(name);
+    }
+
     @DeleteMapping(path = "/delete-confirmed-imports")
     public String deleteConfrimedImports() {
         LOG.info("Remove any files that are already imported.");

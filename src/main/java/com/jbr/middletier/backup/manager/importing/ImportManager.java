@@ -829,6 +829,10 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    public PreImportFileDTO getImportFile(String name) {
+        return this.importFileCache.get(name.toLowerCase());
+    }
+
     public List<PreImportFileDTO> getImportFiles(int limit) {
         updateCache();
 
@@ -1241,7 +1245,7 @@ public class ImportManager extends FileProcessor {
 
             // read the specified file.
             LOG.info("Read file from {}", getImportDirectory(this.associatedFileDataManager));
-            File source = new File(Objects.requireNonNull(getImportDirectory(this.associatedFileDataManager)).getPath(), name);
+            File source = new File(Objects.requireNonNull(getImportDirectory(this.associatedFileDataManager)).getPath(), importFile.getImportName());
 
             return fileSystem.readAllBytes(source);
         } catch (IOException e) {

@@ -46,17 +46,19 @@ public class CheckFileIgnored extends ImportStep {
     }
 
     private boolean checkOnMd5(PreImportFileDTO file) {
-        boolean result = false;
         for(IgnoreFile nextIgnoreFile : ignoreFileRepository.findAllByOrderByIdAsc()) {
-            // Does it match on the MD5.
-            if(nextIgnoreFile.getMD5().toString().equalsIgnoreCase(file.getMd5()) ||
-                    nextIgnoreFile.getMD5().toString().equalsIgnoreCase(file.getImportMd5())) {
-                result = true;
+            // Does this match on the file MD5
+            if(nextIgnoreFile.getMD5().toString().equals(file.getMd5()) && nextIgnoreFile.getSize().equals(file.getSize())) {
                 file.addSimilarFile(getSimilarFile(nextIgnoreFile));
+                return true;
+            }
+            if(nextIgnoreFile.getMD5().toString().equalsIgnoreCase(file.getImportMd5())  && nextIgnoreFile.getSize().equals(file.getSize())) {
+                file.addSimilarFile(getSimilarFile(nextIgnoreFile));
+                return true;
             }
         }
 
-        return result;
+        return false;
     }
 
     private boolean checkOnNameDateOrSize(PreImportFileDTO file) {
@@ -81,7 +83,7 @@ public class CheckFileIgnored extends ImportStep {
     public TrafficLightType performStep(PreImportFileDTO file) {
         // Does the file match MD5 (then don't check anything else.
         if(checkOnMd5(file)) {
-            return TrafficLightType.TL_AMBER;
+            return TrafficLightType.TL_RED;
         }
 
         if(checkOnNameDateOrSize(file)) {
