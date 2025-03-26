@@ -1280,6 +1280,7 @@ public class ImportManager extends FileProcessor {
                 result.incrementStepCount(nextStep, status);
             }
         }
+        result.setQueued(this.importFileCache.inQueue());
 
         return result;
     }

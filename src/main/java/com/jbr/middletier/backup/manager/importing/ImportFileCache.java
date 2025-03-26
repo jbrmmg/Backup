@@ -1,6 +1,8 @@
 package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -9,6 +11,8 @@ import java.util.Set;
 
 @Component
 public class ImportFileCache {
+    private static final Logger LOG = LoggerFactory.getLogger(ImportFileCache.class);
+
     /*
      * Used to cache the details of the files in the import directory.
      */
@@ -44,8 +48,12 @@ public class ImportFileCache {
     }
 
     public void put(String filename, PreImportFileDTO importFile) {
-        this.cache.put(filename.toLowerCase(),new ImportFileCacheEntry(importFile));
-        this.queueForUpdates(importFile);
+        try {
+            this.cache.put(filename.toLowerCase(), new ImportFileCacheEntry(importFile));
+            this.queueForUpdates(importFile);
+        } catch (InterruptedException e) {
+            LOG.info("Interrupted");
+        }
     }
 
     public void remove(String filename) {
@@ -56,11 +64,15 @@ public class ImportFileCache {
         return this.cache.keySet();
     }
 
-    public void queueForUpdates(PreImportFileDTO importFile) {
-        this.importFileWorkQueue.add(importFile);
+    public void queueForUpdates(PreImportFileDTO importFile) throws InterruptedException {
+        this.importFileWorkQueue.put(importFile);
     }
 
     public void clear() {
         this.cache.clear();
+    }
+
+    public int inQueue() {
+        return this.importFileWorkQueue.itemsInQueue();
     }
 }

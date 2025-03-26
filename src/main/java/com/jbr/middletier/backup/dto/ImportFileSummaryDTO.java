@@ -12,6 +12,7 @@ public class ImportFileSummaryDTO {
     private int totalPreImportFiles;
     private int totalImportFiles;
     private int totalPostImportFiles;
+    private int queued;
     private final Map<FileProcessingStepType,ImportFIleSummaryStepDTO> counts;
 
     public ImportFileSummaryDTO() {
@@ -19,6 +20,7 @@ public class ImportFileSummaryDTO {
         totalPreImportFiles = 0;
         totalImportFiles = 0;
         totalPostImportFiles = 0;
+        queued = 0;
 
         for(FileProcessingStepType type : FileProcessingStepType.values()){
             counts.put(type,new ImportFIleSummaryStepDTO(type));
@@ -55,5 +57,13 @@ public class ImportFileSummaryDTO {
 
     public void incrementStepCount(FileProcessingStepType type, TrafficLightType status) {
         counts.get(type).increment(status);
+    }
+
+    public void setQueued(int queued) {
+        this.queued = queued;
+    }
+
+    public int getQueued() {
+        return this.queued;
     }
 }

@@ -16,6 +16,7 @@ public class ImportFileSummarySerializer extends JsonSerializer<ImportFileSummar
         jsonGenerator.writeNumberField("PreImport", summary.getTotalPreImportFiles());
         jsonGenerator.writeNumberField("Import", summary.getTotalPreImportFiles());
         jsonGenerator.writeNumberField("PostImport", summary.getTotalPreImportFiles());
+        jsonGenerator.writeNumberField("Queued", summary.getQueued());
 
         for(Map.Entry<FileProcessingStepType,ImportFIleSummaryStepDTO> next : summary.getCounts().entrySet()) {
             // Write the next count.

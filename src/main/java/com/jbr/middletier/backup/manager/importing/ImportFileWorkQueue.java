@@ -2,18 +2,22 @@ package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.importing.step.ImportStep;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 public class ImportFileWorkQueue {
-    private final Queue<PreImportFileDTO> queue = new LinkedList<>();
-    private final Object IS_NOT_EMPTY = new Object();
+    private static final Logger LOG = LoggerFactory.getLogger(ImportFileWorkQueue.class);
 
+    private final BlockingQueue<PreImportFileDTO> queue = new LinkedBlockingQueue<>();
     private final List<ImportStep> stepProcessors;
 
     @Autowired
@@ -21,33 +25,16 @@ public class ImportFileWorkQueue {
         this.stepProcessors = stepProcessors;
     }
 
-    public void add(PreImportFileDTO file) {
-        queue.add(file);
-        notifyIsNotEmpty();
+    public void put(PreImportFileDTO file) throws InterruptedException {
+        queue.put(file);
     }
 
     public boolean isEmpty() {
         return queue.isEmpty();
     }
 
-    public void waitIsNotEmpty() throws InterruptedException {
-        synchronized (IS_NOT_EMPTY) {
-            IS_NOT_EMPTY.wait();
-        }
-    }
-
-    public void notifyIsNotEmpty() {
-        synchronized (IS_NOT_EMPTY) {
-            IS_NOT_EMPTY.notify();
-        }
-    }
-
-    public PreImportFileDTO poll() {
-        return queue.poll();
-    }
-
-    public void clear() {
-        queue.clear();
+    public PreImportFileDTO take() throws InterruptedException {
+        return queue.take();
     }
 
     public ImportStep getStepProcessor(FileProcessingStepType stepType) {
@@ -58,5 +45,9 @@ public class ImportFileWorkQueue {
         }
 
         return null;
+    }
+
+    public int itemsInQueue() {
+        return this.queue.size();
     }
 }
