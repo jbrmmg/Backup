@@ -1254,4 +1254,33 @@ public class ImportManager extends FileProcessor {
 
         return null;
     }
+
+    public ImportFileSummaryDTO getImportSummary() {
+        // Generate the summary.
+        ImportFileSummaryDTO result = new ImportFileSummaryDTO();
+
+        // Get a summary of the files.
+        for(String nextName : importFileCache.getFiles()) {
+            PreImportFileDTO importFile = this.importFileCache.get(nextName);
+
+            // Update the counts.
+            result.incrementTotalPreImportFiles();
+
+            if(importFile.isInImport()) {
+                result.incrementTotalImportFiles();
+            }
+
+            if(importFile.isInPostImport()) {
+                result.incrementTotalPostImportFiles();
+            }
+
+            for(FileProcessingStepType nextStep : FileProcessingStepType.values()) {
+                TrafficLightType status = importFile.getStepStatus(nextStep);
+
+                result.incrementStepCount(nextStep, status);
+            }
+        }
+
+        return result;
+    }
 }

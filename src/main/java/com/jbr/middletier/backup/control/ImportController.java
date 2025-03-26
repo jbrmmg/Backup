@@ -22,6 +22,7 @@ public class ImportController {
 
     private final ImportManager importManager;
     private final Flux<ServerSentEvent<List<PreImportFileDTO>>> updateNotifier;
+    private final Flux<ServerSentEvent<ImportFileSummaryDTO>> updateSummaryNotifier;
 
     @Contract(pure = true)
     @Autowired
@@ -29,12 +30,21 @@ public class ImportController {
         this.importManager = importManager;
         this.updateNotifier = Flux.interval(Duration.ofSeconds(2))
                 .map(this::checkFileUpdates);
+        this.updateSummaryNotifier = Flux.interval(Duration.ofSeconds(5))
+                .map(this::checkSummaryUpdates);
     }
 
     private ServerSentEvent<List<PreImportFileDTO>> checkFileUpdates(long unused) {
         // Return the update information.
         return ServerSentEvent.<List<PreImportFileDTO>> builder()
                 .data(importManager.getUpdates())
+                .build();
+    }
+
+    private ServerSentEvent<ImportFileSummaryDTO> checkSummaryUpdates(long unused) {
+        // Get the summary information.
+        return ServerSentEvent.<ImportFileSummaryDTO>builder()
+                .data(importManager.getImportSummary())
                 .build();
     }
 
@@ -62,6 +72,13 @@ public class ImportController {
         LOG.info("Get the pre import files.");
 
         return importManager.getImportFiles(limit != null ? limit : 0);
+    }
+
+    @GetMapping(path = "/import-files-summary")
+    public ImportFileSummaryDTO getImportFileSummary() {
+        LOG.info("Get the pre import files.");
+
+        return importManager.getImportSummary();
     }
 
     @GetMapping(path = "/import-file")
@@ -120,7 +137,18 @@ public class ImportController {
         try {
             return this.updateNotifier;
         } catch (Exception e) {
-            LOG.info("Exception");
+            LOG.info("Exception in file update");
+        }
+
+        return null;
+    }
+
+    @GetMapping(path="/summary-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<ImportFileSummaryDTO>> summaryUpdate() {
+        try {
+            return this.updateSummaryNotifier;
+        } catch (Exception e) {
+            LOG.info("Exception in summary update");
         }
 
         return null;

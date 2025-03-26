@@ -140,6 +140,7 @@ public class CopyToImport extends ReadPreImportFile {
         File destinationFile = getImportFilename(file, copyFile);
         LOG.info("Check file {} is copied to {}", file.getFilename(), copyFile);
         if(destinationFile.exists() && file.getImportMd5() != null) {
+            file.setInImport(true);
             return TrafficLightType.TL_GREEN;
         }
 
@@ -160,6 +161,7 @@ public class CopyToImport extends ReadPreImportFile {
         }
 
         gatherDataOfImport(destinationFile, file);
+        file.setInImport(true);
         saveData(file);
 
         if(file.getImportMd5() != null) {
