@@ -1124,6 +1124,27 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    public boolean deleteActivePhotos() {
+        LOG.info("Remove any files in the import directory that are Apple active photos.");
+
+        // Any file in the cache that has a confirmed imported status of GREEN.
+        for(String nextFile: this.importFileCache.getFiles()) {
+            // Get the file.
+            PreImportFileDTO file = importFileCache.get(nextFile);
+
+            // Is this an ignored file?
+            TrafficLightType status = file.getStepStatus(FileProcessingStepType.FPS_CHECK_ACTIVE_PHOTO_FILE);
+            if(status == TrafficLightType.TL_RED) {
+                // Setup this file to be processed.
+                file.setStatus(ImportFileStatusType.IFS_REMOVE_ACTIVE_PHOTO);
+                file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
+                importFileCache.queueForUpdates(file);
+            }
+        }
+
+        return true;
+    }
+
     public boolean deleteIgnored() {
         LOG.info("Remove any files in the import directory that are ignored.");
 

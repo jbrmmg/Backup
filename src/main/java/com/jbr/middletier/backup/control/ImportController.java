@@ -67,6 +67,17 @@ public class ImportController {
         return "FAILED";
     }
 
+    @DeleteMapping(path = "/delete-active-photos")
+    public String deleteActivePhotos() {
+        LOG.info("Delete any files that are Apple active photos.");
+
+        if(importManager.deleteActivePhotos()) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
     @GetMapping(path = "/import-files")
     public List<PreImportFileDTO> getImportFiles(@RequestParam Integer limit,
                                                  @RequestParam(required = false) String stepType,

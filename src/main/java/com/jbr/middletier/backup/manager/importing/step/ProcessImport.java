@@ -54,6 +54,35 @@ public class ProcessImport extends ImportStep {
         file.setStatus(ImportFileStatusType.IFS_REMOVED);
     }
 
+    private void removeActivePhoto(PreImportFileDTO file) throws IOException {
+        // Verify that the states of this file are correct - if they are then remove.
+        for(FileProcessingStepType step: FileProcessingStepType.getStepsInOrder()) {
+            TrafficLightType status = file.getStepStatus(step);
+
+            switch (step) {
+                case FPS_READ_PREIMPORT_FILE:
+                case FPS_GATHER_META_DATA:
+                    // Must be green.
+                    if(status != TrafficLightType.TL_GREEN) {
+                        LOG.warn("Remove Active Photo file process cannot be used if step {} is not green. {}", step, file.getFilename());
+                        throw new IllegalStateException("Invalid state for remove imported process.");
+                    }
+                    break;
+
+                case FPS_CHECK_ACTIVE_PHOTO_FILE:
+                    // Must be red.
+                    if(status != TrafficLightType.TL_RED) {
+                        LOG.warn("Remove Active Photo file process Cannot be used on a file not marked as ignored. {}", file.getFilename());
+                        throw new IllegalStateException("Invalid state for remove imported process.");
+                    }
+            }
+        }
+
+        LOG.info("About to remove active photo {} from all import directories.", file.getFilename());
+
+        deleteFile(file);
+    }
+
     private void removeIgnored(PreImportFileDTO file) throws IOException {
         // Verify that the states of this file are correct - if they are then remove.
         // Status of the file must be as follows:
@@ -136,6 +165,11 @@ public class ProcessImport extends ImportStep {
                 case "REMOVE_IGNORED":
                     LOG.info("Processing a remove ignored status");
                     removeIgnored(file);
+                    return TrafficLightType.TL_GREEN;
+
+                case "REMOVE_ACTIVE_PHOTO":
+                    LOG.info("Processing a remove active photo status");
+                    removeActivePhoto(file);
                     return TrafficLightType.TL_GREEN;
 
                 case "READ":
