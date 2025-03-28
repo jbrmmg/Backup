@@ -68,10 +68,12 @@ public class ImportController {
     }
 
     @GetMapping(path = "/import-files")
-    public List<PreImportFileDTO> getImportFiles(@RequestParam Integer limit) {
+    public List<PreImportFileDTO> getImportFiles(@RequestParam Integer limit,
+                                                 @RequestParam(required = false) String stepType,
+                                                 @RequestParam(required = false) String status) {
         LOG.info("Get the pre import files.");
 
-        return importManager.getImportFiles(limit != null ? limit : 0);
+        return importManager.getImportFiles(limit,stepType,status);
     }
 
     @GetMapping(path = "/import-files-summary")

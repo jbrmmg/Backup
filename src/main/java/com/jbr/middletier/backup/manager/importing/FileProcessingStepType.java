@@ -24,6 +24,16 @@ public enum FileProcessingStepType {
         this.jsonName = jsonName;
     }
 
+    public static FileProcessingStepType getFromName(String name) {
+        for(FileProcessingStepType step : FileProcessingStepType.values()){
+            if(step.jsonName.equalsIgnoreCase(name)){
+                return step;
+            }
+        }
+
+        return null;
+    }
+
     public static List<FileProcessingStepType> getStepsInOrder() {
         List<FileProcessingStepType> result = new ArrayList<>();
 

@@ -854,12 +854,37 @@ public class ImportManager extends FileProcessor {
         return this.importFileCache.get(name.toLowerCase());
     }
 
-    public List<PreImportFileDTO> getImportFiles(int limit) {
+    private boolean matchFilter(PreImportFileDTO file, FileProcessingStepType step, TrafficLightType status) {
+        // Must have all values to be filtered.
+        if(file == null || step == null || status == null) {
+            return true;
+        };
+
+        // Does the file step match the step status.
+        if(file.getStepStatus(step).equals(status)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public List<PreImportFileDTO> getImportFiles(Integer limit, String stepName, String statusName) {
         updateCache();
 
         // If the limit is zero, return all the files.
-        if(limit == 0) {
+        if(limit == null || limit == 0) {
             limit = this.importFileCache.getFiles().size();
+        }
+
+        // Translate the step & status into thier respective enums.
+        FileProcessingStepType step = null;
+        if(stepName != null && !stepName.isEmpty()) {
+            step = FileProcessingStepType.getFromName(stepName);
+        }
+
+        TrafficLightType status = null;
+        if(statusName != null && !statusName.isEmpty()) {
+            status = TrafficLightType.getFromName(statusName);
         }
 
         // Get data from the pre-import directory.
@@ -869,7 +894,7 @@ public class ImportManager extends FileProcessor {
         for(String next: this.importFileCache.getFiles()) {
             PreImportFileDTO nextFile = this.importFileCache.get(next.toLowerCase());
 
-            if(nextFile != null) {
+            if(nextFile != null && matchFilter(nextFile, step, status)) {
                 result.add(nextFile);
             }
 

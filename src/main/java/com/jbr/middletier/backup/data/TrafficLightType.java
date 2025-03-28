@@ -16,6 +16,16 @@ public enum TrafficLightType {
         return this.value;
     }
 
+    public static TrafficLightType getFromName(String name) {
+        for (TrafficLightType nextTL : TrafficLightType.values()) {
+            if(nextTL.getValue().equalsIgnoreCase(name)) {
+                return nextTL;
+            }
+        }
+
+        return null;
+    }
+
     public static String getTextValue(TrafficLightType trafficLight) {
         for (TrafficLightType nextTL : TrafficLightType.values()) {
             if(nextTL.equals(trafficLight)) {
