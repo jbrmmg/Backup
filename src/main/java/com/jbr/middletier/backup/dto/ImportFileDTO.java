@@ -33,7 +33,6 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         this.id = id;
     }
 
-    @JsonIgnore
     public String getStatus() {
         return status;
     }

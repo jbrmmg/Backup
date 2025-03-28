@@ -246,16 +246,21 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    private PreImportFileDTO getOrCreateCachedData(String nextFilename) {
+    private PreImportFileDTO getOrCreateCachedData(String nextFilename, boolean resetStatus) {
         String lowerNextFilename = nextFilename.toLowerCase();
 
         if(this.importFileCache.containsKey(lowerNextFilename)) {
-            return this.importFileCache.get(lowerNextFilename);
+            PreImportFileDTO result =  this.importFileCache.get(lowerNextFilename);
+            if(resetStatus) {
+                result.setStatus(ImportFileStatusType.IFS_READ);
+            }
+            return result;
         }
 
         // Create a cache entry.
         PreImportFileDTO importFile = new PreImportFileDTO();
         importFile.setFilename(nextFilename);
+        importFile.setStatus(ImportFileStatusType.IFS_READ);
         for(FileProcessingStepType step : FileProcessingStepType.getStepsInOrder()) {
             importFile.setStepStatus(step, TrafficLightType.TL_UNKNOWN);
         }
@@ -290,7 +295,7 @@ public class ImportManager extends FileProcessor {
         // There should be one row for each file in the pre-import directory.
         for(String nextPreImport : preImportFiles) {
             // Get cached data.
-            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport);
+            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport,true);
 
             // Is this in the import directory?
             for(String nextImport : importFiles) {
@@ -352,7 +357,7 @@ public class ImportManager extends FileProcessor {
                 }
 
                 // This is a problem.
-                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport);
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true);
                 importFileError.setErrorInPostImport(true);
             }
         }
@@ -366,7 +371,7 @@ public class ImportManager extends FileProcessor {
                 }
 
                 // This is a problem.
-                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport);
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true);
                 importFileError.setErrorInImport(true);
             }
         }
@@ -385,6 +390,21 @@ public class ImportManager extends FileProcessor {
                 // Delete the entry.
                 this.importFileRepository.delete(next.getValue());
             }
+        }
+
+        // If there is anything in the cache that is marked as removed, then remove it.
+        List<String> remove = new ArrayList<>();
+        for(String filename : this.importFileCache.getFiles()) {
+            PreImportFileDTO importFile = getOrCreateCachedData(filename,false);
+
+            if(importFile.getStatus().equalsIgnoreCase("removed")) {
+                remove.add(filename);
+            }
+        }
+
+        // Remove those marked as removed.
+        for(String nextRemove: remove) {
+            this.importFileCache.remove(nextRemove);
         }
     }
 
@@ -1071,7 +1091,7 @@ public class ImportManager extends FileProcessor {
             if(status == TrafficLightType.TL_GREEN) {
                 // Setup this file to be processed.
                 file.setStatus(ImportFileStatusType.IFS_REMOVE_IMPORTED);
-                file.setStepStatus(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED, TrafficLightType.TL_UNKNOWN);
+                file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
                 importFileCache.queueForUpdates(file);
             }
         }
@@ -1079,64 +1099,23 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
-    @Deprecated
-    public boolean removeIgnored() {
+    public boolean deleteIgnored() {
         LOG.info("Remove any files in the import directory that are ignored.");
 
-        // Get the file that needs to be re-imported.
-        // TODO
-        Optional<PreImportSource> preImportSource = Optional.empty();// findPreImportSource();
-        if(preImportSource.isEmpty()) {
-            LOG.warn("Remove ignored: Invalid Pre Import Source for delete, returning empty list.");
-            return false;
-        }
+        // Any file in the cache that has a confirmed imported status of GREEN.
+        for(String nextFile: this.importFileCache.getFiles()) {
+            // Get the file.
+            PreImportFileDTO file = importFileCache.get(nextFile);
 
-        File source = new File(preImportSource.get().getPath());
-
-        // Check that the source exists.
-        if(!fileSystem.directoryExists(source.toPath())) {
-            LOG.warn("Remove ignored: Pre import does not exist, returning empty list.");
-            return false;
-        }
-
-        List<String> removes = new ArrayList<>();
-        // TODO
-//        for(String nextFilename : fileSystem.listFilesInDirectory(preImportSource.get().getPath())) {
-        for(String nextFilename : fileSystem.listFilesInDirectory(new File("xyz"))) {
-            // Is this file in the ignored list?
-            for(FileInfo nextFile: getSimilarIgnore(nextFilename,null)) {
-                // Need to validate that all the details are the same - date, size & MD5.
-                File realWorldFile = new File(source.getPath(),nextFilename);
-
-                // Check the size.
-                if(nextFile.getSize() != realWorldFile.length()) {
-                    LOG.info("{} different size {} {}", nextFilename, nextFile.getSize(), realWorldFile.length());
-                    continue;
-                }
-
-                // Check the date.
-                if(!nextFile.getDate().equals(FileProcessor.getFileLastModified(realWorldFile))) {
-                    LOG.info("{} different date {} {}", nextFilename, nextFile.getDate(), realWorldFile.lastModified());
-                    continue;
-                }
-
-                // Check the MD5
-                Classification dummyClassification = new Classification();
-                dummyClassification.setUseMD5(true);
-                MD5 md5 = fileSystem.getClassifiedFileMD5(realWorldFile.toPath(), dummyClassification, 0);
-
-                if(!nextFile.getMD5().equals(md5)) {
-                    LOG.info("{} different MD5 {} {}", nextFilename, nextFile.getMD5(), md5);
-                    continue;
-                }
-
-                LOG.info("Will remove {}", nextFilename);
-                removes.add(nextFilename);
+            // Is this an ignored file?
+            TrafficLightType status = file.getStepStatus(FileProcessingStepType.FPS_CHECK_FILE_IGNORED);
+            if(status == TrafficLightType.TL_RED) {
+                // Setup this file to be processed.
+                file.setStatus(ImportFileStatusType.IFS_REMOVE_IGNORED);
+                file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
+                importFileCache.queueForUpdates(file);
             }
         }
-
-        // Process the removes.
-        removes.forEach(this::deletePreImportFile);
 
         return true;
     }

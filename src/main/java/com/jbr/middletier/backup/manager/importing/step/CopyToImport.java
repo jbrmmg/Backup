@@ -137,7 +137,7 @@ public class CopyToImport extends ReadPreImportFile {
 
         // Has this file already been copied?
         String copyFile = getCopiedFilename(file);
-        File destinationFile = getImportFilename(file, copyFile);
+        File destinationFile = getImportFilename(copyFile);
         LOG.info("Check file {} is copied to {}", file.getFilename(), copyFile);
         if(destinationFile.exists() && file.getImportMd5() != null) {
             file.setInImport(true);

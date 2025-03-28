@@ -35,7 +35,7 @@ public class FinalStep extends ImportStep {
         try {
             // Just wait for 10 seconds.
             LOG.info("Performing Final Step {}", file.getFilename());
-            Thread.sleep(10000);
+            Thread.sleep(1000);
             LOG.info("Performed Final Step {}", file.getFilename());
         } catch (InterruptedException e) {
             LOG.info("Final step aborted.");

@@ -60,7 +60,7 @@ public class ImportController {
     public String deleteIgnoredFiles() {
         LOG.info("Delete any files that are ignored.");
 
-        if(importManager.removeIgnored()) {
+        if(importManager.deleteIgnored()) {
             return "OK";
         }
 

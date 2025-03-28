@@ -68,8 +68,12 @@ public abstract class ImportStep {
         return new File(ImportManager.getPreImportDirectory(this.associatedFileDataManager), file.getFilename());
     }
 
-    protected File getImportFilename(PreImportFileDTO file, String filename) {
+    protected File getImportFilename(String filename) {
         return new File(ImportManager.getImportDirectory(this.associatedFileDataManager), filename);
+    }
+
+    protected File getPostImportFilename(PreImportFileDTO file) {
+        return new File(ImportManager.getPostImportDirectory(this.associatedFileDataManager), file.getImportName());
     }
 
     public abstract FileProcessingStepType getStepType();
