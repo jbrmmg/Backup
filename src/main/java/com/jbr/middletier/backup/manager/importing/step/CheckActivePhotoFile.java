@@ -73,7 +73,13 @@ public class CheckActivePhotoFile extends ImportStep {
     }
 
     private boolean timeIsClose(FileInfo existingFile, PreImportFileDTO file) {
-        long seconds = Duration.between(existingFile.getDate(), file.getImportDate()).getSeconds();
+        // Are they the same date?
+        if (existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate())) {
+            return false;
+        }
+
+        // Are they within 5 seconds?
+        long seconds = Duration.between(existingFile.getDate(), file.getImportDate()).toSeconds();
 
         return Math.abs(seconds) < 5;
     }

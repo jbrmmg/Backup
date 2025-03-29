@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,16 +115,6 @@ public class CheckDuplicateFile extends ImportStep {
         }
     }
 
-    private void getSimilarByName(String name, PreImportFileDTO importFile) {
-        for(FileInfo next : fileRepository.findByName(name)) {
-            File file = validSource(next);
-            if(file != null) {
-                // Add this to the similar file list if it's not already there.
-                addSimilarFile(file, next, importFile);
-            }
-        }
-    }
-
     private void getSimilarByDate(LocalDateTime date, PreImportFileDTO importFile) {
         for(FileInfo next : fileRepository.findByDate(date)) {
             File file = validSource(next);
@@ -134,20 +125,48 @@ public class CheckDuplicateFile extends ImportStep {
         }
     }
 
+    private void getImportNameAndSizeCloseDate(String name, long size, LocalDateTime date, PreImportFileDTO importFile) {
+        for(FileInfo next : fileRepository.findByName(name)) {
+            File file = validSource(next);
+            if(file == null) {
+                continue;
+            }
+
+            // Does the size match?
+            if(next.getSize() != size) {
+                continue;
+            }
+
+            // Is the date close? Are they the same date?
+            if (!next.getDate().toLocalDate().equals(date.toLocalDate())) {
+                continue;
+            }
+
+            // Are they within 5 seconds?
+            long seconds = Duration.between(next.getDate(), date).toSeconds();
+            if(Math.abs(seconds) > 3600) {
+                continue;
+            }
+
+            // Add this to the similar file list if it's not already there.
+            addSimilarFile(file, next, importFile);
+        }
+    }
+
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
         LOG.info("Checking duplicate file");
         getSimilarByMd5(file.getMd5(), file);
-        getSimilarByName(file.getFilename(), file);
         getSimilarByDate(file.getDate(), file);
+        getImportNameAndSizeCloseDate(file.getFilename(), file.getSize(), file.getDate(), file);
         if(file.getImportMd5() != null) {
             getSimilarByMd5(file.getMd5(), file);
         }
-        if(file.getImportName() != null) {
-            getSimilarByName(file.getImportName(), file);
-        }
         if(file.getImportDate() != null) {
             getSimilarByDate(file.getImportDate(), file);
+        }
+        if(file.getImportName() != null && file.getImportSize() != null && file.getImportDate() != null) {
+            getImportNameAndSizeCloseDate(file.getImportName(), file.getImportSize(), file.getImportDate(), file);
         }
 
         // If there are multiple files with the same MD5 then this file has been duplicated.

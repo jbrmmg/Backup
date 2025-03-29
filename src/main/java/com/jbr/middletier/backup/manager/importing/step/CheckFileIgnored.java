@@ -64,13 +64,27 @@ public class CheckFileIgnored extends ImportStep {
     private boolean checkOnNameDateOrSize(PreImportFileDTO file) {
         boolean result = false;
         for(IgnoreFile nextIgnoreFile : ignoreFileRepository.findAllByOrderByIdAsc()) {
-            // Does it match on the MD5.
+            int score = 0;
+
+            // Is there a name match?
             if(nextIgnoreFile.getName().equalsIgnoreCase(file.getFilename()) ||
-                    nextIgnoreFile.getName().equalsIgnoreCase(file.getImportName()) ||
-                    nextIgnoreFile.getDate().equals(file.getDate()) ||
-                    nextIgnoreFile.getDate().equals(file.getImportDate()) ||
-                    nextIgnoreFile.getSize().equals(file.getSize()) ||
-                    nextIgnoreFile.getSize().equals(file.getImportSize()) ) {
+                    nextIgnoreFile.getName().equalsIgnoreCase(file.getImportName())) {
+                score++;
+            }
+
+            // Is the size a match?
+            if(nextIgnoreFile.getSize().equals(file.getSize()) ||
+                    nextIgnoreFile.getSize().equals(file.getImportSize())) {
+                score++;
+            }
+
+            // Does the date match?
+            if(nextIgnoreFile.getDate().equals(file.getDate()) ||
+                    nextIgnoreFile.getDate().equals(file.getImportDate())) {
+                score++;
+            }
+
+            if(score >= 2) {
                 result = true;
                 file.addSimilarFile(getSimilarFile(nextIgnoreFile));
             }
