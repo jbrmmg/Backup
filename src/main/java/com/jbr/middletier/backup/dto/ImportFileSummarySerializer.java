@@ -14,8 +14,8 @@ public class ImportFileSummarySerializer extends JsonSerializer<ImportFileSummar
     public void serialize(ImportFileSummaryDTO summary, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeNumberField("PreImport", summary.getTotalPreImportFiles());
-        jsonGenerator.writeNumberField("Import", summary.getTotalPreImportFiles());
-        jsonGenerator.writeNumberField("PostImport", summary.getTotalPreImportFiles());
+        jsonGenerator.writeNumberField("Import", summary.getTotalImportFiles());
+        jsonGenerator.writeNumberField("PostImport", summary.getTotalPostImportFiles());
         jsonGenerator.writeNumberField("Queued", summary.getQueued());
 
         for(Map.Entry<FileProcessingStepType,ImportFIleSummaryStepDTO> next : summary.getCounts().entrySet()) {

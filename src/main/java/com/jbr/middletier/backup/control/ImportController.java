@@ -91,11 +91,12 @@ public class ImportController {
 
     @GetMapping(path = "/import-files")
     public List<PreImportFileDTO> getImportFiles(@RequestParam Integer limit,
+                                                 @RequestParam(required = false) Integer page,
                                                  @RequestParam(required = false) String stepType,
                                                  @RequestParam(required = false) String status) {
         LOG.info("Get the pre import files.");
 
-        return importManager.getImportFiles(limit,stepType,status);
+        return importManager.getImportFiles(limit,page,stepType,status);
     }
 
     @GetMapping(path = "/import-files-summary")

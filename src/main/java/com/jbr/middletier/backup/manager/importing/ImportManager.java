@@ -15,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import com.jbr.middletier.backup.manager.FileProcessor;
@@ -306,8 +305,8 @@ public class ImportManager extends FileProcessor {
             }
 
             // Is this in the import directory?
-            for(String postImportFIle : postImportFiles) {
-                if(filenamesMatch(nextPreImport, postImportFIle)) {
+            for(String postImportFile : postImportFiles) {
+                if(filenamesMatch(nextPreImport, postImportFile)) {
                     importFile.setInPostImport(true);
                     break;
                 }
@@ -868,12 +867,18 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    public List<PreImportFileDTO> getImportFiles(Integer limit, String stepName, String statusName) {
+    public List<PreImportFileDTO> getImportFiles(Integer limit, Integer page, String stepName, String statusName) {
         updateCache();
 
         // If the limit is zero, return all the files.
         if(limit == null || limit == 0) {
             limit = this.importFileCache.getFiles().size();
+        }
+
+        // If a page number is specified then skip the first few files.
+        int skip = 0;
+        if(page != null) {
+            skip = page * limit;
         }
 
         // Translate the step & status into thier respective enums.
@@ -894,12 +899,16 @@ public class ImportManager extends FileProcessor {
         for(String next: this.importFileCache.getFiles()) {
             PreImportFileDTO nextFile = this.importFileCache.get(next.toLowerCase());
 
-            if(nextFile != null && matchFilter(nextFile, step, status)) {
+            if(skip == 0 && nextFile != null && matchFilter(nextFile, step, status)) {
                 result.add(nextFile);
             }
 
             if(result.size() >= limit) {
                 break;
+            }
+
+            if(skip > 0) {
+                skip--;
             }
         }
 
