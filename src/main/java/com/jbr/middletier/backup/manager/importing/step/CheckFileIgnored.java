@@ -84,6 +84,7 @@ public class CheckFileIgnored extends ImportStep {
                 score++;
             }
 
+            // If two criteria match then mark as a potential similar.
             if(score >= 2) {
                 result = true;
                 file.addSimilarFile(getSimilarFile(nextIgnoreFile));

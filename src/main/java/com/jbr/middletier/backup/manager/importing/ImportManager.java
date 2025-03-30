@@ -1027,6 +1027,10 @@ public class ImportManager extends FileProcessor {
                     // Delete this record.
                     LOG.info("{} has been removed from the ignore table.", filename);
                     ignoreFileRepository.delete(next);
+
+                    // File ignore status will need to be re-evaluated.
+                    file.setStepStatus(FileProcessingStepType.FPS_CHECK_FILE_IGNORED, TrafficLightType.TL_UNKNOWN);
+                    importFileCache.queueForUpdates(file);
                     return true;
                 }
             }
@@ -1069,6 +1073,10 @@ public class ImportManager extends FileProcessor {
 
             LOG.info("{} has been inserted into the ignore table.", filename);
             ignoreFileRepository.save(ignoreFile);
+
+            // File ignore status will need to be re-evaluated.
+            file.setStepStatus(FileProcessingStepType.FPS_CHECK_FILE_IGNORED, TrafficLightType.TL_UNKNOWN);
+            importFileCache.queueForUpdates(file);
             return true;
         }
 

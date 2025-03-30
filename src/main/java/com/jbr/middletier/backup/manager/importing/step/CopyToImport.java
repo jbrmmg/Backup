@@ -123,6 +123,7 @@ public class CopyToImport extends ReadPreImportFile {
 
     private void gatherDataOfImport(File importFile, PreImportFileDTO file) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         // Gather the details of the file.
         LocalDateTime importDate = FileProcessor.getFileLastModified(importFile);
         LOG.info("Gathering import data of {} {}", file.getFilename(), formatter.format(importDate));
@@ -139,7 +140,7 @@ public class CopyToImport extends ReadPreImportFile {
         String copyFile = getCopiedFilename(file);
         File destinationFile = getImportFilename(copyFile);
         LOG.info("Check file {} is copied to {}", file.getFilename(), copyFile);
-        if(destinationFile.exists() && file.getImportMd5() != null) {
+        if(destinationFile.exists() && file.getImportMd5() != null && file.getImportName() != null && file.getImportDate() != null && file.getImportSize() != null) {
             file.setInImport(true);
             return TrafficLightType.TL_GREEN;
         }
