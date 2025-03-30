@@ -1153,6 +1153,23 @@ public class ImportManager extends FileProcessor {
         return true;
     }
 
+    public boolean deleteImportFile(String filename) {
+        LOG.info("Delete the import file {}", filename);
+
+        // Get the file.
+        PreImportFileDTO file = importFileCache.get(filename);
+
+        if(file != null) {
+            // Setup this file to be processed.
+            file.setStatus(ImportFileStatusType.IFS_MANUAL_DELETE);
+            file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
+            importFileCache.queueForUpdates(file);
+            return true;
+        }
+
+        return false;
+    }
+
     public boolean deleteIgnored() {
         LOG.info("Remove any files in the import directory that are ignored.");
 

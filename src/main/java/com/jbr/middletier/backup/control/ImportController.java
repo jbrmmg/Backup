@@ -56,6 +56,17 @@ public class ImportController {
         return importManager.externalFindImportFile(id);
     }
 
+    @DeleteMapping(path = "/delete-import-file")
+    public String deleteImportFile(@RequestBody String filename) {
+        LOG.info("Delete any files that are ignored.");
+
+        if(importManager.deleteImportFile(filename)) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
     @DeleteMapping(path = "/delete-ignored")
     public String deleteIgnoredFiles() {
         LOG.info("Delete any files that are ignored.");

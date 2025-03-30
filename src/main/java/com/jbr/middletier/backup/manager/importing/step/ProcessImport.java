@@ -172,6 +172,11 @@ public class ProcessImport extends ImportStep {
                     removeActivePhoto(file);
                     return TrafficLightType.TL_GREEN;
 
+                case "MANUAL_DELETE":
+                    LOG.info("Processing a manual delete status");
+                    deleteFile(file);
+                    return TrafficLightType.TL_GREEN;
+
                 case "READ":
                     LOG.info("Status is read - nothing to do at this time.");
                     return TrafficLightType.TL_GREEN;
