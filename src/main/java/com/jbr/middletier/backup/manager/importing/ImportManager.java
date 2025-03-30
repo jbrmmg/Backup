@@ -1093,6 +1093,35 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
+    public boolean updateDestination(DestinationUpdateDTO destinationUpdate) {
+        if(destinationUpdate.getFilename() == null ||
+                destinationUpdate.getFilename().isEmpty() ||
+                destinationUpdate.getDestination() == null ||
+                destinationUpdate.getDestination().isEmpty() ) {
+            return false;
+        }
+
+        // This file must be in the cache for this action to be performed.
+        if(importFileCache.containsKey(destinationUpdate.getFilename().toLowerCase())) {
+            PreImportFileDTO file = importFileCache.get(destinationUpdate.getFilename().toLowerCase());
+
+            // Set the destination of the file and store in the database.
+            for(FileInfo next: this.importFileRepository.findByName(destinationUpdate.getFilename())) {
+                if(next instanceof ImportFile importFile) {
+                    importFile.setDestination(destinationUpdate.getDestination());
+
+                    importFileRepository.save(importFile);
+                }
+            }
+
+            file.setDestination(destinationUpdate.getDestination());
+            return true;
+        }
+
+        LOG.info("Failed to mark {} as a recipe as its not in the cache.", destinationUpdate.getFilename());
+        return false;
+    }
+
     public boolean recipeFile(String filename) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {

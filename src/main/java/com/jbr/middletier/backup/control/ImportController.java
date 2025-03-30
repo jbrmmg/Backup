@@ -157,6 +157,17 @@ public class ImportController {
         return "FAILED";
     }
 
+    @PostMapping(path = "update-destination")
+    public String updateDestination(@RequestBody DestinationUpdateDTO destinationUpdate) {
+        LOG.info("Import the file as a recipe file.");
+
+        if(importManager.updateDestination(destinationUpdate)) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
     @GetMapping(path="/file-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<List<PreImportFileDTO>>> fileUpdate() {
         try {
