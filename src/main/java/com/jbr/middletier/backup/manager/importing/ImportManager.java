@@ -58,52 +58,57 @@ public class ImportManager extends FileProcessor {
 
     @PostConstruct
     private void init() {
-        // Initialise the time.
-        this.currentTime = LocalDateTime.now();
-        this.previousTime = currentTime;
+        try {
+            // Initialise the time.
+            this.currentTime = LocalDateTime.now();
+            this.previousTime = currentTime;
 
-        File preImportDirectory = null;
-        File importDirectory = null;
-        File postImportDirectory = null;
+            File preImportDirectory = null;
+            File importDirectory = null;
+            File postImportDirectory = null;
 
-        // check directories
-        Optional<Source> preImportSource = findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE, this.associatedFileDataManager);
-        if (preImportSource.isPresent()) {
-            preImportDirectory = new File(preImportSource.get().getPath());
+            // check directories
+            Optional<Source> preImportSource = findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE, this.associatedFileDataManager);
+            if (preImportSource.isPresent()) {
+                preImportDirectory = new File(preImportSource.get().getPath());
 
-            if(!preImportDirectory.exists()) {
-                preImportDirectory = null;
+                if (!preImportDirectory.exists()) {
+                    preImportDirectory = null;
+                }
             }
-        }
 
-        Optional<Source>  importSource = findSource(FileSystemObjectType.FSO_IMPORT_SOURCE, this.associatedFileDataManager);
-        if (importSource.isPresent()) {
-            importDirectory = new File(importSource.get().getPath());
+            Optional<Source> importSource = findSource(FileSystemObjectType.FSO_IMPORT_SOURCE, this.associatedFileDataManager);
+            if (importSource.isPresent()) {
+                importDirectory = new File(importSource.get().getPath());
 
-            if(!importDirectory.exists()) {
-                importDirectory = null;
+                if (!importDirectory.exists()) {
+                    importDirectory = null;
+                }
             }
-        }
 
-        Optional<Source> postImportSource = findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE, this.associatedFileDataManager);
-        if(postImportSource.isPresent()) {
-            postImportDirectory = new File(postImportSource.get().getPath());
+            Optional<Source> postImportSource = findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE, this.associatedFileDataManager);
+            if (postImportSource.isPresent()) {
+                postImportDirectory = new File(postImportSource.get().getPath());
 
-            if(!postImportDirectory.exists()) {
-                postImportDirectory = null;
+                if (!postImportDirectory.exists()) {
+                    postImportDirectory = null;
+                }
             }
+
+            // All 3 directories must exist.
+            if (preImportDirectory == null || importDirectory == null || postImportDirectory == null) {
+                LOG.info("Invalid import directories, import is not valid.");
+                return;
+            }
+
+            this.valid = true;
+
+            // Read the files currently in the import directories.
+            updateCache();
+        } catch (Exception e) {
+            this.valid = false;
+            LOG.info("Error while initializing ImportManager, imports will be disabled.", e);
         }
-
-        // All 3 directories must exist.
-        if(preImportDirectory == null || importDirectory == null || postImportDirectory == null) {
-            LOG.info("Invalid import directories, import is not valid.");
-            return;
-        }
-
-        this.valid = true;
-
-        // Read the files currently in the import directories.
-        updateCache();
     }
 
     @PreDestroy
