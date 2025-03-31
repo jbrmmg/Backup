@@ -50,6 +50,11 @@ public class CheckFileConfirmedImported extends ImportStep {
             return TrafficLightType.TL_GREEN;
         }
 
+        // If the file is in the post import directory then it is potentially imported.
+        if(file.isInPostImport()) {
+            return TrafficLightType.TL_AMBER;
+        }
+
         return TrafficLightType.TL_RED;
     }
 

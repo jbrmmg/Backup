@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
@@ -53,14 +51,6 @@ public class CopyToImport extends ReadPreImportFile {
         return file.getFilename();
     }
 
-    private void setDateTime(File destination, PreImportFileDTO file, long defaultTime) {
-        if(file != null && file.getImportDate() != null) {
-            ZonedDateTime zonedDateTime = file.getImportDate().atZone(ZoneId.systemDefault());
-            defaultTime = zonedDateTime.toInstant().toEpochMilli();
-        }
-        fileSystem.setFileDateTime(destination, defaultTime);
-    }
-
     private TrafficLightType copyConvertQuicktime(File source, File destination, PreImportFileDTO file) {
         try {
             long fileTime = source.lastModified();
@@ -83,7 +73,7 @@ public class CopyToImport extends ReadPreImportFile {
             backupProcess.waitFor(20L, TimeUnit.MINUTES);
             backupProcess.destroyForcibly();
 
-            setDateTime(destination, file, fileTime);
+            fileSystem.setFileFromLocalDateTime(destination, file == null ? null : file.getImportDate(), fileTime);
         } catch (Exception e) {
             LOG.error("Failed to copy MOV file", e);
             Thread.currentThread().interrupt();
@@ -104,7 +94,7 @@ public class CopyToImport extends ReadPreImportFile {
         }
 
         // If the file is provided then get the date/time.
-        setDateTime(destination, file, fileTime);
+        fileSystem.setFileFromLocalDateTime(destination, file == null ? null : file.getImportDate(), fileTime);
         return TrafficLightType.TL_GREEN;
     }
 

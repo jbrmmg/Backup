@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
+import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -13,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,7 +49,7 @@ public class FileSystem {
         try {
             // Does it exist?
             if(!file.exists()) {
-                LOG.info("{} does not exist", file);
+                LOG.info("{} does not exist for delete.", file);
                 return;
             }
 
@@ -107,22 +111,20 @@ public class FileSystem {
         }
     }
 
+    public void setFileFromLocalDateTime(File destination, LocalDateTime overrideTime, long defaultTime) {
+        if(overrideTime != null) {
+            ZonedDateTime zonedDateTime = overrideTime.atZone(ZoneId.systemDefault());
+            defaultTime = zonedDateTime.toInstant().toEpochMilli();
+        }
+        setFileDateTime(destination, defaultTime);
+    }
+
     public void copyDirectory(File source, File destination, ProcessResultDTO processResult) {
         try {
             FileUtils.copyDirectory(source,destination,true);
         } catch(IOException e) {
             processResult.setProblems();
-            LOG.error("Unable to copy file {}", source);
-        }
-    }
-
-    public void moveFile(File source, File destination, ProcessResultDTO processResult) {
-        try {
-            LOG.info("Importing file {} to {}", source, destination);
-            Files.move(source.toPath(),destination.toPath(),REPLACE_EXISTING);
-        } catch (IOException e) {
-            processResult.setProblems();
-            LOG.error("Unable to move file {}", source);
+            LOG.error("Unable to copy directory {}", source);
         }
     }
 
@@ -224,7 +226,7 @@ public class FileSystem {
 
     public Optional<FileSystemImageData> readImageMetaData(File file) {
         try {
-            // Use the Exif tool to read meta data from the specified file.
+            // Use the Exif tool to read metadata from the specified file.
             Process process = new ProcessBuilder("exiftool", file.getPath()).start();
 
             InputStream processInputStream = process.getInputStream();

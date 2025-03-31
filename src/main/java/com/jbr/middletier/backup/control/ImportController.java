@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.dto.*;
-import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
@@ -48,17 +47,9 @@ public class ImportController {
                 .build();
     }
 
-    @GetMapping(path = "/process-imports")
-    public ImportFileDTO getFile(@RequestParam Integer id) throws InvalidFileIdException {
-        LOG.info("Process the import files that have a destination.");
-
-        //TODO - different method name
-        return importManager.externalFindImportFile(id);
-    }
-
     @DeleteMapping(path = "/delete-import-file")
     public String deleteImportFile(@RequestBody String filename) {
-        LOG.info("Delete any files that are ignored.");
+        LOG.info("Delete import file {}.", filename);
 
         if(importManager.deleteImportFile(filename)) {
             return "OK";
@@ -112,7 +103,7 @@ public class ImportController {
 
     @GetMapping(path = "/import-files-summary")
     public ImportFileSummaryDTO getImportFileSummary() {
-        LOG.info("Get the pre import files.");
+        LOG.info("Get import file summary");
 
         return importManager.getImportSummary();
     }
@@ -170,7 +161,7 @@ public class ImportController {
 
     @PostMapping(path = "update-destination")
     public String updateDestination(@RequestBody DestinationUpdateDTO destinationUpdate) {
-        LOG.info("Import the file as a recipe file.");
+        LOG.info("Update the destination.");
 
         if(importManager.updateDestination(destinationUpdate)) {
             return "OK";

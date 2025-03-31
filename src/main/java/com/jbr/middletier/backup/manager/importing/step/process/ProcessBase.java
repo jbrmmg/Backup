@@ -61,6 +61,20 @@ public abstract class ProcessBase {
         return mustNotBeRedList;
     }
 
+    private static List<TrafficLightType> mustNotBeGreenList = null;
+    protected static List<TrafficLightType> getMustNotBeGreen() {
+        if(mustNotBeGreenList == null){
+            mustNotBeGreenList = new ArrayList<>();
+            for(TrafficLightType trafficLightType : TrafficLightType.values()){
+                if(!trafficLightType.equals(TrafficLightType.TL_GREEN)){
+                    mustNotBeGreenList.add(trafficLightType);
+                }
+            }
+        }
+
+        return mustNotBeGreenList;
+    }
+
     protected File getPreImportFilename(PreImportFileDTO file) {
         return new File(ImportManager.getPreImportDirectory(this.associatedFileDataManager), file.getFilename());
     }
