@@ -35,7 +35,7 @@ import static java.util.Comparator.comparing;
 public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
-    private static final String RECIPE_FILE_DESTINATION = "[** recipe **]";
+    public static final String RECIPE_FILE_DESTINATION = "[** recipe **]";
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final ModelMapper modelMapper;
@@ -1162,6 +1162,27 @@ public class ImportManager extends FileProcessor {
             if(status == TrafficLightType.TL_GREEN) {
                 // Setup this file to be processed.
                 file.setStatus(ImportFileStatusType.IFS_REMOVE_IMPORTED);
+                file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
+                importFileCache.queueForUpdates(file);
+            }
+        }
+
+        return true;
+    }
+
+    public boolean importPhotos() {
+        LOG.info("Process the photos that have been updated with a destination.");
+
+        // Any file in the cache that has a confirmed imported status of GREEN.
+        for(String nextFile: this.importFileCache.getFiles()) {
+            // Get the file.
+            PreImportFileDTO file = importFileCache.get(nextFile);
+
+            // Is this imported and deos it have a destination?
+            TrafficLightType status = file.getStepStatus(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED);
+            if(status == TrafficLightType.TL_RED && file.getDestination() != null && !file.getDestination().isEmpty()) {
+                // Setup this file to be processed.
+                file.setStatus(ImportFileStatusType.IFS_IMPORT_FILE);
                 file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
                 importFileCache.queueForUpdates(file);
             }

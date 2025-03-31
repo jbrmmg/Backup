@@ -99,6 +99,17 @@ public class ImportController {
         return importManager.getImportFiles(limit,page,stepType,status);
     }
 
+    @PostMapping(path = "/import-photos")
+    public String importPhotos() {
+        LOG.info("Import the photos.");
+
+        if(importManager.importPhotos()) {
+            return "OK";
+        }
+
+        return "FAILED";
+    }
+
     @GetMapping(path = "/import-files-summary")
     public ImportFileSummaryDTO getImportFileSummary() {
         LOG.info("Get the pre import files.");
