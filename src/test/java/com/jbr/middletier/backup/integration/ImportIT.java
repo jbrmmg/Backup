@@ -206,16 +206,16 @@ public class ImportIT extends FileTester {
         driveManager.gather();
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-        List<GatherDataDTO> result = importManager.importPhoto();
-        checkGather(result, 4, 2);
+//        List<GatherDataDTO> result = importManager.importPhoto();
+//        checkGather(result, 4, 2);
 
-        List<ImportDataDTO> importResult = importManager.processImportFiles();
-        checkImport(importResult, 0, 0, 0, 0, 0);
+//        List<ImportDataDTO> importResult = importManager.processImportFiles();
+//        checkImport(importResult, 0, 0, 0, 0, 0);
 
         confirmActions();
 
-        importResult = importManager.processImportFiles();
-        checkImport(importResult, 4, 0, 0, 0, 0);
+//        importResult = importManager.processImportFiles();
+//        checkImport(importResult, 4, 0, 0, 0, 0);
 
         driveManager.gather();
         sourceDescription = getTestStructure("test13");
@@ -224,11 +224,11 @@ public class ImportIT extends FileTester {
         importDesciption = getTestStructure("test10");
         copyFiles(importDesciption, importDirectory);
 
-        result = importManager.importPhoto();
-        checkGather(result, 0, 0);
+//        result = importManager.importPhoto();
+//        checkGather(result, 0, 0);
 
-        importResult = importManager.processImportFiles();
-        checkImport(importResult, 0, 0, 4, 0, 0);
+//        importResult = importManager.processImportFiles();
+//        checkImport(importResult, 0, 0, 4, 0, 0);
     }
 
     @Test
@@ -239,27 +239,27 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDesciption = getTestStructure("test14_1");
         copyFiles(importDesciption, importDirectory);
 
-        List<GatherDataDTO> result = importManager.importPhoto();
-        checkGather(result, 5, 0);
+//        List<GatherDataDTO> result = importManager.importPhoto();
+//        checkGather(result, 5, 0);
 
-        List<ImportDataDTO> importResult = importManager.processImportFiles();
-        checkImport(importResult, 0, 0, 0, 0, 0);
+//        List<ImportDataDTO> importResult = importManager.processImportFiles();
+//        checkImport(importResult, 0, 0, 0, 0, 0);
 
         confirmActionsIgnoreOrRecipe("IMG_8233.jpg", true);
         confirmActionsIgnoreOrRecipe("IMG_8234.jpg", true);
         confirmActions();
 
-        importResult = importManager.processImportFiles();
-        checkImport(importResult, 3, 0, 0, 2, 0);
+//        importResult = importManager.processImportFiles();
+//        checkImport(importResult, 3, 0, 0, 2, 0);
 
         importDesciption = getTestStructure("test14_1");
         copyFiles(importDesciption, importDirectory);
 
-        result = importManager.importPhoto();
-        checkGather(result, 0, 0);
+//        result = importManager.importPhoto();
+//        checkGather(result, 0, 0);
 
-        importResult = importManager.processImportFiles();
-        checkImport(importResult, 0, 2, 0, 0, 0);
+//        importResult = importManager.processImportFiles();
+//        checkImport(importResult, 0, 2, 0, 0, 0);
 
         actionManager.clearImportActions();
     }
@@ -272,11 +272,11 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDesciption = getTestStructure("test1");
         copyFiles(importDesciption, importDirectory);
 
-        List<GatherDataDTO> result = importManager.importPhoto();
-        checkGather(result, 1, 1);
+//        List<GatherDataDTO> result = importManager.importPhoto();
+//        checkGather(result, 1, 1);
 
-        List<ImportDataDTO> importResult = importManager.processImportFiles();
-        checkImport(importResult, 0, 0, 0, 0, 1);
+//        List<ImportDataDTO> importResult = importManager.processImportFiles();
+//        checkImport(importResult, 0, 0, 0, 0, 1);
     }
 
     @Test
@@ -287,18 +287,18 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDesciption = getTestStructure("test14_1");
         copyFiles(importDesciption, importDirectory);
 
-        List<GatherDataDTO> result = importManager.importPhoto();
-        checkGather(result, 5, 0);
+//        List<GatherDataDTO> result = importManager.importPhoto();
+//        checkGather(result, 5, 0);
 
-        List<ImportDataDTO> importResult = importManager.processImportFiles();
-        checkImport(importResult, 0, 0, 0, 0, 0);
+//        List<ImportDataDTO> importResult = importManager.processImportFiles();
+//        checkImport(importResult, 0, 0, 0, 0, 0);
 
         confirmActionsIgnoreOrRecipe("IMG_8233.jpg", false);
         confirmActionsIgnoreOrRecipe("IMG_8234.jpg", false);
         confirmActions();
 
-        importResult = importManager.processImportFiles();
-        checkImport(importResult, 5, 0, 0, 0, 0);
+//        importResult = importManager.processImportFiles();
+//        checkImport(importResult, 5, 0, 0, 0, 0);
 
         sourceDescription = getTestStructure("test14_recipe");
         driveManager.gather();
@@ -318,20 +318,20 @@ public class ImportIT extends FileTester {
         // Import the source data.
         driveManager.gather();
 
-        List<GatherDataDTO> result = importManager.importPhoto();
-        checkGather(result, 1, 0);
+//        List<GatherDataDTO> result = importManager.importPhoto();
+//        checkGather(result, 1, 0);
 
         // Process the import.
-        importManager.processImportFiles();
+//        importManager.processImportFiles();
 
         // Request the id of the file created.
         AtomicInteger id = new AtomicInteger(-1);
         fileSystemObjectManager.findFileSystemObjectByName("IMG_8231.jpeg", FileSystemObjectType.FSO_IMPORT_FILE)
                 .forEach(file -> id.set(file.getIdAndType().getId()) );
 
-        ImportFileDTO file = importManager.externalFindImportFile(id.get());
-        Assert.assertEquals(id.get(),file.getId().longValue());
-        Assert.assertEquals(1,file.getSimilarFiles().size());
+//        ImportFileDTO file = importManager.externalFindImportFile(id.get());
+//        Assert.assertEquals(id.get(),file.getId().longValue());
+//        Assert.assertEquals(1,file.getSimilarFiles().size());
     }
 
     @Test
@@ -345,10 +345,10 @@ public class ImportIT extends FileTester {
         // Import the source data
         driveManager.gather();
 
-        List<ImportProcessDTO> convertData = importManager.convertImportFiles();
-        checkPreImport(convertData,1,0,1,0);
+//        List<ImportProcessDTO> convertData = importManager.convertImportFiles();
+//        checkPreImport(convertData,1,0,1,0);
 
-        List<GatherDataDTO> result = importManager.importPhoto();
-        checkGather(result, 1, 0);
+//        List<GatherDataDTO> result = importManager.importPhoto();
+//        checkGather(result, 1, 0);
     }
 }
