@@ -49,7 +49,7 @@ public class ActionController {
 
     @GetMapping(path="/confirmed-actions")
     public List<ActionConfirmDTO> getConfirmedActions() {
-        LOG.info("Get actions");
+        LOG.info("Get confirmed actions");
 
         return actionManager.externalFindByConfirmed(true);
     }

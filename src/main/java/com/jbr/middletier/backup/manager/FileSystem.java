@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
-import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

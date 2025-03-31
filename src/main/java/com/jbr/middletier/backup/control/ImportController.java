@@ -14,6 +14,8 @@ import java.util.List;
 
 import reactor.core.publisher.Flux;
 
+import javax.validation.constraints.Pattern;
+
 @RestController
 @RequestMapping("/jbr/int/backup")
 public class ImportController {
@@ -47,8 +49,9 @@ public class ImportController {
                 .build();
     }
 
+    //@Pattern(regexp="^[\\da-zA-Z]{4}$",message="Id must be a four letter code")
     @DeleteMapping(path = "/delete-import-file")
-    public String deleteImportFile(@RequestBody String filename) {
+    public String deleteImportFile(@RequestBody @Pattern(regexp="^[\\w\\-. ]+$",message="Filename cannot contain special characters") String filename) {
         LOG.info("Delete import file {}.", filename);
 
         if(importManager.deleteImportFile(filename)) {
