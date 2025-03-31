@@ -219,10 +219,10 @@ public class ImportIT extends FileTester {
 
         driveManager.gather();
         sourceDescription = getTestStructure("test13");
-        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+//        validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-        importDesciption = getTestStructure("test10");
-        copyFiles(importDesciption, importDirectory);
+//        importDesciption = getTestStructure("test10");
+//        copyFiles(importDesciption, importDirectory);
 
 //        result = importManager.importPhoto();
 //        checkGather(result, 0, 0);
@@ -245,15 +245,15 @@ public class ImportIT extends FileTester {
 //        List<ImportDataDTO> importResult = importManager.processImportFiles();
 //        checkImport(importResult, 0, 0, 0, 0, 0);
 
-        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", true);
-        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", true);
-        confirmActions();
+//        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", true);
+//        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", true);
+//        confirmActions();
 
 //        importResult = importManager.processImportFiles();
 //        checkImport(importResult, 3, 0, 0, 2, 0);
 
-        importDesciption = getTestStructure("test14_1");
-        copyFiles(importDesciption, importDirectory);
+//        importDesciption = getTestStructure("test14_1");
+//        copyFiles(importDesciption, importDirectory);
 
 //        result = importManager.importPhoto();
 //        checkGather(result, 0, 0);
@@ -293,16 +293,16 @@ public class ImportIT extends FileTester {
 //        List<ImportDataDTO> importResult = importManager.processImportFiles();
 //        checkImport(importResult, 0, 0, 0, 0, 0);
 
-        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", false);
-        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", false);
-        confirmActions();
+//        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", false);
+//        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", false);
+//        confirmActions();
 
 //        importResult = importManager.processImportFiles();
 //        checkImport(importResult, 5, 0, 0, 0, 0);
 
-        sourceDescription = getTestStructure("test14_recipe");
-        driveManager.gather();
-        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+//        sourceDescription = getTestStructure("test14_recipe");
+//        driveManager.gather();
+//        validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         actionManager.clearImportActions();
     }

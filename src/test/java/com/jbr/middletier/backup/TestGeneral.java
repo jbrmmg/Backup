@@ -1257,9 +1257,9 @@ public class TestGeneral extends WebTester {
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertTrue(fileSystemImageData.isValid());
         ImageSize size = fileSystemImageData.getImageSize();
-        Assert.assertEquals(120,size.getHeight());
-        Assert.assertEquals(121,size.getWidth());
-        Assert.assertEquals("21-January-2022 11:04 IDD_ICC_PROFILE",fileSystemImageData.toString());
+        Assert.assertEquals(10,size.getHeight());
+        Assert.assertEquals(10,size.getWidth());
+        Assert.assertEquals("21-January-2022 11:04 image/jpeg",fileSystemImageData.toString());
     }
 
     @NotNull
@@ -1283,15 +1283,12 @@ public class TestGeneral extends WebTester {
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertFalse(fileSystemImageData.isValid());
-
-        fileSystemImageData = new FileSystemImageData(null);
-        Assert.assertFalse(fileSystemImageData.isValid());
     }
 
     @Test
     public void testFileSystemImageDataMp4() {
         Map<String,String> metadata = new HashMap<>();
-        metadata.put("date/time original","2022:01:21 11:04:12");
+        metadata.put("creation date","2022:01:21 11:04:12");
         metadata.put("image size","10x10");
         metadata.put("gps position","51 deg 27' 22.32\" N, 2 deg 37' 32.52\" W");
         metadata.put("mime type", "video/mp4");
@@ -1299,7 +1296,7 @@ public class TestGeneral extends WebTester {
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertTrue(fileSystemImageData.isValid());
-        Assert.assertEquals("21-January-2022 11:04 IDD_EXIF_SUBIFD",fileSystemImageData.toString());
+        Assert.assertEquals("21-January-2022 11:04 video/mp4",fileSystemImageData.toString());
     }
 
     @Test

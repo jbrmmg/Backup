@@ -17,6 +17,7 @@ public class Source extends FileSystemObject {
     @Column(name="status")
     private String status;
 
+    // NOTE: this causes problems for h2 unit tests.
     @Column(name="filter")
     private String filter;
 
