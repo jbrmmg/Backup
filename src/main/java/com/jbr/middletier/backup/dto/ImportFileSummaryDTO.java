@@ -13,7 +13,7 @@ public class ImportFileSummaryDTO {
     private int totalImportFiles;
     private int totalPostImportFiles;
     private int queued;
-    private final Map<FileProcessingStepType,ImportFIleSummaryStepDTO> counts;
+    private final Map<FileProcessingStepType, ImportFileSummaryStepDTO> counts;
 
     public ImportFileSummaryDTO() {
         counts = new HashMap<>();
@@ -23,7 +23,7 @@ public class ImportFileSummaryDTO {
         queued = 0;
 
         for(FileProcessingStepType type : FileProcessingStepType.values()){
-            counts.put(type,new ImportFIleSummaryStepDTO(type));
+            counts.put(type,new ImportFileSummaryStepDTO(type));
         }
     }
 
@@ -39,7 +39,7 @@ public class ImportFileSummaryDTO {
         return totalPostImportFiles;
     }
 
-    public Map<FileProcessingStepType,ImportFIleSummaryStepDTO> getCounts() {
+    public Map<FileProcessingStepType, ImportFileSummaryStepDTO> getCounts() {
         return counts;
     }
 

@@ -18,11 +18,11 @@ public class ImportFileSummarySerializer extends JsonSerializer<ImportFileSummar
         jsonGenerator.writeNumberField("PostImport", summary.getTotalPostImportFiles());
         jsonGenerator.writeNumberField("Queued", summary.getQueued());
 
-        for(Map.Entry<FileProcessingStepType,ImportFIleSummaryStepDTO> next : summary.getCounts().entrySet()) {
+        for(Map.Entry<FileProcessingStepType, ImportFileSummaryStepDTO> next : summary.getCounts().entrySet()) {
             // Write the next count.
             jsonGenerator.writeObjectFieldStart(FileProcessingStepType.getJsonName(next.getKey()));
 
-            ImportFIleSummaryStepDTO step = next.getValue();
+            ImportFileSummaryStepDTO step = next.getValue();
 
             for(TrafficLightType nextStatus : TrafficLightType.values()) {
                 jsonGenerator.writeNumberField(TrafficLightType.getTextValue(nextStatus), step.getCount(nextStatus));

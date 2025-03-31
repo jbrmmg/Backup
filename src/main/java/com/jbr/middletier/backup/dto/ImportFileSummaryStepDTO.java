@@ -6,11 +6,11 @@ import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ImportFIleSummaryStepDTO {
+public class ImportFileSummaryStepDTO {
     private final FileProcessingStepType type;
     private final Map<TrafficLightType,Integer> counts;
 
-    public ImportFIleSummaryStepDTO(FileProcessingStepType type) {
+    public ImportFileSummaryStepDTO(FileProcessingStepType type) {
         this.type = type;
         this.counts = new HashMap<>();
 

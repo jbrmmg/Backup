@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -18,21 +19,27 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @WebAppConfiguration
 @ContextConfiguration(initializers = {ImportIT.Initializer.class})
-@ActiveProfiles(value="it")
+@ActiveProfiles(value="it-import")
 public class ImportIT extends FileTester {
     @SuppressWarnings("rawtypes")
     @ClassRule
@@ -195,17 +202,51 @@ public class ImportIT extends FileTester {
         Assert.assertNotEquals(-1, id.get());
     }
 
+    private void waitForQueue() {
+        boolean done = false;
+        while (!done) {
+            done = true;
+            ImportFileSummaryDTO summary = this.importManager.getImportSummary();
+            if(summary.getQueued() > 0) {
+                done = false;
+            } else {
+                Map<FileProcessingStepType, ImportFileSummaryStepDTO> counts = summary.getCounts();
+
+                for (Map.Entry<FileProcessingStepType, ImportFileSummaryStepDTO> entry : counts.entrySet()) {
+                    if (entry.getValue().getCount(TrafficLightType.TL_UNKNOWN) > 0) {
+                        done = false;
+                    }
+                }
+            }
+        }
+    }
+
     @Test
-    public void basicImportTest() throws IOException, ImportRequestException {
+    public void basicImportTest() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, sourceDirectory);
 
-        List<StructureDescription> importDesciption = getTestStructure("test10");
-        copyFiles(importDesciption, importDirectory);
+        List<StructureDescription> importDescription = getTestStructure("test16_import");
+        copyFiles(importDescription, preImportDirectory);
 
         driveManager.gather();
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
+        // Check that the summary works.
+        getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("PreImport", is(1)));
+        waitForQueue();
+
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+
+        System.out.println("hrer");
+//        importManager.getImportFiles(0,0,null,null);
 //        List<GatherDataDTO> result = importManager.importPhoto();
 //        checkGather(result, 4, 2);
 

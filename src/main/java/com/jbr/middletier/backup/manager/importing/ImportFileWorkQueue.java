@@ -7,9 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -22,6 +20,7 @@ public class ImportFileWorkQueue {
 
     @Autowired
     public ImportFileWorkQueue(List<ImportStep> stepProcessors) {
+        LOG.trace("Initializing ImportFileWorkQueue");
         this.stepProcessors = stepProcessors;
     }
 

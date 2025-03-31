@@ -14,12 +14,10 @@ import org.springframework.stereotype.Component;
 import com.jbr.middletier.backup.manager.FileProcessor;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class ImportManager extends FileProcessor {
@@ -109,10 +107,6 @@ public class ImportManager extends FileProcessor {
             this.valid = false;
             LOG.info("Error while initializing ImportManager, imports will be disabled.", e);
         }
-    }
-
-    @PreDestroy
-    private void preDestroy() {
     }
 
     public boolean clearImportData() {
@@ -481,106 +475,6 @@ public class ImportManager extends FileProcessor {
 
         // Return the result.
         this.currentTime = LocalDateTime.now();
-        return result;
-    }
-
-    @Deprecated
-    private ImportFileBaseDTO getSimilar(FileInfo fileInfo, List<Source> validSources) {
-        ImportFileBaseDTO similar = new ImportFileBaseDTO();
-        similar.setFilename(fileInfo.getName() + " [" + fileInfo.getIdAndType().getType().getTypeName() + "]");
-        similar.setSize(fileInfo.getSize());
-        similar.setMd5(fileInfo.getMD5());
-        similar.setDate(fileInfo.getDate());
-
-        // Get the full filename.
-        File file = fileSystemObjectManager.getFile(fileInfo);
-        if(!file.getPath().equalsIgnoreCase(file.getName())) {
-            // Only accept file if its from the valid source.
-            AtomicBoolean accept = new AtomicBoolean(false);
-            validSources.forEach(source -> {
-                if(file.getPath().contains(source.getPath())) {
-                    accept.set(true);
-                }
-            });
-
-            if(!accept.get()) {
-                return null;
-            }
-
-            similar.setFilename(file.getPath());
-        }
-
-        return similar;
-    }
-
-    @Deprecated
-    public List<FileInfo> getSimilarIgnore(String filename, String md5) {
-        // Return ignore files that match either the name or the MD5.
-        List<FileInfo> result = new ArrayList<>(ignoreFileRepository.findByName(filename));
-
-        if(md5 != null && !md5.isEmpty()) {
-            result.addAll(ignoreFileRepository.findByMd5(md5));
-        }
-
-        return result;
-    }
-
-    @Deprecated
-    private void addFileToListIfRequired(FileInfo file, List<Source> validSources, List<ImportFileBaseDTO> result) {
-        if (!file.getIdAndType().getType().equals(FileSystemObjectType.FSO_IGNORE_FILE) &&
-                !file.getIdAndType().getType().equals(FileSystemObjectType.FSO_IMPORT_FILE)) {
-
-            ImportFileBaseDTO similar = getSimilar(file,validSources);
-            if(similar != null) {
-                // Make sure this is not already in the list.
-                for(ImportFileBaseDTO next : result) {
-                    if(similar.getFilename().equalsIgnoreCase(next.getFilename())) {
-                        return;
-                    }
-                }
-
-                result.add(similar);
-            }
-        }
-    }
-
-    @Deprecated
-    public List<ImportFileBaseDTO> getSimilarImported(String filename, String md5) {
-        List<ImportFileBaseDTO> result = new ArrayList<>();
-
-        // Set up the sources that we will restrict results to.
-        List<Source> validSources = new ArrayList<>();
-        for(Synchronize synchronize: this.associatedFileDataManager.findAllSynchronize()) {
-            if(!validSources.contains(synchronize.getSource())) {
-                validSources.add(synchronize.getSource());
-            }
-        }
-
-        // Find files that are not ignored and not imported but match either on the name or the MD5
-        for (FileSystemObject next : fileSystemObjectManager.findFileSystemObjectByName(filename, FileSystemObjectType.FSO_FILE)) {
-            // Not including ignored or import.
-            if(next instanceof FileInfo nextFI) {
-                addFileToListIfRequired(nextFI,validSources,result);
-            }
-        }
-        for (FileSystemObject next : fileSystemObjectManager.findFileSystemObjectByMd5(md5, FileSystemObjectType.FSO_FILE)) {
-            // Not including ignored or import.
-            if(next instanceof FileInfo nextFI) {
-                addFileToListIfRequired(nextFI,validSources,result);
-            }
-        }
-
-        return result;
-    }
-
-    @Deprecated
-    public List<FileInfo> getImport(String filename) {
-        // Return ignore files that match either the name or the MD5.
-        List<FileInfo> result = new ArrayList<>();
-        for(FileInfo next: importFileRepository.findByName(filename)) {
-            result.add(next);
-        }
-
         return result;
     }
 

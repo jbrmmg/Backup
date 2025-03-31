@@ -21,12 +21,27 @@ public class PreImportFileDTO extends ImportFileDTO {
     private boolean inImport;
     private boolean inPostImport;
     private final StepStatus stepStatus;
+    private final boolean stopMarker;
 
     public PreImportFileDTO() {
         this.inDatabase = false;
         this.inImport = false;
         this.inPostImport = false;
         this.stepStatus = new StepStatus();
+        this.stopMarker = false;
+    }
+
+    public PreImportFileDTO(boolean stopMarker) {
+        if(stopMarker){
+            this.stepStatus = new StepStatus();
+            this.stopMarker = true;
+        } else {
+            this.inDatabase = false;
+            this.inImport = false;
+            this.inPostImport = false;
+            this.stepStatus = new StepStatus();
+            this.stopMarker = false;
+        }
     }
 
     @JsonIgnore
@@ -164,5 +179,10 @@ public class PreImportFileDTO extends ImportFileDTO {
 
     public void setErrorInImport(boolean errorInImport) {
         this.errorInImport = errorInImport;
+    }
+
+    @JsonIgnore
+    public boolean isStopMarker() {
+        return stopMarker;
     }
 }

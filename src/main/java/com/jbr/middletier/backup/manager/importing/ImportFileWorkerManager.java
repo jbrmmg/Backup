@@ -1,16 +1,21 @@
 package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
-import com.jbr.middletier.backup.manager.FileSystem;
+import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class ImportFileWorkerManager {
+    private static final Logger LOG = LoggerFactory.getLogger(ImportFileWorkerManager.class);
+
     private final List<ImportFileWorker> workers;
     private final ImportFileWorkQueue queue;
     private final ApplicationProperties applicationProperties;
@@ -41,6 +46,21 @@ public class ImportFileWorkerManager {
                 Thread thread = new Thread(t);
                 thread.start();
             });
+        }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        try {
+            // Send a shutdown to the queue for each thread.
+            if (applicationProperties.getImportThreads() != null && applicationProperties.getImportThreads() > 0) {
+                // Create the threads.
+                for (int i = 0; i < applicationProperties.getImportThreads(); i++) {
+                    queue.put(new PreImportFileDTO(true));
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("Error while waiting for worker threads to finish.", e);
         }
     }
 }

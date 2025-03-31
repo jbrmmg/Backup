@@ -1,0 +1,104 @@
+databaseChangeLog:
+  - changeSet:
+      id: 999
+      author: jason
+      changes:
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: type
+                  value: PIMP
+              - column:
+                  name: name
+                  value: ./target/it_test/pre-import
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: pre_import_source
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+              - column:
+                  name: type
+                  value: PIMP
+              - column:
+                  name: name
+                  value: ./target/it_test/import
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: import_source
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+              - column:
+                  name: type
+                  value: PIMP
+              - column:
+                  name: name
+                  value: ./target/it_test/post-import
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: post_import_source
+            columns:
+              - column:
+                  name: id
+                  value: "3"
