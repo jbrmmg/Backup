@@ -14,6 +14,7 @@ import java.util.List;
 
 import reactor.core.publisher.Flux;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 @RestController
@@ -163,7 +164,7 @@ public class ImportController {
     }
 
     @PostMapping(path = "update-destination")
-    public String updateDestination(@RequestBody DestinationUpdateDTO destinationUpdate) {
+    public String updateDestination(@RequestBody @Valid DestinationUpdateDTO destinationUpdate) {
         LOG.info("Update the destination.");
 
         if(importManager.updateDestination(destinationUpdate)) {
