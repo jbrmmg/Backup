@@ -228,7 +228,7 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    private PreImportFileDTO getOrCreateCachedData(String nextFilename, boolean resetStatus) {
+    private PreImportFileDTO getOrCreateCachedData(String nextFilename, boolean resetStatus, Map<String,ImportFile> importFilesDb) {
         String lowerNextFilename = nextFilename.toLowerCase();
 
         if(this.importFileCache.containsKey(lowerNextFilename)) {
@@ -245,6 +245,39 @@ public class ImportManager extends FileProcessor {
         importFile.setStatus(ImportFileStatusType.IFS_READ);
         for(FileProcessingStepType step : FileProcessingStepType.getStepsInOrder()) {
             importFile.setStepStatus(step, TrafficLightType.TL_UNKNOWN);
+        }
+
+        // If the database information is provided and if this file is in it then initialise the values.
+        if(importFilesDb != null && importFilesDb.containsKey(nextFilename.toLowerCase())) {
+            // Indicate that the file is in the database and copy the information.
+            importFile.setInDatabase(true);
+
+            // Transfer the data from the database.
+            ImportFile dbFile = importFilesDb.get(nextFilename.toLowerCase());
+
+            importFile.setDestination(dbFile.getDestination());
+            importFile.setId(dbFile.getIdAndType().getId());
+            importFile.setDate(dbFile.getDate());
+            importFile.setSize(dbFile.getSize());
+            importFile.setMd5(new MD5(dbFile.getMD5()));
+            importFile.setDuration(dbFile.getDuration());
+            importFile.setImage(dbFile.getImage());
+            if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
+                importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageHeight()));
+            } else {
+                importFile.setImageSize(null);
+            }
+            importFile.setImportMd5(dbFile.getImportMd5());
+            importFile.setImportName(dbFile.getImportName());
+            importFile.setImportDate(dbFile.getImportDate());
+            importFile.setImportSize(dbFile.getImportSize());
+            if(dbFile.getLatitude() != null && dbFile.getLongitude() != null) {
+                importFile.setLocation(new LatLong(dbFile.getLatitude(),dbFile.getLongitude()));
+            } else {
+                importFile.setLocation(null);
+            }
+            importFile.setProcessed(dbFile.getProcessed());
+            importFile.setVideo(dbFile.getVideo());
         }
 
         this.importFileCache.put(lowerNextFilename, importFile);
@@ -277,7 +310,7 @@ public class ImportManager extends FileProcessor {
         // There should be one row for each file in the pre-import directory.
         for(String nextPreImport : preImportFiles) {
             // Get cached data.
-            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport,true);
+            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport,true, importFilesDb);
 
             // Is this in the import directory?
             for(String nextImport : importFiles) {
@@ -294,39 +327,6 @@ public class ImportManager extends FileProcessor {
                     break;
                 }
             }
-
-            // Is this in the database?
-            if(importFilesDb.containsKey(nextPreImport.toLowerCase())) {
-                // Indicate that the file is in the database and copy the information.
-                importFile.setInDatabase(true);
-
-                // Transfer the data from the database.
-                ImportFile dbFile = importFilesDb.get(nextPreImport.toLowerCase());
-
-                importFile.setDestination(dbFile.getDestination());
-                importFile.setId(dbFile.getIdAndType().getId());
-                importFile.setDate(dbFile.getDate());
-                importFile.setSize(dbFile.getSize());
-                importFile.setMd5(new MD5(dbFile.getMD5()));
-                importFile.setDuration(dbFile.getDuration());
-                importFile.setImage(dbFile.getImage());
-                if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
-                    importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageHeight()));
-                } else {
-                    importFile.setImageSize(null);
-                }
-                importFile.setImportMd5(dbFile.getImportMd5());
-                importFile.setImportName(dbFile.getImportName());
-                importFile.setImportDate(dbFile.getImportDate());
-                importFile.setImportSize(dbFile.getImportSize());
-                if(dbFile.getLatitude() != null && dbFile.getLongitude() != null) {
-                    importFile.setLocation(new LatLong(dbFile.getLatitude(),dbFile.getLongitude()));
-                } else {
-                    importFile.setLocation(null);
-                }
-                importFile.setProcessed(dbFile.getProcessed());
-                importFile.setVideo(dbFile.getVideo());
-            }
         }
 
         // Error states:
@@ -339,7 +339,7 @@ public class ImportManager extends FileProcessor {
                 }
 
                 // This is a problem.
-                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true);
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true, null);
                 importFileError.setErrorInPostImport(true);
             }
         }
@@ -353,7 +353,7 @@ public class ImportManager extends FileProcessor {
                 }
 
                 // This is a problem.
-                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true);
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true, null);
                 importFileError.setErrorInImport(true);
             }
         }
@@ -377,7 +377,7 @@ public class ImportManager extends FileProcessor {
         // If there is anything in the cache that is marked as removed, then remove it.
         List<String> remove = new ArrayList<>();
         for(String filename : this.importFileCache.getFiles()) {
-            PreImportFileDTO importFile = getOrCreateCachedData(filename,false);
+            PreImportFileDTO importFile = getOrCreateCachedData(filename,false,null);
 
             if(importFile.getStatus().equalsIgnoreCase("removed")) {
                 remove.add(filename);
@@ -460,7 +460,7 @@ public class ImportManager extends FileProcessor {
         for(String next: this.importFileCache.getFiles()) {
             PreImportFileDTO nextFile = this.importFileCache.get(next.toLowerCase());
 
-            if(skip == 0 && nextFile != null && matchFilter(nextFile, step, status)) {
+            if(skip == 0  && matchFilter(nextFile, step, status)) {
                 result.add(nextFile);
             }
 

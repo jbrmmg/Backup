@@ -9,7 +9,7 @@ import java.util.Map;
 
 @JsonSerialize(using = StepStatusSerializer.class)
 public class StepStatus {
-    Map<FileProcessingStepType, TrafficLightType> status;
+    private final Map<FileProcessingStepType, TrafficLightType> status;
 
     public StepStatus() {
         this.status = new HashMap<>();

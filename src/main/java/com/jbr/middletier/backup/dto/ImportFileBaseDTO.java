@@ -2,15 +2,21 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.FileSystemObjectType;
 import com.jbr.middletier.backup.data.MD5;
+import com.jbr.middletier.backup.manager.importing.ImportManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ImportFileBaseDTO {
-    private String filename;
-    private LocalDateTime date;
-    private Long size;
-    private String md5;
-    private FileSystemObjectType type;
+    private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
+
+    private volatile String filename;
+    private volatile LocalDateTime date;
+    private volatile Long size;
+    private volatile String md5;
+    private volatile FileSystemObjectType type;
 
     public LocalDateTime getDate() {
         return date;

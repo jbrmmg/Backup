@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportFileDTO extends ImportFileBaseDTO {
-    private Integer id;
-    private String status;
-    private LatLong location;
-    private ImageSize imageSize;
-    private boolean image;
-    private boolean video;
-    List<ImportFileBaseDTO> similarFileList;
+    private volatile Integer id;
+    private volatile String status;
+    private volatile LatLong location;
+    private volatile ImageSize imageSize;
+    private volatile boolean image;
+    private volatile boolean video;
+    private final List<ImportFileBaseDTO> similarFileList;
 
     public ImportFileDTO() {
         this.image = false;

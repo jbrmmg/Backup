@@ -7,19 +7,19 @@ import com.jbr.middletier.backup.manager.importing.step.StepStatus;
 import java.time.LocalDateTime;
 
 public class PreImportFileDTO extends ImportFileDTO {
-    private LocalDateTime updateTime;
-    private String destination;
-    private Double duration;
-    private String importName;
-    private LocalDateTime importDate;
-    private Long importSize;
-    private String importMd5;
-    private boolean errorInPostImport;
-    private boolean errorInImport;
-    private boolean processed;
-    private boolean inDatabase;
-    private boolean inImport;
-    private boolean inPostImport;
+    private volatile LocalDateTime updateTime;
+    private volatile String destination;
+    private volatile Double duration;
+    private volatile String importName;
+    private volatile LocalDateTime importDate;
+    private volatile Long importSize;
+    private volatile String importMd5;
+    private volatile boolean errorInPostImport;
+    private volatile boolean errorInImport;
+    private volatile boolean processed;
+    private volatile boolean inDatabase;
+    private volatile boolean inImport;
+    private volatile boolean inPostImport;
     private final StepStatus stepStatus;
     private final boolean stopMarker;
 
