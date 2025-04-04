@@ -10,13 +10,17 @@ import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ImportFileBaseDTO {
-    private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ImportFileBaseDTO.class);
 
     private volatile String filename;
     private volatile LocalDateTime date;
     private volatile Long size;
     private volatile String md5;
     private volatile FileSystemObjectType type;
+
+    public ImportFileBaseDTO() {
+        LOG.trace("Create new Import File Base DTO.");
+    }
 
     public LocalDateTime getDate() {
         return date;

@@ -71,6 +71,7 @@ public class ImportFileWorker implements Runnable {
             }
         } catch(InterruptedException e) {
             LOG.info("Interrupted");
+            Thread.currentThread().interrupt();
         }
     }
 }

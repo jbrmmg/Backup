@@ -22,6 +22,9 @@ import javax.validation.constraints.Pattern;
 public class ImportController {
     private static final Logger LOG = LoggerFactory.getLogger(ImportController.class);
 
+    private static final String OK =  "OK";
+    private static final String FAILED = "FAILED";
+    
     private final ImportManager importManager;
     private final Flux<ServerSentEvent<List<PreImportFileDTO>>> updateNotifier;
     private final Flux<ServerSentEvent<ImportFileSummaryDTO>> updateSummaryNotifier;
@@ -56,10 +59,10 @@ public class ImportController {
         LOG.info("Delete import file {}.", filename);
 
         if(importManager.deleteImportFile(filename)) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @DeleteMapping(path = "/delete-ignored")
@@ -67,10 +70,10 @@ public class ImportController {
         LOG.info("Delete any files that are ignored.");
 
         if(importManager.deleteIgnored()) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @DeleteMapping(path = "/delete-active-photos")
@@ -78,10 +81,10 @@ public class ImportController {
         LOG.info("Delete any files that are Apple active photos.");
 
         if(importManager.deleteActivePhotos()) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @GetMapping(path = "/import-files")
@@ -99,10 +102,10 @@ public class ImportController {
         LOG.info("Import the photos.");
 
         if(importManager.importPhotos()) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @GetMapping(path = "/import-files-summary")
@@ -124,10 +127,10 @@ public class ImportController {
         LOG.info("Remove any files that are already imported.");
 
         if(importManager.deleteConfirmedImports()) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @PostMapping(path = "/un-ignore-file")
@@ -135,10 +138,10 @@ public class ImportController {
         LOG.info("remove file from ignore list.");
 
         if(importManager.unIgnoreSelectedFile(filename)) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @PostMapping(path = "/ignore-file")
@@ -146,10 +149,10 @@ public class ImportController {
         LOG.info("Ignore the file.");
 
         if(importManager.ignoreSelectedFile(filename)) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @PostMapping(path = "/recipe-file")
@@ -157,10 +160,10 @@ public class ImportController {
         LOG.info("Import the file as a recipe file.");
 
         if(importManager.recipeFile(filename)) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @PostMapping(path = "update-destination")
@@ -168,10 +171,10 @@ public class ImportController {
         LOG.info("Update the destination.");
 
         if(importManager.updateDestination(destinationUpdate)) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @GetMapping(path="/file-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -211,10 +214,10 @@ public class ImportController {
         LOG.info("Clear the import data.");
 
         if(importManager.clearImportData()) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 
     @DeleteMapping(path="/clear-cache")
@@ -222,9 +225,9 @@ public class ImportController {
         LOG.info("Clear the cached data.");
 
         if(importManager.clearCacheData()) {
-            return "OK";
+            return OK;
         }
 
-        return "FAILED";
+        return FAILED;
     }
 }

@@ -59,6 +59,9 @@ public class ImportFileWorkerManager {
                     queue.put(new PreImportFileDTO(true));
                 }
             }
+        } catch (InterruptedException e) {
+            LOG.error("Interrupted.", e);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             LOG.error("Error while waiting for worker threads to finish.", e);
         }

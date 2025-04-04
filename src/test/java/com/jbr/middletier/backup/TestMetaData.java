@@ -34,8 +34,8 @@ public class TestMetaData {
         Assert.assertNotNull(meta.get().getDateTime());
         Assert.assertNotNull(meta.get().getLatLong());
         Assert.assertEquals("image/jpeg",meta.get().getMimeType());
-        Assert.assertEquals(1536,meta.get().getImageSize().getWidth());
-        Assert.assertEquals(2048,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(1536,meta.get().getImageSize().width());
+        Assert.assertEquals(2048,meta.get().getImageSize().height());
         Assert.assertEquals(51.456225,meta.get().getLatLong().getLatitude(),0.00001);
         Assert.assertEquals(-2.6257111,meta.get().getLatLong().getLongitude(),0.00001);
         Assert.assertEquals(2025,meta.get().getDateTime().getYear());
@@ -58,8 +58,8 @@ public class TestMetaData {
         Assert.assertNotNull(meta.get().getDateTime());
         Assert.assertNotNull(meta.get().getLatLong());
         Assert.assertEquals("video/quicktime",meta.get().getMimeType());
-        Assert.assertEquals(960,meta.get().getImageSize().getWidth());
-        Assert.assertEquals(720,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(960,meta.get().getImageSize().width());
+        Assert.assertEquals(720,meta.get().getImageSize().height());
         Assert.assertEquals(51.4562,meta.get().getLatLong().getLatitude(),0.00001);
         Assert.assertEquals(-2.6257,meta.get().getLatLong().getLongitude(),0.00001);
         Assert.assertEquals(2025,meta.get().getDateTime().getYear());
@@ -82,8 +82,8 @@ public class TestMetaData {
         Assert.assertNotNull(meta.get().getDateTime());
         Assert.assertNull(meta.get().getLatLong());
         Assert.assertEquals("video/mp4",meta.get().getMimeType());
-        Assert.assertEquals(1920,meta.get().getImageSize().getWidth());
-        Assert.assertEquals(1080,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(1920,meta.get().getImageSize().width());
+        Assert.assertEquals(1080,meta.get().getImageSize().height());
         Assert.assertEquals(2017,meta.get().getDateTime().getYear());
         Assert.assertEquals(Month.DECEMBER,meta.get().getDateTime().getMonth());
         Assert.assertEquals(24,meta.get().getDateTime().getDayOfMonth());
@@ -133,8 +133,8 @@ public class TestMetaData {
         Assert.assertEquals("image/heic",meta.get().getMimeType());
         Assert.assertEquals(53.26959,meta.get().getLatLong().getLatitude(),0.00001);
         Assert.assertEquals(-9.05526,meta.get().getLatLong().getLongitude(),0.00001);
-        Assert.assertEquals(3024,meta.get().getImageSize().getWidth());
-        Assert.assertEquals(4032,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(3024,meta.get().getImageSize().width());
+        Assert.assertEquals(4032,meta.get().getImageSize().height());
         Assert.assertEquals(2022,meta.get().getDateTime().getYear());
         Assert.assertEquals(Month.AUGUST,meta.get().getDateTime().getMonth());
         Assert.assertEquals(20,meta.get().getDateTime().getDayOfMonth());
@@ -158,8 +158,8 @@ public class TestMetaData {
         Assert.assertEquals("image/png",meta.get().getMimeType());
         Assert.assertEquals(51.601416666666665,meta.get().getLatLong().getLatitude(),0.00001);
         Assert.assertEquals(-0.37810,meta.get().getLatLong().getLongitude(),0.00001);
-        Assert.assertEquals(3024,meta.get().getImageSize().getWidth());
-        Assert.assertEquals(4032,meta.get().getImageSize().getHeight());
+        Assert.assertEquals(3024,meta.get().getImageSize().width());
+        Assert.assertEquals(4032,meta.get().getImageSize().height());
         Assert.assertEquals(2022,meta.get().getDateTime().getYear());
         Assert.assertEquals(Month.MAY,meta.get().getDateTime().getMonth());
         Assert.assertEquals(20,meta.get().getDateTime().getDayOfMonth());

@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ImportFileDTO extends ImportFileBaseDTO {
     private volatile Integer id;
     private volatile String status;
-    private volatile LatLong location;
-    private volatile ImageSize imageSize;
+    private LatLong location;
+    private ImageSize imageSize;
     private volatile boolean image;
     private volatile boolean video;
     private final List<ImportFileBaseDTO> similarFileList;
@@ -61,7 +61,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         return location;
     }
 
-    public void setLocation(LatLong location) {
+    public synchronized void setLocation(LatLong location) {
         this.location = location;
     }
 
@@ -69,7 +69,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         return imageSize;
     }
 
-    public void setImageSize(ImageSize imageSize) {
+    public synchronized void setImageSize(ImageSize imageSize) {
         this.imageSize = imageSize;
     }
 

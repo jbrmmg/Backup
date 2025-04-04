@@ -65,6 +65,7 @@ public class ImportFileCache {
             this.importFileWorkQueue.put(importFile);
         } catch (InterruptedException e) {
             LOG.info("Interrupted queue");
+            Thread.currentThread().interrupt();
         }
     }
 

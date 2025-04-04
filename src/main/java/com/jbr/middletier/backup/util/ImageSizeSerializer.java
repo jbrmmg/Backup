@@ -13,8 +13,8 @@ public class ImageSizeSerializer extends JsonSerializer<ImageSize> {
     public void serialize(ImageSize imageSize, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         if(imageSize != null) {
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeNumberField("width", imageSize.getWidth());
-            jsonGenerator.writeNumberField("height", imageSize.getHeight());
+            jsonGenerator.writeNumberField("width", imageSize.width());
+            jsonGenerator.writeNumberField("height", imageSize.height());
             jsonGenerator.writeEndObject();
         }
     }

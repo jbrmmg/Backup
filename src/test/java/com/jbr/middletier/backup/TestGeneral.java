@@ -1257,8 +1257,8 @@ public class TestGeneral extends WebTester {
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
         Assert.assertTrue(fileSystemImageData.isValid());
         ImageSize size = fileSystemImageData.getImageSize();
-        Assert.assertEquals(10,size.getHeight());
-        Assert.assertEquals(10,size.getWidth());
+        Assert.assertEquals(10,size.height());
+        Assert.assertEquals(10,size.width());
         Assert.assertEquals("21-January-2022 11:04 image/jpeg",fileSystemImageData.toString());
     }
 

@@ -35,8 +35,8 @@ public class GatherMetaData extends ImportStep {
             // Transfer the data.
             record.setDuration(file.getDuration());
             if(file.getImageSize() != null) {
-                record.setImageHeight(file.getImageSize().getHeight());
-                record.setImageWidth(file.getImageSize().getWidth());
+                record.setImageHeight(file.getImageSize().height());
+                record.setImageWidth(file.getImageSize().width());
             } else {
                 record.setImageHeight(null);
                 record.setImageWidth(null);

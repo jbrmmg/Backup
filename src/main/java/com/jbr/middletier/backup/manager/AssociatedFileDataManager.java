@@ -120,7 +120,7 @@ public class AssociatedFileDataManager {
 
     public Optional<Classification> classifyFile(FileInfo file) {
         for(Classification nextClassification : findAllClassifications()) {
-            if(nextClassification.fileMatches(file)) {
+            if(file.matchClassification(nextClassification)) {
                 return Optional.of(nextClassification);
             }
         }

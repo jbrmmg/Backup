@@ -39,6 +39,7 @@ public class FinalStep extends ImportStep {
             LOG.info("Performed Final Step {}", file.getFilename());
         } catch (InterruptedException e) {
             LOG.info("Final step aborted.");
+            Thread.currentThread().interrupt();
         }
 
         return TrafficLightType.TL_GREEN;
