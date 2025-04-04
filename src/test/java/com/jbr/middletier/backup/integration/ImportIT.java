@@ -258,18 +258,10 @@ public class ImportIT extends FileTester {
         // trigger the refresh.
 //                .andDo(MockMvcResultHandlers.print())
 //                .andReturn();
-        getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
         waitForQueue();
-
-        // Check that the summary works.
-        getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
-                        .contentType(getContentType()))
-                .andExpect(status().isOk())
-                .andDo(MockMvcResultHandlers.print())
-                .andReturn();
-//                .andExpect(jsonPath("PreImport", is(1)));
 
         // Check that file processed OK.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -302,6 +294,12 @@ public class ImportIT extends FileTester {
                 .andExpect(jsonPath("$[0].stepStatus.processImport", is("GREEN")))
                 .andExpect(jsonPath("$[0].stepStatus.completed", is("GREEN")))
                 .andExpect(jsonPath("$[0].status", is("READ")));
+
+        // Check that the summary works.
+        getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("PreImport", is(1)));
 
         // Cleanup.
         importManager.clearImportData();
