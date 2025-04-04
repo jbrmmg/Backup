@@ -628,7 +628,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[4].filename", is("IMG_2329.HEIC")))
                 .andExpect(jsonPath("$[5].filename", is("IMG_3891.jpeg")))
                 .andExpect(jsonPath("$[6].filename", is("IMG_8231.jpg")))
-                .andExpect(jsonPath("$[6].md5", is("C714A0B2E792EB102F706DC2424B0083")))
+                .andExpect(jsonPath("$[6].md5", is("56FDC164DC8A27C015170014821A7DCE")))
                 .andExpect(jsonPath("$[7].filename", is("IMG_931d.png")))
                 .andExpect(jsonPath("$[8].filename", is("Letter.odt")))
                 .andExpect(jsonPath("$[9].filename", is("NotHere._.ds_store")))

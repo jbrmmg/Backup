@@ -70,29 +70,6 @@ public class ImportIT extends FileTester {
         }
     }
 
-    static class MyMatcher extends TypeSafeMatcher<BigDecimal> {
-        private BigDecimal x;
-
-        public MyMatcher(BigDecimal expected) {
-            this.x = expected;
-        }
-
-        @Override
-        protected boolean matchesSafely(BigDecimal aDouble) {
-            LOG.info(aDouble.toString());
-            return true;
-        }
-
-        @Override
-        public void describeTo(Description description) {
-           LOG.info(description.toString());
-        }
-    }
-
-    public static Matcher<BigDecimal> myMatcher(BigDecimal x) {
-        return new MyMatcher(x);
-    }
-
     @Autowired
     FileSystemObjectManager fileSystemObjectManager;
 
@@ -284,6 +261,7 @@ public class ImportIT extends FileTester {
                 .andExpect(jsonPath("PreImport", is(1)));
         waitForQueue();
 
+        // Check that file processed OK.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                 .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -305,37 +283,18 @@ public class ImportIT extends FileTester {
                 .andExpect(jsonPath("$[0].inPostImport", is(false)))
                 .andExpect(jsonPath("$[0].inImport", is(true)))
                 .andExpect(jsonPath("$[0].stepStatus.readPreImportFile", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.gatherMetaData", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.copyFileToImport", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.checkFileIgnored", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.checkActivePhotoFile", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.checkDuplicateFile", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.checkFileConfirmedImported", is("RED")))
+                .andExpect(jsonPath("$[0].stepStatus.processImport", is("GREEN")))
+                .andExpect(jsonPath("$[0].stepStatus.completed", is("GREEN")))
                 .andExpect(jsonPath("$[0].status", is("READ")));
 
-
-//                .andDo(MockMvcResultHandlers.print())
-//                .andReturn();
-
-        System.out.println("here");
-//        importManager.getImportFiles(0,0,null,null);
-//        List<GatherDataDTO> result = importManager.importPhoto();
-//        checkGather(result, 4, 2);
-
-//        List<ImportDataDTO> importResult = importManager.processImportFiles();
-//        checkImport(importResult, 0, 0, 0, 0, 0);
-
-        confirmActions();
-
-//        importResult = importManager.processImportFiles();
-//        checkImport(importResult, 4, 0, 0, 0, 0);
-
-        driveManager.gather();
-        sourceDescription = getTestStructure("test13");
-//        validateSource(fileSystemObjectManager, this.source, sourceDescription);
-
-//        importDesciption = getTestStructure("test10");
-//        copyFiles(importDesciption, importDirectory);
-
-//        result = importManager.importPhoto();
-//        checkGather(result, 0, 0);
-
-//        importResult = importManager.processImportFiles();
-//        checkImport(importResult, 0, 0, 4, 0, 0);
+        // Cleanup.
+        importManager.clearImportData();
     }
 
     @Test
