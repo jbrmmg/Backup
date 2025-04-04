@@ -57,7 +57,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
 
     public List<ImportFileBaseDTO> getSimilarFiles() { return this.similarFileList; }
 
-    public LatLong getLocation() {
+    public synchronized LatLong getLocation() {
         return location;
     }
 
@@ -65,7 +65,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         this.location = location;
     }
 
-    public ImageSize getImageSize() {
+    public synchronized ImageSize getImageSize() {
         return imageSize;
     }
 
