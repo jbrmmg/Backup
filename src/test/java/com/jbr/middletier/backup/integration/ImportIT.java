@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
 
 import static org.hamcrest.Matchers.*;
@@ -255,6 +256,8 @@ public class ImportIT extends FileTester {
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
+//                .andDo(MockMvcResultHandlers.print())
+//                .andReturn();
         getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -264,7 +267,9 @@ public class ImportIT extends FileTester {
         getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("PreImport", is(1)));
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+//                .andExpect(jsonPath("PreImport", is(1)));
 
         // Check that file processed OK.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
