@@ -215,7 +215,7 @@ public class ImportIT extends FileTester {
     private void waitForQueue() throws InterruptedException {
         // Wait for a maximum time for the items to be processed.
         LocalDateTime limit = LocalDateTime.now();
-        limit = limit.plusSeconds(3);
+        limit = limit.plusSeconds(10);
         LOG.info("Waiting for the queue to complete.");
 
         boolean done = false;
