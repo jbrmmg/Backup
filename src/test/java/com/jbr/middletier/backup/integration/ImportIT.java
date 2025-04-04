@@ -254,12 +254,17 @@ public class ImportIT extends FileTester {
         driveManager.gather();
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk());
+        waitForQueue();
+
         // Check that the summary works.
         getMockMvc().perform(get("/jbr/int/backup/import-files-summary")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("PreImport", is(1)));
-        waitForQueue();
 
         // Check that file processed OK.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
