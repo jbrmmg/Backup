@@ -301,7 +301,7 @@ public class TestGeneral extends WebTester {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(true);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
 
         DriveManager driveManager = mock(DriveManager.class);
 
@@ -312,14 +312,14 @@ public class TestGeneral extends WebTester {
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
-                actionManager,
+                mockActionManager,
                 driveManager,
                 duplicateManager,
                 synchronizeManager,
                 dbLoggingManager);
 
         gatherSynchronizeCtrl.gatherCron();
-        verify(actionManager, times(1)).sendActionEmail();
+        verify(mockActionManager, times(1)).sendActionEmail();
         verify(driveManager, times(1)).gather();
         verify(duplicateManager, times(1)).duplicateCheck();
         verify(synchronizeManager, times(1)).synchronize();
@@ -330,8 +330,8 @@ public class TestGeneral extends WebTester {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(true);
 
-        ActionManager actionManager = mock(ActionManager.class);
-        doThrow(new IllegalStateException()).when(actionManager).sendActionEmail();
+        ActionManager mockActionManager = mock(ActionManager.class);
+        doThrow(new IllegalStateException()).when(mockActionManager).sendActionEmail();
 
         DriveManager driveManager = mock(DriveManager.class);
 
@@ -342,14 +342,14 @@ public class TestGeneral extends WebTester {
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
-                actionManager,
+                mockActionManager,
                 driveManager,
                 duplicateManager,
                 synchronizeManager,
                 dbLoggingManager);
 
         gatherSynchronizeCtrl.gatherCron();
-        verify(actionManager, times(1)).sendActionEmail();
+        verify(mockActionManager, times(1)).sendActionEmail();
         verify(driveManager, times(0)).gather();
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize();
@@ -360,8 +360,8 @@ public class TestGeneral extends WebTester {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(false);
 
-        ActionManager actionManager = mock(ActionManager.class);
-        doThrow(new IllegalStateException()).when(actionManager).sendActionEmail();
+        ActionManager mockActionManager = mock(ActionManager.class);
+        doThrow(new IllegalStateException()).when(mockActionManager).sendActionEmail();
 
         DriveManager driveManager = mock(DriveManager.class);
 
@@ -372,14 +372,14 @@ public class TestGeneral extends WebTester {
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
-                actionManager,
+                mockActionManager,
                 driveManager,
                 duplicateManager,
                 synchronizeManager,
                 dbLoggingManager);
 
         gatherSynchronizeCtrl.gatherCron();
-        verify(actionManager, times(0)).sendActionEmail();
+        verify(mockActionManager, times(0)).sendActionEmail();
         verify(driveManager, times(0)).gather();
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize();
@@ -420,21 +420,21 @@ public class TestGeneral extends WebTester {
         List<Synchronize> synchronizeList = new ArrayList<>();
         synchronizeList.add(synchronize);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
 
         FileSystem fileSystem = mock(FileSystem.class);
 
-        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+        SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                fileSystemObjectManager,
-                actionManager,
+                mockFileSystemObjectManager,
+                mockActionManager,
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
@@ -463,21 +463,21 @@ public class TestGeneral extends WebTester {
         List<Synchronize> synchronizeList = new ArrayList<>();
         synchronizeList.add(synchronize);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
 
         FileSystem fileSystem = mock(FileSystem.class);
 
-        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+        SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                fileSystemObjectManager,
-                actionManager,
+                mockFileSystemObjectManager,
+                mockActionManager,
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
@@ -507,21 +507,21 @@ public class TestGeneral extends WebTester {
         List<Synchronize> synchronizeList = new ArrayList<>();
         synchronizeList.add(synchronize);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
 
         FileSystem fileSystem = mock(FileSystem.class);
 
-        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+        SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                fileSystemObjectManager,
-                actionManager,
+                mockFileSystemObjectManager,
+                mockActionManager,
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
@@ -551,21 +551,21 @@ public class TestGeneral extends WebTester {
         List<Synchronize> synchronizeList = new ArrayList<>();
         synchronizeList.add(synchronize);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
 
         FileSystem fileSystem = mock(FileSystem.class);
 
-        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+        SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                fileSystemObjectManager,
-                actionManager,
+                mockFileSystemObjectManager,
+                mockActionManager,
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
@@ -590,22 +590,22 @@ public class TestGeneral extends WebTester {
         List<Synchronize> synchronizeList = new ArrayList<>();
         synchronizeList.add(synchronize);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
-        when(fileSystemObjectManager.createDbRoot(synchronize.getSource())).thenThrow(NullPointerException.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
+        when(mockFileSystemObjectManager.createDbRoot(synchronize.getSource())).thenThrow(NullPointerException.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
 
         FileSystem fileSystem = mock(FileSystem.class);
 
-        SynchronizeManager synchronizeManager = new SynchronizeManager(associatedFileDataManager,
+        SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                fileSystemObjectManager,
-                actionManager,
+                mockFileSystemObjectManager,
+                mockActionManager,
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize();
@@ -623,31 +623,31 @@ public class TestGeneral extends WebTester {
         when(source.getMountCheck()).thenReturn(Optional.empty());
         sources.add(source);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSource()).thenReturn(sources);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSource()).thenReturn(sources);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
         List<ActionConfirm> deletes = new ArrayList<>();
-        when(actionManager.findConfirmedDeletes()).thenReturn(deletes);
+        when(mockActionManager.findConfirmedDeletes()).thenReturn(deletes);
 
         FileSystem fileSystem = mock(FileSystem.class);
         when(fileSystem.validateMountCheck(Optional.empty())).thenReturn(true);
         doThrow(new IOException("Failed")).when(fileSystem).createDirectory(any(Path.class));
 
-        DriveManager driveManager = new DriveManager(associatedFileDataManager,
+        DriveManager driveManager = new DriveManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                actionManager,
-                fileSystemObjectManager,
+                mockActionManager,
+                mockFileSystemObjectManager,
                 fileSystem);
 
         List<GatherDataDTO> gatherData = driveManager.gather();
         Assert.assertEquals(1, gatherData.size());
         Assert.assertTrue(gatherData.get(0).hasProblems());
-        verify(associatedFileDataManager, times(1)).updateSourceStatus(source,SourceStatusType.SST_ERROR);
+        verify(mockAssociatedFileDataManager, times(1)).updateSourceStatus(source,SourceStatusType.SST_ERROR);
     }
 
     @Test
@@ -659,23 +659,23 @@ public class TestGeneral extends WebTester {
         when(source.getPath()).thenReturn("Test");
         sources.add(source);
 
-        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
-        when(associatedFileDataManager.findAllSource()).thenReturn(sources);
+        AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
+        when(mockAssociatedFileDataManager.findAllSource()).thenReturn(sources);
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
-        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
 
-        ActionManager actionManager = mock(ActionManager.class);
+        ActionManager mockActionManager = mock(ActionManager.class);
         List<ActionConfirm> deletes = new ArrayList<>();
-        when(actionManager.findConfirmedDeletes()).thenReturn(deletes);
+        when(mockActionManager.findConfirmedDeletes()).thenReturn(deletes);
 
         FileSystem fileSystem = mock(FileSystem.class);
 
-        DriveManager driveManager = new DriveManager(associatedFileDataManager,
+        DriveManager driveManager = new DriveManager(mockAssociatedFileDataManager,
                 dbLoggingManager,
-                actionManager,
-                fileSystemObjectManager,
+                mockActionManager,
+                mockFileSystemObjectManager,
                 fileSystem);
 
         List<GatherDataDTO> gatherData = driveManager.gather();

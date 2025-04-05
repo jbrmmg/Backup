@@ -103,10 +103,8 @@ public class FileTester extends WebTester {
 
             // Does this already exist?
             for(ValidateNode nextChild : children) {
-                if(nextChild.name.equals(directories[index])) {
-                    if(nextChild.directory) {
-                        return nextChild.insertDirectoryTree(++index, directories);
-                    }
+                if(nextChild.name.equals(directories[index]) && nextChild.directory) {
+                    return nextChild.insertDirectoryTree(++index, directories);
                 }
             }
 

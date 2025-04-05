@@ -247,10 +247,8 @@ public class PrintIT extends FileTester {
         while(clash) {
             clash = false;
             for (FileInfo nextFile : files) {
-                if(testFile.isEmpty()) {
-                    if(nextFile.getName().equalsIgnoreCase("IMG_3891.jpeg")) {
-                        testFile = Optional.of(nextFile);
-                    }
+                if(testFile.isEmpty() && nextFile.getName().equalsIgnoreCase("IMG_3891.jpeg")) {
+                    testFile = Optional.of(nextFile);
                 }
                 if(nextFile.getIdAndType().getId().equals(nonExistentId)) {
                     clash = true;
