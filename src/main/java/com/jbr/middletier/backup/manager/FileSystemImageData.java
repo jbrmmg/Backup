@@ -83,7 +83,7 @@ public class FileSystemImageData {
             return null;
         }
 
-        return Double.parseDouble(duration.replaceAll(" s", "").trim());
+        return Double.parseDouble(duration.replace(" s", "").trim());
     }
 
     private void processImageMetaData(Map<String,String> metaData) {

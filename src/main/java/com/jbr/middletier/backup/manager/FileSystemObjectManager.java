@@ -206,6 +206,9 @@ public class FileSystemObjectManager {
                     addFileToResult(fileInfo, result);
                 }
             }
+            default -> {
+                // Do nothing - just return an empty search.
+            }
         }
 
         return result;
