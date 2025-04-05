@@ -38,7 +38,7 @@ public class ImportFile extends ProcessBase {
 
         this.fileSystem = fileSystem;
 
-        this.requiredStepStatus = new HashMap<>();
+        this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());
         this.requiredStepStatus.put(FileProcessingStepType.FPS_GATHER_META_DATA,getMustBeGreen());
         this.requiredStepStatus.put(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED,getMustNotBeGreen());

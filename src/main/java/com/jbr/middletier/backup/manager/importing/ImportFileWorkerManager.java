@@ -42,7 +42,7 @@ public class ImportFileWorkerManager {
             }
 
             // Startup the threads.
-            workers.forEach((t) -> {
+            workers.forEach(t -> {
                 Thread thread = new Thread(t);
                 thread.start();
             });

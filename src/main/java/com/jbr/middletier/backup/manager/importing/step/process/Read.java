@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +25,7 @@ public class Read extends ProcessBase {
                     AssociatedFileDataManager associatedFileDataManager) {
         super(ImportFileStatusType.IFS_READ, associatedFileDataManager, importSourceManager);
 
-        this.requiredStepStatus = new HashMap<>();
+        this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());
     }
 

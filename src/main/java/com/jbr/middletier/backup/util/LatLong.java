@@ -105,6 +105,7 @@ public class LatLong {
 
             return reference.multiply(value);
         } catch (Exception ignored) {
+            // Ignore the exception, return zero.
         }
 
         return 0.0;

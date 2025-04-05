@@ -118,7 +118,8 @@ public class CopyToImport extends ReadPreImportFile {
 
         // Gather the details of the file.
         LocalDateTime importDate = FileProcessor.getFileLastModified(importFile);
-        LOG.info("Gathering import data of {} {}", file.getFilename(), formatter.format(importDate));
+        String formattedDate = formatter.format(importDate);
+        LOG.info("Gathering import data of {} {}", file.getFilename(), formattedDate);
         file.setImportSize(importFile.length());
         file.setImportDate(importDate);
         getMD5(file, importFile, true);
@@ -165,13 +166,13 @@ public class CopyToImport extends ReadPreImportFile {
     }
 
     @Override
-    protected boolean transferData(PreImportFileDTO file, ImportFile record) {
-        if(record.getImportName() == null) {
+    protected boolean transferData(PreImportFileDTO file, ImportFile dbRecord) {
+        if(dbRecord.getImportName() == null) {
             LOG.info("Save details of the import file {}", file.getFilename());
-            record.setImportName(file.getImportName());
-            record.setImportMd5(file.getImportMd5());
-            record.setImportSize(file.getImportSize());
-            record.setImportDate(file.getImportDate());
+            dbRecord.setImportName(file.getImportName());
+            dbRecord.setImportMd5(file.getImportMd5());
+            dbRecord.setImportSize(file.getImportSize());
+            dbRecord.setImportDate(file.getImportDate());
             return true;
         }
 

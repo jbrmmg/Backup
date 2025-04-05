@@ -16,7 +16,7 @@ public class ImportFileCache {
     /*
      * Used to cache the details of the files in the import directory.
      */
-    final private Map<String,ImportFileCacheEntry> cache;
+    private final Map<String,ImportFileCacheEntry> cache;
     private final ImportFileWorkQueue importFileWorkQueue;
 
     public ImportFileCache(ImportFileWorkQueue importFileWorkQueue) {

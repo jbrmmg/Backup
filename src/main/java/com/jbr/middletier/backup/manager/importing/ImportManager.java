@@ -117,7 +117,9 @@ public class ImportManager extends FileProcessor {
         try {
             this.importFileRepository.deleteAll(this.importFileRepository.findAll());
             return true;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            // Exceptions are ignored, but logged.
+            LOG.warn("Failed to clear import data",e);
         }
 
         return false;
@@ -128,7 +130,9 @@ public class ImportManager extends FileProcessor {
         try {
             this.importFileCache.clear();
             return true;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            // Exceptions are ignored, but logged.
+            LOG.warn("Failed to clear cache",e);
         }
 
         return false;
@@ -690,7 +694,8 @@ public class ImportManager extends FileProcessor {
             LOG.warn("Read files from {} failed", name, e);
         }
 
-        return null;
+        // Return empty array.
+        return new byte[0];
     }
 
     public ImportFileSummaryDTO getImportSummary() {

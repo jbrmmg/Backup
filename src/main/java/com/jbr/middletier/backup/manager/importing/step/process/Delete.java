@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +27,7 @@ public class Delete extends ProcessBase {
                      AssociatedFileDataManager associatedFileDataManager) {
         super(ImportFileStatusType.IFS_MANUAL_DELETE, associatedFileDataManager, importSourceManager);
 
-        this.requiredStepStatus = new HashMap<>();
+        this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());
         this.requiredStepStatus.put(FileProcessingStepType.FPS_GATHER_META_DATA,getMustBeGreen());
     }

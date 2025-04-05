@@ -130,23 +130,13 @@ public class CheckDuplicateFile extends ImportStep {
     private void getImportNameAndSizeCloseDate(String name, long size, LocalDateTime date, PreImportFileDTO importFile) {
         for(FileInfo next : fileRepository.findByName(name)) {
             File file = validSource(next);
-            if(file == null) {
-                continue;
-            }
-
-            // Does the size match?
-            if(next.getSize() != size) {
-                continue;
-            }
-
-            // Is the date close? Are they the same date?
-            if (!next.getDate().toLocalDate().equals(date.toLocalDate())) {
-                continue;
-            }
-
-            // Are they within 5 seconds?
             long seconds = Duration.between(next.getDate(), date).toSeconds();
-            if(Math.abs(seconds) > 3600) {
+
+            // File not from valid source, size does not match, date does not batch or time is too far apart then continue.
+            if(file == null ||
+                    (next.getSize() != size) ||
+                    !next.getDate().toLocalDate().equals(date.toLocalDate()) ||
+                    (Math.abs(seconds) > 3600) ) {
                 continue;
             }
 
@@ -197,7 +187,7 @@ public class CheckDuplicateFile extends ImportStep {
     }
 
     @Override
-    protected boolean transferData(PreImportFileDTO file, ImportFile record) {
+    protected boolean transferData(PreImportFileDTO file, ImportFile dbRecord) {
         return false;
     }
 }

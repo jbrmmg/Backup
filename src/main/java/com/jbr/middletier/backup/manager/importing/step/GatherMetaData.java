@@ -31,30 +31,30 @@ public class GatherMetaData extends ImportStep {
     }
 
     @Override
-    protected boolean transferData(PreImportFileDTO file, ImportFile record) {
+    protected boolean transferData(PreImportFileDTO file, ImportFile dbRecord) {
         // Is the image / video flag already stored?
-        if(record.getImage() == null || record.getVideo() == null) {
+        if(dbRecord.getImage() == null || dbRecord.getVideo() == null) {
             // Transfer the data.
-            record.setDuration(file.getDuration());
+            dbRecord.setDuration(file.getDuration());
             if(file.getImageSize() != null) {
-                record.setImageHeight(file.getImageSize().height());
-                record.setImageWidth(file.getImageSize().width());
+                dbRecord.setImageHeight(file.getImageSize().height());
+                dbRecord.setImageWidth(file.getImageSize().width());
             } else {
-                record.setImageHeight(null);
-                record.setImageWidth(null);
+                dbRecord.setImageHeight(null);
+                dbRecord.setImageWidth(null);
             }
             if(file.getLocation() != null) {
-                record.setLatitude(file.getLocation().getLatitude());
-                record.setLongitude(file.getLocation().getLongitude());
+                dbRecord.setLatitude(file.getLocation().getLatitude());
+                dbRecord.setLongitude(file.getLocation().getLongitude());
             } else {
-                record.setLatitude(null);
-                record.setLongitude(null);
+                dbRecord.setLatitude(null);
+                dbRecord.setLongitude(null);
             }
-            record.setVideo(file.isVideo());
-            record.setImage(file.isImage());
+            dbRecord.setVideo(file.isVideo());
+            dbRecord.setImage(file.isImage());
 
-            if(record.getImportDate() == null) {
-                record.setImportDate(file.getImportDate());
+            if(dbRecord.getImportDate() == null) {
+                dbRecord.setImportDate(file.getImportDate());
             }
             LOG.info("Update the meta data on the database for {}", file.getFilename());
             return true;

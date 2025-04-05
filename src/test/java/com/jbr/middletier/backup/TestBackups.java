@@ -95,9 +95,9 @@ public class TestBackups {
     @Test
     public void TestCleanBackupFailure() {
         FileSystem fileSystem = mock(FileSystem.class);
-        ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
+        ApplicationProperties mockApplicationProperties = mock(ApplicationProperties.class);
         ApplicationProperties.Directory directory = mock(ApplicationProperties.Directory.class);
-        when(applicationProperties.getDirectory()).thenReturn(directory);
+        when(mockApplicationProperties.getDirectory()).thenReturn(directory);
         when(directory.getName()).thenReturn("thisdirectorydoesnotexist");
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
@@ -106,7 +106,7 @@ public class TestBackups {
 
         Backup backup = mock(Backup.class);
 
-        CleanBackup cleanBackup = new CleanBackup(applicationProperties);
+        CleanBackup cleanBackup = new CleanBackup(mockApplicationProperties);
 
         try {
             cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
@@ -531,13 +531,13 @@ public class TestBackups {
             if (!source2.exists()) {
                 assertTrue(source2.mkdirs());
             }
-            File source2_1 = new File("./target/testfiles/BackupGit/.fred");
-            if (!source2_1.exists()) {
-                assertTrue(source2_1.createNewFile());
+            File source21 = new File("./target/testfiles/BackupGit/.fred");
+            if (!source21.exists()) {
+                assertTrue(source21.createNewFile());
             }
-            File source2_2 = new File("./target/testfiles/BackupGit/cpy.txt");
-            if (!source2_2.exists()) {
-                assertTrue(source2_2.createNewFile());
+            File source22 = new File("./target/testfiles/BackupGit/cpy.txt");
+            if (!source22.exists()) {
+                assertTrue(source22.createNewFile());
             }
             File source3 = new File("./target/testfiles/BackupGit/target");
             if (!source3.exists()) {
@@ -873,11 +873,11 @@ public class TestBackups {
     @Test
     public void testBackupCtrlDisabled() {
         try {
-            ApplicationProperties applicationProperties = new ApplicationProperties();
-            applicationProperties.setEnabled(false);
+            ApplicationProperties mockApplicationProperties = new ApplicationProperties();
+            mockApplicationProperties.setEnabled(false);
 
-            BackupCtrl backupCtrl = new BackupCtrl(null, null, null, null, applicationProperties, null);
-            backupCtrl.scheduleBackup();
+            BackupCtrl localBackupCtrl = new BackupCtrl(null, null, null, null, mockApplicationProperties, null);
+            localBackupCtrl.scheduleBackup();
 
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);

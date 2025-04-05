@@ -8,7 +8,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 @JsonSerialize(using = StepStatus.StepStatusSerializer.class)
@@ -29,7 +29,7 @@ public class StepStatus {
     }
 
     public StepStatus() {
-        this.status = new HashMap<>();
+        this.status = new EnumMap<>(FileProcessingStepType.class);
 
         for(FileProcessingStepType step :  FileProcessingStepType.getStepsInOrder()) {
             this.status.put(step, TrafficLightType.TL_UNKNOWN);

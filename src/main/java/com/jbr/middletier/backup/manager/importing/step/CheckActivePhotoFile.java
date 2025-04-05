@@ -125,7 +125,7 @@ public class CheckActivePhotoFile extends ImportStep {
     }
 
     @Override
-    protected boolean transferData(PreImportFileDTO file, ImportFile record) {
+    protected boolean transferData(PreImportFileDTO file, ImportFile dbRecord) {
         // This does not get stored.
         return false;
     }

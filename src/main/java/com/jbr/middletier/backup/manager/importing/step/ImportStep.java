@@ -30,7 +30,7 @@ public abstract class ImportStep {
         this.importSourceManager = importSourceManager;
     }
 
-    protected abstract boolean transferData(PreImportFileDTO file, ImportFile record);
+    protected abstract boolean transferData(PreImportFileDTO file, ImportFile dbRecord);
 
     private ImportFile getDbRecord(PreImportFileDTO file) {
         // First get the record by ID if its present.

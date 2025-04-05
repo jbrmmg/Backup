@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +26,7 @@ public class RemoveIgnored extends ProcessBase {
                             AssociatedFileDataManager associatedFileDataManager) {
         super(ImportFileStatusType.IFS_REMOVE_IGNORED, associatedFileDataManager, importSourceManager);
 
-        this.requiredStepStatus = new HashMap<>();
+        this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());
         this.requiredStepStatus.put(FileProcessingStepType.FPS_GATHER_META_DATA,getMustBeGreen());
         this.requiredStepStatus.put(FileProcessingStepType.FPS_CHECK_FILE_IGNORED,getMustBeRed());

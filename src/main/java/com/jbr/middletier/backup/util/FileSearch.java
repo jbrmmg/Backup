@@ -69,12 +69,14 @@ public class FileSearch {
             this.dateTime = LocalDateTime.parse(date, dtf1);
             return true;
         } catch(DateTimeParseException ignored) {
+            // Ignore the exception, try below with different format.
         }
 
         try {
             this.dateTime = LocalDateTime.parse(date, dtf2);
             return true;
         } catch(DateTimeParseException ignored) {
+            // Ignore the exception, if not valid then the string is not a date.
         }
 
         return false;

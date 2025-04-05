@@ -23,7 +23,7 @@ public class ImportFileWorker implements Runnable {
             ImportStep nextStep = this.queue.getStepProcessor(nextUnknown);
 
             if (nextStep != null) {
-                LOG.info("Performing step {} for {}", nextStep.getStepType().toString(), file.getFilename());
+                LOG.info("Performing step {} for {}", nextStep.getStepType(), file.getFilename());
                 file.setStepStatus(nextUnknown, nextStep.performStep(file));
 
                 if(nextStep.getStepType() != FileProcessingStepType.FPS_FINAL_UPDATE) {

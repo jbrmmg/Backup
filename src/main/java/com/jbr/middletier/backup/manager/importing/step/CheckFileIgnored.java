@@ -112,7 +112,7 @@ public class CheckFileIgnored extends ImportStep {
     }
 
     @Override
-    protected boolean transferData(PreImportFileDTO file, ImportFile record) {
+    protected boolean transferData(PreImportFileDTO file, ImportFile dbRecord) {
         // Don't save this - it will be checked each time.
         return false;
     }

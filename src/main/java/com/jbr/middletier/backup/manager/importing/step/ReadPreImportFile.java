@@ -30,12 +30,12 @@ public class ReadPreImportFile extends ImportStep {
     }
 
     @Override
-    protected boolean transferData(PreImportFileDTO file, ImportFile record) {
+    protected boolean transferData(PreImportFileDTO file, ImportFile dbRecord) {
         // Transfer the data from the file to the record.
-        if(record.getSize() == null) {
-            record.setSize(file.getSize());
-            record.setDate(file.getDate());
-            record.setMD5(new MD5(file.getMd5()));
+        if(dbRecord.getSize() == null) {
+            dbRecord.setSize(file.getSize());
+            dbRecord.setDate(file.getDate());
+            dbRecord.setMD5(new MD5(file.getMd5()));
 
             return true;
         }

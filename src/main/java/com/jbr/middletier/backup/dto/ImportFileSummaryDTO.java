@@ -8,7 +8,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 @JsonSerialize(using = ImportFileSummaryDTO.ImportFileSummarySerializer.class)
@@ -46,7 +46,7 @@ public class ImportFileSummaryDTO {
     }
 
     public ImportFileSummaryDTO() {
-        counts = new HashMap<>();
+        counts = new EnumMap<>(FileProcessingStepType.class);
         totalPreImportFiles = 0;
         totalImportFiles = 0;
         totalPostImportFiles = 0;

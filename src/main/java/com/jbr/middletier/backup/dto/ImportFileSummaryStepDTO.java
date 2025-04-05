@@ -2,8 +2,7 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
-
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 public class ImportFileSummaryStepDTO {
@@ -12,7 +11,7 @@ public class ImportFileSummaryStepDTO {
 
     public ImportFileSummaryStepDTO(FileProcessingStepType type) {
         this.type = type;
-        this.counts = new HashMap<>();
+        this.counts = new EnumMap<>(TrafficLightType.class);
 
         for(TrafficLightType trafficLightType : TrafficLightType.values()){
             counts.put(trafficLightType,0);
