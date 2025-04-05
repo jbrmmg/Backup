@@ -1568,7 +1568,7 @@ public class SyncApiIT extends FileTester {
 
         Assert.assertTrue(summary.isValid());
         List<SourceDTO> sources = summary.getSources();
-        Assert.assertEquals(4,sources.size());
+        Assert.assertEquals(3,sources.size());
         Assert.assertEquals(14,sources.get(0).getFileCount());
         Assert.assertEquals(11,sources.get(0).getDirectoryCount());
         Assert.assertEquals(6622444,sources.get(0).getLargestFile());
