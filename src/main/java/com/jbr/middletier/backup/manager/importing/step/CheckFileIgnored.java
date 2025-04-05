@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +24,11 @@ public class CheckFileIgnored extends ImportStep {
 
     @Autowired
     protected CheckFileIgnored(ImportFileRepository importFileRepository,
+                               ImportSourceManager importSourceManager,
                                AssociatedFileDataManager associatedFileDataManager,
                                IgnoreFileRepository ignoreFileRepository) {
-        super(importFileRepository, associatedFileDataManager);
+        super(importFileRepository, associatedFileDataManager, importSourceManager);
+        LOG.trace("CheckFileIgnored created");
         this.ignoreFileRepository = ignoreFileRepository;
     }
 

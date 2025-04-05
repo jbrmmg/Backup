@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import com.jbr.middletier.backup.manager.importing.step.process.ProcessBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +24,9 @@ public class ProcessImport extends ImportStep {
     @Autowired
     protected ProcessImport(ImportFileRepository importFileRepository,
                             AssociatedFileDataManager associatedFileDataManager,
-                            List<ProcessBase> processors) {
-        super(importFileRepository, associatedFileDataManager);
+                            List<ProcessBase> processors,
+                            ImportSourceManager importSourceManager) {
+        super(importFileRepository, associatedFileDataManager, importSourceManager);
         this.processors = processors;
     }
 

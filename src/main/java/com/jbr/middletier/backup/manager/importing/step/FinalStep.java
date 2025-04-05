@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,10 @@ public class FinalStep extends ImportStep {
     private static final Logger LOG = LoggerFactory.getLogger(FinalStep.class);
 
     @Autowired
-    protected FinalStep(ImportFileRepository importFileRepository, AssociatedFileDataManager associatedFileDataManager) {
-        super(importFileRepository, associatedFileDataManager);
+    protected FinalStep(ImportFileRepository importFileRepository,
+                        ImportSourceManager importSourceManager,
+                        AssociatedFileDataManager associatedFileDataManager) {
+        super(importFileRepository, associatedFileDataManager, importSourceManager);
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,9 @@ public class RemoveActivePhoto extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected RemoveActivePhoto(AssociatedFileDataManager associatedFileDataManager) {
-        super(ImportFileStatusType.IFS_REMOVE_ACTIVE_PHOTO,associatedFileDataManager);
+    protected RemoveActivePhoto(ImportSourceManager importSourceManager,
+                                AssociatedFileDataManager associatedFileDataManager) {
+        super(ImportFileStatusType.IFS_REMOVE_ACTIVE_PHOTO, associatedFileDataManager, importSourceManager);
 
         this.requiredStepStatus = new HashMap<>();
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());

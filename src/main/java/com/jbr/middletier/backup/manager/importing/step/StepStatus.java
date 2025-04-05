@@ -1,16 +1,32 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jbr.middletier.backup.data.TrafficLightType;
-import com.jbr.middletier.backup.jsonserialization.StepStatusSerializer;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@JsonSerialize(using = StepStatusSerializer.class)
+@JsonSerialize(using = StepStatus.StepStatusSerializer.class)
 public class StepStatus {
     private final Map<FileProcessingStepType, TrafficLightType> status;
+
+    public static class StepStatusSerializer extends JsonSerializer<StepStatus> {
+        @Override
+        public void serialize(StepStatus stepStatus, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            for(FileProcessingStepType step :  FileProcessingStepType.getStepsInOrder()) {
+                TrafficLightType status = stepStatus.getStepStatus(step);
+                jsonGenerator.writeStringField(FileProcessingStepType.getJsonName(step),
+                        TrafficLightType.getTextValue(status));
+            }
+            jsonGenerator.writeEndObject();
+        }
+    }
 
     public StepStatus() {
         this.status = new HashMap<>();

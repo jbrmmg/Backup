@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +32,11 @@ public class CheckDuplicateFile extends ImportStep {
 
     @Autowired
     protected CheckDuplicateFile(ImportFileRepository importFileRepository,
+                                 ImportSourceManager importSourceManager,
                                  AssociatedFileDataManager associatedFileDataManager,
                                  FileRepository fileRepository,
                                  FileSystemObjectManager fileSystemObjectManager) {
-        super(importFileRepository, associatedFileDataManager);
+        super(importFileRepository, associatedFileDataManager, importSourceManager);
         this.fileRepository = fileRepository;
         this.validSources = new ArrayList<>();
         this.fileSystemObjectManager = fileSystemObjectManager;

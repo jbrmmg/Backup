@@ -18,7 +18,7 @@ public class DbLogDTO {
     private Integer fso;
     private String backup;
 
-    static public class DbLogSerializer extends JsonSerializer<DbLogDTO> {
+    public static class DbLogSerializer extends JsonSerializer<DbLogDTO> {
         @Override
         public void serialize(DbLogDTO dbLogDTO, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();

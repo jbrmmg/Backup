@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -22,9 +23,10 @@ public class GatherMetaData extends ImportStep {
     private final FileSystem fileSystem;
 
     protected GatherMetaData(ImportFileRepository importFileRepository,
+                             ImportSourceManager importSourceManager,
                              AssociatedFileDataManager associatedFileDataManager,
                              FileSystem fileSystem) {
-        super(importFileRepository, associatedFileDataManager);
+        super(importFileRepository, associatedFileDataManager, importSourceManager);
         this.fileSystem = fileSystem;
     }
 

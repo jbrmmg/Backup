@@ -27,6 +27,7 @@ public class ImportManager extends FileProcessor {
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final ImportFileCache importFileCache;
+    private final ImportSourceManager importSourceManager;
     private LocalDateTime currentTime;
     private LocalDateTime previousTime;
 
@@ -42,11 +43,13 @@ public class ImportManager extends FileProcessor {
                          DbLoggingManager dbLoggingManager,
                          ActionManager actionManager,
                          FileSystem fileSystem,
-                         ImportFileCache importFileCache) {
+                         ImportFileCache importFileCache,
+                         ImportSourceManager importSourceManager) {
         super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.importFileCache = importFileCache;
+        this.importSourceManager = importSourceManager;
         this.valid = false;
         this.equivalentFileTypes = new ArrayList<>();
 
@@ -66,7 +69,7 @@ public class ImportManager extends FileProcessor {
             File postImportDirectory = null;
 
             // check directories
-            Optional<Source> preImportSource = findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE, this.associatedFileDataManager);
+            Optional<Source> preImportSource = this.importSourceManager.findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE);
             if (preImportSource.isPresent()) {
                 preImportDirectory = new File(preImportSource.get().getPath());
 
@@ -75,7 +78,7 @@ public class ImportManager extends FileProcessor {
                 }
             }
 
-            Optional<Source> importSource = findSource(FileSystemObjectType.FSO_IMPORT_SOURCE, this.associatedFileDataManager);
+            Optional<Source> importSource = this.importSourceManager.findSource(FileSystemObjectType.FSO_IMPORT_SOURCE);
             if (importSource.isPresent()) {
                 importDirectory = new File(importSource.get().getPath());
 
@@ -84,7 +87,7 @@ public class ImportManager extends FileProcessor {
                 }
             }
 
-            Optional<Source> postImportSource = findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE, this.associatedFileDataManager);
+            Optional<Source> postImportSource = this.importSourceManager.findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE);
             if (postImportSource.isPresent()) {
                 postImportDirectory = new File(postImportSource.get().getPath());
 
@@ -129,81 +132,6 @@ public class ImportManager extends FileProcessor {
         }
 
         return false;
-    }
-
-    public static File getPreImportDirectory(AssociatedFileDataManager associatedFileDataManager) {
-        Optional<Source> preImportSource = findSource(FileSystemObjectType.FSO_PRE_IMPORT_SOURCE, associatedFileDataManager);
-        if (preImportSource.isEmpty()) {
-            return null;
-        }
-
-        File preImportDirectory = new File(preImportSource.get().getPath());
-
-        if(!preImportDirectory.exists()) {
-            return null;
-        }
-
-        return preImportDirectory;
-    }
-
-    public static File getImportDirectory(AssociatedFileDataManager associatedFileDataManager) {
-        Optional<Source> importSource = findSource(FileSystemObjectType.FSO_IMPORT_SOURCE, associatedFileDataManager);
-        if (importSource.isEmpty()) {
-            return null;
-        }
-
-        File importDirectory = new File(importSource.get().getPath());
-
-        if(!importDirectory.exists()) {
-            return null;
-        }
-
-        return importDirectory;
-    }
-
-    public static File getPostImportDirectory(AssociatedFileDataManager associatedFileDataManager) {
-        Optional<Source> postImportSource = findSource(FileSystemObjectType.FSO_POST_IMPORT_SOURCE, associatedFileDataManager);
-        if (postImportSource.isEmpty()) {
-            return null;
-        }
-
-        File postImportDirectory = new File(postImportSource.get().getPath());
-
-        if(!postImportDirectory.exists()) {
-            return null;
-        }
-
-        return postImportDirectory;
-    }
-
-    private static List<Source> getSourceIterator(FileSystemObjectType sourceType, AssociatedFileDataManager associatedFileDataManager) {
-        List<Source> result = new ArrayList<>();
-
-        switch (sourceType) {
-            case FSO_PRE_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllPreImportSource());
-            case FSO_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllImportSource());
-            case FSO_POST_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllPostImportSource());
-        }
-
-        return result;
-    }
-
-    private static Optional<Source> findSource(FileSystemObjectType sourceType, AssociatedFileDataManager associatedFileDataManager) {
-        Optional<Source> result = Optional.empty();
-
-        int count = 0;
-        for(Source nextSource : getSourceIterator(sourceType, associatedFileDataManager)) {
-            result = Optional.of(nextSource);
-
-            if(count > 0) {
-                LOG.warn("Too many sources specified, do not import.");
-                return Optional.empty();
-            }
-
-            count++;
-        }
-
-        return result;
     }
 
     private boolean filenamesMatch(String lhs, String rhs) {
@@ -291,9 +219,9 @@ public class ImportManager extends FileProcessor {
         }
 
         // Get a list of files from the 3 directories and the database.
-        Set<String> preImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(getPreImportDirectory(this.associatedFileDataManager),"Pre Import Directory cannot be null."));
-        Set<String> importFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(getImportDirectory(this.associatedFileDataManager), "Import Directory cannot be null."));
-        Set<String> postImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(getPostImportDirectory(this.associatedFileDataManager), "Post Import Directory cannot be null."));
+        Set<String> preImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPreImportDirectory(),"Pre Import Directory cannot be null."));
+        Set<String> importFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getImportDirectory(), "Import Directory cannot be null."));
+        Set<String> postImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPostImportDirectory(), "Post Import Directory cannot be null."));
         Map<String,ImportFile> importFilesDb = new HashMap<>();
         for(ImportFile next: this.importFileRepository.findAll()) {
             // If the name is null, delete the record.
@@ -735,8 +663,8 @@ public class ImportManager extends FileProcessor {
             }
 
             // read the specified file.
-            LOG.info("Read file from {}", getImportDirectory(this.associatedFileDataManager));
-            File source = new File(Objects.requireNonNull(getImportDirectory(this.associatedFileDataManager)).getPath(), importFile.getImportName());
+            LOG.info("Read file from {}", this.importSourceManager.getImportDirectory());
+            File source = new File(Objects.requireNonNull(this.importSourceManager.getImportDirectory()).getPath(), importFile.getImportName());
 
             return fileSystem.readAllBytes(source);
         } catch (IOException e) {

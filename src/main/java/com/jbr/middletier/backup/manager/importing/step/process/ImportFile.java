@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,10 @@ public class ImportFile extends ProcessBase {
     private final FileSystem fileSystem;
 
     @Autowired
-    protected ImportFile(AssociatedFileDataManager associatedFileDataManager,
+    protected ImportFile(ImportSourceManager importSourceManager,
+                         AssociatedFileDataManager associatedFileDataManager,
                          FileSystem fileSystem) {
-        super(ImportFileStatusType.IFS_IMPORT_FILE, associatedFileDataManager);
+        super(ImportFileStatusType.IFS_IMPORT_FILE, associatedFileDataManager, importSourceManager);
 
         this.fileSystem = fileSystem;
 

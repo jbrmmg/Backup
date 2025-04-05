@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +19,13 @@ import java.util.Map;
 @Component
 public class Delete extends ProcessBase {
     private static final Logger LOG = LoggerFactory.getLogger(Delete.class);
+
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected Delete(AssociatedFileDataManager associatedFileDataManager) {
-        super(ImportFileStatusType.IFS_MANUAL_DELETE,associatedFileDataManager);
+    protected Delete(ImportSourceManager importSourceManager,
+                     AssociatedFileDataManager associatedFileDataManager) {
+        super(ImportFileStatusType.IFS_MANUAL_DELETE, associatedFileDataManager, importSourceManager);
 
         this.requiredStepStatus = new HashMap<>();
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());

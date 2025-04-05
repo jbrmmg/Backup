@@ -5,7 +5,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
-import com.jbr.middletier.backup.manager.importing.ImportManager;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +18,16 @@ import java.util.Map;
 
 public abstract class ProcessBase {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessBase.class);
+
     private final ImportFileStatusType type;
+    protected final ImportSourceManager importSourceManager;
     protected final AssociatedFileDataManager associatedFileDataManager;
 
     protected ProcessBase(ImportFileStatusType type,
-                          AssociatedFileDataManager associatedFileDataManager) {
+                          AssociatedFileDataManager associatedFileDataManager,
+                          ImportSourceManager importSourceManager) {
         this.type = type;
+        this.importSourceManager = importSourceManager;
         this.associatedFileDataManager = associatedFileDataManager;
     }
 
@@ -76,15 +80,15 @@ public abstract class ProcessBase {
     }
 
     protected File getPreImportFilename(PreImportFileDTO file) {
-        return new File(ImportManager.getPreImportDirectory(this.associatedFileDataManager), file.getFilename());
+        return new File(this.importSourceManager.getPreImportDirectory(), file.getFilename());
     }
 
     protected File getImportFilename(String filename) {
-        return new File(ImportManager.getImportDirectory(this.associatedFileDataManager), filename);
+        return new File(this.importSourceManager.getImportDirectory(), filename);
     }
 
     protected File getPostImportFilename(PreImportFileDTO file) {
-        return new File(ImportManager.getPostImportDirectory(this.associatedFileDataManager), file.getImportName());
+        return new File(this.importSourceManager.getPostImportDirectory(), file.getImportName());
     }
 
     protected void deleteFile(PreImportFileDTO file) throws IOException  {

@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,9 @@ public class RemoveIgnored extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected RemoveIgnored(AssociatedFileDataManager associatedFileDataManager) {
-        super(ImportFileStatusType.IFS_REMOVE_IGNORED, associatedFileDataManager);
+    protected RemoveIgnored(ImportSourceManager importSourceManager,
+                            AssociatedFileDataManager associatedFileDataManager) {
+        super(ImportFileStatusType.IFS_REMOVE_IGNORED, associatedFileDataManager, importSourceManager);
 
         this.requiredStepStatus = new HashMap<>();
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());

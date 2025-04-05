@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,11 @@ public class CopyToImport extends ReadPreImportFile {
 
     @Autowired
     protected CopyToImport(ImportFileRepository importFileRepository,
+                           ImportSourceManager importSourceManager,
                            AssociatedFileDataManager associatedFileDataManager,
                            FileSystem fileSystem,
                            ApplicationProperties applicationProperties) {
-        super(fileSystem, importFileRepository, associatedFileDataManager);
+        super(fileSystem, importFileRepository, importSourceManager, associatedFileDataManager);
         this.applicationProperties = applicationProperties;
     }
 

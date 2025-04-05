@@ -1,20 +1,49 @@
 package com.jbr.middletier.backup.dto;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jbr.middletier.backup.data.TrafficLightType;
-import com.jbr.middletier.backup.jsonserialization.ImportFileSummarySerializer;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@JsonSerialize(using = ImportFileSummarySerializer.class)
+@JsonSerialize(using = ImportFileSummaryDTO.ImportFileSummarySerializer.class)
 public class ImportFileSummaryDTO {
     private int totalPreImportFiles;
     private int totalImportFiles;
     private int totalPostImportFiles;
     private int queued;
     private final Map<FileProcessingStepType, ImportFileSummaryStepDTO> counts;
+
+    public static class ImportFileSummarySerializer extends JsonSerializer<ImportFileSummaryDTO> {
+        @Override
+        public void serialize(ImportFileSummaryDTO summary, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeNumberField("PreImport", summary.getTotalPreImportFiles());
+            jsonGenerator.writeNumberField("Import", summary.getTotalImportFiles());
+            jsonGenerator.writeNumberField("PostImport", summary.getTotalPostImportFiles());
+            jsonGenerator.writeNumberField("Queued", summary.getQueued());
+
+            for(Map.Entry<FileProcessingStepType, ImportFileSummaryStepDTO> next : summary.getCounts().entrySet()) {
+                // Write the next count.
+                jsonGenerator.writeObjectFieldStart(FileProcessingStepType.getJsonName(next.getKey()));
+
+                ImportFileSummaryStepDTO step = next.getValue();
+
+                for(TrafficLightType nextStatus : TrafficLightType.values()) {
+                    jsonGenerator.writeNumberField(TrafficLightType.getTextValue(nextStatus), step.getCount(nextStatus));
+                }
+
+                jsonGenerator.writeEndObject();
+            }
+
+            jsonGenerator.writeEndObject();
+        }
+    }
 
     public ImportFileSummaryDTO() {
         counts = new HashMap<>();
