@@ -1,9 +1,11 @@
-package com.jbr.middletier.backup.dto;
+package com.jbr.middletier.backup.jsonserialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.dto.ImportFileSummaryDTO;
+import com.jbr.middletier.backup.dto.ImportFileSummaryStepDTO;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 
 import java.io.IOException;

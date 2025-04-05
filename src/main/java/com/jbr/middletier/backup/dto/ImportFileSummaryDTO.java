@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.jsonserialization.ImportFileSummarySerializer;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 
 import java.util.HashMap;

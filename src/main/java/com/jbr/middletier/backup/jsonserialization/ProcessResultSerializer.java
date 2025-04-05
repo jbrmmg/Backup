@@ -1,21 +1,13 @@
-package com.jbr.middletier.backup.dto;
+package com.jbr.middletier.backup.jsonserialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.jbr.middletier.backup.dto.ProcessResultDTO;
 
 import java.io.IOException;
 
-@SuppressWarnings("unused")
-public class ProcessResultSerializer extends StdSerializer<ProcessResultDTO> {
-    public ProcessResultSerializer() {
-        this(null);
-    }
-
-    public ProcessResultSerializer(Class<ProcessResultDTO> t) {
-        super(t);
-    }
-
+public class ProcessResultSerializer extends JsonSerializer<ProcessResultDTO> {
     @Override
     public void serialize(ProcessResultDTO processResultDTO, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();

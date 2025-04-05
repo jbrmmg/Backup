@@ -1,20 +1,14 @@
-package com.jbr.middletier.backup.dto;
+package com.jbr.middletier.backup.jsonserialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.jbr.middletier.backup.dto.DbLogDTO;
 
 import java.io.IOException;
 
 @SuppressWarnings("unused")
-public class DbLogSerializer  extends StdSerializer<DbLogDTO> {
-
-    public DbLogSerializer() { this(null); }
-
-    public DbLogSerializer(Class<DbLogDTO> t) {
-        super(t);
-    }
-
+public class DbLogSerializer  extends JsonSerializer<DbLogDTO> {
     @Override
     public void serialize(DbLogDTO dbLogDTO, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();

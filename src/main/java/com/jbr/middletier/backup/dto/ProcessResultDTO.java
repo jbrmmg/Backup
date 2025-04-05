@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.jbr.middletier.backup.jsonserialization.ProcessResultSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,36 +10,20 @@ import java.util.Map;
 public class ProcessResultDTO {
     private final int underlyingId;
     private boolean problems;
-    private final Map<String,Count> counts;
-
-    private static class Count{
-        int countValue;
-
-        public Count(int initial) {
-            this.countValue = initial;
-        }
-
-        public void increment() {
-            this.countValue++;
-        }
-
-        public int get() {
-            return this.countValue;
-        }
-    }
+    private final Map<String,Integer> counts;
 
     protected void increment(String name) {
         if(counts.containsKey(name)) {
-            counts.get(name).increment();
+            counts.put(name, counts.get(name) + 1);
         }
     }
 
-    protected int getCount(String name) {
+    public int getCount(String name) {
         if(counts.containsKey(name)) {
-            return counts.get(name).get();
+            return counts.get(name);
         }
 
-        counts.put(name, new Count(0));
+        counts.put(name, 0);
         return 0;
     }
 
@@ -48,7 +33,7 @@ public class ProcessResultDTO {
         this.counts = new HashMap<>();
     }
 
-    public Map<String,Count> getCounts() {
+    public Map<String,Integer> getCounts() {
         return this.counts;
     }
 

@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jbr.middletier.backup.data.DbLogType;
+import com.jbr.middletier.backup.jsonserialization.DbLogSerializer;
 
 import java.time.LocalDateTime;
 
