@@ -7,9 +7,6 @@ import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -24,7 +21,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
 
 import static org.hamcrest.Matchers.*;
@@ -127,14 +123,14 @@ public class ImportIT extends FileTester {
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus("OK");
-        sourceDTO.setPath(sourceDirectory);
+        sourceDTO.setPath(SOURCE_DIRECTORY);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         importSourceDTO.setStatus("OK");
-        importSourceDTO.setPath(importDirectory);
+        importSourceDTO.setPath(IMPORT_DIRECTORY);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
 
         this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(importSourceDTO));
@@ -142,14 +138,14 @@ public class ImportIT extends FileTester {
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
         preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         preImportSourceDTO.setStatus("OK");
-        preImportSourceDTO.setPath(preImportDirectory);
+        preImportSourceDTO.setPath(PRE_IMPORT_DIRECTORY);
 
         this.preImportSource = associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
 
         PostImportSourceDTO postImportSourceDTO = new PostImportSourceDTO();
         postImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         postImportSourceDTO.setStatus("OK");
-        postImportSourceDTO.setPath(postImportDirectory);
+        postImportSourceDTO.setPath(POST_IMPORT_DIRECTORY);
 
         this.postImportSource = associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(postImportSourceDTO));
     }
@@ -247,10 +243,10 @@ public class ImportIT extends FileTester {
     @Test
     public void basicImportTest() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> importDescription = getTestStructure("test16_import");
-        copyFiles(importDescription, preImportDirectory);
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
         driveManager.gather();
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
@@ -308,10 +304,10 @@ public class ImportIT extends FileTester {
     @Test
     public void gatherTestIgnore() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> importDesciption = getTestStructure("test14_1");
-        copyFiles(importDesciption, importDirectory);
+        copyFiles(importDesciption, IMPORT_DIRECTORY);
 
 //        List<GatherDataDTO> result = importManager.importPhoto();
 //        checkGather(result, 5, 0);
@@ -341,10 +337,10 @@ public class ImportIT extends FileTester {
     @Test
     public void testNonBackup() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> importDesciption = getTestStructure("test1");
-        copyFiles(importDesciption, importDirectory);
+        copyFiles(importDesciption, IMPORT_DIRECTORY);
 
 //        List<GatherDataDTO> result = importManager.importPhoto();
 //        checkGather(result, 1, 1);
@@ -356,10 +352,10 @@ public class ImportIT extends FileTester {
     @Test
     public void testRecipe() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> importDesciption = getTestStructure("test14_1");
-        copyFiles(importDesciption, importDirectory);
+        copyFiles(importDesciption, IMPORT_DIRECTORY);
 
 //        List<GatherDataDTO> result = importManager.importPhoto();
 //        checkGather(result, 5, 0);
@@ -384,10 +380,10 @@ public class ImportIT extends FileTester {
     @Test
     public void testSimilarFile() throws IOException, ImportRequestException, InvalidFileIdException {
         List<StructureDescription> sourceDescription = getTestStructure("test16");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> importDesciption = getTestStructure("test16_import");
-        copyFiles(importDesciption, importDirectory);
+        copyFiles(importDesciption, IMPORT_DIRECTORY);
 
         // Import the source data.
         driveManager.gather();
@@ -411,10 +407,10 @@ public class ImportIT extends FileTester {
     @Test
     public void testHeicFile() throws IOException, ImportRequestException {
         List<StructureDescription> sourceDescription = getTestStructure("test17");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> importDescription = getTestStructure("test17_import");
-        copyFiles(importDescription, preImportDirectory);
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
         // Import the source data
         driveManager.gather();

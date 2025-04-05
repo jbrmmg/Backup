@@ -212,30 +212,25 @@ public class ImportManager extends FileProcessor {
         return importFile;
     }
 
-    private void updateCache() {
-        // Only perform this operation if the manager is valid.
-        if(!this.valid) {
-            return;
-        }
+    private Map<String,ImportFile> getImportFilesDb() {
+        Map<String,ImportFile> result = new HashMap<>();
 
-        // Get a list of files from the 3 directories and the database.
-        Set<String> preImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPreImportDirectory(),"Pre Import Directory cannot be null."));
-        Set<String> importFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getImportDirectory(), "Import Directory cannot be null."));
-        Set<String> postImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPostImportDirectory(), "Post Import Directory cannot be null."));
-        Map<String,ImportFile> importFilesDb = new HashMap<>();
         for(ImportFile next: this.importFileRepository.findAll()) {
             // If the name is null, delete the record.
             if(next.getName() == null) {
                 this.importFileRepository.delete(next);
             } else {
-                importFilesDb.put(next.getName().toLowerCase(), next);
+                result.put(next.getName().toLowerCase(), next);
             }
         }
 
-        // The id of the file is the name, however some files get a different name in the import and post
-        // import directories.
+        return result;
+    }
 
-        // There should be one row for each file in the pre-import directory.
+    private void setDirectoryFlags(Set<String> preImportFiles,
+                                   Set<String> importFiles,
+                                   Set<String> postImportFiles,
+                                   Map<String,ImportFile> importFilesDb) {
         for(String nextPreImport : preImportFiles) {
             // Get cached data.
             PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport,true, importFilesDb);
@@ -256,10 +251,10 @@ public class ImportManager extends FileProcessor {
                 }
             }
         }
+    }
 
-        // Error states:
-        //  (1) a file that is in the post import directory that is not in the pre-import directory.
-        for(String nextPostImport : postImportFiles) {
+    public void checkExtraImport(Set<String> preImportFiles, Set<String> importFiles, boolean postImport) {
+        for(String nextPostImport : importFiles) {
             // Is this file in the pre-import directory?
             for(String  nextPreImport : preImportFiles) {
                 if(filenamesMatch(nextPreImport, nextPostImport)) {
@@ -268,25 +263,16 @@ public class ImportManager extends FileProcessor {
 
                 // This is a problem.
                 PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true, null);
-                importFileError.setErrorInPostImport(true);
-            }
-        }
-
-        //  (2) a file that is in the import directory that is not in the pre-import directory.
-        for(String nextPostImport : postImportFiles) {
-            // Is this file in the pre-import directory?
-            for(String  nextPreImport : preImportFiles) {
-                if(filenamesMatch(nextPreImport, nextPostImport)) {
-                    break;
+                if(postImport) {
+                    importFileError.setErrorInPostImport(true);
+                } else {
+                    importFileError.setErrorInImport(true);
                 }
-
-                // This is a problem.
-                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true, null);
-                importFileError.setErrorInImport(true);
             }
         }
+    }
 
-        // Delete anything from the database that is not in the import directory.
+    private void cleanUpDatabase(Set<String> preImportFiles, Map<String,ImportFile> importFilesDb) {
         for(Map.Entry<String,ImportFile> next: importFilesDb.entrySet()) {
             boolean dbOK = false;
             for(String nextPreImport : preImportFiles) {
@@ -301,8 +287,9 @@ public class ImportManager extends FileProcessor {
                 this.importFileRepository.delete(next.getValue());
             }
         }
+    }
 
-        // If there is anything in the cache that is marked as removed, then remove it.
+    private void cleanupCache() {
         List<String> remove = new ArrayList<>();
         for(String filename : this.importFileCache.getFiles()) {
             PreImportFileDTO importFile = getOrCreateCachedData(filename,false,null);
@@ -316,6 +303,38 @@ public class ImportManager extends FileProcessor {
         for(String nextRemove: remove) {
             this.importFileCache.remove(nextRemove);
         }
+    }
+
+    private void updateCache() {
+        // Only perform this operation if the manager is valid.
+        if(!this.valid) {
+            return;
+        }
+
+        // Get a list of files from the 3 directories and the database.
+        Set<String> preImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPreImportDirectory(),"Pre Import Directory cannot be null."));
+        Set<String> importFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getImportDirectory(), "Import Directory cannot be null."));
+        Set<String> postImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPostImportDirectory(), "Post Import Directory cannot be null."));
+        Map<String,ImportFile> importFilesDb = getImportFilesDb();
+
+        // The id of the file is the name, however some files get a different name in the import and post
+        // import directories.
+
+        // There should be one row for each file in the pre-import directory.
+        setDirectoryFlags(preImportFiles, importFiles, postImportFiles, importFilesDb);
+
+        // Error states:
+        //  (1) a file that is in the post import directory that is not in the pre-import directory.
+        checkExtraImport(preImportFiles, importFiles,false);
+
+        //  (2) a file that is in the import directory that is not in the pre-import directory.
+        checkExtraImport(preImportFiles, postImportFiles,true);
+
+        // Delete anything from the database that is not in the import directory.
+        cleanUpDatabase(preImportFiles, importFilesDb);
+
+        // If there is anything in the cache that is marked as removed, then remove it.
+        cleanupCache();
     }
 
     @Override

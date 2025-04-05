@@ -83,7 +83,6 @@ public class SyncApiIT extends FileTester {
 
     private Source source;
     private Source destination;
-    private ImportSource importSource;
     private Synchronize synchronize;
 
     @Before
@@ -114,17 +113,17 @@ public class SyncApiIT extends FileTester {
         }
 
         // During this test create files in the following directories
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
+        deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
+        Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
 
-        deleteDirectoryContents(new File(destinationDirectory).toPath());
-        Files.createDirectories(new File(destinationDirectory).toPath());
+        deleteDirectoryContents(new File(DESTINATION_DIRECTORY).toPath());
+        Files.createDirectories(new File(DESTINATION_DIRECTORY).toPath());
 
-        deleteDirectoryContents(new File(importDirectory).toPath());
-        Files.createDirectories(new File(importDirectory).toPath());
+        deleteDirectoryContents(new File(IMPORT_DIRECTORY).toPath());
+        Files.createDirectories(new File(IMPORT_DIRECTORY).toPath());
 
-        deleteDirectoryContents(new File(preImportDirectory).toPath());
-        Files.createDirectories(new File(preImportDirectory).toPath());
+        deleteDirectoryContents(new File(PRE_IMPORT_DIRECTORY).toPath());
+        Files.createDirectories(new File(PRE_IMPORT_DIRECTORY).toPath());
 
         // Create the standard sources
         Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
@@ -138,14 +137,14 @@ public class SyncApiIT extends FileTester {
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus("OK");
-        sourceDTO.setPath(sourceDirectory);
+        sourceDTO.setPath(SOURCE_DIRECTORY);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
         sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus("OK");
-        sourceDTO.setPath(destinationDirectory);
+        sourceDTO.setPath(DESTINATION_DIRECTORY);
 
         this.destination = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
@@ -156,15 +155,13 @@ public class SyncApiIT extends FileTester {
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setLocation(associatedFileDataManager.convertToDTO(importLocation.get()));
         importSourceDTO.setStatus("OK");
-        importSourceDTO.setPath(importDirectory);
+        importSourceDTO.setPath(IMPORT_DIRECTORY);
         importSourceDTO.setDestinationId(this.source.getIdAndType().getId());
-
-        this.importSource = associatedFileDataManager.createImportSource(associatedFileDataManager.convertToEntity(importSourceDTO));
 
         PreImportSourceDTO preImportSourceDTO = new PreImportSourceDTO();
         preImportSourceDTO.setLocation(associatedFileDataManager.convertToDTO(importLocation.get()));
         preImportSourceDTO.setStatus("OK");
-        preImportSourceDTO.setPath(preImportDirectory);
+        preImportSourceDTO.setPath(PRE_IMPORT_DIRECTORY);
 
         associatedFileDataManager.createPreImportSource(associatedFileDataManager.convertToEntity(preImportSourceDTO));
 
@@ -198,7 +195,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -217,9 +214,9 @@ public class SyncApiIT extends FileTester {
 
         // Update the directory structure
         sourceDescription = getTestStructure("test2");
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
-        copyFiles(sourceDescription, sourceDirectory);
+        deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
+        Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         LOG.info("Gather the data.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -237,9 +234,9 @@ public class SyncApiIT extends FileTester {
 
         // Update the directory structure again.
         sourceDescription = getTestStructure("test3");
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
-        copyFiles(sourceDescription, sourceDirectory);
+        deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
+        Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         LOG.info("Gather the data.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -274,7 +271,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test15");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -324,7 +321,7 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -370,7 +367,7 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -534,7 +531,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Remove the destination source or this test.
         associatedFileDataManager.deleteSynchronize(this.synchronize);
@@ -555,7 +552,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager, this.source,sourceDescription);
-        Assert.assertTrue(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
+        Assert.assertTrue(Files.exists(new File(SOURCE_DIRECTORY + "/Documents/Text1.txt").toPath()));
 
         Optional<FileInfo> deleteFile = Optional.empty();
         List<FileInfo> files = new ArrayList<>();
@@ -586,7 +583,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)));
-        Assert.assertFalse(Files.exists(new File(sourceDirectory + "/Documents/Text1.txt").toPath()));
+        Assert.assertFalse(Files.exists(new File(SOURCE_DIRECTORY + "/Documents/Text1.txt").toPath()));
     }
 
     @Test
@@ -594,7 +591,7 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -775,7 +772,7 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test7");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -841,7 +838,7 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test8");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
@@ -907,7 +904,7 @@ public class SyncApiIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -1045,7 +1042,7 @@ public class SyncApiIT extends FileTester {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test9");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1100,7 +1097,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[1].deletes", is(0)));
 
-        File fileToDelete = new File(sourceDirectory + "/Documents/Bills.ods");
+        File fileToDelete = new File(SOURCE_DIRECTORY + "/Documents/Bills.ods");
         Files.deleteIfExists(fileToDelete.toPath());
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1195,7 +1192,7 @@ public class SyncApiIT extends FileTester {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test10");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1251,7 +1248,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[1].deletes", is(0)));
 
-        File directoryToDelete = new File(sourceDirectory + "/Documents/sub");
+        File directoryToDelete = new File(SOURCE_DIRECTORY + "/Documents/sub");
         FileUtils.deleteDirectory(directoryToDelete);
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1344,7 +1341,7 @@ public class SyncApiIT extends FileTester {
     public void testSyncFileToDirectory() throws Exception {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12_2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1368,7 +1365,7 @@ public class SyncApiIT extends FileTester {
 
         initialiseDirectories();
         sourceDescription = getTestStructure("test12");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1396,7 +1393,7 @@ public class SyncApiIT extends FileTester {
     public void testSyncDirectoryToFile() throws Exception {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1420,7 +1417,7 @@ public class SyncApiIT extends FileTester {
 
         initialiseDirectories();
         sourceDescription = getTestStructure("test12_2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1449,10 +1446,10 @@ public class SyncApiIT extends FileTester {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test11");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         List<StructureDescription> destinationDescription = getTestStructure("test11_dest");
-        copyFiles(destinationDescription, destinationDirectory);
+        copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
         // Gather the files.
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1517,7 +1514,7 @@ public class SyncApiIT extends FileTester {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Remove the destination
         associatedFileDataManager.updateSourceStatus(this.destination, SourceStatusType.SST_GATHERING);
@@ -1551,7 +1548,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -1593,7 +1590,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -1621,7 +1618,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -1672,7 +1669,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");
@@ -1702,7 +1699,7 @@ public class SyncApiIT extends FileTester {
 
         // Copy the resource files into the source directory
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
         LOG.info("Gather the data.");

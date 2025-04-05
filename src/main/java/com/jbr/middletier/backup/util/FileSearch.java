@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.util;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -8,17 +7,58 @@ import java.time.format.DateTimeParseException;
 public class FileSearch {
     public enum SearchType { NAME, MD5, DATETIME, SIZE }
 
+    private static class StringAnalysis {
+        private boolean letter = false;
+        private boolean number = false;
+        private boolean space = false;
+        private boolean dash = false;
+        private boolean other = false;
+
+        private boolean isNumber(char c) {
+            return c >= '0' && c <= '9';
+        }
+
+        private boolean isLetter(char c) {
+            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+        }
+
+        StringAnalysis(String search) {
+            for(char c : search.toCharArray()){
+                switch(c){
+                    case '-':
+                        dash = true;
+                        break;
+                    case ' ':
+                        space = true;
+                        break;
+                    default:
+                        number = isNumber(c);
+
+                        if(!number){
+                            letter = isLetter(c);
+
+                            if(!letter){
+                                other = true;
+                            }
+                        }
+                }
+            }
+        }
+
+        public boolean hasLetter() { return this.letter; }
+
+        public boolean hasNumber() { return this.number; }
+
+        public boolean hasNoSpace() { return !this.space; }
+
+        public boolean hasDash() { return this.dash; }
+
+        public boolean hasNoOther() { return !this.other; }
+    }
+
     private final SearchType searchType;
     private final String search;
     private LocalDateTime dateTime;
-
-    private boolean isNumber(char c) {
-        return c >= '0' && c <= '9';
-    }
-
-    private boolean isLetter(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-    }
 
     private boolean isDate(String date) {
         // If the string is a date then set the date time and return true.
@@ -45,51 +85,22 @@ public class FileSearch {
         this.dateTime = null;
 
         // Possible types of search; name, md5, date or size.
-        boolean letter = false;
-        boolean number = false;
-        boolean space = false;
-        boolean dash = false;
-        boolean other = false;
-        boolean colon = false;
-
-        for(char c : search.toCharArray()){
-            switch(c){
-                case '-':
-                    dash = true;
-                    break;
-                case ' ':
-                    space = true;
-                    break;
-                case ':':
-                    colon = true;
-                    break;
-                default:
-                    number = isNumber(c);
-
-                    if(!number){
-                        letter = isLetter(c);
-
-                        if(!letter){
-                            other = true;
-                        }
-                    }
-            }
-        }
+        StringAnalysis stringAnalysis = new StringAnalysis(search);
 
         // Is this an MD5?
-        if(search.length() == 32 && !space && !other && !dash){
+        if(search.length() == 32 && stringAnalysis.hasNoSpace() && stringAnalysis.hasNoOther() && !stringAnalysis.hasDash()){
             this.searchType = SearchType.MD5;
             return;
         }
 
         // If just number, then its size.
-        if(number && !letter && !dash && !other && !space){
+        if(stringAnalysis.hasNumber() && !stringAnalysis.hasLetter() && !stringAnalysis.hasDash() && stringAnalysis.hasNoOther() && stringAnalysis.hasNoSpace()){
             this.searchType = SearchType.SIZE;
             return;
         }
 
         // If this looks like a date.
-        if(number && dash && isDate(search)) {
+        if(stringAnalysis.hasNumber() && stringAnalysis.hasDash() && isDate(search)) {
             this.searchType = SearchType.DATETIME;
             return;
         }

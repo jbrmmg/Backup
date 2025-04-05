@@ -31,6 +31,10 @@ public class ImportSourceManager {
             case FSO_PRE_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllPreImportSource());
             case FSO_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllImportSource());
             case FSO_POST_IMPORT_SOURCE -> result.addAll(associatedFileDataManager.findAllPostImportSource());
+            default -> {
+                // Just return empty.
+                return result;
+            }
         }
 
         return result;

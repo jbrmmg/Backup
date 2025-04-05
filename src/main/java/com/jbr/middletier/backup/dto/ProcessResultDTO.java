@@ -29,9 +29,7 @@ public class ProcessResultDTO {
     }
 
     protected void increment(String name) {
-        if(counts.containsKey(name)) {
-            counts.put(name, counts.get(name) + 1);
-        }
+        counts.computeIfPresent(name, (k, v) -> v + 1);
     }
 
     public int getCount(String name) {
