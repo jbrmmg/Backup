@@ -20,7 +20,7 @@ public class CheckFileConfirmedImported extends ImportStep {
     private static final Logger LOG = LoggerFactory.getLogger(CheckFileConfirmedImported.class);
 
     @Autowired
-    protected CheckFileConfirmedImported(ImportFileRepository importFileRepository,
+    public CheckFileConfirmedImported(ImportFileRepository importFileRepository,
                                          ImportSourceManager importSourceManager) {
         super(importFileRepository, importSourceManager);
     }

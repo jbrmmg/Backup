@@ -32,7 +32,7 @@ public class ImportFile extends ProcessBase {
     private final AssociatedFileDataManager associatedFileDataManager;
 
     @Autowired
-    protected ImportFile(ImportSourceManager importSourceManager,
+    public ImportFile(ImportSourceManager importSourceManager,
                          AssociatedFileDataManager associatedFileDataManager,
                          FileSystem fileSystem) {
         super(ImportFileStatusType.IFS_IMPORT_FILE, importSourceManager);

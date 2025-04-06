@@ -21,7 +21,7 @@ public class RemoveActivePhoto extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected RemoveActivePhoto(ImportSourceManager importSourceManager) {
+    public RemoveActivePhoto(ImportSourceManager importSourceManager) {
         super(ImportFileStatusType.IFS_REMOVE_ACTIVE_PHOTO, importSourceManager);
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);

@@ -20,7 +20,7 @@ public class Read extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected Read(ImportSourceManager importSourceManager) {
+    public Read(ImportSourceManager importSourceManager) {
         super(ImportFileStatusType.IFS_READ, importSourceManager);
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);

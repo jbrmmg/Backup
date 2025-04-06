@@ -21,7 +21,7 @@ public class ProcessImport extends ImportStep {
     private final List<ProcessBase> processors;
 
     @Autowired
-    protected ProcessImport(ImportFileRepository importFileRepository,
+    public ProcessImport(ImportFileRepository importFileRepository,
                             List<ProcessBase> processors,
                             ImportSourceManager importSourceManager) {
         super(importFileRepository, importSourceManager);

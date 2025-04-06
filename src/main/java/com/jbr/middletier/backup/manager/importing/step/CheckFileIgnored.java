@@ -22,7 +22,7 @@ public class CheckFileIgnored extends ImportStep {
     private final IgnoreFileRepository ignoreFileRepository;
 
     @Autowired
-    protected CheckFileIgnored(ImportFileRepository importFileRepository,
+    public CheckFileIgnored(ImportFileRepository importFileRepository,
                                ImportSourceManager importSourceManager,
                                IgnoreFileRepository ignoreFileRepository) {
         super(importFileRepository, importSourceManager);

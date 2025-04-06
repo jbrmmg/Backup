@@ -22,7 +22,7 @@ public class Delete extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected Delete(ImportSourceManager importSourceManager) {
+    public Delete(ImportSourceManager importSourceManager) {
         super(ImportFileStatusType.IFS_MANUAL_DELETE, importSourceManager);
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);

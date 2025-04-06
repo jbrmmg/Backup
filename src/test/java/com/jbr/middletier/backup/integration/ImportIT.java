@@ -200,10 +200,8 @@ public class ImportIT extends FileTester {
                 }
             }
 
-            if(!done) {
-                if(limit.isBefore(LocalDateTime.now())) {
-                    throw new IllegalStateException("It has taken too long for the import processing to finish.");
-                }
+            if(!done && limit.isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("It has taken too long for the import processing to finish.");
             }
             LOG.info("Waiting for the queue to complete.");
             Thread.sleep(300);

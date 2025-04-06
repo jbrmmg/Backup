@@ -21,7 +21,7 @@ public class RemoveImported extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected RemoveImported(ImportSourceManager importSourceManager) {
+    public RemoveImported(ImportSourceManager importSourceManager) {
         super(ImportFileStatusType.IFS_REMOVE_IMPORTED, importSourceManager);
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);

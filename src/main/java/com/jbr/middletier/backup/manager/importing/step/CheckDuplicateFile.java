@@ -32,7 +32,7 @@ public class CheckDuplicateFile extends ImportStep {
     private final List<Source> validSources;
 
     @Autowired
-    protected CheckDuplicateFile(ImportFileRepository importFileRepository,
+    public CheckDuplicateFile(ImportFileRepository importFileRepository,
                                  ImportSourceManager importSourceManager,
                                  AssociatedFileDataManager associatedFileDataManager,
                                  FileRepository fileRepository,

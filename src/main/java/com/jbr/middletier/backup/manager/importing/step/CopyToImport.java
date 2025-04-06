@@ -29,7 +29,7 @@ public class CopyToImport extends ReadPreImportFile {
     private final ApplicationProperties applicationProperties;
 
     @Autowired
-    protected CopyToImport(ImportFileRepository importFileRepository,
+    public CopyToImport(ImportFileRepository importFileRepository,
                            ImportSourceManager importSourceManager,
                            FileSystem fileSystem,
                            ApplicationProperties applicationProperties) {

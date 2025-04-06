@@ -16,7 +16,7 @@ public class FinalStep extends ImportStep {
     private static final Logger LOG = LoggerFactory.getLogger(FinalStep.class);
 
     @Autowired
-    protected FinalStep(ImportFileRepository importFileRepository,
+    public FinalStep(ImportFileRepository importFileRepository,
                         ImportSourceManager importSourceManager) {
         super(importFileRepository, importSourceManager);
     }

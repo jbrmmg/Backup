@@ -21,7 +21,7 @@ public class CheckActivePhotoFile extends ImportStep {
     private final FileRepository fileRepository;
 
     @Autowired
-    protected CheckActivePhotoFile(ImportFileRepository importFileRepository,
+    public CheckActivePhotoFile(ImportFileRepository importFileRepository,
                                    FileRepository fileRepository,
                                    ImportSourceManager importSourceManager) {
         super(importFileRepository, importSourceManager);
