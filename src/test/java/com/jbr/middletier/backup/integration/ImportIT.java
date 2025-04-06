@@ -35,7 +35,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -84,9 +83,6 @@ public class ImportIT extends FileTester {
 
     @Autowired
     DriveManager driveManager;
-
-    @Autowired
-    ActionManager actionManager;
 
     Source source;
     ImportSource importSource;
@@ -148,11 +144,11 @@ public class ImportIT extends FileTester {
 
         this.postImportSource = associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(postImportSourceDTO));
 
-        Source source = new Source();
-        source.setLocation(existingLocation.get());
-        source.setStatus(SourceStatusType.SST_OK);
-        source.setPath(SOURCE_DIRECTORY);
-        source = associatedFileDataManager.createSource(source);
+        Source dbSource = new Source();
+        dbSource.setLocation(existingLocation.get());
+        dbSource.setStatus(SourceStatusType.SST_OK);
+        dbSource.setPath(SOURCE_DIRECTORY);
+        dbSource = associatedFileDataManager.createSource(dbSource);
 
         Source destination = new Source();
         destination.setLocation(existingLocation.get());
@@ -161,7 +157,7 @@ public class ImportIT extends FileTester {
         destination = associatedFileDataManager.createSource(destination);
 
         Synchronize synchronize = new Synchronize();
-        synchronize.setSource(source);
+        synchronize.setSource(dbSource);
         synchronize.setDestination(destination);
         associatedFileDataManager.createSynchronize(synchronize);
 
@@ -406,7 +402,7 @@ public class ImportIT extends FileTester {
                 .andReturn();
         waitForQueue();
 
-        // Update the files and reset the import data..
+        // Update the files and reset the import data.
         driveManager.gather();
         importManager.clearCacheData();
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -434,62 +430,112 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testRecipe() throws IOException {
-        List<StructureDescription> sourceDescription = getTestStructure("test1");
+    public void testRecipe() throws Exception {
+        List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDescription = getTestStructure("test14_1");
-        copyFiles(importDescription, IMPORT_DIRECTORY);
+        List<StructureDescription> importDescription = getTestStructure("test14_2");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-//        List<GatherDataDTO> result = importManager.importPhoto();
-//        checkGather(result, 5, 0);
-
-//        List<ImportDataDTO> importResult = importManager.processImportFiles();
-//        checkImport(importResult, 0, 0, 0, 0, 0);
-
-//        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", false);
-//        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", false);
-//        confirmActions();
-
-//        importResult = importManager.processImportFiles();
-//        checkImport(importResult, 5, 0, 0, 0, 0);
-
-//        sourceDescription = getTestStructure("test14_recipe");
-//        driveManager.gather();
-//        validateSource(fileSystemObjectManager, this.source, sourceDescription);
-
-        actionManager.clearImportActions();
-    }
-
-    @Test
-    public void testSimilarFile() throws IOException {
-        List<StructureDescription> sourceDescription = getTestStructure("test16");
-        copyFiles(sourceDescription, SOURCE_DIRECTORY);
-
-        List<StructureDescription> importDescription = getTestStructure("test16_import");
-        copyFiles(importDescription, IMPORT_DIRECTORY);
-
-        // Import the source data.
         driveManager.gather();
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-//        List<GatherDataDTO> result = importManager.importPhoto();
-//        checkGather(result, 1, 0);
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
 
-        // Process the import.
-//        importManager.processImportFiles();
+        // Set the destination.
+        getMockMvc().perform(post("/jbr/int/backup/recipe-file")
+                        .content("IMG_8231.jpg")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
 
-        // Request the id of the file created.
-        AtomicInteger id = new AtomicInteger(-1);
-        fileSystemObjectManager.findFileSystemObjectByName("IMG_8231.jpeg", FileSystemObjectType.FSO_IMPORT_FILE)
-                .forEach(file -> id.set(file.getIdAndType().getId()) );
+        // Import the file.
+        getMockMvc().perform(post("/jbr/int/backup/import-photos")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
 
-//        ImportFileDTO file = importManager.externalFindImportFile(id.get());
-//        Assert.assertEquals(id.get(),file.getId().longValue());
-//        Assert.assertEquals(1,file.getSimilarFiles().size());
+        // Update the files and reset the import data.
+        driveManager.gather();
+        importManager.clearCacheData();
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
+        waitForQueue();
+
+        // Ask to remove any ignored.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Check that the imported file has been removed.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
+        waitForQueue();
     }
 
     @Test
-    public void testHeicFile() throws IOException {
+    public void testRemoveActivePhoto() throws Exception {
+        List<StructureDescription> sourceDescription = getTestStructure("test7");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> importDescription = getTestStructure("test14_2");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
+
+        driveManager.gather();
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
+        waitForQueue();
+
+        // Ask to remove any ignored.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-active-photos")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1016.JPEG")));
+        waitForQueue();
+    }
+
+    @Test
+    public void testHeicFile() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test17");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -498,11 +544,59 @@ public class ImportIT extends FileTester {
 
         // Import the source data
         driveManager.gather();
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-//        List<ImportProcessDTO> convertData = importManager.convertImportFiles();
-//        checkPreImport(convertData,1,0,1,0);
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
 
-//        List<GatherDataDTO> result = importManager.importPhoto();
-//        checkGather(result, 1, 0);
+        // Set the destination.
+        DestinationUpdateDTO destinationUpdate = new  DestinationUpdateDTO();
+        destinationUpdate.setDestination("AtHome");
+        destinationUpdate.setFilename("IMG_8231.HEIC");
+        getMockMvc().perform(post("/jbr/int/backup/update-destination")
+                        .content(this.json(destinationUpdate))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Import the file.
+        getMockMvc().perform(post("/jbr/int/backup/import-photos")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Update the files and reset the import data.
+        driveManager.gather();
+        importManager.clearCacheData();
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.HEIC")));
+        waitForQueue();
+
+        // Ask to remove any ignored.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Check that the imported file has been removed.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+        waitForQueue();
     }
 }

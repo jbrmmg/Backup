@@ -545,7 +545,7 @@ public class ImportManager extends FileProcessor {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Has this already been marked as a recipe?
-            if(file.getDestination().equalsIgnoreCase(RECIPE_FILE_DESTINATION)) {
+            if(file.getDestination() != null && file.getDestination().equalsIgnoreCase(RECIPE_FILE_DESTINATION)) {
                 return true;
             }
 
