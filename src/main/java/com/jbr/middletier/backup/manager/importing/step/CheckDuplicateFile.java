@@ -28,6 +28,7 @@ public class CheckDuplicateFile extends ImportStep {
 
     private final FileRepository fileRepository;
     private final FileSystemObjectManager fileSystemObjectManager;
+    private final AssociatedFileDataManager associatedFileDataManager;
     private final List<Source> validSources;
 
     @Autowired
@@ -36,10 +37,11 @@ public class CheckDuplicateFile extends ImportStep {
                                  AssociatedFileDataManager associatedFileDataManager,
                                  FileRepository fileRepository,
                                  FileSystemObjectManager fileSystemObjectManager) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+        super(importFileRepository, importSourceManager);
         this.fileRepository = fileRepository;
         this.validSources = new ArrayList<>();
         this.fileSystemObjectManager = fileSystemObjectManager;
+        this.associatedFileDataManager = associatedFileDataManager;
     }
 
     @PostConstruct
@@ -130,7 +132,7 @@ public class CheckDuplicateFile extends ImportStep {
     private void getImportNameAndSizeCloseDate(String name, long size, LocalDateTime date, PreImportFileDTO importFile) {
         for(FileInfo next : fileRepository.findByName(name)) {
             File file = validSource(next);
-            long seconds = Duration.between(next.getDate(), date).toSeconds();
+            long seconds = next.getDate() == null ? 86400 : Duration.between(next.getDate(), date).toSeconds();
 
             // File not from valid source, size does not match, date does not batch or time is too far apart then continue.
             if(file == null ||

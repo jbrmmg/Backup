@@ -4,7 +4,6 @@ import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
@@ -18,9 +17,8 @@ public class FinalStep extends ImportStep {
 
     @Autowired
     protected FinalStep(ImportFileRepository importFileRepository,
-                        ImportSourceManager importSourceManager,
-                        AssociatedFileDataManager associatedFileDataManager) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+                        ImportSourceManager importSourceManager) {
+        super(importFileRepository, importSourceManager);
     }
 
     @Override

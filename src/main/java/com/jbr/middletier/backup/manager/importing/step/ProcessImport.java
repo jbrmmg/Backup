@@ -5,7 +5,6 @@ import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import com.jbr.middletier.backup.manager.importing.step.process.ProcessBase;
@@ -23,10 +22,9 @@ public class ProcessImport extends ImportStep {
 
     @Autowired
     protected ProcessImport(ImportFileRepository importFileRepository,
-                            AssociatedFileDataManager associatedFileDataManager,
                             List<ProcessBase> processors,
                             ImportSourceManager importSourceManager) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+        super(importFileRepository, importSourceManager);
         this.processors = processors;
     }
 

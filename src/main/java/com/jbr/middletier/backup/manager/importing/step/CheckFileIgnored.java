@@ -8,7 +8,6 @@ import com.jbr.middletier.backup.dataaccess.IgnoreFileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
@@ -25,9 +24,8 @@ public class CheckFileIgnored extends ImportStep {
     @Autowired
     protected CheckFileIgnored(ImportFileRepository importFileRepository,
                                ImportSourceManager importSourceManager,
-                               AssociatedFileDataManager associatedFileDataManager,
                                IgnoreFileRepository ignoreFileRepository) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+        super(importFileRepository, importSourceManager);
         LOG.trace("CheckFileIgnored created");
         this.ignoreFileRepository = ignoreFileRepository;
     }

@@ -5,7 +5,6 @@ import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
@@ -24,9 +23,8 @@ public class CheckActivePhotoFile extends ImportStep {
     @Autowired
     protected CheckActivePhotoFile(ImportFileRepository importFileRepository,
                                    FileRepository fileRepository,
-                                   ImportSourceManager importSourceManager,
-                                   AssociatedFileDataManager associatedFileDataManager) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+                                   ImportSourceManager importSourceManager) {
+        super(importFileRepository, importSourceManager);
         this.fileRepository = fileRepository;
     }
 

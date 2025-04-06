@@ -4,7 +4,6 @@ import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
@@ -24,9 +23,8 @@ public class GatherMetaData extends ImportStep {
 
     protected GatherMetaData(ImportFileRepository importFileRepository,
                              ImportSourceManager importSourceManager,
-                             AssociatedFileDataManager associatedFileDataManager,
                              FileSystem fileSystem) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+        super(importFileRepository, importSourceManager);
         this.fileSystem = fileSystem;
     }
 

@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.manager.importing.step;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
@@ -23,9 +22,8 @@ public class ReadPreImportFile extends ImportStep {
     @Autowired
     public ReadPreImportFile(FileSystem fileSystem,
                              ImportFileRepository importFileRepository,
-                             ImportSourceManager importSourceManager,
-                             AssociatedFileDataManager associatedFileDataManager) {
-        super(importFileRepository, associatedFileDataManager, importSourceManager);
+                             ImportSourceManager importSourceManager) {
+        super(importFileRepository, importSourceManager);
         this.fileSystem = fileSystem;
     }
 

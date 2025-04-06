@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.manager.importing.step.process;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
@@ -21,14 +20,11 @@ public abstract class ProcessBase {
 
     private final ImportFileStatusType type;
     protected final ImportSourceManager importSourceManager;
-    protected final AssociatedFileDataManager associatedFileDataManager;
 
     protected ProcessBase(ImportFileStatusType type,
-                          AssociatedFileDataManager associatedFileDataManager,
                           ImportSourceManager importSourceManager) {
         this.type = type;
         this.importSourceManager = importSourceManager;
-        this.associatedFileDataManager = associatedFileDataManager;
     }
 
     private static List<TrafficLightType> mustBeGreenList = null;

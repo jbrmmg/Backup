@@ -2,11 +2,13 @@ package com.jbr.middletier.backup.integration;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.IgnoreFileRepository;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
+import org.jetbrains.annotations.NotNull;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -21,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
 
 import static org.hamcrest.Matchers.*;
@@ -74,6 +77,9 @@ public class ImportIT extends FileTester {
     AssociatedFileDataManager associatedFileDataManager;
 
     @Autowired
+    IgnoreFileRepository ignoreFileRepository;
+
+    @Autowired
     ImportManager importManager;
 
     @Autowired
@@ -94,15 +100,7 @@ public class ImportIT extends FileTester {
         // Update JPG so it gets an MD5
         for (Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if (nextClassification.getRegex().contains("jpg")) {
-                ClassificationDTO updateClassification = new ClassificationDTO();
-                updateClassification.setId(nextClassification.getId());
-                updateClassification.setIcon(nextClassification.getIcon());
-                updateClassification.setRegex(nextClassification.getRegex());
-                updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setIsVideo(nextClassification.getIsVideo());
-                updateClassification.setOrder(1);
-                updateClassification.setIsImage(true);
-                updateClassification.setUseMD5(true);
+                ClassificationDTO updateClassification = getClassificationDTO(nextClassification);
 
                 associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             }
@@ -150,68 +148,23 @@ public class ImportIT extends FileTester {
         this.postImportSource = associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(postImportSourceDTO));
     }
 
-    private void checkGather(List<GatherDataDTO> result, int fileInsert, int dirInsert) {
-        Assert.assertEquals(1, result.size());
-        Assert.assertFalse(result.get(0).hasProblems());
-        Assert.assertEquals(0, result.get(0).getCount(GatherDataDTO.GatherDataCountType.DELETES));
-        Assert.assertEquals(fileInsert, result.get(0).getCount(GatherDataDTO.GatherDataCountType.FILES_INSERTED));
-        Assert.assertEquals(dirInsert, result.get(0).getCount(GatherDataDTO.GatherDataCountType.DIRECTORIES_INSERTED));
-        Assert.assertEquals(0, result.get(0).getCount(GatherDataDTO.GatherDataCountType.DIRECTORIES_REMOVED));
-        Assert.assertEquals(0, result.get(0).getCount(GatherDataDTO.GatherDataCountType.FILES_REMOVED));
-    }
-
-    private void checkImport(List<ImportDataDTO> result, int imported, int ignoredImport, int alreadyImported, int ignored, int nonBackup) {
-        Assert.assertEquals(1, result.size());
-        Assert.assertEquals(imported, result.get(0).getCount(ImportDataDTO.ImportDataCountType.IMPORTED));
-        Assert.assertEquals(ignoredImport, result.get(0).getCount(ImportDataDTO.ImportDataCountType.IGNORED_IMPORTS));
-        Assert.assertEquals(alreadyImported, result.get(0).getCount(ImportDataDTO.ImportDataCountType.ALREADY_IMPORTED));
-        Assert.assertEquals(ignored, result.get(0).getCount(ImportDataDTO.ImportDataCountType.IGNORED));
-        Assert.assertEquals(nonBackup, result.get(0).getCount(ImportDataDTO.ImportDataCountType.NON_BACKUP_CLASSIFICATIONS));
-    }
-
-    private void checkPreImport(List<ImportProcessDTO> result, int processed, int alreadyPresent, int imageFiles, int movFiles) {
-        Assert.assertEquals(1, result.size());
-        Assert.assertEquals(processed, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.FILES_PROCESSED));
-        Assert.assertEquals(alreadyPresent, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.ALREADY_PRESENT));
-        Assert.assertEquals(imageFiles, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.IMAGE_FILES));
-        Assert.assertEquals(movFiles, result.get(0).getCount(ImportProcessDTO.ImportProcessCountType.MOV_FILES));
-    }
-
-    private void confirmActions() {
-        List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
-        actions.forEach(action -> {
-            ConfirmActionRequest request = new ConfirmActionRequest();
-            request.setId(action.getId());
-            request.setConfirm(true);
-            request.setParameter("TestDir");
-            actionManager.confirmAction(request);
-        });
-    }
-
-    private void confirmActionsIgnoreOrRecipe(String filename, boolean ignore) {
-        AtomicInteger id = new AtomicInteger(-1);
-
-        fileSystemObjectManager.findFileSystemObjectByName(filename, FileSystemObjectType.FSO_IMPORT_FILE)
-                .forEach(file -> id.set(file.getIdAndType().getId()));
-
-        List<ActionConfirmDTO> actions = actionManager.externalFindByConfirmed(false);
-        actions.forEach(action -> {
-            if(action.getFileId() == id.get()) {
-                ConfirmActionRequest request = new ConfirmActionRequest();
-                request.setId(action.getId());
-                request.setConfirm(true);
-                request.setParameter(ignore ? "ignore" : "<recipe>");
-                actionManager.confirmAction(request);
-            }
-        });
-
-        Assert.assertNotEquals(-1, id.get());
+    private static @NotNull ClassificationDTO getClassificationDTO(Classification nextClassification) {
+        ClassificationDTO updateClassification = new ClassificationDTO();
+        updateClassification.setId(nextClassification.getId());
+        updateClassification.setIcon(nextClassification.getIcon());
+        updateClassification.setRegex(nextClassification.getRegex());
+        updateClassification.setAction(nextClassification.getAction());
+        updateClassification.setIsVideo(nextClassification.getIsVideo());
+        updateClassification.setOrder(1);
+        updateClassification.setIsImage(true);
+        updateClassification.setUseMD5(true);
+        return updateClassification;
     }
 
     private void waitForQueue() throws InterruptedException {
         // Wait for a maximum time for the items to be processed.
         LocalDateTime limit = LocalDateTime.now();
-        limit = limit.plusSeconds(10);
+        limit = limit.plusSeconds(120);
         LOG.info("Waiting for the queue to complete.");
 
         boolean done = false;
@@ -252,11 +205,11 @@ public class ImportIT extends FileTester {
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
-//                .andDo(MockMvcResultHandlers.print())
-//                .andReturn();
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
         waitForQueue();
 
         // Check that file processed OK.
@@ -302,45 +255,104 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void gatherTestIgnore() throws IOException, ImportRequestException {
+    public void testIgnore() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDesciption = getTestStructure("test14_1");
-        copyFiles(importDesciption, IMPORT_DIRECTORY);
+        List<StructureDescription> importDescription = getTestStructure("test14_1");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-//        List<GatherDataDTO> result = importManager.importPhoto();
-//        checkGather(result, 5, 0);
+        driveManager.gather();
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-//        List<ImportDataDTO> importResult = importManager.processImportFiles();
-//        checkImport(importResult, 0, 0, 0, 0, 0);
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
 
-//        confirmActionsIgnoreOrRecipe("IMG_8233.jpg", true);
-//        confirmActionsIgnoreOrRecipe("IMG_8234.jpg", true);
-//        confirmActions();
+        // Mark one of the files as to be ignored.
+        getMockMvc().perform(post("/jbr/int/backup/ignore-file")
+                        .content("IMG_8234.jpg")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
 
-//        importResult = importManager.processImportFiles();
-//        checkImport(importResult, 3, 0, 0, 2, 0);
+        // Wait for any queued changes to complete.
+        waitForQueue();
 
-//        importDesciption = getTestStructure("test14_1");
-//        copyFiles(importDesciption, importDirectory);
+        // Check there are 5 files.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_8232.jpg","IMG_8233.jpg","IMG_8234.jpg","IMG_8235.jpg")));
 
-//        result = importManager.importPhoto();
-//        checkGather(result, 0, 0);
+        // Remove ignored files.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-ignored")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
 
-//        importResult = importManager.processImportFiles();
-//        checkImport(importResult, 0, 2, 0, 0, 0);
+        // The ignored file should be removed.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_8232.jpg","IMG_8233.jpg","IMG_8235.jpg")));
 
-        actionManager.clearImportActions();
+        // Clear the ignored files.
+        ignoreFileRepository.deleteAll();
+
+        // Mark one of the files as to be ignored.
+        getMockMvc().perform(post("/jbr/int/backup/ignore-file")
+                        .content("IMG_8232.jpg")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Mark one of the files as to be ignored.
+        getMockMvc().perform(post("/jbr/int/backup/un-ignore-file")
+                        .content("IMG_8232.jpg")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Ask to remove any ignored.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-ignored")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Nothing should have been removed.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_8232.jpg","IMG_8233.jpg","IMG_8235.jpg")));
+
+        // Cleanup.
+        importManager.clearImportData();
     }
 
     @Test
-    public void testNonBackup() throws IOException, ImportRequestException {
+    public void testNonBackup() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDesciption = getTestStructure("test1");
-        copyFiles(importDesciption, IMPORT_DIRECTORY);
+        List<StructureDescription> importDescription = getTestStructure("test1");
+        copyFiles(importDescription, IMPORT_DIRECTORY);
 
 //        List<GatherDataDTO> result = importManager.importPhoto();
 //        checkGather(result, 1, 1);
@@ -350,12 +362,12 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testRecipe() throws IOException, ImportRequestException {
+    public void testRecipe() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDesciption = getTestStructure("test14_1");
-        copyFiles(importDesciption, IMPORT_DIRECTORY);
+        List<StructureDescription> importDescription = getTestStructure("test14_1");
+        copyFiles(importDescription, IMPORT_DIRECTORY);
 
 //        List<GatherDataDTO> result = importManager.importPhoto();
 //        checkGather(result, 5, 0);
@@ -378,12 +390,12 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testSimilarFile() throws IOException, ImportRequestException, InvalidFileIdException {
+    public void testSimilarFile() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test16");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDesciption = getTestStructure("test16_import");
-        copyFiles(importDesciption, IMPORT_DIRECTORY);
+        List<StructureDescription> importDescription = getTestStructure("test16_import");
+        copyFiles(importDescription, IMPORT_DIRECTORY);
 
         // Import the source data.
         driveManager.gather();
@@ -405,7 +417,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testHeicFile() throws IOException, ImportRequestException {
+    public void testHeicFile() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test17");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 

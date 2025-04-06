@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.manager.importing.step.process;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
@@ -22,9 +21,8 @@ public class RemoveActivePhoto extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected RemoveActivePhoto(ImportSourceManager importSourceManager,
-                                AssociatedFileDataManager associatedFileDataManager) {
-        super(ImportFileStatusType.IFS_REMOVE_ACTIVE_PHOTO, associatedFileDataManager, importSourceManager);
+    protected RemoveActivePhoto(ImportSourceManager importSourceManager) {
+        super(ImportFileStatusType.IFS_REMOVE_ACTIVE_PHOTO, importSourceManager);
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());

@@ -7,7 +7,6 @@ import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.ImportProcessDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
@@ -32,10 +31,9 @@ public class CopyToImport extends ReadPreImportFile {
     @Autowired
     protected CopyToImport(ImportFileRepository importFileRepository,
                            ImportSourceManager importSourceManager,
-                           AssociatedFileDataManager associatedFileDataManager,
                            FileSystem fileSystem,
                            ApplicationProperties applicationProperties) {
-        super(fileSystem, importFileRepository, importSourceManager, associatedFileDataManager);
+        super(fileSystem, importFileRepository, importSourceManager);
         this.applicationProperties = applicationProperties;
     }
 

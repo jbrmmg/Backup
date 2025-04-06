@@ -3,7 +3,6 @@ package com.jbr.middletier.backup.manager.importing.step.process;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
-import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import org.slf4j.Logger;
@@ -21,9 +20,8 @@ public class Read extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     @Autowired
-    protected Read(ImportSourceManager importSourceManager,
-                    AssociatedFileDataManager associatedFileDataManager) {
-        super(ImportFileStatusType.IFS_READ, associatedFileDataManager, importSourceManager);
+    protected Read(ImportSourceManager importSourceManager) {
+        super(ImportFileStatusType.IFS_READ, importSourceManager);
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());

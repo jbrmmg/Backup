@@ -29,14 +29,16 @@ public class ImportFile extends ProcessBase {
     private final Map<FileProcessingStepType, List<TrafficLightType>> requiredStepStatus;
 
     private final FileSystem fileSystem;
+    private final AssociatedFileDataManager associatedFileDataManager;
 
     @Autowired
     protected ImportFile(ImportSourceManager importSourceManager,
                          AssociatedFileDataManager associatedFileDataManager,
                          FileSystem fileSystem) {
-        super(ImportFileStatusType.IFS_IMPORT_FILE, associatedFileDataManager, importSourceManager);
+        super(ImportFileStatusType.IFS_IMPORT_FILE, importSourceManager);
 
         this.fileSystem = fileSystem;
+        this.associatedFileDataManager = associatedFileDataManager;
 
         this.requiredStepStatus = new EnumMap<>(FileProcessingStepType.class);
         this.requiredStepStatus.put(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,getMustBeGreen());
