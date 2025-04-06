@@ -21,6 +21,7 @@ public class BasicTestNode extends FileTreeNode {
 
     @Override
     protected void childAdded(FileTreeNode newChild) {
+        // Left blank as not required.
     }
 
     public boolean test() {

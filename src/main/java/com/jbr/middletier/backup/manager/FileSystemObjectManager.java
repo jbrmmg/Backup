@@ -143,6 +143,7 @@ public class FileSystemObjectManager {
         return switch (id.getType()) {
             case FSO_IMPORT_SOURCE -> copyOf(associatedFileDataManager.findImportSourceIfExists(id.getId()));
             case FSO_PRE_IMPORT_SOURCE -> copyOf(associatedFileDataManager.findPreImportSourceIfExists(id.getId()));
+            case FSO_POST_IMPORT_SOURCE -> copyOf(associatedFileDataManager.findPostImportSourceIfExists(id.getId()));
             case FSO_DIRECTORY -> copyOf(directoryRepository.findById(id.getId()));
             case FSO_FILE -> copyOf(fileRepository.findById(id.getId()));
             case FSO_IGNORE_FILE -> copyOf(ignoreFileRepository.findById(id.getId()));
@@ -204,6 +205,9 @@ public class FileSystemObjectManager {
                 for(FileInfo fileInfo : fileRepository.findByName(fileSearch.getSearch())) {
                     addFileToResult(fileInfo, result);
                 }
+            }
+            default -> {
+                // Do nothing - just return an empty search.
             }
         }
 

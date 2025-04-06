@@ -1,77 +1,52 @@
 package com.jbr.middletier.backup.manager.importing;
 
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
+import com.jbr.middletier.backup.manager.importing.step.ImportStep;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 public class ImportFileWorkQueue {
-    private final Queue<PreImportFileDTO> queue = new LinkedList<>();
-    private final Queue<PreImportFileDTO> backupQueue = new LinkedList<>();
-    private boolean useBackup;
-    private final Object IS_NOT_EMPTY = new Object();
-    private List<ImportFileWorker> workers;
+    private static final Logger LOG = LoggerFactory.getLogger(ImportFileWorkQueue.class);
 
-    private void createThreads() {
-        if(this.workers.size() < 10) {
+    private final BlockingQueue<PreImportFileDTO> queue = new LinkedBlockingQueue<>();
+    private final List<ImportStep> stepProcessors;
 
-        }
+    @Autowired
+    public ImportFileWorkQueue(List<ImportStep> stepProcessors) {
+        LOG.trace("Initializing ImportFileWorkQueue");
+        this.stepProcessors = stepProcessors;
     }
 
-    public ImportFileWorkQueue() {
-        useBackup = true;
-        workers = new LinkedList<>();
-    }
-
-    public void add(PreImportFileDTO file) {
-        if(useBackup){
-            backupQueue.add(file);
-        } else {
-            queue.add(file);
-            notifyIsNotEmpty();
-        }
+    public void put(PreImportFileDTO file) throws InterruptedException {
+        queue.put(file);
     }
 
     public boolean isEmpty() {
         return queue.isEmpty();
     }
 
-    public void waitIsNotEmpty() throws InterruptedException {
-        synchronized (IS_NOT_EMPTY) {
-            IS_NOT_EMPTY.wait();
-        }
+    public PreImportFileDTO take() throws InterruptedException {
+        return queue.take();
     }
 
-    public void notifyIsNotEmpty() {
-        synchronized (IS_NOT_EMPTY) {
-            IS_NOT_EMPTY.notify();
-        }
-    }
-
-    public PreImportFileDTO poll() {
-        return queue.poll();
-    }
-
-    public void clear() {
-        queue.clear();
-    }
-
-    public void restart() {
-        this.useBackup = false;
-
-        // Transfer from backup queue
-        boolean transfer = true;
-        while(transfer) {
-            PreImportFileDTO next = this.backupQueue.poll();
-
-            if(next == null){
-                transfer = false;
-            } else {
-                add(next);
+    public ImportStep getStepProcessor(FileProcessingStepType stepType) {
+        for (ImportStep step : stepProcessors) {
+            if(step.getStepType().equals(stepType)) {
+                return step;
             }
         }
+
+        return null;
+    }
+
+    public int itemsInQueue() {
+        return this.queue.size();
     }
 }

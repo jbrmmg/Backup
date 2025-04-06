@@ -1,44 +1,43 @@
 package com.jbr.middletier.backup.dto;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@JsonSerialize(using = ProcessResultSerializer.class)
+@JsonSerialize(using = ProcessResultDTO.ProcessResultSerializer.class)
 public class ProcessResultDTO {
     private final int underlyingId;
     private boolean problems;
-    private final Map<String,Count> counts;
+    private final Map<String,Integer> counts;
 
-    private static class Count{
-        int countValue;
-
-        public Count(int initial) {
-            this.countValue = initial;
-        }
-
-        public void increment() {
-            this.countValue++;
-        }
-
-        public int get() {
-            return this.countValue;
+    public static class ProcessResultSerializer extends JsonSerializer<ProcessResultDTO> {
+        @Override
+        public void serialize(ProcessResultDTO processResultDTO, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeNumberField("underlyingId",processResultDTO.getUnderlyingId());
+            jsonGenerator.writeBooleanField("failed", processResultDTO.hasProblems());
+            for(String nextName: processResultDTO.getCounts().keySet()) {
+                jsonGenerator.writeNumberField(nextName,processResultDTO.getCount(nextName));
+            }
+            jsonGenerator.writeEndObject();
         }
     }
 
     protected void increment(String name) {
-        if(counts.containsKey(name)) {
-            counts.get(name).increment();
-        }
+        counts.computeIfPresent(name, (k, v) -> v + 1);
     }
 
-    protected int getCount(String name) {
+    public int getCount(String name) {
         if(counts.containsKey(name)) {
-            return counts.get(name).get();
+            return counts.get(name);
         }
 
-        counts.put(name, new Count(0));
+        counts.put(name, 0);
         return 0;
     }
 
@@ -48,7 +47,7 @@ public class ProcessResultDTO {
         this.counts = new HashMap<>();
     }
 
-    public Map<String,Count> getCounts() {
+    public Map<String,Integer> getCounts() {
         return this.counts;
     }
 

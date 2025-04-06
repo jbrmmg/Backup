@@ -1,28 +1,38 @@
 package com.jbr.middletier.backup.data;
 
 public enum TrafficLightType {
-    TL_UNKNOWN("TL_UNKNOWN"),
+    TL_UNKNOWN("UNKNOWN"),
     TL_RED("RED"),
     TL_AMBER("AMBER"),
     TL_GREEN("GREEN");
 
-    private final String type;
+    private final String value;
 
-    TrafficLightType(String type) {
-        this.type = type;
+    TrafficLightType(String value) {
+        this.value = value;
     }
 
-    public String getTypeName() {
-        return this.type;
+    public String getValue() {
+        return this.value;
     }
 
-    public static TrafficLightType getTrafficLightType(String name) {
-        for(TrafficLightType type : TrafficLightType.values()) {
-            if(type.getTypeName().equalsIgnoreCase(name)) {
-                return type;
+    public static TrafficLightType getFromName(String name) {
+        for (TrafficLightType nextTL : TrafficLightType.values()) {
+            if(nextTL.getValue().equalsIgnoreCase(name)) {
+                return nextTL;
             }
         }
 
-        throw new IllegalStateException(name + " is not a valid Traffic Light type");
+        return null;
+    }
+
+    public static String getTextValue(TrafficLightType trafficLight) {
+        for (TrafficLightType nextTL : TrafficLightType.values()) {
+            if(nextTL.equals(trafficLight)) {
+                return nextTL.getValue();
+            }
+        }
+
+        throw new IllegalArgumentException(trafficLight.toString() + " is not a valid TrafficLightType");
     }
 }

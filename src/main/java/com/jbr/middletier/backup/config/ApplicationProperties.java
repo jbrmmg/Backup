@@ -76,6 +76,13 @@ public class ApplicationProperties {
             }
         };
 
+        PropertyMap<PostImportSource, PostImportSourceDTO> postImportSourceMap = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
         PropertyMap<ImportSource, SourceDTO> importSource2Map = new PropertyMap<>() {
             @Override
             protected void configure() {
@@ -84,6 +91,13 @@ public class ApplicationProperties {
         };
 
         PropertyMap<PreImportSource, SourceDTO> importSource3Map = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getIdAndType().getId());
+            }
+        };
+
+        PropertyMap<PostImportSource, SourceDTO> importSource4Map = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map().setId(source.getIdAndType().getId());
@@ -222,8 +236,10 @@ public class ApplicationProperties {
         modelMapper.addMappings(sourceMap);
         modelMapper.addMappings(importSourceMap);
         modelMapper.addMappings(preImportSourceMap);
+        modelMapper.addMappings(postImportSourceMap);
         modelMapper.addMappings(importSource2Map);
         modelMapper.addMappings(importSource3Map);
+        modelMapper.addMappings(importSource4Map);
 
         return modelMapper;
     }

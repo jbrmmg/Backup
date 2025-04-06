@@ -185,6 +185,30 @@
                     </additionalClasspathElements>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version> <!-- Use latest version -->
+                <executions>
+                    <execution>
+                        <id>create-directory</id>
+                        <phase>generate-sources</phase> <!-- Runs early in the build process -->
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.directory}/it_test"/>
+                                <mkdir dir="${project.build.directory}/it_test/source"/>
+                                <mkdir dir="${project.build.directory}/it_test/destination"/>
+                                <mkdir dir="${project.build.directory}/it_test/pre-import"/>
+                                <mkdir dir="${project.build.directory}/it_test/import"/>
+                                <mkdir dir="${project.build.directory}/it_test/post-import"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -312,12 +336,6 @@
             <artifactId>junit-vintage-engine</artifactId>
             <version>5.9.0</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.drewnoakes</groupId>
-            <artifactId>metadata-extractor</artifactId>
-            <version>2.18.0</version>
         </dependency>
 
         <dependency>

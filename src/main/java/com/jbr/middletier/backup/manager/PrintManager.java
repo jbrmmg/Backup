@@ -185,10 +185,11 @@ public class PrintManager {
                     File file = fileSystemObjectManager.getFile(printFile.get());
                     PrintSizeDTO size = getPrintSize(next.getId().getSizeId());
 
-                    String border = next.getBorder() ? "B" : "_";
-                    String blackWhite = next.getBlackWhite() ? "BW" : "__";
+                    String border = Boolean.TRUE.equals(next.getBorder()) ? "B" : "_";
+                    String blackWhite = Boolean.TRUE.equals(next.getBlackWhite()) ? "BW" : "__";
                     String cleanName = size.getName().replace("[", "_").replace("]", "_").replace(" ", "");
-                    LOG.info("cp {} ~/Documents/ForPrint/{}_{}_{}_{}", file.getAbsoluteFile().toString().replace(" ", "\\ "), cleanName, border, blackWhite, printFile.get().getName());
+                    String escapedFilename = file.getAbsoluteFile().toString().replace(" ", "\\ ");
+                    LOG.info("cp {} ~/Documents/ForPrint/{}_{}_{}_{}", escapedFilename, cleanName, border, blackWhite, printFile.get().getName());
                 }
             }
         }

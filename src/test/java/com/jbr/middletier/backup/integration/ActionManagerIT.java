@@ -148,7 +148,7 @@ public class ActionManagerIT {
 
         Optional<ActionConfirm> optionalAction = Optional.of(actionConfirm);
 
-        ActionManager actionManager = new ActionManager(properties,
+        ActionManager localActionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
                 fileSystemObjectManager, associatedFileDataManager, fileSystem, modelMapper);
@@ -157,7 +157,7 @@ public class ActionManagerIT {
 
         when(actionConfirmRepository.findById(1)).thenReturn(optionalAction);
 
-        actionManager.confirmAction(confirmActionRequest);
+        localActionManager.confirmAction(confirmActionRequest);
         verify(actionConfirmRepository, times(1)).deleteById(1);
     }
 
@@ -185,13 +185,13 @@ public class ActionManagerIT {
 
         when(actionConfirmRepository.save(any(ActionConfirm.class))).thenReturn(actionConfirm);
 
-        ActionManager actionManager = new ActionManager(properties,
+        ActionManager localActionManager = new ActionManager(properties,
                 actionConfirmRepository,
                 resourceLoader,
                 fileSystemObjectManager, associatedFileDataManager,
                 fileSystem, modelMapper);
 
-        ActionConfirmDTO action = actionManager.createFileDeleteDuplicateAction(file);
+        ActionConfirmDTO action = localActionManager.createFileDeleteDuplicateAction(file);
         Assert.assertEquals("DELETE_DUP", action.getAction());
     }
 }

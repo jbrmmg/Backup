@@ -13,5 +13,6 @@ public class BasicTestRootNode extends RootFileTreeNode {
 
     @Override
     protected void childAdded(FileTreeNode newChild) {
+        // Not required, just left blank
     }
 }

@@ -86,6 +86,10 @@ public class FileInfo extends FileSystemObject {
         return (this.md5 == null) || (otherFile.md5 == null) || this.md5.equals(otherFile.md5);
     }
 
+    public boolean matchClassification(Classification classification) {
+        return this.getName().toLowerCase().matches(classification.getRegex());
+    }
+
     @Override
     public String toString() {
         return "FileInfo: " + getIdAndType().toString() + " " + getName() + " " + md5;

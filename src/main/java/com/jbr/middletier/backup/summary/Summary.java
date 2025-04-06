@@ -22,20 +22,32 @@ public class Summary {
     Date validAt;
     List<SourceDTO> sources;
 
-    private static class SummaryInitialiser implements Runnable {
-        private final AssociatedFileDataManager associatedFileDataManager;
-        private final Summary instance;
-        private final FileSystemObjectManager fileSystemObjectManager;
-        private final ApplicationProperties applicationProperties;
+    private record SummaryInitializer(Summary instance, AssociatedFileDataManager associatedFileDataManager,
+                                      FileSystemObjectManager fileSystemObjectManager,
+                                      ApplicationProperties applicationProperties) implements Runnable {
 
-        public SummaryInitialiser(Summary instance,
-                                  AssociatedFileDataManager associatedFileDataManager,
-                                  FileSystemObjectManager fileSystemObjectManager,
-                                  ApplicationProperties applicationProperties) {
-            this.associatedFileDataManager = associatedFileDataManager;
-            this.instance = instance;
-            this.fileSystemObjectManager = fileSystemObjectManager;
-            this.applicationProperties = applicationProperties;
+        private void processNextSource(SourceDTO nextSourceDTO) {
+            // Check to see if there is an import source.
+            Optional<ImportSource> importSource = associatedFileDataManager.findImportSourceIfExists(nextSourceDTO.getId());
+            if (importSource.isPresent()) {
+                ImportSourceDTO importSourceDTO = associatedFileDataManager.convertToDTO(importSource.get());
+                nextSourceDTO = importSourceDTO;
+                instance.sources.add(importSourceDTO);
+            } else {
+                instance.sources.add(nextSourceDTO);
+            }
+
+            List<FileInfo> files = new ArrayList<>();
+            List<DirectoryInfo> directories = new ArrayList<>();
+            fileSystemObjectManager.loadByParent(nextSourceDTO.getId(), directories, files);
+
+            for (DirectoryInfo directory : directories) nextSourceDTO.incrementDirectoryCount();
+            for (FileInfo file : files) {
+                nextSourceDTO.incrementFileCount();
+                if (file.getSize() != null) {
+                    nextSourceDTO.increaseFileSize(file.getSize());
+                }
+            }
         }
 
         @Override
@@ -43,40 +55,18 @@ public class Summary {
             try {
                 instance.sources = new ArrayList<>();
 
-                if(Boolean.TRUE.equals(applicationProperties.getSummaryEnabled())) {
+                if (Boolean.TRUE.equals(applicationProperties.getSummaryEnabled())) {
                     // Initialise the summary object.
                     for (Source nextSource : associatedFileDataManager.findAllSource()) {
-                        SourceDTO nextSourceDTO = associatedFileDataManager.convertToDTO(nextSource);
-
-                        // Check to see if there is an import source.
-                        Optional<ImportSource> importSource = associatedFileDataManager.findImportSourceIfExists(nextSourceDTO.getId());
-                        if (importSource.isPresent()) {
-                            ImportSourceDTO importSourceDTO = associatedFileDataManager.convertToDTO(importSource.get());
-                            nextSourceDTO = importSourceDTO;
-                            instance.sources.add(importSourceDTO);
-                        } else {
-                            instance.sources.add(nextSourceDTO);
-                        }
-
-                        List<FileInfo> files = new ArrayList<>();
-                        List<DirectoryInfo> directories = new ArrayList<>();
-                        fileSystemObjectManager.loadByParent(nextSourceDTO.getId(), directories, files);
-
-                        for (DirectoryInfo directory : directories) nextSourceDTO.incrementDirectoryCount();
-                        for (FileInfo file : files) {
-                            nextSourceDTO.incrementFileCount();
-                            if (file.getSize() != null) {
-                                nextSourceDTO.increaseFileSize(file.getSize());
-                            }
-                        }
+                        processNextSource(associatedFileDataManager.convertToDTO(nextSource));
                     }
 
                     // Set the object to valid.
                     instance.validAt = new Date();
                     instance.valid = true;
                 }
-            } catch(Exception e) {
-                LOG.error("Failed to get the summary: ",e);
+            } catch (Exception e) {
+                LOG.error("Failed to get the summary: ", e);
             }
         }
     }
@@ -90,8 +80,8 @@ public class Summary {
 
         instance = new Summary();
 
-        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager, fileSystemObjectManager,applicationProperties);
-        new Thread(initialiser).start();
+        SummaryInitializer initializer = new SummaryInitializer(instance, associatedFileDataManager, fileSystemObjectManager,applicationProperties);
+        new Thread(initializer).start();
 
         return instance;
     }
@@ -100,8 +90,8 @@ public class Summary {
         instance = null;
 
         instance = new Summary();
-        SummaryInitialiser initialiser = new SummaryInitialiser(instance, associatedFileDataManager, fileSystemObjectManager, applicationProperties);
-        initialiser.run();
+        SummaryInitializer initializer = new SummaryInitializer(instance, associatedFileDataManager, fileSystemObjectManager, applicationProperties);
+        initializer.run();
     }
 
     private Summary() {
