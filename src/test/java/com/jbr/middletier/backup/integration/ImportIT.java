@@ -146,6 +146,9 @@ public class ImportIT extends FileTester {
         postImportSourceDTO.setPath(POST_IMPORT_DIRECTORY);
 
         this.postImportSource = associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(postImportSourceDTO));
+
+        this.importManager.clearImportData();
+        this.importManager.clearCacheData();
     }
 
     private static @NotNull ClassificationDTO getClassificationDTO(Classification nextClassification) {
@@ -347,18 +350,34 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testNonBackup() throws IOException {
+    public void testImport() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDescription = getTestStructure("test1");
-        copyFiles(importDescription, IMPORT_DIRECTORY);
+        List<StructureDescription> importDescription = getTestStructure("test14_1");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-//        List<GatherDataDTO> result = importManager.importPhoto();
-//        checkGather(result, 1, 1);
+        driveManager.gather();
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
-//        List<ImportDataDTO> importResult = importManager.processImportFiles();
-//        checkImport(importResult, 0, 0, 0, 0, 1);
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Set the destination.
+        DestinationUpdateDTO destinationUpdate = new  DestinationUpdateDTO();
+        destinationUpdate.setDestination("AtHome");
+        destinationUpdate.setFilename("IMG_8231.jpg");
+        getMockMvc().perform(post("/jbr/int/backup/ignore-file")
+                        .content(this.json(destinationUpdate))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
     }
 
     @Test
