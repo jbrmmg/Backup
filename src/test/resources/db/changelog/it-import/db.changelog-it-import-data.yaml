@@ -1,0 +1,194 @@
+databaseChangeLog:
+  - changeSet:
+      id: 999
+      author: jason
+      changes:
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: type
+                  value: PIMP
+              - column:
+                  name: name
+                  value: ./target/it_test/pre-import
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: pre_import_source
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+              - column:
+                  name: type
+                  value: PIMP
+              - column:
+                  name: name
+                  value: ./target/it_test/import
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: import_source
+            columns:
+              - column:
+                  name: id
+                  value: "2"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+              - column:
+                  name: type
+                  value: PIMP
+              - column:
+                  name: name
+                  value: ./target/it_test/post-import
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: post_import_source
+            columns:
+              - column:
+                  name: id
+                  value: "3"
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "4"
+              - column:
+                  name: type
+                  value: SRCE
+              - column:
+                  name: name
+                  value: ./target/it_test/source
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "4"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: file_system_object
+            columns:
+              - column:
+                  name: id
+                  value: "5"
+              - column:
+                  name: type
+                  value: SRCE
+              - column:
+                  name: name
+                  value: ./target/it_test/destination
+
+        - insert:
+            tableName: source
+            columns:
+              - column:
+                  name: id
+                  value: "5"
+              - column:
+                  name: location
+                  value: "1"
+              - column:
+                  name: status
+                  value: OK
+
+        - insert:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: id
+                  value: "1"
+              - column:
+                  name: source
+                  value: "4"
+              - column:
+                  name: destination
+                  value: "5"
+
+        - insert:
+            tableName: classification
+            columns:
+              - column:
+                  name: id
+                  value: "60"
+              - column:
+                  name: order
+                  value: "60"
+              - column:
+                  name: regex
+                  value: .*\.heic$
+              - column:
+                  name: icon
+                  value: "fa-picture-o"
+              - column:
+                  name: action
+                  value: "BACKUP"
+              - column:
+                  name: useMD5
+                  valueBoolean: "true"
+              - column:
+                  name: is_image
+                  valueBoolean: "true"

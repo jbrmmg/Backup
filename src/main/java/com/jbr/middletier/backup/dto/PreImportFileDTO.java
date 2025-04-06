@@ -1,42 +1,188 @@
 package com.jbr.middletier.backup.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import com.jbr.middletier.backup.manager.importing.step.StepStatus;
+import java.time.LocalDateTime;
 
 public class PreImportFileDTO extends ImportFileDTO {
-    private TrafficLightType ignored;
-    private TrafficLightType immediateImported;
-    private TrafficLightType imported;
-    private TrafficLightType duplicated;
+    private volatile LocalDateTime updateTime;
+    private volatile String destination;
+    private volatile Double duration;
+    private volatile String importName;
+    private volatile LocalDateTime importDate;
+    private volatile Long importSize;
+    private volatile String importMd5;
+    private volatile boolean errorInPostImport;
+    private volatile boolean errorInImport;
+    private volatile boolean processed;
+    private volatile boolean inDatabase;
+    private volatile boolean inImport;
+    private volatile boolean inPostImport;
+    private final StepStatus stepStatus;
+    private final boolean stopMarker;
 
-    public TrafficLightType getIgnored() {
-        return ignored;
+    public PreImportFileDTO() {
+        this.inDatabase = false;
+        this.inImport = false;
+        this.inPostImport = false;
+        this.stepStatus = new StepStatus();
+        this.stopMarker = false;
     }
 
-    public void setIgnored(TrafficLightType ignored) {
-        this.ignored = ignored;
+    public PreImportFileDTO(boolean stopMarker) {
+        if(stopMarker){
+            this.stepStatus = new StepStatus();
+            this.stopMarker = true;
+        } else {
+            this.inDatabase = false;
+            this.inImport = false;
+            this.inPostImport = false;
+            this.stepStatus = new StepStatus();
+            this.stopMarker = false;
+        }
     }
 
-    public TrafficLightType getImmediateImported() {
-        return immediateImported;
+    @JsonIgnore
+    public FileProcessingStepType getNextUnknownStep() {
+        return this.stepStatus.getNextUnknownStep();
     }
 
-    public void setImmediateImported(TrafficLightType immediateImported) {
-        this.immediateImported = immediateImported;
+    public StepStatus getStepStatus() {
+        return this.stepStatus;
     }
 
-    public TrafficLightType getImported() {
-        return imported;
+    @JsonIgnore
+    public TrafficLightType getStepStatus(FileProcessingStepType step) {
+        return this.stepStatus.getStepStatus(step);
     }
 
-    public void setImported(TrafficLightType imported) {
-        this.imported = imported;
+    public void setStepStatus(FileProcessingStepType step, TrafficLightType status) {
+        // Update the status of the step.
+        this.stepStatus.setStepStatus(step,status);
+        this.updateTime = LocalDateTime.now();
     }
 
-    public TrafficLightType getDuplicated() {
-        return duplicated;
+    public boolean updatedSince(LocalDateTime time) {
+        if(this.updateTime == null){
+            return false;
+        }
+
+        return this.updateTime.isAfter(time);
     }
 
-    public void setDuplicated(TrafficLightType duplicated) {
-        this.duplicated = duplicated;
+    public boolean isInDatabase() {
+        return inDatabase;
+    }
+
+    public void setInDatabase(boolean inDatabase) {
+        this.inDatabase = inDatabase;
+    }
+
+    public boolean isInImport() {
+        return inImport;
+    }
+
+    public void setInImport(boolean inImport) {
+        this.inImport = inImport;
+    }
+
+    public boolean isInPostImport() {
+        return inPostImport;
+    }
+
+    public void setInPostImport(boolean inPostImport) {
+        this.inPostImport = inPostImport;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public Double getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Double duration) {
+        this.duration = duration;
+    }
+
+    public String getImportName() {
+        return importName;
+    }
+
+    public void setImportName(String importFilename) {
+        this.importName = importFilename;
+    }
+
+    public LocalDateTime getImportDate() {
+        return importDate;
+    }
+
+    public void setImportDate(LocalDateTime importDate) {
+        this.importDate = importDate;
+    }
+
+    public Long getImportSize() {
+        return importSize;
+    }
+
+    public void setImportSize(Long importSize) {
+        this.importSize = importSize;
+    }
+
+    public String getImportMd5() {
+        return importMd5;
+    }
+
+    public void setImportMd5(String importMd5) {
+        this.importMd5 = importMd5;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(Boolean processed) {
+        if(processed == null){
+            this.processed = false;
+            return;
+        }
+
+        this.processed = processed;
+    }
+
+    public boolean isErrorInPostImport() {
+        return errorInPostImport;
+    }
+
+    public void setErrorInPostImport(boolean errorInPostImport) {
+        this.errorInPostImport = errorInPostImport;
+    }
+
+    public boolean isErrorInImport() {
+        return errorInImport;
+    }
+
+    public void setErrorInImport(boolean errorInImport) {
+        this.errorInImport = errorInImport;
+    }
+
+    @JsonIgnore
+    public boolean isStopMarker() {
+        return stopMarker;
     }
 }

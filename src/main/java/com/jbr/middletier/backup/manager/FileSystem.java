@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.manager;
 
-import com.drew.imaging.ImageMetadataReader;
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
@@ -9,15 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,7 +48,7 @@ public class FileSystem {
         try {
             // Does it exist?
             if(!file.exists()) {
-                LOG.info("{} does not exist", file);
+                LOG.info("{} does not exist for delete.", file);
                 return;
             }
 
@@ -111,22 +110,20 @@ public class FileSystem {
         }
     }
 
+    public void setFileFromLocalDateTime(File destination, LocalDateTime overrideTime, long defaultTime) {
+        if(overrideTime != null) {
+            ZonedDateTime zonedDateTime = overrideTime.atZone(ZoneId.systemDefault());
+            defaultTime = zonedDateTime.toInstant().toEpochMilli();
+        }
+        setFileDateTime(destination, defaultTime);
+    }
+
     public void copyDirectory(File source, File destination, ProcessResultDTO processResult) {
         try {
             FileUtils.copyDirectory(source,destination,true);
         } catch(IOException e) {
             processResult.setProblems();
-            LOG.error("Unable to copy file {}", source);
-        }
-    }
-
-    public void moveFile(File source, File destination, ProcessResultDTO processResult) {
-        try {
-            LOG.info("Importing file {} to {}", source, destination);
-            Files.move(source.toPath(),destination.toPath(),REPLACE_EXISTING);
-        } catch (IOException e) {
-            processResult.setProblems();
-            LOG.error("Unable to move file {}", source);
+            LOG.error("Unable to copy directory {}", source);
         }
     }
 
@@ -148,6 +145,7 @@ public class FileSystem {
         }
 
         try {
+            LOG.debug("Start get MD5 for {}", path);
             // Calculate the MD5 for the file.
             MessageDigest md = MessageDigest.getInstance("MD5");
 
@@ -156,6 +154,7 @@ public class FileSystem {
                 while (dis.read() != -1) ;
                 md = dis.getMessageDigest();
             }
+            LOG.debug("End get MD5 for {}", path);
 
             return new MD5(bytesToHex(md.digest()));
         } catch (Exception ex) {
@@ -226,20 +225,41 @@ public class FileSystem {
 
     public Optional<FileSystemImageData> readImageMetaData(File file) {
         try {
-            FileSystemImageData imageData = new FileSystemImageData(ImageMetadataReader.readMetadata(file));
+            // Use the Exif tool to read metadata from the specified file.
+            Process process = new ProcessBuilder("exiftool", file.getPath()).start();
+
+            InputStream processInputStream = process.getInputStream();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(processInputStream));
+
+            List<String> tmp = reader.lines().toList();
+            Map<String,String> map = new HashMap<>();
+
+            for(String line : tmp) {
+                String key = line.substring(0,line.indexOf(":")).trim().toLowerCase();
+                String value = line.substring(line.indexOf(":")+1).trim().toLowerCase();
+
+                if(map.containsKey(key)) {
+                    LOG.info("Line {} is a duplicate key {}", line, key);
+                } else {
+                    map.put(key,value);
+                }
+            }
+
+            FileSystemImageData imageData = new FileSystemImageData(map);
             if(imageData.isValid()) {
                 return Optional.of(imageData);
             }
-        }
-        catch (Exception e) {
-            LOG.error("Unable to get image data from file {}", file.getName());
+        } catch (IOException e) {
+            LOG.info("Failed to read any meta data from file",e);
         }
 
+        // Return nothing
         return Optional.empty();
     }
 
-    public Set<String> listFilesInDirectory(String directory) {
-        return Stream.of(Objects.requireNonNull(new File(directory).listFiles()))
+    public Set<String> listFilesInDirectory(File directory) {
+        return Stream.of(Objects.requireNonNull(directory.listFiles()))
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .collect(Collectors.toSet());

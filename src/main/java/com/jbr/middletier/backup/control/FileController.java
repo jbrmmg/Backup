@@ -172,7 +172,7 @@ public class FileController {
     }
 
     @GetMapping(path="/findfile")
-    public List<String> findFile(@RequestParam String search) throws InvalidFileIdException {
+    public List<String> findFile(@RequestParam String search) {
         return fileSystemObjectManager.findFiles(search);
     }
 
@@ -223,7 +223,7 @@ public class FileController {
         }
 
         File imgPath = fileSystemObjectManager.getFile(loadedFile);
-        LOG.info("Get file: {}", imgPath);
+        LOG.info("Get file (video): {}", imgPath);
 
         return fileSystem.readAllBytes(imgPath);
     }

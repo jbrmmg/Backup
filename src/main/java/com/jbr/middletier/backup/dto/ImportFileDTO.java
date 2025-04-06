@@ -1,18 +1,30 @@
 package com.jbr.middletier.backup.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
+import com.jbr.middletier.backup.util.ImageSize;
+import com.jbr.middletier.backup.util.LatLong;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportFileDTO extends ImportFileBaseDTO {
-    private Integer id;
-    private String status;
-    List<ImportFileBaseDTO> similarFileList;
+    private volatile Integer id;
+    private volatile String status;
+    private LatLong location;
+    private ImageSize imageSize;
+    private volatile boolean image;
+    private volatile boolean video;
+    private final List<ImportFileBaseDTO> similarFileList;
 
     public ImportFileDTO() {
-        similarFileList = new ArrayList<>();
+        this.image = false;
+        this.video = false;
+        this.similarFileList = new ArrayList<>();
     }
 
+    @JsonIgnore
     public Integer getId() {
         return id;
     }
@@ -30,8 +42,60 @@ public class ImportFileDTO extends ImportFileBaseDTO {
     }
 
     public void addSimilarFile(ImportFileBaseDTO file) {
-        this.similarFileList.add(file);
+        // Only add if the file is not already in the list (by name)
+        AtomicBoolean alreadyExists = new AtomicBoolean(false);
+        this.similarFileList.forEach(f -> {
+            if(f.getFilename().equalsIgnoreCase(file.getFilename())) {
+                alreadyExists.set(true);
+            }
+        });
+
+        if(!alreadyExists.get()){
+            this.similarFileList.add(file);
+        }
     }
 
     public List<ImportFileBaseDTO> getSimilarFiles() { return this.similarFileList; }
+
+    public synchronized LatLong getLocation() {
+        return location;
+    }
+
+    public synchronized void setLocation(LatLong location) {
+        this.location = location;
+    }
+
+    public synchronized ImageSize getImageSize() {
+        return imageSize;
+    }
+
+    public synchronized void setImageSize(ImageSize imageSize) {
+        this.imageSize = imageSize;
+    }
+
+    public boolean isImage() {
+        return image;
+    }
+
+    public void setImage(Boolean image) {
+        if(image == null){
+            this.image = false;
+            return;
+        }
+
+        this.image = image;
+    }
+
+    public boolean isVideo() {
+        return video;
+    }
+
+    public void setVideo(Boolean video) {
+        if(video == null){
+            this.video = false;
+            return;
+        }
+
+        this.video = video;
+    }
 }

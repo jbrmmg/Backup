@@ -26,10 +26,11 @@ import java.util.List;
 
 public class FileTester extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FileTester.class);
-    protected static final String importDirectory = "./target/it_test/import";
-    protected static final String preImportDirectory = "./target/it_test/preimport";
-    protected static final String sourceDirectory = "./target/it_test/source";
-    protected static final String destinationDirectory = "./target/it_test/destination";
+    protected static final String IMPORT_DIRECTORY = "./target/it_test/import";
+    protected static final String PRE_IMPORT_DIRECTORY = "./target/it_test/pre-import";
+    protected static final String POST_IMPORT_DIRECTORY = "./target/it_test/post-import";
+    protected static final String SOURCE_DIRECTORY = "./target/it_test/source";
+    protected static final String DESTINATION_DIRECTORY = "./target/it_test/destination";
 
     protected static class StructureDescription {
         public final String filename;
@@ -102,10 +103,8 @@ public class FileTester extends WebTester {
 
             // Does this already exist?
             for(ValidateNode nextChild : children) {
-                if(nextChild.name.equals(directories[index])) {
-                    if(nextChild.directory) {
-                        return nextChild.insertDirectoryTree(++index, directories);
-                    }
+                if(nextChild.name.equals(directories[index]) && nextChild.directory) {
+                    return nextChild.insertDirectoryTree(++index, directories);
                 }
             }
 
@@ -415,17 +414,20 @@ public class FileTester extends WebTester {
 
     protected void initialiseDirectories() throws IOException {
         // During this test create files in the following directories
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
+        deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
+        Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
 
-        deleteDirectoryContents(new File(destinationDirectory).toPath());
-        Files.createDirectories(new File(destinationDirectory).toPath());
+        deleteDirectoryContents(new File(DESTINATION_DIRECTORY).toPath());
+        Files.createDirectories(new File(DESTINATION_DIRECTORY).toPath());
 
-        deleteDirectoryContents(new File(preImportDirectory).toPath());
-        Files.createDirectories(new File(preImportDirectory).toPath());
+        deleteDirectoryContents(new File(PRE_IMPORT_DIRECTORY).toPath());
+        Files.createDirectories(new File(PRE_IMPORT_DIRECTORY).toPath());
 
-        deleteDirectoryContents(new File(importDirectory).toPath());
-        Files.createDirectories(new File(importDirectory).toPath());
+        deleteDirectoryContents(new File(POST_IMPORT_DIRECTORY).toPath());
+        Files.createDirectories(new File(POST_IMPORT_DIRECTORY).toPath());
+
+        deleteDirectoryContents(new File(IMPORT_DIRECTORY).toPath());
+        Files.createDirectories(new File(IMPORT_DIRECTORY).toPath());
     }
 
     protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) throws ClassificationIdException {

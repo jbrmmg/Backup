@@ -32,7 +32,7 @@ public class HardwareController {
 
     @GetMapping(path="/byId")
     public HardwareDTO specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
-        LOG.info("List hardware.");
+        LOG.info("List hardware by id.");
         // Check that the item exists.
         Optional<Hardware> storedHardware = hardwareRepository.findById(macAddress);
 

@@ -85,8 +85,8 @@ public class PrintIT extends FileTester {
 
     @Before
     public void setupTest() throws IOException, InvalidLocationIdException, SourceAlreadyExistsException {
-        deleteDirectoryContents(new File(sourceDirectory).toPath());
-        Files.createDirectories(new File(sourceDirectory).toPath());
+        deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
+        Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
 
         // Create the standard sources
         Optional<Location> existingLocation = associatedFileDataManager.findLocationById(1);
@@ -100,7 +100,7 @@ public class PrintIT extends FileTester {
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus("OK");
-        sourceDTO.setPath(sourceDirectory);
+        sourceDTO.setPath(SOURCE_DIRECTORY);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
     }
@@ -111,6 +111,7 @@ public class PrintIT extends FileTester {
         associatedFileDataManager.deleteAllSynchronize();
         fileSystemObjectManager.deleteAllFileObjects();
         associatedFileDataManager.deleteAllPreImportSource();
+        associatedFileDataManager.deleteAllPostImportSource();
         associatedFileDataManager.deleteAllImportSource();
         associatedFileDataManager.deleteAllSource();
         labelRepository.deleteAll();
@@ -120,7 +121,7 @@ public class PrintIT extends FileTester {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Create labels.
         Label label = new Label();
@@ -246,10 +247,8 @@ public class PrintIT extends FileTester {
         while(clash) {
             clash = false;
             for (FileInfo nextFile : files) {
-                if(testFile.isEmpty()) {
-                    if(nextFile.getName().equalsIgnoreCase("IMG_3891.jpeg")) {
-                        testFile = Optional.of(nextFile);
-                    }
+                if(testFile.isEmpty() && nextFile.getName().equalsIgnoreCase("IMG_3891.jpeg")) {
+                    testFile = Optional.of(nextFile);
                 }
                 if(nextFile.getIdAndType().getId().equals(nonExistentId)) {
                     clash = true;

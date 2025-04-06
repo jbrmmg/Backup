@@ -77,8 +77,4 @@ public class Classification {
     public String toString() {
         return id + "-" + regex;
     }
-
-    public boolean fileMatches(FileInfo file) {
-        return file.getName().toLowerCase().matches(regex);
-    }
 }

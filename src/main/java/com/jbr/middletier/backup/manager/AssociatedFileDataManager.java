@@ -24,17 +24,26 @@ public class AssociatedFileDataManager {
     private final SynchronizeRepository synchronizeRepository;
     private final ImportSourceRepository importSourceRepository;
     private final PreImportSourceRepository preImportSourceRepository;
+    private final PostImportSourceRepository postImportSourceRepository;
     private List<Classification> cachedClassifications;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public AssociatedFileDataManager(SourceRepository sourceRepository, LocationRepository locationRepository, ClassificationRepository classificationRepository, SynchronizeRepository synchronizeRepository, ImportSourceRepository importSourceRepository, PreImportSourceRepository preImportSourceRepository, ModelMapper modelMapper) {
+    public AssociatedFileDataManager(SourceRepository sourceRepository,
+                                     LocationRepository locationRepository,
+                                     ClassificationRepository classificationRepository,
+                                     SynchronizeRepository synchronizeRepository,
+                                     ImportSourceRepository importSourceRepository,
+                                     PreImportSourceRepository preImportSourceRepository,
+                                     PostImportSourceRepository postImportSourceRepository,
+                                     ModelMapper modelMapper) {
         this.sourceRepository = sourceRepository;
         this.locationRepository = locationRepository;
         this.classificationRepository = classificationRepository;
         this.synchronizeRepository = synchronizeRepository;
         this.importSourceRepository = importSourceRepository;
         this.preImportSourceRepository = preImportSourceRepository;
+        this.postImportSourceRepository = postImportSourceRepository;
         this.modelMapper = modelMapper;
         this.cachedClassifications = null;
     }
@@ -76,8 +85,16 @@ public class AssociatedFileDataManager {
         return modelMapper.map(source, PreImportSourceDTO.class);
     }
 
+    public PostImportSourceDTO convertToDTO(PostImportSource source) {
+        return modelMapper.map(source, PostImportSourceDTO.class);
+    }
+
     public PreImportSource convertToEntity(PreImportSourceDTO source) {
         return modelMapper.map(source, PreImportSource.class);
+    }
+
+    public PostImportSource convertToEntity(PostImportSourceDTO source) {
+        return modelMapper.map(source, PostImportSource.class);
     }
 
     public SynchronizeDTO convertToDTO(Synchronize synchronize) {
@@ -103,7 +120,7 @@ public class AssociatedFileDataManager {
 
     public Optional<Classification> classifyFile(FileInfo file) {
         for(Classification nextClassification : findAllClassifications()) {
-            if(nextClassification.fileMatches(file)) {
+            if(file.matchClassification(nextClassification)) {
                 return Optional.of(nextClassification);
             }
         }
@@ -339,6 +356,48 @@ public class AssociatedFileDataManager {
 
     public void deleteAllPreImportSource() {
         preImportSourceRepository.deleteAll();
+    }
+
+    /* --------------------------------------------------------------------------------------------------
+     * POST-IMPORT SOURCE
+     * -------------------------------------------------------------------------------------------------- */
+
+    public List<PostImportSource> findAllPostImportSource() {
+        List<PostImportSource> result = new ArrayList<>();
+
+        this.postImportSourceRepository.findAllByOrderByIdAsc().forEach(result::add);
+
+        return result;
+    }
+
+    public Optional<PostImportSource> findPostImportSourceIfExists(Integer id) {
+        return postImportSourceRepository.findById(id);
+    }
+
+    public PostImportSource createPostImportSource(PostImportSource source) throws SourceAlreadyExistsException {
+        if(source.getIdAndType().getId() != null) {
+            throw new SourceAlreadyExistsException(source.getIdAndType().getId());
+        }
+
+        return postImportSourceRepository.save(source);
+    }
+
+    public void updatePostImportSource(PostImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        postImportSourceRepository.save(source);
+    }
+
+    public void deletePostImportSource(PostImportSource source) throws InvalidSourceIdException {
+        // Check it exists
+        findSourceById(source.getIdAndType().getId());
+
+        postImportSourceRepository.deleteById(source.getIdAndType().getId());
+    }
+
+    public void deleteAllPostImportSource() {
+        postImportSourceRepository.deleteAll();
     }
 
     /* --------------------------------------------------------------------------------------------------

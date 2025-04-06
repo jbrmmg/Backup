@@ -20,16 +20,16 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-abstract class FileProcessor {
+public abstract class FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
 
-    final FileSystemObjectManager fileSystemObjectManager;
-    final DbLoggingManager dbLoggingManager;
-    final ActionManager actionManager;
-    final AssociatedFileDataManager associatedFileDataManager;
-    final FileSystem fileSystem;
+    protected final FileSystemObjectManager fileSystemObjectManager;
+    protected final DbLoggingManager dbLoggingManager;
+    protected final ActionManager actionManager;
+    protected final AssociatedFileDataManager associatedFileDataManager;
+    protected final FileSystem fileSystem;
 
-    FileProcessor(DbLoggingManager dbLoggingManager,
+    protected FileProcessor(DbLoggingManager dbLoggingManager,
                   ActionManager actionManager,
                   AssociatedFileDataManager associatedFileDataManager,
                   FileSystemObjectManager fileSystemObjectManager,
@@ -41,7 +41,7 @@ abstract class FileProcessor {
         this.fileSystem = fileSystem;
     }
 
-    abstract FileInfo createNewFile();
+    protected abstract FileInfo createNewFile();
 
     private void processDeletesIteratively(FileTreeNode node, List<ActionConfirm> deletes, List<ActionConfirm> performed, GatherDataDTO gatherData) {
         // Process the children.
@@ -153,6 +153,10 @@ abstract class FileProcessor {
         node.setDatabaseObjectId(directory);
     }
 
+    public static LocalDateTime getFileLastModified(File file) {
+        return Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
     private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) {
         // If there is a database object then read it first.
         Optional<FileSystemObject> existingFile = Optional.empty();
@@ -179,7 +183,7 @@ abstract class FileProcessor {
             newClassification.ifPresent(file::setClassification);
         }
 
-        LocalDateTime fileDate = Instant.ofEpochMilli(rwNode.getFile().lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime fileDate = getFileLastModified(rwNode.getFile());
 
         long timeDifference = 100;
         if(file.getDate() != null) {

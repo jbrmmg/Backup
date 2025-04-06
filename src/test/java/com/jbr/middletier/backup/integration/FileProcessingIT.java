@@ -121,9 +121,9 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void basicRealWorld() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Check that the details were read as expected.
         Assert.assertFalse(rwRoot.getName().isPresent());
@@ -137,7 +137,7 @@ public class FileProcessingIT extends FileTester {
         }
         Assert.assertEquals(1, count);
 
-        Assert.assertEquals("Real World (R): " + sourceDirectory + " 1", rwRoot.toString());
+        Assert.assertEquals("Real World (R): " + SOURCE_DIRECTORY + " 1", rwRoot.toString());
     }
 
     @Test
@@ -209,9 +209,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -252,9 +252,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -309,9 +309,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -379,9 +379,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test4");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -456,9 +456,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -527,9 +527,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -579,9 +579,9 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
         RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
@@ -623,9 +623,9 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void checkFilter() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test5");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        RwRoot rwRoot = new RwRoot(sourceDirectory, fileSystem);
+        RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         int childCount = 0;
         for(FileTreeNode nextChild : rwRoot.getChildren()) {
@@ -702,24 +702,24 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void checkDirectoryNotEmpty() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        Assert.assertFalse(fileSystem.directoryIsEmpty(new File(sourceDirectory).toPath()));
+        Assert.assertFalse(fileSystem.directoryIsEmpty(new File(SOURCE_DIRECTORY).toPath()));
     }
 
     @Test
     public void checkDirectoryNotEmpty2() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        File testFile = new File(sourceDirectory + "/does not exist.txt");
+        File testFile = new File(SOURCE_DIRECTORY + "/does not exist.txt");
         Assert.assertFalse(fileSystem.directoryIsEmpty(testFile.toPath()));
     }
 
     @Test
     public void checkDeleteDoesNotExist() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         File nonExistFile = mock(File.class);
         when(nonExistFile.exists()).thenReturn(false);
@@ -734,7 +734,7 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void checkDeleteFileWithDirectory() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         File directory = mock(File.class);
         when(directory.exists()).thenReturn(true);
@@ -751,7 +751,7 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void checkDeleteDirDoesNotExist() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         File nonExistFile = mock(File.class);
         when(nonExistFile.exists()).thenReturn(false);
@@ -766,7 +766,7 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void checkDeleteDirectoryWithFile() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
-        copyFiles(sourceDescription, sourceDirectory);
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         File directory = mock(File.class);
         when(directory.exists()).thenReturn(true);
