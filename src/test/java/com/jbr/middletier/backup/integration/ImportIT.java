@@ -94,7 +94,7 @@ public class ImportIT extends FileTester {
     PostImportSource postImportSource;
 
     @Before
-    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException {
+    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException {
         initialiseDirectories();
 
         // Update JPG so it gets an MD5
@@ -106,6 +106,7 @@ public class ImportIT extends FileTester {
             }
         }
 
+        associatedFileDataManager.deleteAllSynchronize();
         fileSystemObjectManager.deleteAllFileObjects();
         associatedFileDataManager.deleteAllSource();
         associatedFileDataManager.deleteAllImportSource();
@@ -146,6 +147,23 @@ public class ImportIT extends FileTester {
         postImportSourceDTO.setPath(POST_IMPORT_DIRECTORY);
 
         this.postImportSource = associatedFileDataManager.createPostImportSource(associatedFileDataManager.convertToEntity(postImportSourceDTO));
+
+        Source source = new Source();
+        source.setLocation(existingLocation.get());
+        source.setStatus(SourceStatusType.SST_OK);
+        source.setPath(SOURCE_DIRECTORY);
+        source = associatedFileDataManager.createSource(source);
+
+        Source destination = new Source();
+        destination.setLocation(existingLocation.get());
+        destination.setStatus(SourceStatusType.SST_OK);
+        destination.setPath(DESTINATION_DIRECTORY);
+        destination = associatedFileDataManager.createSource(destination);
+
+        Synchronize synchronize = new Synchronize();
+        synchronize.setSource(source);
+        synchronize.setDestination(destination);
+        associatedFileDataManager.createSynchronize(synchronize);
 
         this.importManager.clearImportData();
         this.importManager.clearCacheData();
@@ -354,7 +372,7 @@ public class ImportIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        List<StructureDescription> importDescription = getTestStructure("test14_1");
+        List<StructureDescription> importDescription = getTestStructure("test14_2");
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
         driveManager.gather();
@@ -372,12 +390,47 @@ public class ImportIT extends FileTester {
         DestinationUpdateDTO destinationUpdate = new  DestinationUpdateDTO();
         destinationUpdate.setDestination("AtHome");
         destinationUpdate.setFilename("IMG_8231.jpg");
-        getMockMvc().perform(post("/jbr/int/backup/ignore-file")
+        getMockMvc().perform(post("/jbr/int/backup/update-destination")
                         .content(this.json(destinationUpdate))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
+        waitForQueue();
+
+        // Import the file.
+        getMockMvc().perform(post("/jbr/int/backup/import-photos")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Update the files and reset the import data..
+        driveManager.gather();
+        importManager.clearCacheData();
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
+        waitForQueue();
+
+        // Ask to remove any ignored.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        waitForQueue();
+
+        // Check that the imported file has been removed.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
+        waitForQueue();
     }
 
     @Test
