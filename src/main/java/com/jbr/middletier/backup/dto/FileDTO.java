@@ -24,10 +24,20 @@ public class FileDTO {
         this.name = fileInfo.getName();
         this.date = fileInfo.getDate();
         this.size = fileInfo.getSize();
-        this.md5 = fileInfo.getMD5().toString();
-        this.isImage = fileInfo.getClassification().getIsImage();
-        this.isVideo = fileInfo.getClassification().getIsVideo();
-        this.icon = fileInfo.getClassification().getIcon();
+        if(fileInfo.getMD5() !=null) {
+            this.md5 = fileInfo.getMD5().toString();
+        } else {
+            this.md5 = "";
+        }
+        if(fileInfo.getClassification() !=null) {
+            this.isImage = fileInfo.getClassification().getIsImage();
+            this.isVideo = fileInfo.getClassification().getIsVideo();
+            this.icon = fileInfo.getClassification().getIcon();
+        } else {
+            this.isImage = false;
+            this.isVideo = false;
+            this.icon = "fa-file-o";
+        }
         this.fullFilename = fullFilename;
         this.path = path;
         this.locationName = location;
