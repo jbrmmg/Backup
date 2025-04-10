@@ -107,6 +107,20 @@ public class SyncApiIT extends FileTester {
                 updateClassification.setOrder(1);
                 updateClassification.setIsImage(true);
                 updateClassification.setUseMD5(true);
+                updateClassification.setCheckMetaData(true);
+
+                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
+            } else if(nextClassification.getRegex().contains("jpeg")) {
+                ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setId(nextClassification.getId());
+                updateClassification.setIcon(nextClassification.getIcon());
+                updateClassification.setRegex(nextClassification.getRegex());
+                updateClassification.setAction(nextClassification.getAction());
+                updateClassification.setIsVideo(nextClassification.getIsVideo());
+                updateClassification.setOrder(1);
+                updateClassification.setIsImage(true);
+                updateClassification.setUseMD5(nextClassification.getUseMD5());
+                updateClassification.setCheckMetaData(true);
 
                 associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             }
@@ -138,6 +152,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus("OK");
         sourceDTO.setPath(SOURCE_DIRECTORY);
+        sourceDTO.setGatherMetaData(true);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 

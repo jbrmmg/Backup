@@ -89,3 +89,6 @@ databaseChangeLog:
 
   - include:
       file: /db/changelog/db.changelog-031-import.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-032-metadata.yaml
