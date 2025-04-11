@@ -22,6 +22,7 @@ public class FileSystemObjectManager {
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemObjectManager.class);
 
     private final FileRepository fileRepository;
+    private final MetaDataRepository metaDataRepository;
     private final DirectoryRepository directoryRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final AssociatedFileDataManager associatedFileDataManager;
@@ -31,6 +32,7 @@ public class FileSystemObjectManager {
 
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
+                                   MetaDataRepository metaDataRepository,
                                    DirectoryRepository directoryRepository,
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
@@ -40,6 +42,7 @@ public class FileSystemObjectManager {
         LOG.trace("FSO CTOR");
 
         this.fileRepository = fileRepository;
+        this.metaDataRepository = metaDataRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -351,5 +354,25 @@ public class FileSystemObjectManager {
         }
 
         return result;
+    }
+
+    public Optional<MetaData> findMetaDataForFile(FileInfo file) throws InvalidFileIdException {
+        // Return the meta data for the i
+        return this.metaDataRepository.findById(file.getIdAndType().getId());
+    }
+
+    public void saveMetaData(MetaData metaData) {
+        // Save the metadata.
+        this.metaDataRepository.save(metaData);
+    }
+
+    public void updateMetaData(MetaData metaData) {
+        // Save the metadata.
+        this.metaDataRepository.save(metaData);
+    }
+
+    public void deleteMetaData(MetaData metaData) {
+        // Save the metadata.
+        this.metaDataRepository.delete(metaData);
     }
 }

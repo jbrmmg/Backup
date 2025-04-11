@@ -26,6 +26,7 @@ public class TestFsoExtra {
     public void findByTypeDirectory() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -39,6 +40,7 @@ public class TestFsoExtra {
         when(directoryRepository.findAllByOrderByIdAsc()).thenReturn(testList);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -59,6 +61,7 @@ public class TestFsoExtra {
     public void findByTypeDirectory2() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -72,6 +75,7 @@ public class TestFsoExtra {
         when(directoryRepository.findAllByOrderByIdAsc()).thenReturn(testList);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -91,6 +95,7 @@ public class TestFsoExtra {
     public void fsoSaveUnsupported() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -101,6 +106,7 @@ public class TestFsoExtra {
         when(fso.getIdAndType()).thenReturn(new FileSystemObjectId(0, FileSystemObjectType.FSO_SOURCE));
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -120,6 +126,7 @@ public class TestFsoExtra {
     public void fsoDeleteUnsupported() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -130,6 +137,7 @@ public class TestFsoExtra {
         when(fso.getIdAndType()).thenReturn(new FileSystemObjectId(0, FileSystemObjectType.FSO_SOURCE));
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -149,6 +157,7 @@ public class TestFsoExtra {
     public void fsoFind1() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -158,6 +167,7 @@ public class TestFsoExtra {
         when(ignoreFileRepository.findById(1)).thenReturn(Optional.empty());
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -173,6 +183,7 @@ public class TestFsoExtra {
     public void fsoFind2() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -182,6 +193,7 @@ public class TestFsoExtra {
         when(importFileRepository.findById(1)).thenReturn(Optional.empty());
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -197,6 +209,7 @@ public class TestFsoExtra {
     public void fsoFind3() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -204,6 +217,7 @@ public class TestFsoExtra {
         LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -219,6 +233,7 @@ public class TestFsoExtra {
     public void fsoFindByName() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -226,6 +241,7 @@ public class TestFsoExtra {
         LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,
@@ -245,6 +261,7 @@ public class TestFsoExtra {
     public void fsoPaths() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
+        MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
         DirectoryRepository directoryRepository = mock(DirectoryRepository.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
@@ -252,6 +269,7 @@ public class TestFsoExtra {
         LabelManager labelManager = mock(LabelManager.class);
 
         FileSystemObjectManager manager = new FileSystemObjectManager(fileRepository,
+                metaDataRepository,
                 directoryRepository,
                 ignoreFileRepository,
                 associatedFileDataManager,

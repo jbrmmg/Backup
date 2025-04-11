@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import com.jbr.middletier.backup.manager.FileSystemImageData;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -32,6 +34,26 @@ public class MetaData {
 
     @Column(name="duration")
     private Double duration;
+
+    public MetaData() {
+    }
+
+    public MetaData(Integer id, FileSystemImageData metaDataFromImage) {
+        this.id = id;
+        this.image = metaDataFromImage.isImage();
+        this.video = metaDataFromImage.isVideo();
+        if(metaDataFromImage.getImageSize() != null){
+            this.imageHeight = metaDataFromImage.getImageSize().height();
+            this.imageWidth = metaDataFromImage.getImageSize().width();
+        }
+        if(metaDataFromImage.getLatLong() != null){
+            this.latitude = metaDataFromImage.getLatLong().getLatitude();
+            this.longitude = metaDataFromImage.getLatLong().getLongitude();
+        }
+        if(metaDataFromImage.getDuration() != null){
+            this.duration = metaDataFromImage.getDuration();
+        }
+    }
 
     public Integer getId() {
         return id;

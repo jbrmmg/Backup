@@ -157,6 +157,14 @@ public class FileSystemImageData {
         return this.mimeType;
     }
 
+    public boolean isImage() {
+        return this.mimeType != null && this.mimeType.toLowerCase().startsWith("image");
+    }
+
+    public boolean isVideo() {
+        return this.mimeType != null && this.mimeType.toLowerCase().startsWith("video");
+    }
+
     public Double getDuration() {
         return this.duration;
     }
