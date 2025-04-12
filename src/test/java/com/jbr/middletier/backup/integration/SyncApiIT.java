@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.summary.Summary;
 import org.apache.commons.io.FileUtils;
+import org.hamcrest.core.IsNull;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -22,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.io.*;
@@ -107,6 +109,20 @@ public class SyncApiIT extends FileTester {
                 updateClassification.setOrder(1);
                 updateClassification.setIsImage(true);
                 updateClassification.setUseMD5(true);
+                updateClassification.setCheckMetaData(true);
+
+                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
+            } else if(nextClassification.getRegex().contains("jpeg")) {
+                ClassificationDTO updateClassification = new ClassificationDTO();
+                updateClassification.setId(nextClassification.getId());
+                updateClassification.setIcon(nextClassification.getIcon());
+                updateClassification.setRegex(nextClassification.getRegex());
+                updateClassification.setAction(nextClassification.getAction());
+                updateClassification.setIsVideo(nextClassification.getIsVideo());
+                updateClassification.setOrder(1);
+                updateClassification.setIsImage(true);
+                updateClassification.setUseMD5(nextClassification.getUseMD5());
+                updateClassification.setCheckMetaData(true);
 
                 associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             }
@@ -138,6 +154,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setLocation(associatedFileDataManager.convertToDTO(existingLocation.get()));
         sourceDTO.setStatus("OK");
         sourceDTO.setPath(SOURCE_DIRECTORY);
+        sourceDTO.setGatherMetaData(true);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
@@ -260,6 +277,31 @@ public class SyncApiIT extends FileTester {
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
+
+        // Check that the metadata was collected on the jpeg file.
+        Optional<Integer> idOfJpeg = Optional.empty();
+        for(FileSystemObject file : files){
+            if(file.getName().toLowerCase().endsWith(".jpeg")) {
+                idOfJpeg = Optional.of(file.getIdAndType().getId());
+                break;
+            }
+        }
+
+        Assert.assertTrue(idOfJpeg.isPresent());
+
+        // Get the details for the jpeg file.
+        getMockMvc().perform(get("/jbr/int/backup/file?id="+idOfJpeg.get())
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$.file.id", is(idOfJpeg.get())))
+                .andExpect(jsonPath("$.metaData.image", is(true)))
+                .andExpect(jsonPath("$.metaData.video", is(false)))
+                .andExpect(jsonPath("$.metaData.imageHeight", is(3024)))
+                .andExpect(jsonPath("$.metaData.imageWidth", is(4032)))
+                .andExpect(jsonPath("$.metaData.latitude", is(37.2243778)))
+                .andExpect(jsonPath("$.metaData.longitude", is(-115.8154806)));
     }
 
     @Test
@@ -1734,5 +1776,89 @@ public class SyncApiIT extends FileTester {
 
         this.source.setMountCheck(null);
         associatedFileDataManager.updateSource(this.source);
+    }
+
+    @Test
+    public void testRefresh() throws Exception {
+        // During this test create files in the following directories
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test18");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> destinationDescription = getTestStructure("test18");
+        copyFiles(destinationDescription, DESTINATION_DIRECTORY);
+
+        //gather
+        LOG.info("Gather the data.");
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[*].failed", containsInAnyOrder(false,false)))
+                .andExpect(jsonPath("$[*].filesInserted",containsInAnyOrder(1,1)))
+                .andExpect(jsonPath("$[*].directoriesInserted", containsInAnyOrder(4,4)))
+                .andExpect(jsonPath("$[*].filesRemoved", containsInAnyOrder(0,0)))
+                .andExpect(jsonPath("$[*].directoriesRemoved", containsInAnyOrder(0,0)))
+                .andExpect(jsonPath("$[*].deletes", containsInAnyOrder(0,0)));
+
+        // Get the files.
+        List<FileSystemObject> files = new ArrayList<>();
+        fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE).forEach(files::add);
+
+        // There should be two files, with no classification.
+        Assert.assertEquals(2, files.size());
+        FileInfo fileInfo = (FileInfo) files.get(0);
+        int findId = fileInfo.getIdAndType().getId();
+        Assert.assertNull(fileInfo.getClassification());
+        fileInfo = (FileInfo) files.get(1);
+        // Use the lowest id to find, as this will be the first created.
+        if(fileInfo.getIdAndType().getId() < findId) {
+            findId = fileInfo.getIdAndType().getId();
+        }
+        Assert.assertNull(fileInfo.getClassification());
+
+        // Test the get file.
+        getMockMvc().perform(get("/jbr/int/backup/file?id=" + findId)
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$.file.id", is(findId)))
+                .andExpect(jsonPath("$.file.md5", is("")))
+                .andExpect(jsonPath("$.metaData").value(IsNull.nullValue()))
+                .andExpect(jsonPath("$.backups[0].md5", is("")));
+
+        // Add the classification.
+        Classification jpgxClassification = new Classification();
+        jpgxClassification.setIcon("fa-picture-o");
+        jpgxClassification.setRegex(".*\\.jpgx$");
+        jpgxClassification.setAction(ClassificationActionType.CA_BACKUP);
+        jpgxClassification.setIsVideo(false);
+        jpgxClassification.setOrder(1);
+        jpgxClassification.setIsImage(true);
+        jpgxClassification.setUseMD5(true);
+        jpgxClassification.setCheckMetaData(true);
+        associatedFileDataManager.createClassification(jpgxClassification);
+
+        // Perform a refresh
+        getMockMvc().perform(post("/jbr/int/backup/refresh-file-data?id="+findId)
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$.file.id", is(findId)))
+                .andExpect(jsonPath("$.file.md5", is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$.metaData.image", is(true)))
+                .andExpect(jsonPath("$.metaData.imageHeight", is(3024)))
+                .andExpect(jsonPath("$.metaData.imageWidth", is(4032)))
+                .andExpect(jsonPath("$.backups[0].md5", is("56FDC164DC8A27C015170014821A7DCE")));
+
+        // Remove the classification
+        fileSystemObjectManager.delete(files.get(0));
+        fileSystemObjectManager.delete(files.get(1));
+        associatedFileDataManager.deleteClassification(jpgxClassification);
     }
 }

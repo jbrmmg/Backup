@@ -12,6 +12,7 @@ public class ClassificationDTO {
     private Boolean useMD5;
     private Boolean isImage;
     private Boolean isVideo;
+    private Boolean checkMetaData;
 
     public Integer getId() {
         return id;
@@ -75,5 +76,13 @@ public class ClassificationDTO {
 
     public void setIsVideo(Boolean video) {
         isVideo = video;
+    }
+
+    public Boolean getCheckMetaData() {
+        return checkMetaData == null ? Boolean.FALSE : checkMetaData;
+    }
+
+    public void setCheckMetaData(Boolean checkMetaData) {
+        this.checkMetaData = checkMetaData;
     }
 }

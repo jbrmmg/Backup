@@ -10,6 +10,7 @@ import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
+import com.jbr.middletier.backup.data.MetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
@@ -157,7 +158,7 @@ public abstract class FileProcessor {
         return Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    private void processFileAddUpdate(RwDbCompareNode node, boolean skipMD5) {
+    private void processFileAddUpdate(Source source, RwDbCompareNode node, boolean skipMD5) {
         // If there is a database object then read it first.
         Optional<FileSystemObject> existingFile = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
@@ -199,6 +200,17 @@ public abstract class FileProcessor {
         }
 
         fileSystemObjectManager.save(file);
+
+        // If required, gather meta data as well.
+        if(source.getGatherMetaData() && file.getClassification() != null && file.getClassification().getCheckMetaData()) {
+            LOG.info("Gathering metadata for {}",file.getName());
+
+            Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(rwNode.getFile());
+            if(imageData.isPresent() && imageData.get().isValid() && existingFile.get().getIdAndType() != null) {
+                // Save the metadata.
+                fileSystemObjectManager.saveMetaData(new MetaData(existingFile.get().getIdAndType().getId(), imageData.get()));
+            }
+        }
 
         // Store the id of this item.
         node.setDatabaseObjectId(existingFile.get());
@@ -243,7 +255,7 @@ public abstract class FileProcessor {
                         gatherData.increment(GatherDataDTO.GatherDataCountType.DIRECTORIES_INSERTED);
                         break;
                     case FILE_FOR_INSERT:
-                        processFileAddUpdate(compareNode, skipMD5);
+                        processFileAddUpdate(source, compareNode, skipMD5);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
                 }

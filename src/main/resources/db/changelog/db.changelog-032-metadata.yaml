@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 32
+      author: jason
+      changes:
+
+        - createTable:
+            tableName: meta_data
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: image
+                  type: boolean
+              - column:
+                  name: image_height
+                  type: int
+              - column:
+                  name: image_width
+                  type: int
+              - column:
+                  name: lat
+                  type: decimal(10,7)
+              - column:
+                  name: long
+                  type: decimal(10,7)
+              - column:
+                  name: video
+                  type: boolean
+              - column:
+                  name: duration
+                  type: decimal(10,3)
+
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: gather_meta_data
+                  type: boolean
+
+        - addColumn:
+            tableName: classification
+            columns:
+              - column:
+                  name: check_meta_data
+                  type: boolean

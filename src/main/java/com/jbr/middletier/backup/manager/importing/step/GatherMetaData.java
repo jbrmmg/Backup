@@ -84,8 +84,8 @@ public class GatherMetaData extends ImportStep {
         if(imageData.isPresent()) {
             LOG.info("{} contains meta data", file.getFilename());
             // Update the file data.
-            file.setVideo(imageData.get().getMimeType().toLowerCase().startsWith("video"));
-            file.setImage(imageData.get().getMimeType().toLowerCase().startsWith("image"));
+            file.setVideo(imageData.get().isVideo());
+            file.setImage(imageData.get().isImage());
             file.setImageSize(imageData.get().getImageSize());
             file.setDuration(imageData.get().getDuration());
             file.setLocation(imageData.get().getLatLong());
