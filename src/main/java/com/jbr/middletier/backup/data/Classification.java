@@ -36,6 +36,9 @@ public class Classification {
     @Column(name="is_video")
     private Boolean isVideo;
 
+    @Column(name="check_meta_data")
+    private Boolean checkMetaData;
+
     public Classification() {
         this.order = 0;
         this.useMD5 = false;
@@ -68,6 +71,14 @@ public class Classification {
     public Boolean getIsImage() { return this.isImage; }
 
     public void setIsImage(Boolean isImage) { this.isImage = isImage; }
+
+    public boolean getCheckMetaData() {
+        return checkMetaData != null && checkMetaData;
+    }
+
+    public void setCheckMetaData(Boolean checkMetaData) {
+        this.checkMetaData = checkMetaData;
+    }
 
     public @NotNull Integer getOrder() { return this.order; }
 

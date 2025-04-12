@@ -24,6 +24,9 @@ public class Source extends FileSystemObject {
     @Column(name="mount_check")
     private String mountCheck;
 
+    @Column(name="gather_meta_data")
+    private Boolean gatherMetaData;
+
     protected Source(FileSystemObjectType sourceType) {
         super(sourceType);
     }
@@ -48,6 +51,14 @@ public class Source extends FileSystemObject {
     public Location getLocation() { return this.location; }
 
     public void setLocation(Location location) { this.location = location; }
+
+    public boolean getGatherMetaData() {
+        return gatherMetaData != null && gatherMetaData;
+    }
+
+    public void setGatherMetaData(Boolean gatherMetaData) {
+        this.gatherMetaData = gatherMetaData;
+    }
 
     public Optional<File> getMountCheck() {
         if(this.mountCheck == null) {

@@ -171,6 +171,11 @@ public class FileController {
         return fileSystemObjectManager.getFileExtra(id);
     }
 
+    @PostMapping(path="/refresh-file-data")
+    public FileInfoExtra refreshFileData(@RequestParam Integer id) throws InvalidFileIdException {
+        return fileSystemObjectManager.refreshFileData(id);
+    }
+
     @GetMapping(path="/findfile")
     public List<String> findFile(@RequestParam String search) {
         return fileSystemObjectManager.findFiles(search);

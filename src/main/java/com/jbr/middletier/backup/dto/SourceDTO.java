@@ -13,6 +13,7 @@ public class SourceDTO {
     private int fileCount;
     private long totalFileSize;
     private long largestFile;
+    private Boolean gatherMetaData;
 
     public SourceDTO() {
         setId(null);
@@ -110,5 +111,13 @@ public class SourceDTO {
         if(fileSize > this.largestFile) {
             this.largestFile = fileSize;
         }
+    }
+
+    public Boolean getGatherMetaData() {
+        return gatherMetaData == null ? Boolean.FALSE : gatherMetaData;
+    }
+
+    public void setGatherMetaData(Boolean gatherMetaData) {
+        this.gatherMetaData = gatherMetaData;
     }
 }

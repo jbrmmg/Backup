@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,30 +21,36 @@ public class FileSystemObjectManager {
     private static final Logger LOG = LoggerFactory.getLogger(FileSystemObjectManager.class);
 
     private final FileRepository fileRepository;
+    private final MetaDataRepository metaDataRepository;
     private final DirectoryRepository directoryRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final AssociatedFileDataManager associatedFileDataManager;
     private final ImportFileRepository importFileRepository;
     private final ModelMapper modelMapper;
     private final LabelManager labelManager;
+    private final FileSystem fileSystem;
 
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
+                                   MetaDataRepository metaDataRepository,
                                    DirectoryRepository directoryRepository,
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
                                    ImportFileRepository importFileRepository,
                                    ModelMapper modelMapper,
-                                   LabelManager labelManager) {
+                                   LabelManager labelManager,
+                                   FileSystem fileSystem) {
         LOG.trace("FSO CTOR");
 
         this.fileRepository = fileRepository;
+        this.metaDataRepository = metaDataRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.associatedFileDataManager = associatedFileDataManager;
         this.importFileRepository = importFileRepository;
         this.modelMapper = modelMapper;
         this.labelManager = labelManager;
+        this.fileSystem = fileSystem;
     }
 
     public FileInfoDTO convertToDTO(FileInfo fileInfo) {
@@ -169,16 +174,6 @@ public class FileSystemObjectManager {
 
     }
 
-    public Iterable<FileSystemObject> findFileSystemObjectByMd5(String md5, FileSystemObjectType type) {
-        List<FileSystemObject> empty = new ArrayList<>();
-
-        if (Objects.requireNonNull(type) == FileSystemObjectType.FSO_FILE) {
-            return copyOfList(fileRepository.findByMd5(md5));
-        }
-
-        return empty;
-    }
-
     private void addFileToResult(FileInfo fileInfo, List<String> result) {
         File file = getFile(fileInfo);
 
@@ -237,6 +232,27 @@ public class FileSystemObjectManager {
         }
 
         return new File(sb.toString());
+    }
+
+    private FileSystemObject getParent(FileSystemObject file) {
+        Optional<FileSystemObject> parent = findFileSystemObject(file.getParentId().orElse(null));
+
+        // Return the parent or null.
+        return parent.orElse(null);
+    }
+
+    private Source getSource(FileSystemObject file) {
+        Optional<FileSystemObject> parent = findFileSystemObject(file.getParentId().orElse(null));
+
+        while(parent.isPresent()) {
+            if(parent.get() instanceof Source source) {
+                return source;
+            }
+
+            parent = findFileSystemObject(parent.get().getParentId().orElse(null));
+        }
+
+        return null;
     }
 
     private File getFileNameFromPartsAtDestination(List<FileSystemObject> nameParts, Source destination) {
@@ -320,6 +336,159 @@ public class FileSystemObjectManager {
         fileRepository.save(file.get());
     }
 
+    private Optional<MetaData> getFileMetaData(boolean useMetaData, FileInfo fileInfo, int id, File associatedFile) {
+        Optional<MetaData> result = Optional.empty();
+
+        if(useMetaData && fileInfo.getClassification().getCheckMetaData()) {
+            // Is there metadata?
+            result = findMetaDataForFile(fileInfo);
+
+            if(result.isEmpty()) {
+                // Get the metadata.
+                Optional<FileSystemImageData> fileMetaData = this.fileSystem.readImageMetaData(associatedFile);
+
+                if(fileMetaData.isPresent()) {
+                    result = Optional.of(new MetaData(id, fileMetaData.get()));
+
+                    // Save the metadata.
+                    metaDataRepository.save(result.get());
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private boolean updateClassification(FileInfo fileInfo, int id) {
+        if(fileInfo.getClassification() == null) {
+            Optional<Classification> classification = associatedFileDataManager.classifyFile(fileInfo);
+
+            if(classification.isPresent()) {
+                fileInfo.setClassification(classification.get());
+
+                fileRepository.save(fileInfo);
+
+                return true;
+            }
+
+            LOG.info("{} there is no classification for this file, therefore nothing further can be done", id);
+        }
+
+        return false;
+    }
+
+    private void updateMD5(FileInfo fileInfo, int id, File associatedFile) {
+        if(fileInfo.getClassification().getUseMD5() && !fileInfo.getMD5().isSet()) {
+            // See if the MD5 can be refreshed.
+            MD5 md5 = this.fileSystem.getClassifiedFileMD5(associatedFile.toPath(),fileInfo.getClassification(),id);
+
+            if(md5.isSet()) {
+                fileInfo.setMD5(md5);
+
+                fileRepository.save(fileInfo);
+            }
+        }
+    }
+
+    private void checkBackupsAndLabels(boolean updateBackups, FileInfo fileInfo, FileInfoExtra fileInfoExtra, FileSystemObject parent) {
+        long size = fileInfoExtra.getFile().getSize();
+        MD5 md5 = new MD5(fileInfoExtra.getFile().getMd5());
+
+        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(fileInfoExtra.getFile().getName(), FileSystemObjectType.FSO_FILE);
+
+        for(FileSystemObject nextSameName: sameName) {
+            if(nextSameName.getIdAndType().getId().equals(fileInfoExtra.getFile().getId()) || !(nextSameName instanceof FileInfo nextFile) ) {
+                continue;
+            }
+
+            // Get the size, parent and MD5 if available.
+            long nextSize = nextFile.getSize();
+            MD5 nextMD5 = new MD5(nextFile.getMD5());
+            FileSystemObject nextParent = getParent(nextFile);
+
+            // Is there a match?
+            if(size == nextSize &&
+                    nextParent != null &&
+                    parent != null &&
+                    nextParent.getName().equals(parent.getName()) &&
+                    nextMD5.compare(md5,true)) {
+                File associatedFile = getFile(nextFile);
+
+                // If required, update the MD5 of the backup.
+                if(updateBackups && !nextFile.getMD5().isSet()) {
+                    // Update the classification.
+                    Optional<Classification> classification = associatedFileDataManager.classifyFile(nextFile);
+                    classification.ifPresent(nextFile::setClassification);
+
+                    MD5 newNextMD5 = fileSystem.getClassifiedFileMD5(associatedFile.toPath(), nextFile.getClassification(), nextFile.getIdAndType().getId());
+
+                    nextFile.setMD5(newNextMD5);
+                    fileRepository.save(nextFile);
+                }
+
+                // Add to the file information.
+                fileInfoExtra.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
+            }
+        }
+
+        // Get any labels.
+        for(String nextLabel : labelManager.getLabelsForFile(fileInfo.getIdAndType())) {
+            fileInfoExtra.addLabel(nextLabel);
+        }
+    }
+
+    public FileInfoExtra refreshFileData(Integer id) throws InvalidFileIdException {
+        Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
+
+        if(file.isEmpty()) {
+            throw new InvalidFileIdException(id);
+        }
+
+        // Get the file info.
+        if(!(file.get() instanceof FileInfo fileInfo)) {
+            // Nothing to do as it's not the right type.
+            LOG.info("{} is not a File, no updates required.", id);
+            return null;
+        }
+
+        File associatedFile = getFile(fileInfo);
+
+        // Does the source of this file use metadata?
+        FileSystemObject parent = getParent(file.get());
+        Source fileSource = getSource(file.get());
+
+        if(fileSource == null) {
+            LOG.info("{} is not a File, no updates required.", id);
+            return null;
+        }
+
+        boolean useMetaData = fileSource.getGatherMetaData();
+        boolean updateBackups = fileInfo.getClassification() == null;
+
+        // Does the file have a classification? If not, see if it can be updated and if it's still not present then nothing further can be done
+        if(!updateClassification(fileInfo, id)) {
+            return new FileInfoExtra(fileInfo,null,associatedFile.getParent(), associatedFile.getPath(), associatedFile.getParent());
+        }
+
+        // Does the file require an MD5 and is it missing?
+        updateMD5(fileInfo, id, associatedFile);
+
+        // Does the file require metadata and is it missing?
+        Optional<MetaData> metaData = getFileMetaData(useMetaData, fileInfo, id, associatedFile);
+
+        // Create the FileInfoExtra
+        FileInfoExtra fileInfoExtra = new FileInfoExtra ( fileInfo,
+                metaData.orElse(null),
+                associatedFile.getParent(),
+                associatedFile.getPath(),
+                associatedFile.getParent());
+
+        // Check for backups
+        checkBackupsAndLabels(updateBackups, fileInfo, fileInfoExtra, parent);
+
+        return fileInfoExtra;
+    }
+
     public FileInfoExtra getFileExtra(Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
@@ -327,29 +496,35 @@ public class FileSystemObjectManager {
             throw new InvalidFileIdException(id);
         }
 
+        Optional<MetaData> metaData = metaDataRepository.findById(id);
+
         FileInfo originalFile = (FileInfo)file.get();
         File associatedFile = getFile(originalFile);
-        FileInfoExtra result = new FileInfoExtra(originalFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
+        FileInfoExtra result = new FileInfoExtra(originalFile, metaData.orElse(null), associatedFile.getPath(), associatedFile.getPath(), associatedFile.getParent());
 
         // Are there backups of this file?
-        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(file.get().getName(), FileSystemObjectType.FSO_FILE);
-
-        for(FileSystemObject nextSameName: sameName) {
-            if(nextSameName.getIdAndType().equals(file.get().getIdAndType()) || !(nextSameName instanceof FileInfo nextFile) ) {
-                continue;
-            }
-
-            if(nextFile.getSize().equals(originalFile.getSize()) && nextFile.getMD5().compare(originalFile.getMD5(),true)) {
-                associatedFile = getFile(nextFile);
-                result.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
-            }
-        }
-
-        // Get any labels.
-        for(String nextLabel : labelManager.getLabelsForFile(file.get().getIdAndType())) {
-            result.addLabel(nextLabel);
-        }
+        checkBackupsAndLabels(false, originalFile, result, getParent(file.get()));
 
         return result;
+    }
+
+    public Optional<MetaData> findMetaDataForFile(FileInfo file) {
+        // Return the metadata for the i
+        return this.metaDataRepository.findById(file.getIdAndType().getId());
+    }
+
+    public void saveMetaData(MetaData metaData) {
+        // Save the metadata.
+        this.metaDataRepository.save(metaData);
+    }
+
+    public void updateMetaData(MetaData metaData) {
+        // Save the metadata.
+        this.metaDataRepository.save(metaData);
+    }
+
+    public void deleteMetaData(MetaData metaData) {
+        // Save the metadata.
+        this.metaDataRepository.delete(metaData);
     }
 }
