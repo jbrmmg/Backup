@@ -72,8 +72,8 @@ public class Classification {
 
     public void setIsImage(Boolean isImage) { this.isImage = isImage; }
 
-    public Boolean getCheckMetaData() {
-        return checkMetaData ==  null ? Boolean.FALSE : checkMetaData;
+    public boolean getCheckMetaData() {
+        return checkMetaData != null && checkMetaData;
     }
 
     public void setCheckMetaData(Boolean checkMetaData) {

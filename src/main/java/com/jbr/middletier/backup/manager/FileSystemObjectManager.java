@@ -245,8 +245,8 @@ public class FileSystemObjectManager {
         Optional<FileSystemObject> parent = findFileSystemObject(file.getParentId().orElse(null));
 
         while(parent.isPresent()) {
-            if(parent.get() instanceof Source) {
-                return (Source) parent.get();
+            if(parent.get() instanceof Source source) {
+                return source;
             }
 
             parent = findFileSystemObject(parent.get().getParentId().orElse(null));
@@ -341,7 +341,7 @@ public class FileSystemObjectManager {
 
         if(useMetaData && fileInfo.getClassification().getCheckMetaData()) {
             // Is there metadata?
-            result = metaDataRepository.findById(id);
+            result = findMetaDataForFile(fileInfo);
 
             if(result.isEmpty()) {
                 // Get the metadata.
@@ -445,10 +445,7 @@ public class FileSystemObjectManager {
         }
 
         // Get the file info.
-        FileInfo fileInfo;
-        if(file.get() instanceof FileInfo) {
-            fileInfo = (FileInfo) file.get();
-        } else {
+        if(!(file.get() instanceof FileInfo fileInfo)) {
             // Nothing to do as it's not the right type.
             LOG.info("{} is not a File, no updates required.", id);
             return null;
@@ -458,13 +455,7 @@ public class FileSystemObjectManager {
 
         // Does the source of this file use metadata?
         FileSystemObject parent = getParent(file.get());
-
-        Source fileSource;
-        if(parent instanceof Source) {
-            fileSource = (Source)parent;
-        } else {
-            fileSource = getSource(parent);
-        }
+        Source fileSource = getSource(file.get());
 
         if(fileSource == null) {
             LOG.info("{} is not a File, no updates required.", id);
@@ -517,7 +508,7 @@ public class FileSystemObjectManager {
         return result;
     }
 
-    public Optional<MetaData> findMetaDataForFile(FileInfo file) throws InvalidFileIdException {
+    public Optional<MetaData> findMetaDataForFile(FileInfo file) {
         // Return the metadata for the i
         return this.metaDataRepository.findById(file.getIdAndType().getId());
     }

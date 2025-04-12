@@ -1469,4 +1469,25 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(1,(long)id.getFileId());
         Assert.assertEquals("1-21",id.toString());
     }
+
+    @Test
+    public void testMetaData() {
+        MetaData metaData = new MetaData();
+        metaData.setId(10);
+        metaData.setDuration(12.2);
+        metaData.setImage(true);
+        metaData.setVideo(false);
+        metaData.setLatitude(10.2);
+        metaData.setLongitude(22.2);
+        metaData.setImageHeight(213);
+        metaData.setImageWidth(214);
+        Assert.assertEquals(10, (long)metaData.getId());
+        Assert.assertEquals(12.2, metaData.getDuration(),0.01);
+        Assert.assertTrue(metaData.getImage());
+        Assert.assertFalse(metaData.getVideo());
+        Assert.assertEquals(10.2, metaData.getLatitude(), 0.01);
+        Assert.assertEquals(22.2, metaData.getLongitude(), 0.01);
+        Assert.assertEquals(213, (long)metaData.getImageHeight());
+        Assert.assertEquals(214, (long)metaData.getImageWidth());
+    }
 }
