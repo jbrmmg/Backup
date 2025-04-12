@@ -372,6 +372,8 @@ public class FileSystemObjectManager {
             }
 
             LOG.info("{} there is no classification for this file, therefore nothing further can be done", id);
+        } else {
+            return true;
         }
 
         return false;
@@ -463,7 +465,6 @@ public class FileSystemObjectManager {
         }
 
         boolean useMetaData = fileSource.getGatherMetaData();
-        boolean updateBackups = fileInfo.getClassification() == null;
 
         // Does the file have a classification? If not, see if it can be updated and if it's still not present then nothing further can be done
         if(!updateClassification(fileInfo, id)) {
@@ -484,7 +485,7 @@ public class FileSystemObjectManager {
                 associatedFile.getParent());
 
         // Check for backups
-        checkBackupsAndLabels(updateBackups, fileInfo, fileInfoExtra, parent);
+        checkBackupsAndLabels(true, fileInfo, fileInfoExtra, parent);
 
         return fileInfoExtra;
     }
