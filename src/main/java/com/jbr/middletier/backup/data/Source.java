@@ -52,8 +52,8 @@ public class Source extends FileSystemObject {
 
     public void setLocation(Location location) { this.location = location; }
 
-    public Boolean getGatherMetaData() {
-        return gatherMetaData == null ? Boolean.FALSE : gatherMetaData;
+    public boolean getGatherMetaData() {
+        return gatherMetaData != null && gatherMetaData;
     }
 
     public void setGatherMetaData(Boolean gatherMetaData) {
