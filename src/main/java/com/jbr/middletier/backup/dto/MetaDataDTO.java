@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.MetaData;
+import java.time.LocalDateTime;
 
 public class MetaDataDTO {
     private Boolean image;
@@ -10,6 +11,7 @@ public class MetaDataDTO {
     private Double longitude;
     private Boolean video;
     private Double duration;
+    private LocalDateTime date;
 
     public MetaDataDTO() {
     }
@@ -22,6 +24,7 @@ public class MetaDataDTO {
         this.latitude = metaData.getLatitude();
         this.longitude = metaData.getLongitude();
         this.duration = metaData.getDuration();
+        this.date = metaData.getDate();
     }
 
     public Boolean getImage() {
@@ -78,5 +81,13 @@ public class MetaDataDTO {
 
     public void setDuration(Double duration) {
         this.duration = duration;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
     }
 }

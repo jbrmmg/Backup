@@ -6,6 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name="meta_data")
@@ -35,6 +36,9 @@ public class MetaData {
     @Column(name="duration")
     private Double duration;
 
+    @Column(name="date")
+    private LocalDateTime date;
+
     public MetaData() {
     }
 
@@ -52,6 +56,9 @@ public class MetaData {
         }
         if(metaDataFromImage.getDuration() != null){
             this.duration = metaDataFromImage.getDuration();
+        }
+        if(metaDataFromImage.getDateTime() != null){
+            this.date = metaDataFromImage.getDateTime();
         }
     }
 
@@ -117,5 +124,13 @@ public class MetaData {
 
     public void setDuration(Double duration) {
         this.duration = duration;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
     }
 }

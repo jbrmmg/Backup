@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 33
+      author: jason
+      changes:
+
+        - addColumn:
+            tableName: meta_data
+            columns:
+              - column:
+                  name: date
+                  type: datetime

@@ -94,5 +94,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-032-metadata.yaml
 
   - include:
+      file: /db/changelog/db.changelog-033-metadata-date.yaml
+
+  - include:
       file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

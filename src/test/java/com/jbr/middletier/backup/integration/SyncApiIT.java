@@ -87,6 +87,20 @@ public class SyncApiIT extends FileTester {
     private Source destination;
     private Synchronize synchronize;
 
+    private ClassificationDTO initialiseClassification(Classification nextClassification) {
+        ClassificationDTO updateClassification = new ClassificationDTO();
+        updateClassification.setId(nextClassification.getId());
+        updateClassification.setIcon(nextClassification.getIcon());
+        updateClassification.setRegex(nextClassification.getRegex());
+        updateClassification.setAction(nextClassification.getAction());
+        updateClassification.setIsVideo(nextClassification.getIsVideo());
+        updateClassification.setOrder(1);
+        updateClassification.setIsImage(true);
+        updateClassification.setCheckMetaData(true);
+
+        return updateClassification;
+    }
+
     @Before
     public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
         dbLoggingManager.clearMessageCache();
@@ -100,29 +114,13 @@ public class SyncApiIT extends FileTester {
         // Update JPG so it gets an MD5
         for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if(nextClassification.getRegex().contains("jpg")) {
-                ClassificationDTO updateClassification = new ClassificationDTO();
-                updateClassification.setId(nextClassification.getId());
-                updateClassification.setIcon(nextClassification.getIcon());
-                updateClassification.setRegex(nextClassification.getRegex());
-                updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setIsVideo(nextClassification.getIsVideo());
-                updateClassification.setOrder(1);
-                updateClassification.setIsImage(true);
+                ClassificationDTO updateClassification = initialiseClassification(nextClassification);
                 updateClassification.setUseMD5(true);
-                updateClassification.setCheckMetaData(true);
 
                 associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             } else if(nextClassification.getRegex().contains("jpeg")) {
-                ClassificationDTO updateClassification = new ClassificationDTO();
-                updateClassification.setId(nextClassification.getId());
-                updateClassification.setIcon(nextClassification.getIcon());
-                updateClassification.setRegex(nextClassification.getRegex());
-                updateClassification.setAction(nextClassification.getAction());
-                updateClassification.setIsVideo(nextClassification.getIsVideo());
-                updateClassification.setOrder(1);
-                updateClassification.setIsImage(true);
+                ClassificationDTO updateClassification = initialiseClassification(nextClassification);
                 updateClassification.setUseMD5(nextClassification.getUseMD5());
-                updateClassification.setCheckMetaData(true);
 
                 associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
             }
@@ -205,7 +203,7 @@ public class SyncApiIT extends FileTester {
 
     @Test
     public void gather() throws Exception {
-        LOG.info("Synchronize Testing");
+        LOG.info("Gather Testing");
 
         // During this test create files in the following directories
         initialiseDirectories();
@@ -215,7 +213,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test1.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -235,7 +233,7 @@ public class SyncApiIT extends FileTester {
         Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test2.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -255,7 +253,7 @@ public class SyncApiIT extends FileTester {
         Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data from test 3.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -306,7 +304,7 @@ public class SyncApiIT extends FileTester {
 
     @Test
     public void gatherIgnore() throws Exception {
-        LOG.info("Synchronize Testing");
+        LOG.info("Gather ignore Testing");
 
         // During this test create files in the following directories
         initialiseDirectories();
@@ -316,7 +314,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test 15.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -412,7 +410,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test 2 (synchronize).");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -545,7 +543,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(8)));
 
-        LOG.info("Check for duplicates");
+        LOG.info("Check for duplicates in sync");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -580,7 +578,7 @@ public class SyncApiIT extends FileTester {
         associatedFileDataManager.deleteSource(this.destination);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test 4.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -613,7 +611,7 @@ public class SyncApiIT extends FileTester {
         confirmRequest.setParameter("");
         actionManager.confirmAction(confirmRequest);
 
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data after delete test.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -636,7 +634,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test 2.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -827,7 +825,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
-        LOG.info("Check for duplicates");
+        LOG.info("Check for duplicates in duplicate testing");
         getMockMvc().perform(post("/jbr/int/backup/duplicate")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -949,7 +947,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data in sync with delete.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -970,7 +968,7 @@ public class SyncApiIT extends FileTester {
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
-        LOG.info("Synchronize the data.");
+        LOG.info("Synchronize the data (Sync with delete).");
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1027,7 +1025,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk());
 
         // Process the gather and syncs again.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data after action update.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1106,7 +1104,7 @@ public class SyncApiIT extends FileTester {
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
-        LOG.info("Synchronize the data.");
+        LOG.info("Synchronize the data. (sync with files removed.)");
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1257,7 +1255,7 @@ public class SyncApiIT extends FileTester {
 
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
-        LOG.info("Synchronize the data.");
+        LOG.info("Synchronize the data. (sync with directory removed)");
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1593,7 +1591,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data for test summary.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1623,7 +1621,7 @@ public class SyncApiIT extends FileTester {
 
     @Test
     public void gatherMountCheck() throws Exception {
-        LOG.info("Mount check testing");
+        LOG.info("Mount check testing (gather)");
 
         // During this test create files in the following directories
         initialiseDirectories();
@@ -1635,7 +1633,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data in mount check.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1653,7 +1651,7 @@ public class SyncApiIT extends FileTester {
 
     @Test
     public void syncMountCheck() throws Exception {
-        LOG.info("Mount check testing");
+        LOG.info("Mount check testing (Sync mount check)");
 
         // During this test create files in the following directories
         initialiseDirectories();
@@ -1663,7 +1661,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data in sync mount check.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1699,7 +1697,7 @@ public class SyncApiIT extends FileTester {
 
     @Test
     public void gatherMountCheckPositive() throws Exception {
-        LOG.info("Mount check testing");
+        LOG.info("Mount check testing (positive)");
 
         initialiseDirectories();
         File checkMountFile = new File("./target/it_test/import/mountcheck.txt");
@@ -1714,7 +1712,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data in mount check positive.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1744,7 +1742,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Perform a gather.
-        LOG.info("Gather the data.");
+        LOG.info("Gather the data mount check test4.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -1854,6 +1852,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$.metaData.image", is(true)))
                 .andExpect(jsonPath("$.metaData.imageHeight", is(3024)))
                 .andExpect(jsonPath("$.metaData.imageWidth", is(4032)))
+                .andExpect(jsonPath("$.metaData.date", is("2022-05-20T13:21:59")))
                 .andExpect(jsonPath("$.backups[0].md5", is("56FDC164DC8A27C015170014821A7DCE")));
 
         // Remove the classification

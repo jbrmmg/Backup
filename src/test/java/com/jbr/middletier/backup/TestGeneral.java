@@ -1481,6 +1481,7 @@ public class TestGeneral extends WebTester {
         metaData.setLongitude(22.2);
         metaData.setImageHeight(213);
         metaData.setImageWidth(214);
+        metaData.setDate(LocalDateTime.of(2024,10,21,2, 30,12));
         Assert.assertEquals(10, (long)metaData.getId());
         Assert.assertEquals(12.2, metaData.getDuration(),0.01);
         Assert.assertTrue(metaData.getImage());
@@ -1489,5 +1490,34 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(22.2, metaData.getLongitude(), 0.01);
         Assert.assertEquals(213, (long)metaData.getImageHeight());
         Assert.assertEquals(214, (long)metaData.getImageWidth());
+        Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), metaData.getDate());
+
+        MetaDataDTO testDTO = new MetaDataDTO();
+        testDTO.setDuration(12.2);
+        testDTO.setImage(true);
+        testDTO.setVideo(false);
+        testDTO.setLatitude(10.2);
+        testDTO.setLongitude(22.2);
+        testDTO.setImageHeight(213);
+        testDTO.setImageWidth(214);
+        testDTO.setDate(LocalDateTime.of(2024,10,21,2, 30,12));
+        Assert.assertEquals(12.2, testDTO.getDuration(),0.01);
+        Assert.assertTrue(testDTO.getImage());
+        Assert.assertFalse(testDTO.getVideo());
+        Assert.assertEquals(10.2, testDTO.getLatitude(), 0.01);
+        Assert.assertEquals(22.2, testDTO.getLongitude(), 0.01);
+        Assert.assertEquals(213, (long)testDTO.getImageHeight());
+        Assert.assertEquals(214, (long)testDTO.getImageWidth());
+        Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
+
+        testDTO = new MetaDataDTO(metaData);
+        Assert.assertEquals(12.2, testDTO.getDuration(),0.01);
+        Assert.assertTrue(testDTO.getImage());
+        Assert.assertFalse(testDTO.getVideo());
+        Assert.assertEquals(10.2, testDTO.getLatitude(), 0.01);
+        Assert.assertEquals(22.2, testDTO.getLongitude(), 0.01);
+        Assert.assertEquals(213, (long)testDTO.getImageHeight());
+        Assert.assertEquals(214, (long)testDTO.getImageWidth());
+        Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
     }
 }

@@ -185,7 +185,37 @@ public class FileSystemObjectManager {
         result.add(file.getPath());
     }
 
+    private void customFileAction() {
+        try {
+            LOG.info("Custom action started");
+            List<FileInfo> files = new ArrayList<>();
+            List<DirectoryInfo> directories = new ArrayList<>();
+            loadByParent(4, directories, files);
+
+            for(FileInfo next : files) {
+                if(next.getClassification() != null) {
+                    Optional<MetaData> md = findMetaDataForFile(next);
+                    if(md.isEmpty()) {
+                        File file =  getFile(next);
+                        LOG.info("File {} has no metadata", file.getPath());
+//                        refreshFileData(next.getIdAndType().getId());
+                    }
+                }
+            }
+
+            LOG.warn("Custom action completed");
+        } catch(Exception e) {
+            LOG.warn("Custom action stopped due to exception", e);
+        }
+    }
+
     public List<String> findFiles(String search) {
+        // Special actions triggered by
+        if(search.equals("!!!!")) {
+            customFileAction();
+            return new ArrayList<>();
+        }
+
         FileSearch fileSearch = new FileSearch(search);
         List<String> result = new ArrayList<>();
 
