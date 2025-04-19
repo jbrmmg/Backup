@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.data;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +13,9 @@ public class HierarchyResponse {
     private boolean directory;
     private boolean backup;
     private int underlyingId;
+    private LocalDateTime dateTime;
+    private String md5;
+    private long size;
 
     public HierarchyResponse() {
         this.id = -1;
@@ -45,6 +49,30 @@ public class HierarchyResponse {
     public void setBackup(boolean backup) { this.backup = backup; }
 
     public boolean getBackup() { return this.backup; }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public String getMd5() {
+        return md5;
+    }
+
+    public void setMd5(String md5) {
+        this.md5 = md5;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
 
     public int getOrderingIndex() {
         int result = 0;
