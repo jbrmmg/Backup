@@ -155,6 +155,9 @@ public class FileController {
             response.setPath(nextFile.getName());
             response.setDisplayName(nextFile.getName());
             response.setUnderlyingId(nextFile.getIdAndType().getId());
+            response.setSize(nextFile.getSize());
+            response.setMd5(nextFile.getMD5().getValue());
+            response.setDateTime(nextFile.getDate());
 
             result.add(response);
         }
