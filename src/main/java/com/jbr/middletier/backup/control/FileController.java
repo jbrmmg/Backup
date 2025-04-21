@@ -121,7 +121,7 @@ public class FileController {
             return result;
         }
 
-        // First item is the backup.
+        // The first item is the backup.
         Optional<FileSystemObject> parent = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(lastResponse.getId(), FileSystemObjectType.FSO_DIRECTORY));
 
         HierarchyResponse response = new HierarchyResponse();
@@ -204,7 +204,7 @@ public class FileController {
             throw new InvalidFileIdException(id);
         }
 
-        // Is this an image file
+        // Is this an image file?
         FileInfo loadedFile = (FileInfo)file.get();
         if(loadedFile.getClassification() == null || !loadedFile.getClassification().getIsImage()) {
             throw new InvalidMediaTypeException("image");
@@ -216,8 +216,7 @@ public class FileController {
         return fileSystem.readAllBytes(imgPath);
     }
 
-    @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    private FileInfo getVideoFile(Integer id) throws InvalidFileIdException, InvalidMediaTypeException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {
@@ -230,10 +229,23 @@ public class FileController {
             throw new InvalidMediaTypeException("video");
         }
 
-        File imgPath = fileSystemObjectManager.getFile(loadedFile);
+        return loadedFile;
+    }
+
+    @GetMapping(path="/file-video-image",produces=MediaType.IMAGE_JPEG_VALUE)
+    public byte[] getFileVideoImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+        File imgPath = fileSystemObjectManager.getImageFromVideoFile(getVideoFile(id));
         LOG.info("Get file (video): {}", imgPath);
 
         return fileSystem.readAllBytes(imgPath);
+    }
+
+    @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+        File imgPath = fileSystemObjectManager.getFile(getVideoFile(id));
+        LOG.info("Get file (video image): {}", imgPath);
+
+        return imgPath == null ? new byte[0] : fileSystem.readAllBytes(imgPath);
     }
 
     @DeleteMapping(path="/file")

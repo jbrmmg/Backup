@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
-import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.ImportFile;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
@@ -20,21 +19,16 @@ import java.io.File;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class CopyToImport extends ReadPreImportFile {
     private static final Logger LOG = LoggerFactory.getLogger(CopyToImport.class);
 
-    private final ApplicationProperties applicationProperties;
-
     @Autowired
     public CopyToImport(ImportFileRepository importFileRepository,
                            ImportSourceManager importSourceManager,
-                           FileSystem fileSystem,
-                           ApplicationProperties applicationProperties) {
+                           FileSystem fileSystem) {
         super(fileSystem, importFileRepository, importSourceManager);
-        this.applicationProperties = applicationProperties;
     }
 
     @Override
@@ -59,20 +53,7 @@ public class CopyToImport extends ReadPreImportFile {
                 Files.deleteIfExists(destination.toPath());
             }
 
-            String copyCommand = applicationProperties.getFfmpegCommand();
-            copyCommand = copyCommand.replace("%%INPUT%%", source.toString().replace(" ", "\\ "));
-            copyCommand = copyCommand.replace("%%OUTPUT%%", destination.toString().replace(" ", "\\ "));
-
-            LOG.info("Command: {}", copyCommand);
-
-            String[] cmd = new String[]{"bash", "-c", copyCommand};
-            final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)
-                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                    .start();
-
-            backupProcess.waitFor(20L, TimeUnit.MINUTES);
-            backupProcess.destroyForcibly();
-
+            fileSystem.copyConvertMov(source,destination);
             fileSystem.setFileFromLocalDateTime(destination, file == null ? null : file.getImportDate(), fileTime);
         } catch (Exception e) {
             LOG.error("Failed to copy MOV file", e);

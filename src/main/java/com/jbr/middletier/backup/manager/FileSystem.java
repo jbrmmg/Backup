@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.manager;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
@@ -13,10 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,10 +30,12 @@ public class FileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(FileSystem.class);
 
     private final DbLoggingManager dbLoggingManager;
+    private final ApplicationProperties applicationProperties;
 
     @Autowired
-    public FileSystem(DbLoggingManager dbLoggingManager) {
+    public FileSystem(DbLoggingManager dbLoggingManager, ApplicationProperties applicationProperties) {
         this.dbLoggingManager = dbLoggingManager;
+        this.applicationProperties = applicationProperties;
     }
 
     public boolean directoryIsEmpty(Path path) throws IOException {
@@ -263,5 +268,55 @@ public class FileSystem {
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .collect(Collectors.toSet());
+    }
+
+    private void runCommand(String command, File input, File output) throws IOException, InterruptedException {
+        command = command.replace("%%INPUT%%", input.toString().replace(" ", "\\ "));
+        command = command.replace("%%OUTPUT%%", output.toString().replace(" ", "\\ "));
+
+        LOG.info("Command: {}", command);
+
+        String[] cmd = new String[]{"bash", "-c", command};
+        final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .start();
+
+        backupProcess.waitFor(20L, TimeUnit.MINUTES);
+        backupProcess.destroyForcibly();
+    }
+
+    public File getImageFileFromVideoFile(File file) throws IOException, InterruptedException, NoSuchAlgorithmException {
+        // Turn the path into base64.
+        String tempName = file.getPath().trim();
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+
+        byte[] digestBytes = md.digest(tempName.getBytes());
+
+        StringBuilder sb = new StringBuilder();
+        for(byte b : digestBytes) {
+            String hex = Integer.toHexString(0xFF & b);
+            if(hex.length() == 1) {
+                sb.append('0');
+            }
+            sb.append(hex);
+        }
+
+        tempName = applicationProperties.getVidToImageLocation() + "/" + sb + ".jpg";
+
+        File tempFile = new File(tempName);
+        if(tempFile.exists()) {
+            return tempFile;
+        }
+
+        String copyCommand = applicationProperties.getVidToImageCommand();
+        runCommand(copyCommand, file, tempFile);
+
+        return tempFile;
+    }
+
+    public void copyConvertMov(File source, File destination) throws IOException, InterruptedException {
+        String copyCommand = applicationProperties.getFfmpegCommand();
+        runCommand(copyCommand, source, destination);
     }
 }
