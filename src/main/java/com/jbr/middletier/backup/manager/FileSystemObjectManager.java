@@ -188,6 +188,7 @@ public class FileSystemObjectManager {
     private void customFileAction() {
         try {
             LOG.info("Custom action started");
+            int count = 0;
             List<FileInfo> files = new ArrayList<>();
             List<DirectoryInfo> directories = new ArrayList<>();
             loadByParent(4, directories, files);
@@ -195,10 +196,18 @@ public class FileSystemObjectManager {
             for(FileInfo next : files) {
                 if(next.getClassification() != null) {
                     Optional<MetaData> md = findMetaDataForFile(next);
-                    if(md.isEmpty()) {
-                        File file =  getFile(next);
-                        LOG.info("File {} has no metadata", file.getPath());
-//                        refreshFileData(next.getIdAndType().getId());
+                    if(md.isPresent()) {
+                        if(md.get().getDate() == null) {
+                            File file =  getFile(next);
+                            Optional<FileSystemImageData> fileMeta = fileSystem.readImageMetaData(file);
+
+                            if(fileMeta.isPresent() && fileMeta.get().getDateTime() != null) {
+                                LOG.info("{} File {} has no metadata date", ++count, file.getPath());
+
+                                md.get().setDate(fileMeta.get().getDateTime());
+                                metaDataRepository.save(md.get());
+                            }
+                        }
                     }
                 }
             }
@@ -314,6 +323,18 @@ public class FileSystemObjectManager {
 
         Collections.reverse(fileNameParts);
         return getFileNameFromParts(fileNameParts);
+    }
+
+    public File getImageFromVideoFile(FileSystemObject fso) {
+        try {
+            File file = getFile(fso);
+
+            return this.fileSystem.getImageFileFromVideoFile(file);
+        } catch(Exception e) {
+            LOG.warn("Unable to get image from video file {}", fso.getName(), e);
+        }
+
+        return null;
     }
 
     public File getFileAtDestination(FileSystemObject fso, Source destination) {

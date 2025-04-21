@@ -329,6 +329,8 @@ public class ApplicationProperties {
     private String dbBackupCommand;
     private Long dbBackupMaxTime;
     private String ffmpegCommand;
+    private String vidToImageCommand;
+    private String vidToImageLocation;
 
     public Directory getDirectory() { return this.directory; }
 
@@ -412,5 +414,21 @@ public class ApplicationProperties {
 
     public void setImportThreads(Integer importThreads) {
         this.importThreads = importThreads;
+    }
+
+    public String getVidToImageCommand() {
+        return vidToImageCommand;
+    }
+
+    public void setVidToImageCommand(String vidToImageCommand) {
+        this.vidToImageCommand = vidToImageCommand;
+    }
+
+    public String getVidToImageLocation() {
+        return vidToImageLocation;
+    }
+
+    public void setVidToImageLocation(String vidToImageLocation) {
+        this.vidToImageLocation = vidToImageLocation;
     }
 }
