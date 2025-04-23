@@ -111,13 +111,15 @@ public class FileSystemImageData {
     }
 
     private void processVideoMetaData(Map<String,String> metaData) {
-        this.dateTime = getMimeDateTime(metaData.get("creation date"));
-        if(this.dateTime == null) {
-            this.dateTime = getMimeDateTime(metaData.get("media create date"));
-            if(this.dateTime == null) {
-                this.dateTime = getMimeDateTime(metaData.get("date/time original"));
+        // Choose the date from one of the options.
+        String[] dateFields = {"date/time original","creation date","media create date"};
+        for(String dateField : dateFields) {
+            this.dateTime = getMimeDateTime(metaData.get(dateField));
+            if(this.dateTime != null) {
+                break;
             }
         }
+
         this.size = getMimeImageSize(metaData.get("image size"));
         this.latLong = getMimeLatLong(metaData.get("gps position"));
         this.duration = getMimeDuration(metaData.get("duration"));
