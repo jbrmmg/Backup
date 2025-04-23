@@ -83,6 +83,24 @@ public class FileSystemImageData {
             return null;
         }
 
+        // The duration is in hours:minutes:seconds or minutes:seconds.
+        if(duration.contains(":")) {
+            String[] split = duration.split(":");
+
+            if(split.length == 3) {
+                int hours = Integer.parseInt(split[0].trim());
+                int minutes = Integer.parseInt(split[1].trim());
+                double seconds = Double.parseDouble(split[2].trim());
+
+                return hours * 3600.0 + minutes * 60.0 + seconds;
+            } else if (split.length == 2) {
+                int minutes = Integer.parseInt(split[0].trim());
+                double seconds = Double.parseDouble(split[1].trim());
+
+                return minutes * 60.0 + seconds;
+            }
+        }
+
         return Double.parseDouble(duration.replace(" s", "").trim());
     }
 
@@ -96,6 +114,9 @@ public class FileSystemImageData {
         this.dateTime = getMimeDateTime(metaData.get("creation date"));
         if(this.dateTime == null) {
             this.dateTime = getMimeDateTime(metaData.get("media create date"));
+            if(this.dateTime == null) {
+                this.dateTime = getMimeDateTime(metaData.get("date/time original"));
+            }
         }
         this.size = getMimeImageSize(metaData.get("image size"));
         this.latLong = getMimeLatLong(metaData.get("gps position"));
