@@ -62,9 +62,9 @@ public class ImportFile extends ProcessBase {
         }
 
         // Perform the import.
-        LOG.info("Importing the file {}", file.getFilename());
+        LOG.info("Importing the file {}", file.getImportName());
 
-        File importFile = getImportFilename(file.getFilename());
+        File importFile = getImportFilename(file.getImportName());
         File postImportFile = getPostImportFilename(file);
 
         if(!importFile.exists()){
