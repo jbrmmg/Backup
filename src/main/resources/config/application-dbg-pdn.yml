@@ -26,6 +26,7 @@ spring:
 #    show-sql: true
 
 backup:
+  import-threads: 1
   directory:
     name: /home/jason/Working/BackupDev
     days: 5
