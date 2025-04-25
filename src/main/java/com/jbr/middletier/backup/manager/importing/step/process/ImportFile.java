@@ -103,7 +103,7 @@ public class ImportFile extends ProcessBase {
             LOG.info("Moving {} to {}", file.getFilename(), destinationFilename);
             fileSystem.createDirectory(new File(destinationFilename).toPath());
 
-            destinationFilename += "/" + file.getFilename();
+            destinationFilename += "/" + file.getImportName();
 
             ProcessResultDTO copyResult = new ImportProcessDTO();
             fileSystem.copyFile(importFile, new File(destinationFilename), copyResult);
