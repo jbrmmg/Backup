@@ -41,7 +41,7 @@ public class GatherSynchronizeCtrl {
 
                 emailManager.sendActionEmail();
 
-                driveManager.gather();
+                driveManager.gather(null);
 
                 duplicateManager.duplicateCheck();
 
