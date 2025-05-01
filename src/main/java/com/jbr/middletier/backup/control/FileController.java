@@ -63,9 +63,9 @@ public class FileController {
     }
 
     @PostMapping(path="/gather")
-    public List<GatherDataDTO> gather() {
+    public List<GatherDataDTO> gather(@RequestParam(name="sourceId", required = false) Integer sourceId) {
         LOG.info("Gather");
-        return driveManager.gather();
+        return driveManager.gather(sourceId);
     }
 
     @PostMapping(path="/duplicate")

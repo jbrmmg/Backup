@@ -320,7 +320,7 @@ public class TestGeneral extends WebTester {
 
         gatherSynchronizeCtrl.gatherCron();
         verify(mockActionManager, times(1)).sendActionEmail();
-        verify(driveManager, times(1)).gather();
+        verify(driveManager, times(1)).gather(null);
         verify(duplicateManager, times(1)).duplicateCheck();
         verify(synchronizeManager, times(1)).synchronize();
     }
@@ -350,7 +350,7 @@ public class TestGeneral extends WebTester {
 
         gatherSynchronizeCtrl.gatherCron();
         verify(mockActionManager, times(1)).sendActionEmail();
-        verify(driveManager, times(0)).gather();
+        verify(driveManager, times(0)).gather(null);
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize();
     }
@@ -380,7 +380,7 @@ public class TestGeneral extends WebTester {
 
         gatherSynchronizeCtrl.gatherCron();
         verify(mockActionManager, times(0)).sendActionEmail();
-        verify(driveManager, times(0)).gather();
+        verify(driveManager, times(0)).gather(null);
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize();
     }
@@ -644,7 +644,7 @@ public class TestGeneral extends WebTester {
                 mockFileSystemObjectManager,
                 fileSystem);
 
-        List<GatherDataDTO> gatherData = driveManager.gather();
+        List<GatherDataDTO> gatherData = driveManager.gather(null);
         Assert.assertEquals(1, gatherData.size());
         Assert.assertTrue(gatherData.get(0).hasProblems());
         verify(mockAssociatedFileDataManager, times(1)).updateSourceStatus(source,SourceStatusType.SST_ERROR);
@@ -678,7 +678,7 @@ public class TestGeneral extends WebTester {
                 mockFileSystemObjectManager,
                 fileSystem);
 
-        List<GatherDataDTO> gatherData = driveManager.gather();
+        List<GatherDataDTO> gatherData = driveManager.gather(null);
         Assert.assertEquals(1, gatherData.size());
         Assert.assertTrue(gatherData.get(0).hasProblems());
     }

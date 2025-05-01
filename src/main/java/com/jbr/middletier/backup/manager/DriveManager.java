@@ -31,7 +31,7 @@ public class DriveManager extends FileProcessor {
 
     private void processSource(Source nextSource, List<ActionConfirm> deleteActions, List<GatherDataDTO> data) {
         if(nextSource.getStatus() != null && SourceStatusType.SST_GATHERING.equals(nextSource.getStatus())) {
-            LOG.warn("Source {} skiped due to status issue.", nextSource.getPath());
+            LOG.warn("Source {} skipped due to status issue.", nextSource.getPath());
             addProblem(nextSource,data);
             return;
         }
@@ -63,7 +63,7 @@ public class DriveManager extends FileProcessor {
         data.add(gatherData);
     }
 
-    public List<GatherDataDTO> gather() {
+    public List<GatherDataDTO> gather(Integer sourceId) {
         List<GatherDataDTO> result = new ArrayList<>();
 
         // Are any files to be deleted?
@@ -72,7 +72,9 @@ public class DriveManager extends FileProcessor {
         for(Source nextSource: associatedFileDataManager.findAllSource()) {
             if(nextSource.getIdAndType().getType() == FileSystemObjectType.FSO_SOURCE) {
                 LOG.info("Process Source {}", nextSource);
-                processSource(nextSource, deleteActions, result);
+                if(sourceId == null || sourceId.equals(nextSource.getIdAndType().getId()) ) {
+                    processSource(nextSource, deleteActions, result);
+                }
             }
         }
 

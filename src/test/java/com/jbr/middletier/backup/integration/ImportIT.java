@@ -216,7 +216,7 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDescription = getTestStructure("test16_import");
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-        driveManager.gather();
+        driveManager.gather(null);
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
@@ -277,7 +277,7 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDescription = getTestStructure("test14_1");
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-        driveManager.gather();
+        driveManager.gather(null);
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
@@ -369,7 +369,7 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDescription = getTestStructure("test14_2");
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-        driveManager.gather();
+        driveManager.gather(null);
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
@@ -401,7 +401,7 @@ public class ImportIT extends FileTester {
         waitForQueue();
 
         // Update the files and reset the import data.
-        driveManager.gather();
+        driveManager.gather(null);
         importManager.clearCacheData();
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
@@ -435,7 +435,7 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDescription = getTestStructure("test14_2");
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-        driveManager.gather();
+        driveManager.gather(null);
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
@@ -464,7 +464,7 @@ public class ImportIT extends FileTester {
         waitForQueue();
 
         // Update the files and reset the import data.
-        driveManager.gather();
+        driveManager.gather(null);
         importManager.clearCacheData();
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
@@ -498,7 +498,7 @@ public class ImportIT extends FileTester {
         List<StructureDescription> importDescription = getTestStructure("test14_2");
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
-        driveManager.gather();
+        driveManager.gather(null);
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
@@ -541,7 +541,7 @@ public class ImportIT extends FileTester {
         copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
 
         // Import the source data
-        driveManager.gather();
+        driveManager.gather(null);
         validateSource(fileSystemObjectManager, this.source, sourceDescription);
 
         // trigger the refresh.
@@ -573,7 +573,7 @@ public class ImportIT extends FileTester {
         waitForQueue();
 
         // Update the files and reset the import data.
-        driveManager.gather();
+        driveManager.gather(null);
         importManager.clearCacheData();
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
