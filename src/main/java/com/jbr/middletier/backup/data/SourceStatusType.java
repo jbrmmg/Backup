@@ -3,7 +3,8 @@ package com.jbr.middletier.backup.data;
 public enum SourceStatusType {
     SST_OK("OK"),
     SST_GATHERING("GATHERING"),
-    SST_ERROR("ERROR");
+    SST_ERROR("ERROR"),
+    SST_SUSPENDED("SUSPENDED");
 
     private final String type;
 
