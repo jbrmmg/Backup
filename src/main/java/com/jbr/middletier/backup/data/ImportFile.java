@@ -6,9 +6,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="import_file")
 public class ImportFile extends FileInfo {
-    @Column(name="status")
-    private String status;
-
     @Column(name="import_name")
     private String importName;
 
@@ -20,9 +17,6 @@ public class ImportFile extends FileInfo {
 
     @Column(name="import_md5")
     private String importMd5;
-
-    @Column(name="processed")
-    private Boolean processed;
 
     @Column(name="destination")
     private String destination;
@@ -50,9 +44,6 @@ public class ImportFile extends FileInfo {
 
     public ImportFile() {
         super(FileSystemObjectType.FSO_IMPORT_FILE);
-        // These can be removed.
-        this.status = "NA";
-        this.processed = false;
     }
 
     public String getImportName() {

@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 35
+      author: jason
+      changes:
+
+        - dropColumn:
+            tableName: import_file
+            columns:
+              - column:
+                  name: processed
+              - column:
+                  name: status
