@@ -4,17 +4,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportFileDTO extends ImportFileBaseDTO {
+    @Setter
     private volatile Integer id;
+    @Getter
     private volatile String status;
     private LatLong location;
     private ImageSize imageSize;
+    @Getter
     private volatile boolean image;
+    @Getter
     private volatile boolean video;
     private final List<ImportFileBaseDTO> similarFileList;
 
@@ -27,14 +33,6 @@ public class ImportFileDTO extends ImportFileBaseDTO {
     @JsonIgnore
     public Integer getId() {
         return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getStatus() {
-        return status;
     }
 
     public void setStatus(ImportFileStatusType status) {
@@ -73,10 +71,6 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         this.imageSize = imageSize;
     }
 
-    public boolean isImage() {
-        return image;
-    }
-
     public void setImage(Boolean image) {
         if(image == null){
             this.image = false;
@@ -84,10 +78,6 @@ public class ImportFileDTO extends ImportFileBaseDTO {
         }
 
         this.image = image;
-    }
-
-    public boolean isVideo() {
-        return video;
     }
 
     public void setVideo(Boolean video) {

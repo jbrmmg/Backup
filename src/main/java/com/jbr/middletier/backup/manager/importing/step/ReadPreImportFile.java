@@ -54,7 +54,7 @@ public class ReadPreImportFile extends ImportStep {
             if(importMd5) {
                 file.setImportMd5(md5.toString());
             } else {
-                file.setMd5(md5);
+                file.setMd5(md5.toString());
             }
             return true;
         } catch (Exception e) {

@@ -8,6 +8,8 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
+import lombok.Getter;
+
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+@Getter
 public class RwDbCompareNode extends FileTreeNode {
     public enum ActionType { NONE, INSERT, UPDATE, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
 
@@ -28,7 +31,7 @@ public class RwDbCompareNode extends FileTreeNode {
             return false;
         }
 
-        // Check date.
+        // Check the date.
         LocalDateTime fileDate = Instant.ofEpochMilli(rwFile.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
         long timeDifference = 100;
@@ -54,7 +57,7 @@ public class RwDbCompareNode extends FileTreeNode {
                 calculatedActionType = ActionType.RECREATE_AS_FILE;
             }
         } else if (!realWorldNode.isDirectory()) {
-            // They are equal on name, but check the size, date and MD5 if that is required.
+            // They are equal in name, but check the size, date and MD5 if that is required.
             FileInfo dbFileInfo = (FileInfo)databaseNode.getFSO();
             RwFile rwFile = (RwFile)realWorldNode;
 
@@ -94,24 +97,8 @@ public class RwDbCompareNode extends FileTreeNode {
         // Nothing to do for this type
     }
 
-    public ActionType getActionType() {
-        return this.actionType;
-    }
-
-    public RwNode getRealWorldNode() {
-        return this.realWorldNode;
-    }
-
-    public FileSystemObjectId getDatabaseObjectId() {
-        return this.databaseObjectId;
-    }
-
     public void setDatabaseObjectId(FileSystemObject databaseObject) {
         this.databaseObjectId = databaseObject.getIdAndType();
-    }
-
-    public boolean isDirectory() {
-        return this.isDirectory;
     }
 
     public Optional<File> getFileForDelete() {

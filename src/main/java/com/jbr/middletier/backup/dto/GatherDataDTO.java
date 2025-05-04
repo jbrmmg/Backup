@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-@SuppressWarnings("unused")
 public class GatherDataDTO extends ProcessResultDTO {
     public enum GatherDataCountType {
         FILES_INSERTED("filesInserted"),

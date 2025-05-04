@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,8 +12,10 @@ import java.util.Map;
 
 @JsonSerialize(using = ProcessResultDTO.ProcessResultSerializer.class)
 public class ProcessResultDTO {
+    @Getter
     private final int underlyingId;
     private boolean problems;
+    @Getter
     private final Map<String,Integer> counts;
 
     public static class ProcessResultSerializer extends JsonSerializer<ProcessResultDTO> {
@@ -47,19 +50,11 @@ public class ProcessResultDTO {
         this.counts = new HashMap<>();
     }
 
-    public Map<String,Integer> getCounts() {
-        return this.counts;
-    }
-
     public void setProblems() {
         this.problems = true;
     }
 
     public boolean hasProblems() {
         return this.problems;
-    }
-
-    public int getUnderlyingId() {
-        return this.underlyingId;
     }
 }

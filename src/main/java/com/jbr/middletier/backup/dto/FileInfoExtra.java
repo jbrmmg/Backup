@@ -2,11 +2,12 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.MetaData;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@Data
 public class FileInfoExtra {
     private final FileDTO file;
     private final MetaDataDTO metaData;
@@ -22,17 +23,7 @@ public class FileInfoExtra {
 
     public void addFile(FileInfo file, String fullFilename, String path, String location) { this.backups.add(new FileDTO(file,fullFilename,path,location)); }
 
-    public FileDTO getFile() { return this.file; }
-
-    public List<FileDTO> getBackups() { return this.backups; }
-
     public void addLabel(String label) {
         this.labels.add(label);
-    }
-
-    public List<String> getLabels() { return this.labels; }
-
-    public MetaDataDTO getMetaData() {
-        return metaData;
     }
 }

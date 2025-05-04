@@ -41,7 +41,7 @@ public class CheckFileIgnored extends ImportStep {
         similar.setFilename(ignoreFile.getName() + " [" + ignoreFile.getIdAndType().getType() + "]");
         similar.setDate(ignoreFile.getDate());
         similar.setSize(ignoreFile.getSize());
-        similar.setMd5(ignoreFile.getMD5());
+        similar.setMd5(ignoreFile.getMD5().toString());
 
         return similar;
     }
