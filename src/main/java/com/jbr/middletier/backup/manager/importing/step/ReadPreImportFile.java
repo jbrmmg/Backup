@@ -77,7 +77,7 @@ public class ReadPreImportFile extends ImportStep {
             return TrafficLightType.TL_AMBER;
         }
 
-        // Read the pre import file data.
+        // Read the pre-import file data.
         File preImportFile = getPreImportFilename(file);
 
         if(preImportFile.exists()) {

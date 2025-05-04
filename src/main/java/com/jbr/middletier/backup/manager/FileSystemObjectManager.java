@@ -318,6 +318,8 @@ public class FileSystemObjectManager {
             File file = getFile(fso);
 
             return this.fileSystem.getImageFileFromVideoFile(file);
+        } catch(InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch(Exception e) {
             LOG.warn("Unable to get image from video file {}", fso.getName(), e);
         }
