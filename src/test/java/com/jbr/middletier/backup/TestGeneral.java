@@ -1138,10 +1138,8 @@ public class TestGeneral extends WebTester {
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
         fileInfo.setParentId(new FileSystemObjectId(2, FileSystemObjectType.FSO_DIRECTORY));
-        fileInfo.setFlags("P");
         LocalDateTime testDateTime = LocalDateTime.of(2023,12,3,3,15,2,0);
         fileInfo.setExpiry(testDateTime);
-        Assert.assertEquals("P",fileInfo.getFlags());
 
         FileInfoDTO fileInfoDTO = fileSystemObjectManager.convertToDTO(fileInfo);
         Assert.assertEquals("FILE", fileInfoDTO.getType());
@@ -1367,7 +1365,7 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(idString.hashCode(),id.hashCode());
         //noinspection RedundantCast
         Assert.assertEquals(id, (Object)id);
-        Assert.assertNotEquals(id,null);
+        Assert.assertNotEquals(null, id);
         //noinspection EqualsBetweenInconvertibleTypes
         boolean check = id.equals(idString);
         Assert.assertFalse(check);

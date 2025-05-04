@@ -208,7 +208,6 @@ public class ImportManager extends FileProcessor {
             } else {
                 importFile.setLocation(null);
             }
-            importFile.setProcessed(dbFile.getProcessed());
             importFile.setVideo(dbFile.getVideo());
         }
 
@@ -343,9 +342,7 @@ public class ImportManager extends FileProcessor {
 
     @Override
     public FileInfo createNewFile() {
-        ImportFile newFile = new ImportFile();
-        newFile.setStatus(ImportFileStatusType.IFS_READ);
-        return newFile;
+        return new ImportFile();
     }
 
     public List<PreImportFileDTO> getUpdates() {

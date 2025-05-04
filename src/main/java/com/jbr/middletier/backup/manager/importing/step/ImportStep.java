@@ -29,7 +29,7 @@ public abstract class ImportStep {
     protected abstract boolean transferData(PreImportFileDTO file, ImportFile dbRecord);
 
     private ImportFile getDbRecord(PreImportFileDTO file) {
-        // First get the record by ID if its present.
+        // First, get the record by ID if its present.
         if(file.getId() != null) {
             Optional<ImportFile> importFileOptional = importFileRepository.findById(file.getId());
 
@@ -46,7 +46,6 @@ public abstract class ImportStep {
         }
 
         ImportFile newFile = new ImportFile();
-        newFile.setStatus("READ");
         newFile.setName(file.getFilename());
 
         return newFile;
@@ -56,7 +55,7 @@ public abstract class ImportStep {
         // Get the record from the database?
         ImportFile  importFile = getDbRecord(file);
 
-        // Transfer the data, and if required save it.
+        // Transfer the data, and if required, save it.
         if(transferData(file, importFile)) {
             LOG.info("Saving data for {}", file.getFilename());
             importFileRepository.save(importFile);
@@ -69,10 +68,6 @@ public abstract class ImportStep {
 
     protected File getImportFilename(String filename) {
         return new File(this.importSourceManager.getImportDirectory(), filename);
-    }
-
-    protected File getPostImportFilename(PreImportFileDTO file) {
-        return new File(this.importSourceManager.getPostImportDirectory(), file.getImportName());
     }
 
     public abstract FileProcessingStepType getStepType();

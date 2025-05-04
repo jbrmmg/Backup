@@ -27,6 +27,9 @@ public class Source extends FileSystemObject {
     @Column(name="gather_meta_data")
     private Boolean gatherMetaData;
 
+    @Column(name="use_date")
+    private Boolean useDate;
+
     protected Source(FileSystemObjectType sourceType) {
         super(sourceType);
     }
@@ -70,6 +73,15 @@ public class Source extends FileSystemObject {
 
     public void setMountCheck(String mountCheck) {
         this.mountCheck = mountCheck;
+    }
+
+    public boolean getUseDate() {
+        // Default is true.
+        return useDate == null || useDate;
+    }
+
+    public void setUseDate(Boolean useDate) {
+        this.useDate = useDate;
     }
 
     @Override

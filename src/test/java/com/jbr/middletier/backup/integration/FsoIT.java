@@ -317,7 +317,6 @@ public class FsoIT   {
         testImportFile.setDate(aDate);
         testImportFile.setMD5(new MD5("YTWVS"));
         testImportFile.setSize(8310L);
-        testImportFile.setStatus(ImportFileStatusType.IFS_READ);
 
         importFileRepository.save(testImportFile);
         Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_FILE, testImportFile.getIdAndType().getType());
@@ -332,13 +331,10 @@ public class FsoIT   {
         Assert.assertEquals(Long.valueOf(8310L), findImportFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_FILE, findImportFile.get().getIdAndType().getType());
 
-        findImportFile.get().setStatus(ImportFileStatusType.IFS_COMPLETE);
         importFileRepository.save(findImportFile.get());
 
         Optional<ImportFile> findImportFile2 = importFileRepository.findById(id);
         Assert.assertTrue(findImportFile2.isPresent());
-
-        Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, findImportFile2.get().getStatus());
 
         importFileRepository.delete(findImportFile2.get());
 
