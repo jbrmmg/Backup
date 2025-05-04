@@ -31,14 +31,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
@@ -178,34 +179,23 @@ public class ImportIT extends FileTester {
         return updateClassification;
     }
 
-    private void waitForQueue() throws InterruptedException {
-        // Wait for a maximum time for the items to be processed.
-        LocalDateTime limit = LocalDateTime.now();
-        limit = limit.plusSeconds(120);
-        LOG.info("Waiting for the queue to complete.");
+    private boolean queueCompleted() {
+        ImportFileSummaryDTO summary = this.importManager.getImportSummary();
+        if(summary.getQueued() > 0) {
+            LOG.info("Waiting for the queue to complete. Queued: {}", summary.getQueued());
+            return false;
+        } else {
+            Map<FileProcessingStepType, ImportFileSummaryStepDTO> counts = summary.getCounts();
 
-        boolean done = false;
-        while (!done) {
-            done = true;
-            ImportFileSummaryDTO summary = this.importManager.getImportSummary();
-            if(summary.getQueued() > 0) {
-                done = false;
-            } else {
-                Map<FileProcessingStepType, ImportFileSummaryStepDTO> counts = summary.getCounts();
-
-                for (Map.Entry<FileProcessingStepType, ImportFileSummaryStepDTO> entry : counts.entrySet()) {
-                    if (entry.getValue().getCount(TrafficLightType.TL_UNKNOWN) > 0) {
-                        done = false;
-                    }
+            for (Map.Entry<FileProcessingStepType, ImportFileSummaryStepDTO> entry : counts.entrySet()) {
+                if (entry.getValue().getCount(TrafficLightType.TL_UNKNOWN) > 0) {
+                    LOG.info("Waiting for the queue to complete. Step: {} Count: {}", entry.getKey(), entry.getValue().getCount(TrafficLightType.TL_UNKNOWN));
+                    return false;
                 }
             }
-
-            if(!done && limit.isBefore(LocalDateTime.now())) {
-                throw new IllegalStateException("It has taken too long for the import processing to finish.");
-            }
-            LOG.info("Waiting for the queue to complete.");
-            Thread.sleep(300);
         }
+
+        return true;
     }
 
     @Test
@@ -225,9 +215,11 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                        .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
-        // Check that file processed OK.
+        // Check that the file processed OK.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                 .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -286,7 +278,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Mark one of the files as to be ignored.
         getMockMvc().perform(post("/jbr/int/backup/ignore-file")
@@ -297,7 +291,9 @@ public class ImportIT extends FileTester {
                 .andReturn();
 
         // Wait for any queued changes to complete.
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Check there are 5 files.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -312,7 +308,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // The ignored file should be removed.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -331,7 +329,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Mark one of the files as to be ignored.
         getMockMvc().perform(post("/jbr/int/backup/un-ignore-file")
@@ -340,7 +340,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Ask to remove any ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-ignored")
@@ -348,7 +350,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Nothing should have been removed.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -378,7 +382,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Set the destination.
         DestinationUpdateDTO destinationUpdate = new  DestinationUpdateDTO();
@@ -390,7 +396,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Import the file.
         getMockMvc().perform(post("/jbr/int/backup/import-photos")
@@ -398,7 +406,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Update the files and reset the import data.
         driveManager.gather(null);
@@ -408,7 +418,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(4)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Ask to remove any ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
@@ -416,7 +428,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Check that the imported file has been removed.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -424,7 +438,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
     }
 
     @Test
@@ -444,7 +460,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Set the destination.
         getMockMvc().perform(post("/jbr/int/backup/recipe-file")
@@ -453,15 +471,18 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
-
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
         // Import the file.
         getMockMvc().perform(post("/jbr/int/backup/import-photos")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Update the files and reset the import data.
         driveManager.gather(null);
@@ -471,7 +492,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(4)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Ask to remove any ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
@@ -479,7 +502,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Check that the imported file has been removed.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
@@ -487,7 +512,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
     }
 
     @Test
@@ -507,14 +534,18 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(4)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1015.MOV","IMG_1016.JPEG")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Ask to remove any ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-active-photos")
@@ -522,14 +553,18 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.jpg","IMG_1015.JPEG","IMG_1016.JPEG")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
     }
 
     @Test
@@ -550,7 +585,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Set the destination.
         DestinationUpdateDTO destinationUpdate = new  DestinationUpdateDTO();
@@ -562,7 +599,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Import the file.
         getMockMvc().perform(post("/jbr/int/backup/import-photos")
@@ -570,7 +609,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Update the files and reset the import data.
         driveManager.gather(null);
@@ -580,7 +621,9 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[*].filename").value(containsInAnyOrder("IMG_8231.HEIC")));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Ask to remove any ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
@@ -588,13 +631,17 @@ public class ImportIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Check that the imported file has been removed.
         getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
-        waitForQueue();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
     }
 }

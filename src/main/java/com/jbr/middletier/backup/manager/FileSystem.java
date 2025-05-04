@@ -154,9 +154,13 @@ public class FileSystem {
             // Calculate the MD5 for the file.
             MessageDigest md = MessageDigest.getInstance("MD5");
 
-            try(DigestInputStream dis = new DigestInputStream(Files.newInputStream(path),md) ) {
-                //noinspection StatementWithEmptyBody
-                while (dis.read() != -1) ;
+            try (InputStream is = Files.newInputStream(path);
+                 DigestInputStream dis = new DigestInputStream(is, md)) {
+
+                byte[] buffer = new byte[8192];
+                while (dis.read(buffer) != -1) {
+                    LOG.trace("Read {} bytes", buffer.length);
+                }
                 md = dis.getMessageDigest();
             }
             LOG.debug("End get MD5 for {}", path);

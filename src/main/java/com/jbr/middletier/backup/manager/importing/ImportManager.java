@@ -320,14 +320,14 @@ public class ImportManager extends FileProcessor {
         Set<String> postImportFiles = this.fileSystem.listFilesInDirectory(Objects.requireNonNull(this.importSourceManager.getPostImportDirectory(), "Post Import Directory cannot be null."));
         Map<String,ImportFile> importFilesDb = getImportFilesDb();
 
-        // The id of the file is the name, however some files get a different name in the import and post
-        // import directories.
+        // The id of the file is the name; however, some files get a different name in the import and
+        // post-import directories.
 
         // There should be one row for each file in the pre-import directory.
         setDirectoryFlags(preImportFiles, importFiles, postImportFiles, importFilesDb);
 
         // Error states:
-        //  (1) a file that is in the post import directory that is not in the pre-import directory.
+        //  (1) a file that is in the post-import directory that is not in the pre-import directory.
         checkExtraImport(preImportFiles, importFiles,false);
 
         //  (2) a file that is in the import directory that is not in the pre-import directory.
@@ -384,13 +384,13 @@ public class ImportManager extends FileProcessor {
             limit = this.importFileCache.getFiles().size();
         }
 
-        // If a page number is specified then skip the first few files.
+        // If a page number is specified, then skip the first few files.
         int skip = 0;
         if(page != null) {
             skip = page * limit;
         }
 
-        // Translate the step & status into their respective enums.
+        // Translate the step and status into their respective enums.
         FileProcessingStepType step = null;
         if(stepName != null && !stepName.isEmpty()) {
             step = FileProcessingStepType.getFromName(stepName);
@@ -595,7 +595,7 @@ public class ImportManager extends FileProcessor {
             // Is this imported and does it have a destination?
             TrafficLightType status = file.getStepStatus(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED);
             if(status == TrafficLightType.TL_RED && file.getDestination() != null && !file.getDestination().isEmpty() && !file.isInPostImport()) {
-                // Setup this file to be processed.
+                // Set up this file to be processed.
                 file.setStatus(ImportFileStatusType.IFS_IMPORT_FILE);
                 file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
                 importFileCache.queueForUpdates(file);
