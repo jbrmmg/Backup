@@ -80,7 +80,7 @@ public abstract class FileProcessor {
     }
 
     private void processDeletes(RootFileTreeNode details, List<ActionConfirm> deletes, GatherDataDTO gatherData) {
-        // If there are no deletes then there is nothing to do.
+        // If there are no deletes, then there is nothing to do.
         if(deletes == null || deletes.isEmpty()) {
             return;
         }
@@ -127,7 +127,7 @@ public abstract class FileProcessor {
     }
 
     private void processDirectoryAddUpdate(RwDbCompareNode node) {
-        // If there is a database object then read it first.
+        // If there is a database object, then read it first.
         Optional<FileSystemObject> existingDirectory = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
             existingDirectory = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
@@ -137,7 +137,7 @@ public abstract class FileProcessor {
             existingDirectory = Optional.of(new DirectoryInfo());
         }
 
-        // Get the real world object.
+        // Get the real-world object.
         RwNode rwNode = getRwNode(node);
 
         // Insert a new directory.
@@ -158,8 +158,8 @@ public abstract class FileProcessor {
         return Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    private void processFileAddUpdate(Source source, RwDbCompareNode node, boolean skipMD5) {
-        // If there is a database object then read it first.
+    private void processFileAddUpdate(Source source, RwDbCompareNode node) {
+        // If there is a database object, then read it first.
         Optional<FileSystemObject> existingFile = Optional.empty();
         if(node.getDatabaseObjectId() != null) {
             existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
@@ -169,7 +169,7 @@ public abstract class FileProcessor {
             existingFile = Optional.of(createNewFile());
         }
 
-        // Get the real world object.
+        // Get the real-world object.
         RwFile rwNode = (RwFile)getRwNode(node);
 
         if(rwNode.getName().isEmpty())
@@ -194,9 +194,7 @@ public abstract class FileProcessor {
         if((file.getSize() == null) || (file.getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(timeDifference) > 1)) {
             file.setSize(rwNode.getFile().length());
             file.setDate(fileDate);
-            if(!skipMD5) {
-                file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification(),file.getIdAndType().getId()));
-            }
+            file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification(),file.getIdAndType().getId()));
         }
 
         fileSystemObjectManager.save(file);
@@ -216,8 +214,8 @@ public abstract class FileProcessor {
         node.setDatabaseObjectId(existingFile.get());
     }
 
-    protected void updateDatabase(Source source, List<ActionConfirm> deletes, boolean skipMD5, GatherDataDTO gatherData) throws IOException {
-        // Read the files structure from the real world.
+    protected void updateDatabase(Source source, List<ActionConfirm> deletes, GatherDataDTO gatherData) throws IOException {
+        // Read the structure of the file from the real world.
         LOG.info("Read the real world {}", source.getPath());
         RwRoot realWorld = new RwRoot(source.getPath(), fileSystem);
         realWorld.removeFilteredChildren(source.getFilter());
@@ -228,7 +226,7 @@ public abstract class FileProcessor {
 
         // Compare the real world with the database.
         LOG.info("Perform the compare.");
-        RwDbTree compare = new RwDbTree(realWorld, database);
+        RwDbTree compare = new RwDbTree(realWorld, database, source.getUseDate());
         compare.compare();
 
         // Perform deletes
@@ -255,7 +253,7 @@ public abstract class FileProcessor {
                         gatherData.increment(GatherDataDTO.GatherDataCountType.DIRECTORIES_INSERTED);
                         break;
                     case FILE_FOR_INSERT:
-                        processFileAddUpdate(source, compareNode, skipMD5);
+                        processFileAddUpdate(source, compareNode);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
                         break;
                 }

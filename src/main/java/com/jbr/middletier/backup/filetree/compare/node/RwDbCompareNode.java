@@ -23,7 +23,11 @@ public class RwDbCompareNode extends FileTreeNode {
     private ActionType actionType;
     private final boolean isDirectory;
 
-    private boolean updateRequired(FileInfo dbData, File rwFile) {
+    private boolean updateRequired(FileInfo dbData, File rwFile, boolean checkDate) {
+        if(!checkDate) {
+            return false;
+        }
+
         // Check date.
         LocalDateTime fileDate = Instant.ofEpochMilli(rwFile.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
@@ -35,7 +39,7 @@ public class RwDbCompareNode extends FileTreeNode {
         return Math.abs(timeDifference) > 5000;
     }
 
-    public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode) {
+    public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode, boolean checkDate) {
         super(parent);
 
         this.realWorldNode = realWorldNode;
@@ -54,7 +58,7 @@ public class RwDbCompareNode extends FileTreeNode {
             FileInfo dbFileInfo = (FileInfo)databaseNode.getFSO();
             RwFile rwFile = (RwFile)realWorldNode;
 
-            if(updateRequired(dbFileInfo, rwFile.getFile())) {
+            if(updateRequired(dbFileInfo, rwFile.getFile(), checkDate)) {
                 calculatedActionType = ActionType.UPDATE;
             }
         }
@@ -111,11 +115,9 @@ public class RwDbCompareNode extends FileTreeNode {
     }
 
     public Optional<File> getFileForDelete() {
-        if( !(realWorldNode instanceof RwFile)) {
+        if( !(realWorldNode instanceof RwFile file)) {
             return Optional.empty();
         }
-
-        RwFile file = (RwFile)realWorldNode;
 
         this.actionType = ActionType.DELETE;
         return Optional.of(file.getFile());
