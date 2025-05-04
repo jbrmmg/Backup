@@ -22,9 +22,6 @@ public class FileInfo extends FileSystemObject {
     @Column(name="md5")
     private String md5;
 
-    @Column(name="flags")
-    private String flags;
-
     @Column(name="expiry")
     private LocalDateTime expiry;
 
@@ -53,14 +50,6 @@ public class FileInfo extends FileSystemObject {
     public MD5 getMD5() { return new MD5(this.md5); }
 
     public Classification getClassification() { return this.classification; }
-
-    public String getFlags() {
-        return flags;
-    }
-
-    public void setFlags(String flags) {
-        this.flags = flags;
-    }
 
     public LocalDateTime getExpiry() {
         return expiry;

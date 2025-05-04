@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 34
+      author: jason
+      changes:
+
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: use_date
+                  type: boolean

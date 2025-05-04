@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="import_file")
 public class ImportFile extends FileInfo {
-    //TODO - remove this after the refactor as not really needed.
     @Column(name="status")
     private String status;
 
@@ -51,14 +50,9 @@ public class ImportFile extends FileInfo {
 
     public ImportFile() {
         super(FileSystemObjectType.FSO_IMPORT_FILE);
-    }
-
-    public void setStatus(ImportFileStatusType status) { this.status = status.getTypeName(); }
-
-    public ImportFileStatusType getStatus() { return ImportFileStatusType.getFileStatusType(this.status); }
-
-    public void setStatus(String status) {
-        this.status = status;
+        // These can be removed.
+        this.status = "NA";
+        this.processed = false;
     }
 
     public String getImportName() {
@@ -91,14 +85,6 @@ public class ImportFile extends FileInfo {
 
     public void setImportMd5(String importMd5) {
         this.importMd5 = importMd5;
-    }
-
-    public Boolean getProcessed() {
-        return processed;
-    }
-
-    public void setProcessed(Boolean processed) {
-        this.processed = processed;
     }
 
     public String getDestination() {

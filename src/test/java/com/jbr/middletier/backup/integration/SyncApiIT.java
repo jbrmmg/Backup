@@ -191,7 +191,7 @@ public class SyncApiIT extends FileTester {
 
     @After
     public void cleanUpTest() {
-        // Remove the sources, files & directories.
+        // Remove the sources, files and directories.
         associatedFileDataManager.deleteAllSynchronize();
         actionManager.deleteAllActions();
         fileSystemObjectManager.deleteAllFileObjects();
@@ -461,7 +461,7 @@ public class SyncApiIT extends FileTester {
         sourceDescription = getTestStructure("test2_post_sync");
         validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription);
 
-        // Find file id's there can be used in the next test.
+        // Find the file id's there can be used in the next test.
         int missingId = 1;
         int validId = -1;
         int imageId = -1;
@@ -713,7 +713,7 @@ public class SyncApiIT extends FileTester {
         file.setName("Testing.txt");
         fileSystemObjectManager.save(file);
 
-        // Setup some actions.
+        // Set up some actions.
         ActionConfirmDTO deleteAction = actionManager.createFileDeleteAction(file);
         ActionConfirmDTO importAction = actionManager.createFileImportAction(file,"C");
 
@@ -1854,6 +1854,19 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$.metaData.imageWidth", is(4032)))
                 .andExpect(jsonPath("$.metaData.date", is("2022-05-20T13:21:59")))
                 .andExpect(jsonPath("$.backups[0].md5", is("56FDC164DC8A27C015170014821A7DCE")));
+
+        // Test update and delete of meta data.
+        fileInfo = (FileInfo) files.get(0);
+        if(fileInfo.getIdAndType().getId() != findId) {
+            fileInfo = (FileInfo) files.get(1);
+        }
+        Optional<MetaData> metaData = fileSystemObjectManager.findMetaDataForFile(fileInfo);
+
+        Assert.assertTrue(metaData.isPresent());
+        metaData.get().setDuration(10.0);
+        fileSystemObjectManager.updateMetaData(metaData.get());
+
+        fileSystemObjectManager.deleteMetaData(metaData.get());
 
         // Remove the classification
         fileSystemObjectManager.delete(files.get(0));

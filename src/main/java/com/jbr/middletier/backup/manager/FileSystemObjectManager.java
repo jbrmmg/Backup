@@ -187,31 +187,19 @@ public class FileSystemObjectManager {
 
     private void customFileAction() {
         try {
-            LOG.info("Custom action started");
+            LOG.info("Custom action started - acts on the master source.");
+
             int count = 0;
             List<FileInfo> files = new ArrayList<>();
             List<DirectoryInfo> directories = new ArrayList<>();
             loadByParent(4, directories, files);
 
             for(FileInfo next : files) {
-                if(next.getClassification() != null) {
-                    Optional<MetaData> md = findMetaDataForFile(next);
-                    if(md.isPresent()) {
-                        if(md.get().getDate() == null) {
-                            File file =  getFile(next);
-                            Optional<FileSystemImageData> fileMeta = fileSystem.readImageMetaData(file);
-
-                            if(fileMeta.isPresent() && fileMeta.get().getDateTime() != null) {
-                                LOG.info("{} File {} has no metadata date", ++count, file.getPath());
-
-                                md.get().setDate(fileMeta.get().getDateTime());
-                                metaDataRepository.save(md.get());
-                            }
-                        }
-                    }
-                }
+                LOG.info("{} - {}", next.getName(), next.getIdAndType().getType().getTypeName());
+                count++;
             }
 
+            LOG.info("Found {} files", count);
             LOG.warn("Custom action completed");
         } catch(Exception e) {
             LOG.warn("Custom action stopped due to exception", e);
@@ -517,7 +505,7 @@ public class FileSystemObjectManager {
 
         boolean useMetaData = fileSource.getGatherMetaData();
 
-        // Does the file have a classification? If not, see if it can be updated and if it's still not present then nothing further can be done
+        // Does the file have a classification? If not, see if it can be updated and if it's still not present, then nothing further can be done
         if(!updateClassification(fileInfo, id)) {
             return new FileInfoExtra(fileInfo,null,associatedFile.getParent(), associatedFile.getPath(), associatedFile.getParent());
         }
