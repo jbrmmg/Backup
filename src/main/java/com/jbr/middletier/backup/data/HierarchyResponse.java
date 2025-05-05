@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -7,14 +10,28 @@ import java.util.Locale;
 
 @SuppressWarnings("unused")
 public class HierarchyResponse {
+    @Getter
+    @Setter
     private int id;
+    @Getter
+    @Setter
     private String displayName;
     private String name;
+    @Setter
     private boolean directory;
+    @Setter
     private boolean backup;
+    @Getter
+    @Setter
     private int underlyingId;
+    @Setter
+    @Getter
     private LocalDateTime dateTime;
+    @Setter
+    @Getter
     private String md5;
+    @Setter
+    @Getter
     private long size;
 
     public HierarchyResponse() {
@@ -26,53 +43,13 @@ public class HierarchyResponse {
         this.underlyingId = -1;
     }
 
-    public void setId(int id) { this.id = id; }
-
-    public int getId() { return this.id; }
-
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
-
-    public String getDisplayName() { return this.displayName; }
-
     public void setPath(String path) { this.name = path; }
 
     public String getPath() { return this.name; }
 
-    public void setDirectory(boolean directory) { this.directory = directory; }
-
     public boolean getDirectory() { return this.directory; }
 
-    public void setUnderlyingId(int underlyingId) { this.underlyingId = underlyingId; }
-
-    public int getUnderlyingId() { return this.underlyingId; }
-
-    public void setBackup(boolean backup) { this.backup = backup; }
-
     public boolean getBackup() { return this.backup; }
-
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public String getMd5() {
-        return md5;
-    }
-
-    public void setMd5(String md5) {
-        this.md5 = md5;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public void setSize(long size) {
-        this.size = size;
-    }
 
     public int getOrderingIndex() {
         int result = 0;

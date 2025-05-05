@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -7,11 +10,13 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name="action_confirm")
 public class ActionConfirm {
+    @Getter
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Setter
     @JoinColumn(name="fileId")
     @ManyToOne(optional = false)
     private FileInfo fileInfo;
@@ -20,44 +25,34 @@ public class ActionConfirm {
     @NotNull
     private String action;
 
+    @Setter
     @Column(name="confirmed")
     @NotNull
     private Boolean confirmed;
 
+    @Getter
     @Column(name="parameter_required")
     private Boolean parameterRequired;
 
+    @Setter
+    @Getter
     @Column(name="parameter")
     private String parameter;
 
+    @Getter
+    @Setter
     @Column(name="flags")
     private String flags;
 
-    public Integer getId() { return this.id; }
-
     public FileInfo getPath() { return this.fileInfo; }
-
-    public void setFileInfo(FileInfo file) { this.fileInfo = file; }
 
     public ActionConfirmType getAction() { return ActionConfirmType.getActionConfirmType(this.action); }
 
     public void setAction(ActionConfirmType action) { this.action = action.getTypeName(); }
 
-    public void setConfirmed(Boolean confirmed) { this.confirmed = confirmed; }
-
-    public Boolean getParameterRequired() { return this.parameterRequired; }
-
     public void setParameterRequired(boolean parameterRequired) { this.parameterRequired = parameterRequired; }
 
-    public String getParameter() { return this.parameter; }
-
-    public void setParameter(String parameter) { this.parameter = parameter; }
-
     public boolean confirmed() { return this.confirmed; }
-
-    public void setFlags(String flags) { this.flags = flags; }
-
-    public String getFlags() { return this.flags; }
 
     @Override
     public String toString() {

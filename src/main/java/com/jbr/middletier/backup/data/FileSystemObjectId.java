@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+
+@Getter
 public class FileSystemObjectId {
     private final Integer id;
     private final FileSystemObjectType type;
@@ -34,11 +37,4 @@ public class FileSystemObjectId {
         return this.id.equals(rhsId.id);
     }
 
-    public Integer getId() {
-        return this.id;
-    }
-
-    public FileSystemObjectType getType() {
-        return this.type;
-    }
 }

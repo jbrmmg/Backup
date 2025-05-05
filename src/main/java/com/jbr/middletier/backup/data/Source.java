@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.File;
@@ -10,6 +13,8 @@ import java.util.Optional;
 @Table(name="source")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Source extends FileSystemObject {
+    @Setter
+    @Getter
     @JoinColumn(name="location")
     @ManyToOne(optional = true)
     private Location location;
@@ -18,15 +23,20 @@ public class Source extends FileSystemObject {
     private String status;
 
     // NOTE: this causes problems for h2 unit tests.
+    @Getter
+    @Setter
     @Column(name="filter")
     private String filter;
 
+    @Setter
     @Column(name="mount_check")
     private String mountCheck;
 
+    @Setter
     @Column(name="gather_meta_data")
     private Boolean gatherMetaData;
 
+    @Setter
     @Column(name="use_date")
     private Boolean useDate;
 
@@ -43,24 +53,12 @@ public class Source extends FileSystemObject {
 
     public void setStatus(SourceStatusType status) { this.status = status.getTypeName(); }
 
-    public void setFilter(String filter) { this.filter = filter; }
-
     public SourceStatusType getStatus() { return SourceStatusType.getSourceStatusType(this.status); }
 
     public String getPath() { return this.name; }
 
-    public String getFilter() { return this.filter; }
-
-    public Location getLocation() { return this.location; }
-
-    public void setLocation(Location location) { this.location = location; }
-
     public boolean getGatherMetaData() {
         return gatherMetaData != null && gatherMetaData;
-    }
-
-    public void setGatherMetaData(Boolean gatherMetaData) {
-        this.gatherMetaData = gatherMetaData;
     }
 
     public Optional<File> getMountCheck() {
@@ -71,17 +69,9 @@ public class Source extends FileSystemObject {
         return Optional.of(new File(this.mountCheck));
     }
 
-    public void setMountCheck(String mountCheck) {
-        this.mountCheck = mountCheck;
-    }
-
     public boolean getUseDate() {
         // Default is true.
         return useDate == null || useDate;
-    }
-
-    public void setUseDate(Boolean useDate) {
-        this.useDate = useDate;
     }
 
     @Override

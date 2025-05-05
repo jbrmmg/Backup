@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -14,12 +17,16 @@ public class Location {
     @Column(name="id")
     private Integer id;
 
+    @Getter
     @Column(name="name")
     private String name;
 
+    @Getter
     @Column(name="size")
     private String size;
 
+    @Setter
+    @Getter
     @Column(name="check_duplicates")
     private Boolean checkDuplicates;
 
@@ -31,19 +38,11 @@ public class Location {
 
     public int getId() { return this.id; }
 
-    public String getName() { return this.name; }
-
-    public String getSize() { return this.size; }
-
-    public Boolean getCheckDuplicates() { return this.checkDuplicates; }
-
     public void setId(@NotNull Integer id) { this.id = id; }
 
     public void setName(@NotNull String name) { this.name = name; }
 
     public void setSize(@NotNull String size) { this.size = size; }
-
-    public void setCheckDuplicates(Boolean checkDuplicates) { this.checkDuplicates = checkDuplicates; }
 
     @Override
     public String toString() {

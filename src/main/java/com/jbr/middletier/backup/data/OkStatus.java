@@ -1,9 +1,12 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@Setter
+@Getter
 public class OkStatus {
     private String status;
 
@@ -11,10 +14,6 @@ public class OkStatus {
     public OkStatus() {
         status = "OK";
     }
-
-    public String getStatus() { return this.status; }
-
-    public void setStatus(String status) { this.status = status; }
 
     @NotNull
     @Contract(value = " -> new", pure = true)
