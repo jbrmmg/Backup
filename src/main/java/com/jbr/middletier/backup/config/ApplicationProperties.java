@@ -224,12 +224,12 @@ public class ApplicationProperties {
         });
 
         modelMapper.createTypeMap(ActionConfirm.class,ActionConfirmDTO.class).addMappings(mapper -> {
-            mapper.using(actionToIsImage).map(ActionConfirm::getPath,ActionConfirmDTO::setIsImage);
-            mapper.using(actionToIsVideo).map(ActionConfirm::getPath,ActionConfirmDTO::setIsVideo);
+            mapper.using(actionToIsImage).map(ActionConfirm::getPath,ActionConfirmDTO::setImage);
+            mapper.using(actionToIsVideo).map(ActionConfirm::getPath,ActionConfirmDTO::setVideo);
             mapper.using(fileToIdConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileId);
             mapper.using(fileToNameConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileName);
-            mapper.using(fileToDateConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileDate);
-            mapper.using(fileToSizeConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setFileSize);
+            mapper.using(fileToDateConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setDate);
+            mapper.using(fileToSizeConverter).map(ActionConfirm::getPath,ActionConfirmDTO::setSize);
             mapper.map(ActionConfirm::confirmed,ActionConfirmDTO::setConfirmed);
         });
 

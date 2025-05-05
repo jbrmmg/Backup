@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
@@ -9,6 +12,7 @@ import java.util.Optional;
 @Table(name="file_system_object")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class FileSystemObject {
+    @Setter
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +21,7 @@ public class FileSystemObject {
     @Column(name="type")
     private String type;
 
+    @Getter
     @Column(name="name")
     protected String name;
 
@@ -42,8 +47,6 @@ public class FileSystemObject {
     public FileSystemObjectId getIdAndType() {
         return new FileSystemObjectId(this.id, FileSystemObjectType.getFileSystemObjectType(this.type));
     }
-
-    public void setId(Integer id) { this.id = id; }
 
     public Optional<FileSystemObjectId> getParentId() {
         if(this.parentId == null) {
@@ -71,9 +74,5 @@ public class FileSystemObject {
 
         this.parentId = parentId.getId();
         this.parentType = parentId.getType().getTypeName();
-    }
-
-    public String getName() {
-        return this.name;
     }
 }

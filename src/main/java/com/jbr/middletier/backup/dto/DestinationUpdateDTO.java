@@ -1,7 +1,9 @@
 package com.jbr.middletier.backup.dto;
 
+import lombok.Data;
 import javax.validation.constraints.Pattern;
 
+@Data
 public class DestinationUpdateDTO {
     @Pattern(regexp="^[\\w\\-. ]+$",message="Filename cannot contain special characters.")
     private String filename;
@@ -11,21 +13,5 @@ public class DestinationUpdateDTO {
     public DestinationUpdateDTO() {
         this.filename = null;
         this.destination = null;
-    }
-
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
     }
 }

@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
@@ -8,6 +10,8 @@ import javax.persistence.*;
 @Entity
 @Table(name="classification")
 public class Classification {
+    @Setter
+    @Getter
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,12 +21,16 @@ public class Classification {
     @NotNull
     private Integer order;
 
+    @Setter
+    @Getter
     @Column(name="regex")
     private String regex;
 
     @Column(name="action")
     private String action;
 
+    @Setter
+    @Getter
     @Column(name="icon")
     private String icon;
 
@@ -30,12 +38,17 @@ public class Classification {
     @NotNull
     private Boolean useMD5;
 
+    @Setter
+    @Getter
     @Column(name="is_image")
     private Boolean isImage;
 
+    @Setter
+    @Getter
     @Column(name="is_video")
     private Boolean isVideo;
 
+    @Setter
     @Column(name="check_meta_data")
     private Boolean checkMetaData;
 
@@ -44,40 +57,16 @@ public class Classification {
         this.useMD5 = false;
     }
 
-    public Integer getId() { return this.id; }
-
-    public void setId(Integer id) { this.id = id; }
-
-    public String getRegex() { return this.regex; }
-
-    public void setRegex(String regex) { this.regex = regex; }
-
     public ClassificationActionType getAction() { return ClassificationActionType.getClassificationActionType(this.action); }
 
     public void setAction(ClassificationActionType action) { this.action = action.getTypeName(); }
-
-    public String getIcon() { return this.icon; }
-
-    public void setIcon(String icon) { this.icon = icon; }
 
     @NotNull public Boolean getUseMD5() { return this.useMD5; }
 
     public void setUseMD5(@NotNull Boolean useMD5) { this.useMD5 = useMD5; }
 
-    public Boolean getIsVideo() { return this.isVideo; }
-
-    public void setIsVideo(Boolean isVideo) { this.isVideo = isVideo; }
-
-    public Boolean getIsImage() { return this.isImage; }
-
-    public void setIsImage(Boolean isImage) { this.isImage = isImage; }
-
     public boolean getCheckMetaData() {
         return checkMetaData != null && checkMetaData;
-    }
-
-    public void setCheckMetaData(Boolean checkMetaData) {
-        this.checkMetaData = checkMetaData;
     }
 
     public @NotNull Integer getOrder() { return this.order; }

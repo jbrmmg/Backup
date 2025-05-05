@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -7,6 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="log")
 public class DbLog {
+    @Setter
+    @Getter
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,15 +20,23 @@ public class DbLog {
     @Column(name="type")
     private String type;
 
+    @Setter
+    @Getter
     @Column(name="date")
     private LocalDateTime date;
 
+    @Setter
+    @Getter
     @Column(name="message")
     private String message;
 
+    @Setter
+    @Getter
     @Column(name="fso")
     private Integer fso;
 
+    @Setter
+    @Getter
     @Column(name="backup")
     private String backup;
 
@@ -39,14 +52,6 @@ public class DbLog {
         this.backup = backup;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public DbLogType getType() {
         return DbLogType.getDbLogType(this.type);
     }
@@ -54,28 +59,4 @@ public class DbLog {
     public void setType(DbLogType type) {
         this.type = type.getTypeName();
     }
-
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Integer getFso() { return this.fso; }
-
-    public void setFso(Integer fso) { this.fso = fso; }
-
-    public String getBackup() { return this.backup; }
-
-    public void setBackup(String backup) { this.backup = backup; }
 }

@@ -12,24 +12,26 @@ import java.util.Optional;
 public class RwDbTree extends CompareRoot {
     private final RwRoot realWorld;
     private final DbRoot database;
+    private final boolean checkDateForUpdate;
 
-    public RwDbTree(RwRoot realWorld, DbRoot database) {
+    public RwDbTree(RwRoot realWorld, DbRoot database, boolean checkDateForUpdate) {
         this.realWorld = realWorld;
         this.database = database;
+        this.checkDateForUpdate = checkDateForUpdate;
     }
 
     @Override
     protected FileTreeNode createCompareNode(CompareStatusType status, FileTreeNode parent, FileTreeNode lhs, FileTreeNode rhs) {
         // Possible status is EQUAL, REMOVED (needs to be added to DB) or ADDED (needs to be removed from the DB).
-        // If they are marked equal but are of different types then potentially need to delete and re-add.
+        // If they are marked equal but are of different types, then potentially need to delete and re-add.
 
         // REMOVED
-        // Require the real world information.
+        // Requires the real-world information.
 
         // ADDED
         // Require the database information - in fact just the id & type.
 
-        // EQUAL (and both are same type) - potential delete - need the real world and the id and type.
+        // EQUAL (and both are the same type) - potential delete - need the real world and the id and type.
         //
 
         // EQUAL - RealWorld is a directory, Database is a file.  Need the real world and the id and type.
@@ -47,7 +49,7 @@ public class RwDbTree extends CompareRoot {
             return new RwDbCompareNode(parent,dbRhsNode.getObjectId());
         }
 
-        return new RwDbCompareNode(parent,(RwNode)lhs,(DbNode)rhs);
+        return new RwDbCompareNode(parent,(RwNode)lhs,(DbNode)rhs,checkDateForUpdate);
     }
 
     @Override
@@ -61,7 +63,7 @@ public class RwDbTree extends CompareRoot {
             return;
         }
 
-        // If this is a delete and not a directory, or a recreate as directory.
+        // If this is a deleted file and not a directory, or recreation of the directory.
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY)) {
             result.add(compareNode);
@@ -79,7 +81,7 @@ public class RwDbTree extends CompareRoot {
             return;
         }
 
-        // If this is a delete and a directory, or a recreate as file.
+        // If this is a deleted and a directory, or recreation as a file.
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.DELETE) && compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {
             result.add(compareNode);
@@ -88,7 +90,7 @@ public class RwDbTree extends CompareRoot {
 
     @Override
     protected void findInsertDirectories (FileTreeNode node, List<FileTreeNode> result) {
-        // If this is an insert and not a directory, or recreate as file.
+        // If this is an insert and not a directory, or recreate as a file.
         if((node instanceof RwDbCompareNode compareNode) &&
             ((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && compareNode.isDirectory()) ||
                     compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY))) {
@@ -111,7 +113,7 @@ public class RwDbTree extends CompareRoot {
             return;
         }
 
-        // If this is a file, add a delete then add to the list now.
+        // If this is a file, add deleted then add to the list now.
         if((compareNode.getActionType().equals(RwDbCompareNode.ActionType.INSERT) && !compareNode.isDirectory()) ||
                 (compareNode.getActionType().equals(RwDbCompareNode.ActionType.UPDATE) && !compareNode.isDirectory()) ||
                 compareNode.getActionType().equals(RwDbCompareNode.ActionType.RECREATE_AS_FILE)) {

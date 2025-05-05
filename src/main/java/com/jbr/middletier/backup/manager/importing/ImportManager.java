@@ -191,7 +191,7 @@ public class ImportManager extends FileProcessor {
             importFile.setId(dbFile.getIdAndType().getId());
             importFile.setDate(dbFile.getDate());
             importFile.setSize(dbFile.getSize());
-            importFile.setMd5(new MD5(dbFile.getMD5()));
+            importFile.setMd5(dbFile.getMD5().toString());
             importFile.setDuration(dbFile.getDuration());
             importFile.setImage(dbFile.getImage());
             if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {

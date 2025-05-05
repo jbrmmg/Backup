@@ -1,5 +1,7 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
@@ -11,10 +13,14 @@ public class Synchronize {
     @Column(name="id")
     private Integer id;
 
+    @Setter
+    @Getter
     @JoinColumn(name="source")
     @ManyToOne(optional = false)
     private Source source;
 
+    @Setter
+    @Getter
     @JoinColumn(name="destination")
     @ManyToOne(optional = false)
     private Source destination;
@@ -25,15 +31,7 @@ public class Synchronize {
 
     @NotNull public Integer getId() { return this.id; }
 
-    public Source getSource() { return this.source; }
-
-    public Source getDestination() { return this.destination; }
-
     public void setId(@NotNull Integer id) { this.id = id; }
-
-    public void setSource(Source source) { this.source = source; }
-
-    public void setDestination(Source destination) { this.destination = destination; }
 
     @Override
     public String toString() {

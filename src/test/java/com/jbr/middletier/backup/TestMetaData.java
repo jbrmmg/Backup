@@ -13,6 +13,8 @@ import com.jbr.middletier.backup.manager.FileSystem;
 
 import java.io.File;
 import java.time.Month;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RunWith(SpringRunner.class)
@@ -166,5 +168,49 @@ public class TestMetaData {
         Assert.assertEquals(13,meta.get().getDateTime().getHour());
         Assert.assertEquals(21,meta.get().getDateTime().getMinute());
         Assert.assertEquals(59,meta.get().getDateTime().getSecond());
+    }
+
+    @Test
+    public void testMetaDataInterpretation() {
+        Map<String,String> map = new HashMap<>();
+        map.put("mime type","image/jpeg");
+        map.put("date/time original","2023:05:21 12:37:23");
+        map.put("image size","10x12");
+        map.put("gps position","51 deg 27' 22.41\" N, 2 deg 37' 32.56\" W");
+
+        FileSystemImageData imageData = new FileSystemImageData(map);
+
+        Assert.assertTrue(imageData.isValid());
+        Assert.assertTrue(imageData.isImage());
+        Assert.assertEquals(10,imageData.getImageSize().width());
+        Assert.assertEquals(12,imageData.getImageSize().height());
+
+        // Check the video.
+        map = new HashMap<>();
+        map.put("mime type","video/mp4");
+        map.put("date/time original","2023:05:21 12:37:23");
+        map.put("image size","10x12");
+        map.put("gps position","51 deg 27' 22.41\" N, 2 deg 37' 32.56\" W");
+        map.put("duration","1:01");
+
+        FileSystemImageData videoData = new FileSystemImageData(map);
+        Assert.assertTrue(videoData.isValid());
+        Assert.assertTrue(videoData.isVideo());
+        Assert.assertEquals(10,videoData.getImageSize().width());
+        Assert.assertEquals(12,videoData.getImageSize().height());
+        Assert.assertEquals(61,videoData.getDuration(),0.00001);
+
+        // Check the video.
+        map = new HashMap<>();
+        map.put("mime type","video/mp4");
+        map.put("date/time original","2023:05:21 12:37:23");
+        map.put("image size","10x12");
+        map.put("gps position","51 deg 27' 22.41\" N, 2 deg 37' 32.56\" W");
+        map.put("duration","1:01:01");
+
+        videoData = new FileSystemImageData(map);
+        Assert.assertTrue(videoData.isValid());
+        Assert.assertTrue(videoData.isVideo());
+        Assert.assertEquals(3661,videoData.getDuration(),0.00001);
     }
 }

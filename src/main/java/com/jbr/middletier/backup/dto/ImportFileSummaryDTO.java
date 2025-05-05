@@ -6,16 +6,20 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
+@Getter
 @JsonSerialize(using = ImportFileSummaryDTO.ImportFileSummarySerializer.class)
 public class ImportFileSummaryDTO {
     private int totalPreImportFiles;
     private int totalImportFiles;
     private int totalPostImportFiles;
+    @Setter
     private int queued;
     private final Map<FileProcessingStepType, ImportFileSummaryStepDTO> counts;
 
@@ -57,22 +61,6 @@ public class ImportFileSummaryDTO {
         }
     }
 
-    public int getTotalPreImportFiles() {
-        return totalPreImportFiles;
-    }
-
-    public int getTotalImportFiles() {
-        return totalImportFiles;
-    }
-
-    public int getTotalPostImportFiles() {
-        return totalPostImportFiles;
-    }
-
-    public Map<FileProcessingStepType, ImportFileSummaryStepDTO> getCounts() {
-        return counts;
-    }
-
     public void incrementTotalPreImportFiles(){
         totalPreImportFiles++;
     }
@@ -87,13 +75,5 @@ public class ImportFileSummaryDTO {
 
     public void incrementStepCount(FileProcessingStepType type, TrafficLightType status) {
         counts.get(type).increment(status);
-    }
-
-    public void setQueued(int queued) {
-        this.queued = queued;
-    }
-
-    public int getQueued() {
-        return this.queued;
     }
 }

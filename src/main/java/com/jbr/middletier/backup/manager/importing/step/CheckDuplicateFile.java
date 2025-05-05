@@ -65,7 +65,7 @@ public class CheckDuplicateFile extends ImportStep {
         similar.setType(FileSystemObjectType.FSO_FILE);
         similar.setFilename(file.getPath());
         similar.setSize(dbFile.getSize());
-        similar.setMd5(dbFile.getMD5());
+        similar.setMd5(dbFile.getMD5().toString());
         similar.setDate(dbFile.getDate());
 
         // Make sure this is not in the list already.

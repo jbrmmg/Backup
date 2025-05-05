@@ -8,6 +8,8 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbNode;
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
+import lombok.Getter;
+
 import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+@Getter
 public class RwDbCompareNode extends FileTreeNode {
     public enum ActionType { NONE, INSERT, UPDATE, DELETE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
 
@@ -23,8 +26,12 @@ public class RwDbCompareNode extends FileTreeNode {
     private ActionType actionType;
     private final boolean isDirectory;
 
-    private boolean updateRequired(FileInfo dbData, File rwFile) {
-        // Check date.
+    private boolean updateRequired(FileInfo dbData, File rwFile, boolean checkDate) {
+        if(!checkDate) {
+            return false;
+        }
+
+        // Check the date.
         LocalDateTime fileDate = Instant.ofEpochMilli(rwFile.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
         long timeDifference = 100;
@@ -35,7 +42,7 @@ public class RwDbCompareNode extends FileTreeNode {
         return Math.abs(timeDifference) > 5000;
     }
 
-    public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode) {
+    public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode, boolean checkDate) {
         super(parent);
 
         this.realWorldNode = realWorldNode;
@@ -50,11 +57,11 @@ public class RwDbCompareNode extends FileTreeNode {
                 calculatedActionType = ActionType.RECREATE_AS_FILE;
             }
         } else if (!realWorldNode.isDirectory()) {
-            // They are equal on name, but check the size, date and MD5 if that is required.
+            // They are equal in name, but check the size, date and MD5 if that is required.
             FileInfo dbFileInfo = (FileInfo)databaseNode.getFSO();
             RwFile rwFile = (RwFile)realWorldNode;
 
-            if(updateRequired(dbFileInfo, rwFile.getFile())) {
+            if(updateRequired(dbFileInfo, rwFile.getFile(), checkDate)) {
                 calculatedActionType = ActionType.UPDATE;
             }
         }
@@ -90,32 +97,14 @@ public class RwDbCompareNode extends FileTreeNode {
         // Nothing to do for this type
     }
 
-    public ActionType getActionType() {
-        return this.actionType;
-    }
-
-    public RwNode getRealWorldNode() {
-        return this.realWorldNode;
-    }
-
-    public FileSystemObjectId getDatabaseObjectId() {
-        return this.databaseObjectId;
-    }
-
     public void setDatabaseObjectId(FileSystemObject databaseObject) {
         this.databaseObjectId = databaseObject.getIdAndType();
     }
 
-    public boolean isDirectory() {
-        return this.isDirectory;
-    }
-
     public Optional<File> getFileForDelete() {
-        if( !(realWorldNode instanceof RwFile)) {
+        if( !(realWorldNode instanceof RwFile file)) {
             return Optional.empty();
         }
-
-        RwFile file = (RwFile)realWorldNode;
 
         this.actionType = ActionType.DELETE;
         return Optional.of(file.getFile());

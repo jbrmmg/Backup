@@ -39,7 +39,7 @@ public class CheckActivePhotoFile extends ImportStep {
         similar.setFilename(importFile.getName() + " [" + importFile.getIdAndType().getType() + "]");
         similar.setDate(importFile.getImportDate());
         similar.setSize(importFile.getImportSize());
-        similar.setMd5(new MD5(importFile.getImportMd5()));
+        similar.setMd5(importFile.getImportMd5());
 
         return similar;
     }
@@ -50,7 +50,7 @@ public class CheckActivePhotoFile extends ImportStep {
         similar.setFilename(existingFile.getName());
         similar.setDate(existingFile.getDate());
         similar.setSize(existingFile.getSize());
-        similar.setMd5(existingFile.getMD5());
+        similar.setMd5(existingFile.getMD5().toString());
 
         return similar;
     }

@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.exception.ApiError;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
+import com.jbr.middletier.backup.util.FileSearch;
 import com.jbr.middletier.backup.util.ImageSize;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -21,7 +22,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.hibernate.boot.model.naming.Identifier;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -1188,12 +1191,12 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("T",actionConfirmDTO.getFlags());
         Assert.assertFalse(actionConfirmDTO.getParameterRequired());
         Assert.assertEquals("X",actionConfirmDTO.getParameter());
-        Assert.assertTrue(actionConfirmDTO.getIsImage());
-        Assert.assertFalse(actionConfirmDTO.getIsVideo());
+        Assert.assertTrue(actionConfirmDTO.isImage());
+        Assert.assertFalse(actionConfirmDTO.isVideo());
         Assert.assertEquals(4, actionConfirmDTO.getFileId());
         Assert.assertEquals("TestFile2.txt", actionConfirmDTO.getFileName());
-        Assert.assertEquals(2423, actionConfirmDTO.getFileSize().longValue());
-        Assert.assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getFileDate()));
+        Assert.assertEquals(2423, actionConfirmDTO.getSize().longValue());
+        Assert.assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getDate()));
     }
 
     @Test
@@ -1517,5 +1520,72 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(213, (long)testDTO.getImageHeight());
         Assert.assertEquals(214, (long)testDTO.getImageWidth());
         Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
+    }
+
+    @Test
+    public void testGetImageFromVideo() {
+        ApplicationProperties applicationProperties = new ApplicationProperties();
+        applicationProperties.setVidToImageLocation("target/");
+        applicationProperties.setVidToImageCommand("cp %%INPUT%% %%OUTPUT%%");
+
+        FileSystem fileSystem = new FileSystem(null,applicationProperties);
+
+        File testFile = new File("src/test/resources/synchronise/20171224_152453.mp4");
+        File resultFile;
+
+        try {
+            resultFile = fileSystem.getImageFileFromVideoFile(testFile);
+        } catch (Exception e) {
+            Assert.fail();
+            return;
+        }
+
+        // Check the name of the file.
+        Assert.assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
+
+        // File should be created at target/76be016232b7fd49a1151dd8f4b33d97.jpg
+        if(!resultFile.exists()) {
+            Assert.fail("File should have been created at target/76be016232b7fd49a1151dd8f4b33d97.jpg");
+            return;
+        }
+
+        // Calling again should not require the command to run.
+        applicationProperties.setVidToImageCommand("cpxnon %%INPUT%% %%OUTPUT%%");
+
+        try {
+            resultFile = fileSystem.getImageFileFromVideoFile(testFile);
+        } catch (Exception e) {
+            Assert.fail();
+            return;
+        }
+
+        Assert.assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
+
+        // Delete the file.
+        try {
+            Files.delete(resultFile.toPath());
+        } catch (IOException e) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testFileSearch() {
+        FileSearch search = new FileSearch("76be016232b7fd49a1151dd8f4b33d97");
+        Assert.assertEquals(FileSearch.SearchType.MD5,search.getSearchType());
+
+        search = new FileSearch("2025-03-21 12:09:12");
+        Assert.assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
+        Assert.assertEquals(LocalDateTime.of(2025,3,21,12,9,12),search.getDateTime());
+
+        search = new FileSearch("2025-03-21 12:09");
+        Assert.assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
+
+        search = new FileSearch("FilesSearch.jpg");
+        Assert.assertEquals(FileSearch.SearchType.NAME,search.getSearchType());
+        Assert.assertEquals("FilesSearch.jpg", search.getSearch());
+
+        search = new FileSearch("1313");
+        Assert.assertEquals(FileSearch.SearchType.SIZE,search.getSearchType());
     }
 }

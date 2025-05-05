@@ -1,6 +1,5 @@
 package com.jbr.middletier.backup.dto;
 
-@SuppressWarnings("unused")
 public class DuplicateDataDTO extends ProcessResultDTO {
     public enum DuplicateCountType {
         CHECKED("checked"),

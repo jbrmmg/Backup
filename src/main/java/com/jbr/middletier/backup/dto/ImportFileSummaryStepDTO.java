@@ -2,10 +2,13 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
+import lombok.Getter;
+
 import java.util.EnumMap;
 import java.util.Map;
 
 public class ImportFileSummaryStepDTO {
+    @Getter
     private final FileProcessingStepType type;
     private final Map<TrafficLightType,Integer> counts;
 
@@ -16,10 +19,6 @@ public class ImportFileSummaryStepDTO {
         for(TrafficLightType trafficLightType : TrafficLightType.values()){
             counts.put(trafficLightType,0);
         }
-    }
-
-    public FileProcessingStepType getType() {
-        return this.type;
     }
 
     public void increment(TrafficLightType trafficLightType) {

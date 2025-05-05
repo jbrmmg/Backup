@@ -1,10 +1,15 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name="print")
 public class Print {
@@ -16,28 +21,4 @@ public class Print {
 
     @Column(name="black_white")
     private Boolean blackWhite;
-
-    public PrintId getId() {
-        return id;
-    }
-
-    public void setId(PrintId id) {
-        this.id = id;
-    }
-
-    public Boolean getBorder() {
-        return border;
-    }
-
-    public void setBorder(Boolean border) {
-        this.border = border;
-    }
-
-    public Boolean getBlackWhite() {
-        return blackWhite;
-    }
-
-    public void setBlackWhite(Boolean blackWhite) {
-        this.blackWhite = blackWhite;
-    }
 }

@@ -4,22 +4,49 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.step.StepStatus;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 public class PreImportFileDTO extends ImportFileDTO {
+    @Setter
+    @Getter
     private volatile LocalDateTime updateTime;
+    @Setter
+    @Getter
     private volatile String destination;
+    @Setter
+    @Getter
     private volatile Double duration;
+    @Setter
+    @Getter
     private volatile String importName;
+    @Setter
+    @Getter
     private volatile LocalDateTime importDate;
+    @Setter
+    @Getter
     private volatile Long importSize;
+    @Setter
+    @Getter
     private volatile String importMd5;
+    @Setter
+    @Getter
     private volatile boolean errorInPostImport;
+    @Setter
+    @Getter
     private volatile boolean errorInImport;
-    private volatile boolean processed;
+    @Setter
+    @Getter
     private volatile boolean inDatabase;
+    @Setter
+    @Getter
     private volatile boolean inImport;
+    @Setter
+    @Getter
     private volatile boolean inPostImport;
+    @Getter
     private final StepStatus stepStatus;
     private final boolean stopMarker;
 
@@ -49,10 +76,6 @@ public class PreImportFileDTO extends ImportFileDTO {
         return this.stepStatus.getNextUnknownStep();
     }
 
-    public StepStatus getStepStatus() {
-        return this.stepStatus;
-    }
-
     @JsonIgnore
     public TrafficLightType getStepStatus(FileProcessingStepType step) {
         return this.stepStatus.getStepStatus(step);
@@ -70,115 +93,6 @@ public class PreImportFileDTO extends ImportFileDTO {
         }
 
         return this.updateTime.isAfter(time);
-    }
-
-    public boolean isInDatabase() {
-        return inDatabase;
-    }
-
-    public void setInDatabase(boolean inDatabase) {
-        this.inDatabase = inDatabase;
-    }
-
-    public boolean isInImport() {
-        return inImport;
-    }
-
-    public void setInImport(boolean inImport) {
-        this.inImport = inImport;
-    }
-
-    public boolean isInPostImport() {
-        return inPostImport;
-    }
-
-    public void setInPostImport(boolean inPostImport) {
-        this.inPostImport = inPostImport;
-    }
-
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public Double getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Double duration) {
-        this.duration = duration;
-    }
-
-    public String getImportName() {
-        return importName;
-    }
-
-    public void setImportName(String importFilename) {
-        this.importName = importFilename;
-    }
-
-    public LocalDateTime getImportDate() {
-        return importDate;
-    }
-
-    public void setImportDate(LocalDateTime importDate) {
-        this.importDate = importDate;
-    }
-
-    public Long getImportSize() {
-        return importSize;
-    }
-
-    public void setImportSize(Long importSize) {
-        this.importSize = importSize;
-    }
-
-    public String getImportMd5() {
-        return importMd5;
-    }
-
-    public void setImportMd5(String importMd5) {
-        this.importMd5 = importMd5;
-    }
-
-    public boolean isProcessed() {
-        return processed;
-    }
-
-    public void setProcessed(Boolean processed) {
-        if(processed == null){
-            this.processed = false;
-            return;
-        }
-
-        this.processed = processed;
-    }
-
-    public boolean isErrorInPostImport() {
-        return errorInPostImport;
-    }
-
-    public void setErrorInPostImport(boolean errorInPostImport) {
-        this.errorInPostImport = errorInPostImport;
-    }
-
-    public boolean isErrorInImport() {
-        return errorInImport;
-    }
-
-    public void setErrorInImport(boolean errorInImport) {
-        this.errorInImport = errorInImport;
     }
 
     @JsonIgnore

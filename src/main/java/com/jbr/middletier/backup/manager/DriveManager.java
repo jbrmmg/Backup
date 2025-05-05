@@ -51,7 +51,7 @@ public class DriveManager extends FileProcessor {
             // If the source does not exist, create it.
             fileSystem.createDirectory(new File(nextSource.getPath()).toPath());
 
-            updateDatabase(nextSource, deleteActions, false, gatherData);
+            updateDatabase(nextSource, deleteActions, gatherData);
 
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
