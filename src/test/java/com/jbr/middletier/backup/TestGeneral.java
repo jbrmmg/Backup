@@ -21,7 +21,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.hibernate.boot.model.naming.Identifier;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -1517,5 +1519,52 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(213, (long)testDTO.getImageHeight());
         Assert.assertEquals(214, (long)testDTO.getImageWidth());
         Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
+    }
+
+    @Test
+    public void testGetImageFromVideo() {
+        ApplicationProperties applicationProperties = new ApplicationProperties();
+        applicationProperties.setVidToImageLocation("target/");
+        applicationProperties.setVidToImageCommand("cp %%INPUT%% %%OUTPUT%%");
+
+        FileSystem fileSystem = new FileSystem(null,applicationProperties);
+
+        File testFile = new File("src/test/resources/synchronise/20171224_152453.mp4");
+        File resultFile;
+
+        try {
+            resultFile = fileSystem.getImageFileFromVideoFile(testFile);
+        } catch (Exception e) {
+            Assert.fail();
+            return;
+        }
+
+        // Check the name of the file.
+        Assert.assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
+
+        // File should be created at target/76be016232b7fd49a1151dd8f4b33d97.jpg
+        if(!resultFile.exists()) {
+            Assert.fail("File should have been created at target/76be016232b7fd49a1151dd8f4b33d97.jpg");
+            return;
+        }
+
+        // Calling again should not require the command to run.
+        applicationProperties.setVidToImageCommand("cpxnon %%INPUT%% %%OUTPUT%%");
+
+        try {
+            resultFile = fileSystem.getImageFileFromVideoFile(testFile);
+        } catch (Exception e) {
+            Assert.fail();
+            return;
+        }
+
+        Assert.assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
+
+        // Delete the file.
+        try {
+            Files.delete(resultFile.toPath());
+        } catch (IOException e) {
+            Assert.fail();
+        }
     }
 }
