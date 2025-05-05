@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.exception.ApiError;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
+import com.jbr.middletier.backup.util.FileSearch;
 import com.jbr.middletier.backup.util.ImageSize;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -1566,5 +1567,25 @@ public class TestGeneral extends WebTester {
         } catch (IOException e) {
             Assert.fail();
         }
+    }
+
+    @Test
+    public void testFileSearch() {
+        FileSearch search = new FileSearch("76be016232b7fd49a1151dd8f4b33d97");
+        Assert.assertEquals(FileSearch.SearchType.MD5,search.getSearchType());
+
+        search = new FileSearch("2025-03-21 12:09:12");
+        Assert.assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
+        Assert.assertEquals(LocalDateTime.of(2025,3,21,12,9,12),search.getDateTime());
+
+        search = new FileSearch("2025-03-21 12:09");
+        Assert.assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
+
+        search = new FileSearch("FilesSearch.jpg");
+        Assert.assertEquals(FileSearch.SearchType.NAME,search.getSearchType());
+        Assert.assertEquals("FilesSearch.jpg", search.getSearch());
+
+        search = new FileSearch("1313");
+        Assert.assertEquals(FileSearch.SearchType.SIZE,search.getSearchType());
     }
 }
