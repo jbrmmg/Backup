@@ -60,5 +60,9 @@ public class TestProperties {
         assertEquals("to",test.getEmail().getTo());
         test.getEmail().setUser("usr");
         assertEquals("usr",test.getEmail().getUser());
+        test.setVidToImageCommand("test");
+        assertEquals("test",test.getVidToImageCommand());
+        test.setVidToImageLocation("test");
+        assertEquals("test",test.getVidToImageLocation());
     }
 }
