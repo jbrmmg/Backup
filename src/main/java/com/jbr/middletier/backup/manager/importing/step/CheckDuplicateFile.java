@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -136,6 +136,7 @@ public class CheckDuplicateFile extends ImportStep {
 
             // File not from valid source, size does not match, date does not batch or time is too far apart then continue.
             if(file == null ||
+                    next.getDate() == null ||
                     (next.getSize() != size) ||
                     !next.getDate().toLocalDate().equals(date.toLocalDate()) ||
                     (Math.abs(seconds) > 3600) ) {

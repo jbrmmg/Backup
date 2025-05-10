@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @SuppressWarnings("unused")
 @Entity
@@ -17,7 +17,7 @@ public class Classification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name="\"order\"")
+    @Column(name="order_val")
     @NotNull
     private Integer order;
 

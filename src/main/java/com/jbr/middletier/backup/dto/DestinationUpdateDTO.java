@@ -1,7 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import lombok.Data;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 
 @Data
 public class DestinationUpdateDTO {

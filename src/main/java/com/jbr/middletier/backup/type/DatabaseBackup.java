@@ -27,6 +27,11 @@ public class DatabaseBackup implements PerformBackup {
         this.applicationProperties = applicationProperties;
     }
 
+    @Override
+    public String getType() {
+        return TypeManager.DATABASE_TYPE;
+    }
+
     private String getDBServerName() {
         // Get the database server name.
         String[] urlElements = applicationProperties.getDbUrl().split(":");

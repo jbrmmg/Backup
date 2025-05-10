@@ -22,6 +22,11 @@ public class GitBackup extends FileBackup {
 
     private static final String PATH_FILE_FORMAT = "%s/%s";
 
+    @Override
+    public String getType() {
+        return TypeManager.GIT_TYPE;
+    }
+
     private Path ensureBackupDirectoryExists(FileSystem fileSystem, String todaysDirectory, String name) throws IOException {
         File destinationPath = new File(String.format(PATH_FILE_FORMAT, todaysDirectory, name));
         fileSystem.createDirectory(destinationPath.toPath());

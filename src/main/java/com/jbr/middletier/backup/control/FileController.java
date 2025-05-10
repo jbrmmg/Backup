@@ -170,17 +170,17 @@ public class FileController {
     }
 
     @GetMapping(path="/file")
-    public FileInfoExtra getFile(@RequestParam Integer id) throws InvalidFileIdException {
+    public FileInfoExtra getFile(@RequestParam("id") Integer id) throws InvalidFileIdException {
         return fileSystemObjectManager.getFileExtra(id);
     }
 
     @PostMapping(path="/refresh-file-data")
-    public FileInfoExtra refreshFileData(@RequestParam Integer id) throws InvalidFileIdException {
+    public FileInfoExtra refreshFileData(@RequestParam("id") Integer id) throws InvalidFileIdException {
         return fileSystemObjectManager.refreshFileData(id);
     }
 
     @GetMapping(path="/findfile")
-    public List<String> findFile(@RequestParam String search) {
+    public List<String> findFile(@RequestParam("search") String search) {
         return fileSystemObjectManager.findFiles(search);
     }
 
@@ -197,7 +197,7 @@ public class FileController {
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
-    public byte[] getFileImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    public byte[] getFileImage(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {
@@ -233,7 +233,7 @@ public class FileController {
     }
 
     @GetMapping(path="/file-video-image",produces=MediaType.IMAGE_JPEG_VALUE)
-    public byte[] getFileVideoImage(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    public byte[] getFileVideoImage(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         File imgPath = fileSystemObjectManager.getImageFromVideoFile(getVideoFile(id));
         LOG.info("Get file (video): {}", imgPath);
 
@@ -241,7 +241,7 @@ public class FileController {
     }
 
     @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public byte[] getFileVideo(@RequestParam Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    public byte[] getFileVideo(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         File imgPath = fileSystemObjectManager.getFile(getVideoFile(id));
         LOG.info("Get file (video image): {}", imgPath);
 
@@ -249,7 +249,7 @@ public class FileController {
     }
 
     @DeleteMapping(path="/file")
-    public ActionConfirmDTO deleteFile(@RequestParam Integer id) throws InvalidFileIdException {
+    public ActionConfirmDTO deleteFile(@RequestParam("id") Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {

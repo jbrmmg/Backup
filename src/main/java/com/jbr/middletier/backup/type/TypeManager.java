@@ -4,66 +4,37 @@ import com.jbr.middletier.backup.manager.DbLoggingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Created by jason on 11/02/17.
  */
 
 @Component
 public class TypeManager {
-
-    private static final String FILE_TYPE = "file";
-    private static final String DATABASE_TYPE = "database";
-    private static final String GIT_TYPE = "git";
-    private static final String CLEAN_TYPE = "clean";
-    private static final String ZIPUP_TYPE = "zipup";
-
-    private final PerformBackup fileBackup;
-
-    private final PerformBackup databaseBackup;
-
-    private final PerformBackup gitBackup;
-
-    private final PerformBackup cleanBackup;
-
-    private final PerformBackup zipupBackup;
+    public static final String FILE_TYPE = "file";
+    public static final String DATABASE_TYPE = "database";
+    public static final String GIT_TYPE = "git";
+    public static final String CLEAN_TYPE = "clean";
+    public static final String ZIPUP_TYPE = "zipup";
 
     private final DbLoggingManager dbLoggingManager;
 
+    private final List<PerformBackup> performBackups;
+
     @Autowired
-    public TypeManager(PerformBackup fileBackup,
-                       PerformBackup databaseBackup,
-                       PerformBackup gitBackup,
-                       PerformBackup cleanBackup,
-                       PerformBackup zipupBackup,
+    public TypeManager(List<PerformBackup> performBackups,
                        DbLoggingManager dbLoggingManager) {
-        this.fileBackup = fileBackup;
-        this.databaseBackup = databaseBackup;
-        this.gitBackup = gitBackup;
-        this.cleanBackup = cleanBackup;
-        this.zipupBackup = zipupBackup;
+        this.performBackups = performBackups;
         this.dbLoggingManager = dbLoggingManager;
     }
 
     public PerformBackup getBackup(String type) {
         // Return the required type of backup.
-        if(type.equalsIgnoreCase(FILE_TYPE)) {
-            return fileBackup;
-        }
-
-        if(type.equalsIgnoreCase(DATABASE_TYPE)) {
-            return databaseBackup;
-        }
-
-        if(type.equalsIgnoreCase(GIT_TYPE)) {
-            return gitBackup;
-        }
-
-        if(type.equalsIgnoreCase(CLEAN_TYPE)) {
-            return cleanBackup;
-        }
-
-        if(type.equalsIgnoreCase(ZIPUP_TYPE)) {
-            return zipupBackup;
+        for(PerformBackup performBackup : performBackups){
+            if(performBackup.getType().equalsIgnoreCase(type)){
+                return performBackup;
+            }
         }
 
         dbLoggingManager.error(String.format("%s invalid type requested.",type),null,null);

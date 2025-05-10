@@ -14,8 +14,8 @@ import java.util.List;
 
 import reactor.core.publisher.Flux;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/jbr/int/backup")
@@ -87,10 +87,10 @@ public class ImportController {
     }
 
     @GetMapping(path = "/import-files")
-    public List<PreImportFileDTO> getImportFiles(@RequestParam Integer limit,
-                                                 @RequestParam(required = false) Integer page,
-                                                 @RequestParam(required = false) String stepType,
-                                                 @RequestParam(required = false) String status) {
+    public List<PreImportFileDTO> getImportFiles(@RequestParam("limit") Integer limit,
+                                                 @RequestParam(name="page", required = false) Integer page,
+                                                 @RequestParam(name="stepType", required = false) String stepType,
+                                                 @RequestParam(name="status", required = false) String status) {
         LOG.info("Get the pre import files.");
 
         return importManager.getImportFiles(limit,page,stepType,status);
