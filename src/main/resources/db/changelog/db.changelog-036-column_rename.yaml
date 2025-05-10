@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 36
+      author: jason
+      changes:
+
+        - renameColumn:
+            tableName: classification
+            oldColumnName: order
+            newColumnName: order_val
+            columnDataType: int

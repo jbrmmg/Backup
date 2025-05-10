@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.manager.FileSystem;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -26,8 +27,14 @@ public class CleanBackup implements PerformBackup {
 
     private final ApplicationProperties applicationProperties;
 
+    @Autowired
     public CleanBackup(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
+    }
+
+    @Override
+    public String getType() {
+        return TypeManager.CLEAN_TYPE;
     }
 
     private boolean shouldDirectoryBeDeleted(DbLoggingManager loggingManager, String directory, String id) {

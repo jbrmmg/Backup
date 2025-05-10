@@ -21,6 +21,11 @@ public class FileBackup implements PerformBackup {
 
     private static final String PATH_FILE_FORMAT = "%s/%s";
 
+    @Override
+    public String getType() {
+        return TypeManager.FILE_TYPE;
+    }
+
     void performFileBackup(DbLoggingManager dbLoggingManager, FileSystem fileSystem, String sourceDirectory, String destinationDirectory, String artifactName, String id) throws IOException {
         // Perform a file backup.
 

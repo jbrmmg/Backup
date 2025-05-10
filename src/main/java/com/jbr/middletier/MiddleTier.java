@@ -1,13 +1,10 @@
 package com.jbr.middletier;
 
-import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.config.DefaultProfileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -16,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
 public class MiddleTier {
     private static final Logger log = LoggerFactory.getLogger(MiddleTier.class);
 

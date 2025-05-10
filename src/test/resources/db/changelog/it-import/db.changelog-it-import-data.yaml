@@ -175,7 +175,7 @@ databaseChangeLog:
                   name: id
                   value: "60"
               - column:
-                  name: order
+                  name: order_val
                   value: "60"
               - column:
                   name: regex

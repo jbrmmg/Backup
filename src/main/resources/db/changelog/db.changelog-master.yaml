@@ -101,3 +101,6 @@ databaseChangeLog:
 
   - include:
       file: /db/changelog/db.changelog-035-import-cleanup.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-036-column_rename.yaml

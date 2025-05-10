@@ -13,7 +13,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import com.jbr.middletier.backup.manager.FileProcessor;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;

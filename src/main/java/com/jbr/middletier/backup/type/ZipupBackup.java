@@ -8,6 +8,7 @@ import com.jbr.middletier.backup.manager.BackupManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -25,8 +26,14 @@ public class ZipupBackup implements PerformBackup  {
 
     private final ApplicationProperties applicationProperties;
 
+    @Autowired
     public ZipupBackup(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
+    }
+
+    @Override
+    public String getType() {
+        return TypeManager.ZIPUP_TYPE;
     }
 
     private void getAllFiles(File dir, List<File> fileList) throws IOException {

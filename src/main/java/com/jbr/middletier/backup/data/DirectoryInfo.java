@@ -1,6 +1,6 @@
 package com.jbr.middletier.backup.data;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @SuppressWarnings("unused")
 @Entity
