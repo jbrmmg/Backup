@@ -22,8 +22,8 @@
         <org.springboot.version>3.4.5</org.springboot.version>
 
         <!--
-         Exclude these two classes; SpringFoxConfig because its provided by somebody else, MiddleTier because
-         its the basic class and difficult to test.
+         Exclude these two classes; SpringFoxConfig because it's provided by somebody else, MiddleTier because
+         it is the basic class and hard to test.
          -->
         <sonar.coverage.exclusions>**/SpringFoxConfig.java,**/MiddleTier.java</sonar.coverage.exclusions>
         <sonar.organization>jbrmmg</sonar.organization>
@@ -282,6 +282,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.6</version>
+        </dependency>
+
+        <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>
             <version>2.7.3</version>
@@ -297,12 +303,6 @@
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
             <version>4.31.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.9</version>
         </dependency>
 
         <dependency>
