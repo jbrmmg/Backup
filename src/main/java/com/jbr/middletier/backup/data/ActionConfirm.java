@@ -6,7 +6,6 @@ import lombok.Setter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
-@SuppressWarnings("unused")
 @Entity
 @Table(name="action_confirm")
 public class ActionConfirm {

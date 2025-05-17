@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.data;
 
 import jakarta.persistence.*;
 
-@SuppressWarnings("unused")
 @Entity
 @Table(name="directory")
 public class DirectoryInfo extends FileSystemObject {

@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 import jakarta.persistence.*;
 
-@SuppressWarnings("unused")
 @Entity
 @Table(name="classification")
 public class Classification {
