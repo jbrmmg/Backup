@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 @Entity
 @Table(name="hardware")
 public class Hardware {

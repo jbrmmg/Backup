@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-@SuppressWarnings("unused")
 public class HierarchyResponse {
     @Getter
     @Setter

@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 @Entity
 @Table(name="file_system_object")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -31,16 +30,11 @@ public class FileSystemObject {
     @Column(name="parent_type")
     private String parentType;
 
-    @Transient
-    private final FileSystemObjectType fileSystemObjectType;
-
     protected FileSystemObject() {
-        this.fileSystemObjectType = null;
         this.type = "UNK";
     }
 
     protected FileSystemObject(@NotNull FileSystemObjectType type) {
-        this.fileSystemObjectType = type;
         this.type = type.getTypeName();
     }
 

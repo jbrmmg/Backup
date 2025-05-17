@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
-@SuppressWarnings("unused")
 @Entity
 @Table(name="location")
 public class Location {

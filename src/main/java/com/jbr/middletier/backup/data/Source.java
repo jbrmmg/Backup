@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import java.io.File;
 import java.util.Optional;
 
-@SuppressWarnings({"unused", "DefaultAnnotationParam", "WeakerAccess"})
 @Entity
 @Table(name="source")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -16,7 +15,7 @@ public class Source extends FileSystemObject {
     @Setter
     @Getter
     @JoinColumn(name="location")
-    @ManyToOne(optional = true)
+    @ManyToOne
     private Location location;
 
     @Column(name="status")

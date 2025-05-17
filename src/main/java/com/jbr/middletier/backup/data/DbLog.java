@@ -6,7 +6,6 @@ import lombok.Setter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@SuppressWarnings("unused")
 @Entity
 @Table(name="log")
 public class DbLog {
