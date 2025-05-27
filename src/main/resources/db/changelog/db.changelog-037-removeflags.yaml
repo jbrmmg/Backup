@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 37
+      author: jason
+      changes:
+
+        - dropColumn:
+            tableName: file
+            columnName: flags
