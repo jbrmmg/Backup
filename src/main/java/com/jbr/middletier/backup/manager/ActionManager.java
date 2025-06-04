@@ -137,16 +137,19 @@ public class ActionManager {
         actionConfirmRepository.clearActions(ActionConfirmType.AC_DELETE_DUPLICATE.getTypeName(), false);
     }
 
-    public void clearImportActions() {
-        actionConfirmRepository.clearActions(ActionConfirmType.AC_IMPORT.getTypeName(), false);
-    }
+    public List<ActionConfirm> findByFileSystemObject(FileSystemObjectId id) {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(id);
 
-    public void deleteActions(List<ActionConfirm> actions) {
-        actionConfirmRepository.deleteAll(actions);
-    }
+        // If there is no file, then just return an empty list.
+        if(file.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-    public List<ActionConfirm> getActionsForFile(FileInfo file) {
-        return actionConfirmRepository.findByFileInfoAndAction(file,ActionConfirmType.AC_IMPORT.getTypeName());
+        if(!(file.get() instanceof FileInfo)) {
+            return new ArrayList<>();
+        }
+
+        return actionConfirmRepository.findByFileInfo((FileInfo) file.get());
     }
 
     boolean checkAction(FileInfo fileInfo, ActionConfirmType action) {
