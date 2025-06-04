@@ -91,7 +91,14 @@ public abstract class FileProcessor {
         deletes.removeAll(performedActions);
     }
 
-    private void processFileRemoval(RwDbCompareNode node) {
+    private void processFileRemoval(RwDbCompareNode node, List<ActionConfirm> deletes) {
+        // Is there an action for this file?
+        for(ActionConfirm next : deletes) {
+            if(next.getPath().getIdAndType().getId().equals(node.getDatabaseObjectId().getId())) {
+                actionManager.actionPerformed(next);
+            }
+        }
+
         // Delete this file from the database.
         Optional<FileSystemObject> existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
 
@@ -241,7 +248,7 @@ public abstract class FileProcessor {
             if(nextNode instanceof RwDbCompareNode compareNode) {
                 switch(Objects.requireNonNull(section,"Section has not been initialised")) {
                     case FILE_FOR_REMOVE:
-                        processFileRemoval(compareNode);
+                        processFileRemoval(compareNode, deletes);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_REMOVED);
                         break;
                     case DIRECTORY_FOR_REMOVE:
