@@ -17,6 +17,8 @@ public interface ActionConfirmRepository extends CrudRepository<ActionConfirm, I
 
     List<ActionConfirm> findByConfirmedAndAction(Boolean confirmed, String action);
 
+    List<ActionConfirm> findByFileInfo(FileInfo fileInfo);
+
     // Remove actions
     @Transactional
     @Modifying
