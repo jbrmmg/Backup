@@ -45,7 +45,7 @@ public class GatherSynchronizeCtrl {
 
                 duplicateManager.duplicateCheck();
 
-                synchronizeManager.synchronize();
+                synchronizeManager.synchronize(null);
             } catch (Exception ex) {
                 LOG.error("Failed to gather / synchronize",ex);
             }
