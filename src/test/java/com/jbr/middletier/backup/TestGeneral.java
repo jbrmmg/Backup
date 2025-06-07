@@ -325,7 +325,7 @@ public class TestGeneral extends WebTester {
         verify(mockActionManager, times(1)).sendActionEmail();
         verify(driveManager, times(1)).gather(null);
         verify(duplicateManager, times(1)).duplicateCheck();
-        verify(synchronizeManager, times(1)).synchronize();
+        verify(synchronizeManager, times(1)).synchronize(null);
     }
 
     @Test
@@ -355,7 +355,7 @@ public class TestGeneral extends WebTester {
         verify(mockActionManager, times(1)).sendActionEmail();
         verify(driveManager, times(0)).gather(null);
         verify(duplicateManager, times(0)).duplicateCheck();
-        verify(synchronizeManager, times(0)).synchronize();
+        verify(synchronizeManager, times(0)).synchronize(null);
     }
 
     @Test
@@ -385,7 +385,7 @@ public class TestGeneral extends WebTester {
         verify(mockActionManager, times(0)).sendActionEmail();
         verify(driveManager, times(0)).gather(null);
         verify(duplicateManager, times(0)).duplicateCheck();
-        verify(synchronizeManager, times(0)).synchronize();
+        verify(synchronizeManager, times(0)).synchronize(null);
     }
 
     @Test
@@ -440,7 +440,7 @@ public class TestGeneral extends WebTester {
                 mockActionManager,
                 fileSystem);
 
-        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",1,null);
@@ -483,7 +483,7 @@ public class TestGeneral extends WebTester {
                 mockActionManager,
                 fileSystem);
 
-        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",3,null);
@@ -527,7 +527,7 @@ public class TestGeneral extends WebTester {
                 mockActionManager,
                 fileSystem);
 
-        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",5,null);
@@ -571,7 +571,7 @@ public class TestGeneral extends WebTester {
                 mockActionManager,
                 fileSystem);
 
-        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",6,null);
@@ -611,7 +611,7 @@ public class TestGeneral extends WebTester {
                 mockActionManager,
                 fileSystem);
 
-        List<SyncDataDTO> syncData = synchronizeManager.synchronize();
+        List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         Assert.assertEquals(1, syncData.size());
         Assert.assertTrue(syncData.get(0).hasProblems());
     }
