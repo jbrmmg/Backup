@@ -75,9 +75,9 @@ public class FileController {
     }
 
     @PostMapping(path="/sync")
-    public List<SyncDataDTO> synchronize() {
+    public List<SyncDataDTO> synchronize(@RequestParam(name="syncId", required = false) Integer syncId) {
         LOG.info("Synchronize");
-        return synchronizeManager.synchronize();
+        return synchronizeManager.synchronize(syncId);
     }
 
     private int getParentId(Optional<FileSystemObject> optParent) {

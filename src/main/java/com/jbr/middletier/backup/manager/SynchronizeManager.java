@@ -221,11 +221,13 @@ public class SynchronizeManager {
         return result;
     }
 
-    public List<SyncDataDTO> synchronize() {
+    public List<SyncDataDTO> synchronize(Integer syncId) {
         List<SyncDataDTO> result = new ArrayList<>();
 
         for(Synchronize nextSynchronize : associatedFileDataManager.findAllSynchronize()) {
-            result.add(processSynchronize(nextSynchronize));
+            if(syncId == null || syncId.equals(nextSynchronize.getId())) {
+                result.add(processSynchronize(nextSynchronize));
+            }
         }
 
         LOG.info("Synchronize completed.");
