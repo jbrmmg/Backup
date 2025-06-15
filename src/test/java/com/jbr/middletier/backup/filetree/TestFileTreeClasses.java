@@ -135,7 +135,7 @@ public class TestFileTreeClasses {
         fileInfo2.setSize(291);
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
 
-        dbFile2 = new DbFile(null, fileInfo2);
+        dbFile2 = new DbFile(null, fileInfo2, true);
         Assert.assertEquals(DBC_EQUAL_EXCEPT_DATE, dbFile.compare(dbFile2));
 
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));

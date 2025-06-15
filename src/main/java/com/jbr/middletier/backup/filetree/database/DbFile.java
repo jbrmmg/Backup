@@ -59,10 +59,8 @@ public class DbFile extends DbNode {
         if(rhs == this)
             return DbNodeCompareResultType.DBC_EQUAL;
 
-        if( !(rhs instanceof DbFile) )
+        if( !(rhs instanceof DbFile rhsFile) )
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
-
-        DbFile rhsFile = (DbFile) rhs;
 
         // They are equal if the names match, date, size and if available the MD5.
         if (!this.fileInfo.getName().equals(rhsFile.fileInfo.getName()))

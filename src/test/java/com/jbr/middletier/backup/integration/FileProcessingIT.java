@@ -70,7 +70,7 @@ public class FileProcessingIT extends FileTester {
 
     private static class BasicDbDirectory extends DbDirectory {
         public BasicDbDirectory(DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
-            super(null, directoryInfo, fileRepository, directoryRepository);
+            super(null, directoryInfo, fileRepository, directoryRepository, true);
         }
 
         public boolean test(BasicDbDirectory another, boolean anotherEqual) {

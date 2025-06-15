@@ -60,10 +60,8 @@ public class DbDirectory extends DbNode {
         if(rhs == this)
             return DbNodeCompareResultType.DBC_EQUAL;
 
-        if( !(rhs instanceof DbDirectory) )
+        if( !(rhs instanceof DbDirectory lhs) )
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
-
-        DbDirectory lhs = (DbDirectory) rhs;
 
         // They are equal if the names match.
         return this.directoryInfo.getName().equals(lhs.directoryInfo.getName()) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
