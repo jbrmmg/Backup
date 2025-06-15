@@ -13,17 +13,22 @@ import java.util.Optional;
 public class DbDirectory extends DbNode {
     private final DirectoryInfo directoryInfo;
 
-    public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
+    public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository, boolean useDate) {
         super(parent);
         this.directoryInfo = directoryInfo;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
+            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository, useDate));
         }
 
         for(FileInfo nextFile : fileRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            addChild(new DbFile(this, nextFile));
+            addChild(new DbFile(this, nextFile, useDate));
         }
+    }
+
+    @Override
+    public boolean useDate() {
+        return false;
     }
 
     @Override
