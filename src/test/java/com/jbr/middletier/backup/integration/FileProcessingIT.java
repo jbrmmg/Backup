@@ -70,7 +70,7 @@ public class FileProcessingIT extends FileTester {
 
     private static class BasicDbDirectory extends DbDirectory {
         public BasicDbDirectory(DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
-            super(null, directoryInfo, fileRepository, directoryRepository);
+            super(null, directoryInfo, fileRepository, directoryRepository, true);
         }
 
         public boolean test(BasicDbDirectory another, boolean anotherEqual) {
@@ -85,7 +85,7 @@ public class FileProcessingIT extends FileTester {
             Assert.assertEquals(DbNodeCompareResultType.DBC_EQUAL,compare(this));
 
             FileInfo fileInfo = new FileInfo();
-            DbNode dbNode = new DbFile(null, fileInfo);
+            DbNode dbNode = new DbFile(null, fileInfo, true);
             Assert.assertEquals(DbNodeCompareResultType.DBC_NOT_EQUAL,compare(dbNode));
 
             if(anotherEqual) {
@@ -694,7 +694,7 @@ public class FileProcessingIT extends FileTester {
         when(mockRwFile.getFile()).thenReturn(mockFile);
 
         FileInfo fileInfo = new FileInfo();
-        DbFile dbFile = new DbFile(null, fileInfo);
+        DbFile dbFile = new DbFile(null, fileInfo, true);
         RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile, true);
         Assert.assertNotNull(testNode);
     }

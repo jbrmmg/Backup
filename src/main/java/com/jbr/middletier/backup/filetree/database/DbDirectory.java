@@ -13,17 +13,22 @@ import java.util.Optional;
 public class DbDirectory extends DbNode {
     private final DirectoryInfo directoryInfo;
 
-    public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
+    public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository, boolean useDate) {
         super(parent);
         this.directoryInfo = directoryInfo;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
+            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository, useDate));
         }
 
         for(FileInfo nextFile : fileRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            addChild(new DbFile(this, nextFile));
+            addChild(new DbFile(this, nextFile, useDate));
         }
+    }
+
+    @Override
+    public boolean useDate() {
+        return false;
     }
 
     @Override
@@ -55,10 +60,8 @@ public class DbDirectory extends DbNode {
         if(rhs == this)
             return DbNodeCompareResultType.DBC_EQUAL;
 
-        if( !(rhs instanceof DbDirectory) )
+        if( !(rhs instanceof DbDirectory lhs) )
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
-
-        DbDirectory lhs = (DbDirectory) rhs;
 
         // They are equal if the names match.
         return this.directoryInfo.getName().equals(lhs.directoryInfo.getName()) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;

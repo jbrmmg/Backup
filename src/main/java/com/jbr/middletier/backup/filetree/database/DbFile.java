@@ -12,14 +12,21 @@ import java.util.Optional;
 
 public class DbFile extends DbNode {
     private final FileInfo fileInfo;
+    private final boolean useDate;
 
-    public DbFile(FileTreeNode parent, FileInfo fileInfo) {
+    public DbFile(FileTreeNode parent, FileInfo fileInfo, boolean useDate) {
         super(parent);
         this.fileInfo = fileInfo;
+        this.useDate = useDate;
     }
 
     public Classification getClassification() {
         return fileInfo.getClassification();
+    }
+
+    @Override
+    public boolean useDate() {
+        return useDate;
     }
 
     @Override
@@ -52,10 +59,8 @@ public class DbFile extends DbNode {
         if(rhs == this)
             return DbNodeCompareResultType.DBC_EQUAL;
 
-        if( !(rhs instanceof DbFile) )
+        if( !(rhs instanceof DbFile rhsFile) )
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
-
-        DbFile rhsFile = (DbFile) rhs;
 
         // They are equal if the names match, date, size and if available the MD5.
         if (!this.fileInfo.getName().equals(rhsFile.fileInfo.getName()))
@@ -64,7 +69,7 @@ public class DbFile extends DbNode {
         if(!this.fileInfo.getSize().equals(rhsFile.fileInfo.getSize()))
             return DbNodeCompareResultType.DBC_NOT_EQUAL;
 
-        if(datesDiffer(this.fileInfo.getDate(),rhsFile.fileInfo.getDate())) {
+        if(rhs.useDate() && datesDiffer(this.fileInfo.getDate(),rhsFile.fileInfo.getDate())) {
             if(this.fileInfo.getMD5().compare(rhsFile.fileInfo.getMD5(),false)) {
                 return DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE;
             } else {

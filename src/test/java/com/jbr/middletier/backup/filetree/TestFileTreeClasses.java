@@ -118,14 +118,14 @@ public class TestFileTreeClasses {
         fileInfo.setName("Test");
         fileInfo.setSize(291);
         fileInfo.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));
-        DbFile dbFile = new DbFile(null, fileInfo);
+        DbFile dbFile = new DbFile(null, fileInfo, true);
         Assert.assertNull(dbFile.getClassification());
         Assert.assertNotNull(dbFile.getFSO());
 
         Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile));
         Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(null));
 
-        DbFile dbFile2 = new DbFile(null, fileInfo);
+        DbFile dbFile2 = new DbFile(null, fileInfo, true);
         Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile2));
 
         FileInfo fileInfo2 = new FileInfo();
@@ -135,7 +135,7 @@ public class TestFileTreeClasses {
         fileInfo2.setSize(291);
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
 
-        dbFile2 = new DbFile(null, fileInfo2);
+        dbFile2 = new DbFile(null, fileInfo2, true);
         Assert.assertEquals(DBC_EQUAL_EXCEPT_DATE, dbFile.compare(dbFile2));
 
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));

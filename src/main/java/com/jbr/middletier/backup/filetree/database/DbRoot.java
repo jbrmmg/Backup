@@ -17,11 +17,11 @@ public class DbRoot extends RootFileTreeNode {
         this.databaseSource = databaseSource;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(databaseSource.getIdAndType().getId())) {
-            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
+            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository, databaseSource.getUseDate()));
         }
 
         for(FileInfo nextFile : fileRepository.findByParentId(databaseSource.getIdAndType().getId())) {
-            addChild(new DbFile(this, nextFile));
+            addChild(new DbFile(this, nextFile, databaseSource.getUseDate()));
         }
     }
 

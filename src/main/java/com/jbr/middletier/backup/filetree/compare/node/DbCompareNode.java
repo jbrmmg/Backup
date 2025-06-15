@@ -3,9 +3,11 @@ package com.jbr.middletier.backup.filetree.compare.node;
 import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.database.DbFile;
 import com.jbr.middletier.backup.filetree.database.DbNode;
+import lombok.Getter;
 
 import java.util.*;
 
+@Getter
 public class DbCompareNode  extends FileTreeNode {
     public enum ActionType { NONE, COPY, REMOVE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
     public enum SubActionType { NONE, WARN, IGNORE, REMOVE_SOURCE, DATE_UPDATE }
@@ -153,26 +155,6 @@ public class DbCompareNode  extends FileTreeNode {
             this.source = null;
             this.destination = sourceOrDestination;
         }
-    }
-
-    public ActionType getActionType() {
-        return this.actionType;
-    }
-
-    public SubActionType getSubActionType() {
-        return this.subActionType;
-    }
-
-    public boolean isDirectory() {
-        return this.isDirectory;
-    }
-
-    public DbNode getSource() {
-        return this.source;
-    }
-
-    public DbNode getDestination() {
-        return this.destination;
     }
 
     @Override
