@@ -115,7 +115,7 @@ public class ImportController {
     }
 
     @GetMapping(path = "/import-file")
-    public PreImportFileDTO getImportFile(@RequestParam String name) {
+    public PreImportFileDTO getImportFile(@RequestParam(name="name") String name) {
         LOG.info("Get the specified file.");
 
         return importManager.getImportFile(name);
@@ -199,12 +199,12 @@ public class ImportController {
     }
 
     @GetMapping(path="/import-image",produces= MediaType.IMAGE_JPEG_VALUE)
-    public byte[] getFileImage(@RequestParam String name) {
+    public byte[] getFileImage(@RequestParam(name="name") String name) {
         return importManager.getFileContent(name);
     }
 
     @GetMapping(path="/import-video",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public byte[] getFileVideo(@RequestParam String name) {
+    public byte[] getFileVideo(@RequestParam(name="name") String name) {
         return importManager.getFileContent(name);
     }
 

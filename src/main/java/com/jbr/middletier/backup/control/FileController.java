@@ -175,8 +175,9 @@ public class FileController {
     }
 
     @PostMapping(path="/refresh-file-data")
-    public FileInfoExtra refreshFileData(@RequestParam("id") Integer id) throws InvalidFileIdException {
-        return fileSystemObjectManager.refreshFileData(id);
+    public FileInfoExtra refreshFileData(@RequestParam("id") Integer id,
+                                         @RequestParam(value = "forceMD5",required = false) Boolean forceMD5) throws InvalidFileIdException {
+        return fileSystemObjectManager.refreshFileData(id, forceMD5 != null && forceMD5);
     }
 
     @GetMapping(path="/findfile")
