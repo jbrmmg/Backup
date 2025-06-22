@@ -420,13 +420,15 @@ public class FileSystemObjectManager {
         return false;
     }
 
-    private void updateMD5(FileInfo fileInfo, int id, File associatedFile) {
-        if(fileInfo.getClassification().getUseMD5() && !fileInfo.getMD5().isSet()) {
+    private void updateMD5(FileInfo fileInfo, int id, File associatedFile, boolean forceMD5) {
+        if(fileInfo.getClassification().getUseMD5() && (!fileInfo.getMD5().isSet() || forceMD5)) {
             // See if the MD5 can be refreshed.
             MD5 md5 = this.fileSystem.getClassifiedFileMD5(associatedFile.toPath(),fileInfo.getClassification(),id);
+            long size = associatedFile.length();
 
             if(md5.isSet()) {
                 fileInfo.setMD5(md5);
+                fileInfo.setSize(size);
 
                 fileRepository.save(fileInfo);
             }
@@ -480,7 +482,7 @@ public class FileSystemObjectManager {
         }
     }
 
-    public FileInfoExtra refreshFileData(Integer id) throws InvalidFileIdException {
+    public FileInfoExtra refreshFileData(Integer id, boolean forceMD5) throws InvalidFileIdException {
         Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {
@@ -513,7 +515,7 @@ public class FileSystemObjectManager {
         }
 
         // Does the file require an MD5 and is it missing?
-        updateMD5(fileInfo, id, associatedFile);
+        updateMD5(fileInfo, id, associatedFile, forceMD5);
 
         // Does the file require metadata and is it missing?
         Optional<MetaData> metaData = getFileMetaData(useMetaData, fileInfo, id, associatedFile);
