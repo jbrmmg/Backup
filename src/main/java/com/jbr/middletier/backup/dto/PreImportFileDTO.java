@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.step.StepStatus;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public class PreImportFileDTO extends ImportFileDTO {
     @Setter
@@ -28,7 +30,6 @@ public class PreImportFileDTO extends ImportFileDTO {
     @Setter
     @Getter
     private volatile Long importSize;
-    @Setter
     @Getter
     private volatile String importMd5;
     @Setter
@@ -99,4 +100,8 @@ public class PreImportFileDTO extends ImportFileDTO {
     public boolean isStopMarker() {
         return stopMarker;
     }
+
+    public void setImportMd5(MD5 md5) { this.importMd5 = md5 != null ? md5.toString() : null; }
+
+    public Optional<MD5> getImportMd5Optional() { return this.importMd5 == null ? Optional.empty() : Optional.of(new MD5(this.importMd5)); }
 }

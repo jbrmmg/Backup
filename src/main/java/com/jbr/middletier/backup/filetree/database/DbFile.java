@@ -12,21 +12,14 @@ import java.util.Optional;
 
 public class DbFile extends DbNode {
     private final FileInfo fileInfo;
-    private final boolean useDate;
 
-    public DbFile(FileTreeNode parent, FileInfo fileInfo, boolean useDate) {
+    public DbFile(FileTreeNode parent, FileInfo fileInfo) {
         super(parent);
         this.fileInfo = fileInfo;
-        this.useDate = useDate;
     }
 
     public Classification getClassification() {
         return fileInfo.getClassification();
-    }
-
-    @Override
-    public boolean useDate() {
-        return useDate;
     }
 
     @Override
@@ -55,29 +48,21 @@ public class DbFile extends DbNode {
     }
 
     @Override
-    public DbNodeCompareResultType compare(DbNode rhs) {
+    public boolean compare(DbNode rhs) {
         if(rhs == this)
-            return DbNodeCompareResultType.DBC_EQUAL;
+            return true;
 
         if( !(rhs instanceof DbFile rhsFile) )
-            return DbNodeCompareResultType.DBC_NOT_EQUAL;
+            return false;
 
-        // They are equal if the names match, date, size and if available the MD5.
+        // They are equal if the names match, size and MD5.
         if (!this.fileInfo.getName().equals(rhsFile.fileInfo.getName()))
-            return DbNodeCompareResultType.DBC_NOT_EQUAL;
+            return false;
 
         if(!this.fileInfo.getSize().equals(rhsFile.fileInfo.getSize()))
-            return DbNodeCompareResultType.DBC_NOT_EQUAL;
+            return false;
 
-        if(rhs.useDate() && datesDiffer(this.fileInfo.getDate(),rhsFile.fileInfo.getDate())) {
-            if(this.fileInfo.getMD5().compare(rhsFile.fileInfo.getMD5(),false)) {
-                return DbNodeCompareResultType.DBC_EQUAL_EXCEPT_DATE;
-            } else {
-                return DbNodeCompareResultType.DBC_NOT_EQUAL;
-            }
-        }
-
-        return this.fileInfo.getMD5().compare(rhsFile.fileInfo.getMD5(), false) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
+        return this.fileInfo.getMd5().equals(rhsFile.fileInfo.getMd5());
     }
 
     @Override

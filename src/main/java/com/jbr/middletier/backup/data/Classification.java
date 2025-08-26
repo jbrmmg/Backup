@@ -33,10 +33,6 @@ public class Classification {
     @Column(name="icon")
     private String icon;
 
-    @Column(name="useMD5")
-    @NotNull
-    private Boolean useMD5;
-
     @Setter
     @Getter
     @Column(name="is_image")
@@ -53,16 +49,11 @@ public class Classification {
 
     public Classification() {
         this.order = 0;
-        this.useMD5 = false;
     }
 
     public ClassificationActionType getAction() { return ClassificationActionType.getClassificationActionType(this.action); }
 
     public void setAction(ClassificationActionType action) { this.action = action.getTypeName(); }
-
-    @NotNull public Boolean getUseMD5() { return this.useMD5; }
-
-    public void setUseMD5(@NotNull Boolean useMD5) { this.useMD5 = useMD5; }
 
     public boolean getCheckMetaData() {
         return checkMetaData != null && checkMetaData;

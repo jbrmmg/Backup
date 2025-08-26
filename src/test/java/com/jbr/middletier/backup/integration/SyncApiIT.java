@@ -105,26 +105,11 @@ public class SyncApiIT extends FileTester {
     public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
         dbLoggingManager.clearMessageCache();
 
-        addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false, false);
-        addClassification(associatedFileDataManager,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, true, false, false);
-        addClassification(associatedFileDataManager,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, false, true, false);
-        addClassification(associatedFileDataManager,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
-        addClassification(associatedFileDataManager,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, false, true);
-
-        // Update JPG so it gets an MD5
-        for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
-            if(nextClassification.getRegex().contains("jpg")) {
-                ClassificationDTO updateClassification = initialiseClassification(nextClassification);
-                updateClassification.setUseMD5(true);
-
-                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
-            } else if(nextClassification.getRegex().contains("jpeg")) {
-                ClassificationDTO updateClassification = initialiseClassification(nextClassification);
-                updateClassification.setUseMD5(nextClassification.getUseMD5());
-
-                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
-            }
-        }
+        addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false);
+        addClassification(associatedFileDataManager,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, false, false);
+        addClassification(associatedFileDataManager,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, true, false);
+        addClassification(associatedFileDataManager,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, true);
+        addClassification(associatedFileDataManager,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, true);
 
         // During this test create files in the following directories
         deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
@@ -1837,7 +1822,6 @@ public class SyncApiIT extends FileTester {
         jpgxClassification.setIsVideo(false);
         jpgxClassification.setOrder(1);
         jpgxClassification.setIsImage(true);
-        jpgxClassification.setUseMD5(true);
         jpgxClassification.setCheckMetaData(true);
         associatedFileDataManager.createClassification(jpgxClassification);
 

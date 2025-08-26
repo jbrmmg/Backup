@@ -12,12 +12,10 @@ import java.util.Optional;
 public class RwDbTree extends CompareRoot {
     private final RwRoot realWorld;
     private final DbRoot database;
-    private final boolean checkDateForUpdate;
 
-    public RwDbTree(RwRoot realWorld, DbRoot database, boolean checkDateForUpdate) {
+    public RwDbTree(RwRoot realWorld, DbRoot database) {
         this.realWorld = realWorld;
         this.database = database;
-        this.checkDateForUpdate = checkDateForUpdate;
     }
 
     @Override
@@ -49,7 +47,7 @@ public class RwDbTree extends CompareRoot {
             return new RwDbCompareNode(parent,dbRhsNode.getObjectId());
         }
 
-        return new RwDbCompareNode(parent,(RwNode)lhs,(DbNode)rhs,checkDateForUpdate);
+        return new RwDbCompareNode(parent,(RwNode)lhs,(DbNode)rhs);
     }
 
     @Override

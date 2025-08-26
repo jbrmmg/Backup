@@ -51,20 +51,6 @@ public class SynchronizeManager {
         dbLoggingManager.warn(String.format("File warning - %s/%s", node.getSource().getFSO().getName(), node.getSource().getFSO().getIdAndType()),node.getSource().getFSO().getIdAndType().getId(),null);
     }
 
-    private void equalizeDate(DbCompareNode node, SyncDataDTO result) {
-        result.increment(SyncDataDTO.SyncDataCountType.DATES_UPDATED);
-        FileInfo sourceFileInfo = (FileInfo)node.getSource().getFSO();
-
-        LOG.info("Updating date {} -> {} {}", sourceFileInfo.getDate(), node.getDestination().getFSO().getName(), node.getDestination().getFSO().getIdAndType());
-        // Make the date of the destination, equal to the source.
-        File destinationFile = fileSystemObjectManager.getFile(node.getDestination().getFSO());
-        ZonedDateTime zonedFileTime = sourceFileInfo.getDate().atZone(ZoneId.systemDefault());
-        if(!fileSystem.setFileDateTime(destinationFile,zonedFileTime.toInstant().toEpochMilli())) {
-            LOG.warn("Failed to set the last modified date - {}", destinationFile);
-            result.setProblems();
-        }
-    }
-
     private void backup(DbCompareNode node, Source destination, SyncDataDTO result) {
         try {
             result.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
@@ -124,9 +110,6 @@ public class SynchronizeManager {
         switch(node.getSubActionType()) {
             case NONE:
                 backup(node, destination, result);
-                break;
-            case DATE_UPDATE:
-                equalizeDate(node, result);
                 break;
             case WARN:
                 warn(node, result);

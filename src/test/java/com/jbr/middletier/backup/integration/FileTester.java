@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class FileTester extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FileTester.class);
@@ -294,7 +295,9 @@ public class FileTester extends WebTester {
                         }
 
                         childNode.sizeIndicator = childNode.size.equals(nextFile.getSize()) ? " " : "X";
-                        childNode.md5Indicator = childNode.md5.equals(nextFile.getMD5().toString()) ? " " : "X";
+
+                        Optional<MD5> md5 = childNode.md5 == null ? Optional.empty() : Optional.of(new MD5(childNode.md5));
+                        childNode.md5Indicator = md5.equals(nextFile.getMd5()) ? " " : "X";
                         matched = true;
                         break;
                     }
@@ -430,7 +433,7 @@ public class FileTester extends WebTester {
         Files.createDirectories(new File(IMPORT_DIRECTORY).toPath());
     }
 
-    protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean useMD5, boolean image, boolean video) throws ClassificationIdException {
+    protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean image, boolean video) throws ClassificationIdException {
         for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if(nextClassification.getRegex().equalsIgnoreCase(regex)) {
                 return;
@@ -444,7 +447,6 @@ public class FileTester extends WebTester {
         newClassificationDTO.setIsVideo(video);
         newClassificationDTO.setIsImage(image);
         newClassificationDTO.setAction(action);
-        newClassificationDTO.setUseMD5(useMD5);
 
         associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(newClassificationDTO));
     }

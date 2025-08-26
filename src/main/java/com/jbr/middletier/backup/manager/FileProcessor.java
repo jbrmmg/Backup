@@ -196,10 +196,37 @@ public abstract class FileProcessor {
             timeDifference = ChronoUnit.SECONDS.between(fileDate, file.getDate());
         }
 
-        if((file.getSize() == null) || (file.getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(timeDifference) > 1)) {
-            file.setSize(rwNode.getFile().length());
+        // If there is a time difference, update it.
+        boolean changes = false;
+        if(Math.abs(timeDifference) > 1) {
             file.setDate(fileDate);
-            file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification(),file.getIdAndType().getId()));
+            changes = true;
+        }
+
+        long sizeDifference = 100;
+        if(file.getSize() != null) {
+            sizeDifference = file.getSize() - rwNode.getFile().length();
+        }
+
+        // If there is a size difference, update it and clear the MD5
+        if(Math.abs(sizeDifference) > 0) {
+            file.setSize(rwNode.getFile().length());
+            changes = true;
+        }
+
+        // Is this a primary source?
+        if(source.getPrimary()) {
+            // Any changes should re-calculate the MD5
+            if(changes || file.getMd5().isEmpty()) {
+                Optional<MD5> md5 = fileSystem.getFileMD5(rwNode.getFile().toPath(),file.getIdAndType().getId());
+                md5.ifPresent(file::setMd5);
+            }
+        } else {
+            // Only update the MD5 if it is missing.
+            if(file.getMd5().isEmpty()) {
+                Optional<MD5> md5 = fileSystem.getFileMD5(rwNode.getFile().toPath(),file.getIdAndType().getId());
+                md5.ifPresent(file::setMd5);
+            }
         }
 
         fileSystemObjectManager.save(file);
@@ -231,7 +258,7 @@ public abstract class FileProcessor {
 
         // Compare the real world with the database.
         LOG.info("Perform the compare.");
-        RwDbTree compare = new RwDbTree(realWorld, database, source.getUseDate());
+        RwDbTree compare = new RwDbTree(realWorld, database);
         compare.compare();
 
         // Perform deletes

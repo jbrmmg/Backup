@@ -420,14 +420,14 @@ public class FileSystemObjectManager {
         return false;
     }
 
-    private void updateMD5(FileInfo fileInfo, int id, File associatedFile, boolean forceMD5) {
-        if(fileInfo.getClassification().getUseMD5() && (!fileInfo.getMD5().isSet() || forceMD5)) {
+    private void updateMD5(FileInfo fileInfo, int id, File associatedFile) {
+        if(fileInfo.getMd5().isPresent()) {
             // See if the MD5 can be refreshed.
-            MD5 md5 = this.fileSystem.getClassifiedFileMD5(associatedFile.toPath(),fileInfo.getClassification(),id);
+            Optional<MD5> md5 = this.fileSystem.getFileMD5(associatedFile.toPath(),id);
             long size = associatedFile.length();
 
-            if(md5.isSet()) {
-                fileInfo.setMD5(md5);
+            if(md5.isPresent()) {
+                fileInfo.setMd5(md5.get());
                 fileInfo.setSize(size);
 
                 fileRepository.save(fileInfo);
@@ -435,54 +435,7 @@ public class FileSystemObjectManager {
         }
     }
 
-    private void checkBackupsAndLabels(boolean updateBackups, FileInfo fileInfo, FileInfoExtra fileInfoExtra, FileSystemObject parent) {
-        long size = fileInfoExtra.getFile().getSize();
-        MD5 md5 = new MD5(fileInfoExtra.getFile().getMd5());
-
-        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(fileInfoExtra.getFile().getName(), FileSystemObjectType.FSO_FILE);
-
-        for(FileSystemObject nextSameName: sameName) {
-            if(nextSameName.getIdAndType().getId().equals(fileInfoExtra.getFile().getId()) || !(nextSameName instanceof FileInfo nextFile) ) {
-                continue;
-            }
-
-            // Get the size, parent and MD5 if available.
-            long nextSize = nextFile.getSize();
-            MD5 nextMD5 = new MD5(nextFile.getMD5());
-            FileSystemObject nextParent = getParent(nextFile);
-
-            // Is there a match?
-            if(size == nextSize &&
-                    nextParent != null &&
-                    parent != null &&
-                    nextParent.getName().equals(parent.getName()) &&
-                    nextMD5.compare(md5,true)) {
-                File associatedFile = getFile(nextFile);
-
-                // If required, update the MD5 of the backup.
-                if(updateBackups && !nextFile.getMD5().isSet()) {
-                    // Update the classification.
-                    Optional<Classification> classification = associatedFileDataManager.classifyFile(nextFile);
-                    classification.ifPresent(nextFile::setClassification);
-
-                    MD5 newNextMD5 = fileSystem.getClassifiedFileMD5(associatedFile.toPath(), nextFile.getClassification(), nextFile.getIdAndType().getId());
-
-                    nextFile.setMD5(newNextMD5);
-                    fileRepository.save(nextFile);
-                }
-
-                // Add to the file information.
-                fileInfoExtra.addFile(nextFile,associatedFile.getPath(),associatedFile.getPath(),associatedFile.getParent());
-            }
-        }
-
-        // Get any labels.
-        for(String nextLabel : labelManager.getLabelsForFile(fileInfo.getIdAndType())) {
-            fileInfoExtra.addLabel(nextLabel);
-        }
-    }
-
-    public FileInfoExtra refreshFileData(Integer id, boolean forceMD5) throws InvalidFileIdException {
+    public FileInfoExtra refreshFileData(Integer id) throws InvalidFileIdException {
         Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {
@@ -515,7 +468,7 @@ public class FileSystemObjectManager {
         }
 
         // Does the file require an MD5 and is it missing?
-        updateMD5(fileInfo, id, associatedFile, forceMD5);
+        updateMD5(fileInfo, id, associatedFile);
 
         // Does the file require metadata and is it missing?
         Optional<MetaData> metaData = getFileMetaData(useMetaData, fileInfo, id, associatedFile);
@@ -527,8 +480,31 @@ public class FileSystemObjectManager {
                 associatedFile.getPath(),
                 associatedFile.getParent());
 
-        // Check for backups
-        checkBackupsAndLabels(true, fileInfo, fileInfoExtra, parent);
+        long size = fileInfoExtra.getFile().getSize();
+        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(fileInfoExtra.getFile().getName(), FileSystemObjectType.FSO_FILE);
+        for (FileSystemObject nextSameName: sameName) {
+            if(nextSameName.getIdAndType().getId().equals(fileInfoExtra.getFile().getId()) || !(nextSameName instanceof FileInfo nextFile) ) {
+                continue;
+            }
+
+            // Get the size, parent and MD5 if available.
+            long nextSize = nextFile.getSize();
+            FileSystemObject nextParent = getParent(nextFile);
+
+            if(size == nextSize && nextParent != null && parent != null && nextParent.getName().equals(parent.getName())) {
+                File associatedBackupFile = getFile(nextFile);
+                fileInfoExtra.addFile(nextFile,associatedBackupFile.getPath(),associatedBackupFile.getPath(),associatedBackupFile.getParent());
+
+                // Update the classification.
+                Optional<Classification> classification = associatedFileDataManager.classifyFile(nextFile);
+                classification.ifPresent(nextFile::setClassification);
+
+                Optional<MD5> newNextMD5 = fileSystem.getFileMD5(associatedFile.toPath(), nextFile.getIdAndType().getId());
+
+                newNextMD5.ifPresent(nextFile::setMd5);
+                fileRepository.save(nextFile);
+            }
+        }
 
         return fileInfoExtra;
     }
@@ -546,8 +522,31 @@ public class FileSystemObjectManager {
         File associatedFile = getFile(originalFile);
         FileInfoExtra result = new FileInfoExtra(originalFile, metaData.orElse(null), associatedFile.getPath(), associatedFile.getPath(), associatedFile.getParent());
 
-        // Are there backups of this file?
-        checkBackupsAndLabels(false, originalFile, result, getParent(file.get()));
+        // Check for backups
+        long size = result.getFile().getSize();
+        Optional<MD5> md5 = result.getFile().getMd5Optional();
+
+        Iterable<FileSystemObject> sameName = findFileSystemObjectByName(result.getFile().getName(), FileSystemObjectType.FSO_FILE);
+        for (FileSystemObject nextSameName: sameName) {
+            if(nextSameName.getIdAndType().getId().equals(result.getFile().getId()) || !(nextSameName instanceof FileInfo nextFile) ) {
+                continue;
+            }
+
+            // Get the size, parent and MD5 if available.
+            long nextSize = nextFile.getSize();
+            Optional<MD5> nextMD5 = nextFile.getMd5();
+            FileSystemObject nextParent = getParent(nextFile);
+
+            if(size == nextSize && nextParent != null && associatedFile.getParent() != null && nextParent.getName().equals(associatedFile.getParent()) && md5.equals(nextMD5)) {
+                File associatedBackupFile = getFile(nextFile);
+                result.addFile(nextFile,associatedBackupFile.getPath(),associatedBackupFile.getPath(),associatedBackupFile.getParent());
+            }
+        }
+
+        // Get labels.
+        for(String nextLabel : labelManager.getLabelsForFile(originalFile.getIdAndType())) {
+            result.addLabel(nextLabel);
+        }
 
         return result;
     }

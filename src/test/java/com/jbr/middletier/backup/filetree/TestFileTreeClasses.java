@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.jbr.middletier.backup.filetree.database.DbNodeCompareResultType.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,52 +112,52 @@ public class TestFileTreeClasses {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
 
         FileInfo fileInfo = new FileInfo();
-        fileInfo.setMD5(new MD5("MATCH"));
+        fileInfo.setMd5(new MD5("MATCH"));
         fileInfo.setClassification(null);
         fileInfo.setName("Test");
         fileInfo.setSize(291);
         fileInfo.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));
-        DbFile dbFile = new DbFile(null, fileInfo, true);
+        DbFile dbFile = new DbFile(null, fileInfo);
         Assert.assertNull(dbFile.getClassification());
         Assert.assertNotNull(dbFile.getFSO());
 
-        Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile));
-        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(null));
+        Assert.assertTrue(dbFile.compare(dbFile));
+        Assert.assertFalse(dbFile.compare(null));
 
-        DbFile dbFile2 = new DbFile(null, fileInfo, true);
-        Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile2));
+        DbFile dbFile2 = new DbFile(null, fileInfo);
+        Assert.assertTrue(dbFile.compare(dbFile2));
 
         FileInfo fileInfo2 = new FileInfo();
-        fileInfo2.setMD5(new MD5("MATCH"));
+        fileInfo2.setMd5(new MD5("MATCH"));
         fileInfo2.setClassification(null);
         fileInfo2.setName("Test");
         fileInfo2.setSize(291);
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
 
-        dbFile2 = new DbFile(null, fileInfo2, true);
-        Assert.assertEquals(DBC_EQUAL_EXCEPT_DATE, dbFile.compare(dbFile2));
+        dbFile2 = new DbFile(null, fileInfo2);
+        Assert.assertTrue(dbFile.compare(dbFile2));
 
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));
-        Assert.assertEquals(DBC_EQUAL, dbFile.compare(dbFile2));
+        Assert.assertTrue(dbFile.compare(dbFile2));
 
-        fileInfo2.setMD5(new MD5("NOMATCH"));
-        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+        fileInfo2.setMd5(new MD5("NOMATCH"));
+        Assert.assertFalse(dbFile.compare(dbFile2));
 
-        fileInfo2.setMD5(new MD5("MATCH"));
+        fileInfo2.setMd5(new MD5("MATCH"));
         fileInfo2.setName("Test2");
-        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+        Assert.assertFalse(dbFile.compare(dbFile2));
 
         fileInfo2.setName("Test");
         fileInfo2.setSize(293);
-        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+        Assert.assertFalse(dbFile.compare(dbFile2));
 
         fileInfo2.setSize(291);
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
-        fileInfo2.setMD5(new MD5("NOMATCH"));
-        Assert.assertEquals(DBC_NOT_EQUAL, dbFile.compare(dbFile2));
+        fileInfo2.setMd5(new MD5("NOMATCH"));
+        Assert.assertFalse(dbFile.compare(dbFile2));
     }
 
-    private DbCompareNode testFileFile(ClassificationActionType actionType, DbNodeCompareResultType result) {
+    private DbCompareNode testFileFile(ClassificationActionType actionType, boolean result) {
         FileSystemObject mockFSO = mock(FileSystemObject.class);
         when(mockFSO.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_FILE));
 
@@ -188,7 +187,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileEqualWarn() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, DBC_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, true);
         Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -197,7 +196,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileEqualIgnore() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, DBC_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, true);
         Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -206,7 +205,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileEqualDelete() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, DBC_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, true);
         Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -215,7 +214,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileEqualFolder() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, DBC_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, true);
         Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
@@ -224,7 +223,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileEqualBackup() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, DBC_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, true);
         Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
@@ -233,7 +232,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileEqualNull() {
-        DbCompareNode compare = testFileFile(null, DBC_EQUAL);
+        DbCompareNode compare = testFileFile(null, true);
         Assert.assertEquals("NONE NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.NONE, compare.getActionType());
@@ -242,7 +241,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileExceptDateWarn() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, DBC_EQUAL_EXCEPT_DATE);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, true);
         Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -251,7 +250,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileExceptDateIgnore() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, DBC_EQUAL_EXCEPT_DATE);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, true);
         Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -260,7 +259,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileExceptDateDelete() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, DBC_EQUAL_EXCEPT_DATE);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, true);
         Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -269,34 +268,34 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileExceptDateFolder() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, DBC_EQUAL_EXCEPT_DATE);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, true);
         Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
+//        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
     }
 
     @Test
     public void testFileFileExceptDateBackup() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, DBC_EQUAL_EXCEPT_DATE);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, true);
         Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
+  //      Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
     }
 
     @Test
     public void testFileFileExceptDateNull() {
-        DbCompareNode compare = testFileFile(null, DBC_EQUAL_EXCEPT_DATE);
+        DbCompareNode compare = testFileFile(null, true);
         Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
+//        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
     }
 
     @Test
     public void testFileFileNotEqualWarn() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, DBC_NOT_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, false);
         Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -305,7 +304,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileNotEqualIgnore() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, DBC_NOT_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, false);
         Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -314,7 +313,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileNotEqualDelete() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, DBC_NOT_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, false);
         Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
@@ -323,7 +322,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileNotEqualFolder() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, DBC_NOT_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, false);
         Assert.assertEquals("COPY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
@@ -332,7 +331,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileNotEqualBackup() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, DBC_NOT_EQUAL);
+        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, false);
         Assert.assertEquals("COPY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
@@ -341,7 +340,7 @@ public class TestFileTreeClasses {
 
     @Test
     public void testFileFileNotEqualNull() {
-        DbCompareNode compare = testFileFile(null, DBC_NOT_EQUAL);
+        DbCompareNode compare = testFileFile(null, false);
         Assert.assertEquals("COPY NONE FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
@@ -360,14 +359,14 @@ public class TestFileTreeClasses {
 
         when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
-        when(mockFile.compare(mockDirectory)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.compare(mockDirectory)).thenReturn(false);
         when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
         when(mockFile.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
         when(mockDirectory.getName()).thenReturn(Optional.of("test1"));
         when(mockDirectory.isDirectory()).thenReturn(true);
-        when(mockDirectory.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.compare(mockFile)).thenReturn(false);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
@@ -440,7 +439,7 @@ public class TestFileTreeClasses {
 
         when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
-        when(mockFile.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.compare(null)).thenReturn(false);
         when(mockFile.getClassification()).thenReturn(actionType == null ? null : classification);
         when(mockFile.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
@@ -512,13 +511,13 @@ public class TestFileTreeClasses {
 
         when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
-        when(mockDirectory.compare(mockDirectory2)).thenReturn(DBC_EQUAL);
+        when(mockDirectory.compare(mockDirectory2)).thenReturn(true);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
         when(mockDirectory2.getName()).thenReturn(Optional.of("test1"));
         when(mockDirectory2.isDirectory()).thenReturn(true);
-        when(mockDirectory2.compare(mockDirectory)).thenReturn(DBC_EQUAL);
+        when(mockDirectory2.compare(mockDirectory)).thenReturn(true);
         when(mockDirectory2.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory2,"children",new ArrayList<>());
 
@@ -538,7 +537,7 @@ public class TestFileTreeClasses {
 
         when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
-        when(mockDirectory.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.compare(null)).thenReturn(false);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
@@ -559,13 +558,13 @@ public class TestFileTreeClasses {
 
         when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
-        when(mockDirectory.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.compare(mockFile)).thenReturn(false);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
         when(mockFile.getName()).thenReturn(Optional.of("test1"));
         when(mockFile.isDirectory()).thenReturn(false);
-        when(mockFile.compare(mockDirectory)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.compare(mockDirectory)).thenReturn(false);
         when(mockFile.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
@@ -585,7 +584,7 @@ public class TestFileTreeClasses {
 
         when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(true);
-        when(mockFile.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.compare(null)).thenReturn(false);
         when(mockFile.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
@@ -605,7 +604,7 @@ public class TestFileTreeClasses {
 
         when(mockDirectory.getName()).thenReturn(Optional.of("test"));
         when(mockDirectory.isDirectory()).thenReturn(true);
-        when(mockDirectory.compare(null)).thenReturn(DBC_NOT_EQUAL);
+        when(mockDirectory.compare(null)).thenReturn(false);
         when(mockDirectory.getFSO()).thenReturn(mockFSO);
         ReflectionTestUtils.setField(mockDirectory,"children",new ArrayList<>());
 
@@ -624,21 +623,21 @@ public class TestFileTreeClasses {
         DbFile mockFile = mock(DbFile.class);
         when(mockFile.getName()).thenReturn(Optional.of("test"));
         when(mockFile.isDirectory()).thenReturn(false);
-        when(mockFile.compare(mockFile)).thenReturn(DBC_EQUAL);
+        when(mockFile.compare(mockFile)).thenReturn(true);
         when(mockFile.getClassification()).thenReturn(classification);
         ReflectionTestUtils.setField(mockFile,"children",new ArrayList<>());
 
         DbFile mockFile2 = mock(DbFile.class);
         when(mockFile2.getName()).thenReturn(Optional.of("test1"));
         when(mockFile2.isDirectory()).thenReturn(false);
-        when(mockFile2.compare(mockFile)).thenReturn(DBC_EQUAL);
+        when(mockFile2.compare(mockFile)).thenReturn(true);
         when(mockFile2.getClassification()).thenReturn(classification);
         ReflectionTestUtils.setField(mockFile2,"children",new ArrayList<>());
 
         DbFile mockFile3 = mock(DbFile.class);
         when(mockFile3.getName()).thenReturn(Optional.of("test2"));
         when(mockFile3.isDirectory()).thenReturn(false);
-        when(mockFile3.compare(mockFile)).thenReturn(DBC_EQUAL);
+        when(mockFile3.compare(mockFile)).thenReturn(true);
         when(mockFile3.getClassification()).thenReturn(classification);
         ReflectionTestUtils.setField(mockFile3,"children",new ArrayList<>());
 
@@ -666,7 +665,7 @@ public class TestFileTreeClasses {
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.size());
 
-        when(mockFile.compare(mockFile)).thenReturn(DBC_NOT_EQUAL);
+        when(mockFile.compare(mockFile)).thenReturn(false);
         list1.add(mockFile2);
         list2.add(mockFile3);
 

@@ -10,7 +10,7 @@ import java.util.*;
 @Getter
 public class DbCompareNode  extends FileTreeNode {
     public enum ActionType { NONE, COPY, REMOVE, RECREATE_AS_FILE, RECREATE_AS_DIRECTORY }
-    public enum SubActionType { NONE, WARN, IGNORE, REMOVE_SOURCE, DATE_UPDATE }
+    public enum SubActionType { NONE, WARN, IGNORE, REMOVE_SOURCE }
 
     private final ActionType actionType;
     private final SubActionType subActionType;
@@ -27,10 +27,6 @@ public class DbCompareNode  extends FileTreeNode {
             decisionMap.put("FILE-FILE-EQUAL-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
             decisionMap.put("FILE-FILE-EQUAL-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
             decisionMap.put("FILE-FILE-EQUAL-OTHER", new ActionDecisionItem(ActionType.NONE, SubActionType.NONE));
-            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-WARN", new ActionDecisionItem(ActionType.REMOVE, SubActionType.WARN));
-            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
-            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
-            decisionMap.put("FILE-FILE-EQUAL_EXCEPT_DATE-OTHER", new ActionDecisionItem(ActionType.COPY, SubActionType.DATE_UPDATE));
             decisionMap.put("FILE-FILE-NOT_EQUAL-WARN", new ActionDecisionItem(ActionType.REMOVE, SubActionType.WARN));
             decisionMap.put("FILE-FILE-NOT_EQUAL-IGNORE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.IGNORE));
             decisionMap.put("FILE-FILE-NOT_EQUAL-DELETE", new ActionDecisionItem(ActionType.REMOVE, SubActionType.REMOVE_SOURCE));
@@ -74,13 +70,8 @@ public class DbCompareNode  extends FileTreeNode {
 
         private static String getCompareKey(DbNode source, DbNode destination) {
             if(source != null && destination != null) {
-                switch(source.compare(destination)) {
-                    case DBC_EQUAL:
-                        return "EQUAL";
-                    case DBC_EQUAL_EXCEPT_DATE:
-                        return "EQUAL_EXCEPT_DATE";
-                    default:
-                        // Nothing further, continue.
+                if(source.compare(destination)) {
+                    return "EQUAL";
                 }
             }
 

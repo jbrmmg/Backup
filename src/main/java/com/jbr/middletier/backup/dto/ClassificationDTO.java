@@ -10,7 +10,6 @@ public class ClassificationDTO {
     private String regex;
     private ClassificationActionType action;
     private String icon;
-    private Boolean useMD5;
     private Boolean isImage;
     private Boolean isVideo;
     private Boolean checkMetaData;

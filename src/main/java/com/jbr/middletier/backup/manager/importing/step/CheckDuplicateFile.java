@@ -65,7 +65,7 @@ public class CheckDuplicateFile extends ImportStep {
         similar.setType(FileSystemObjectType.FSO_FILE);
         similar.setFilename(file.getPath());
         similar.setSize(dbFile.getSize());
-        similar.setMd5(dbFile.getMD5().toString());
+        similar.setMd5(dbFile.getMd5().isPresent() ? dbFile.getMd5().get() : null);
         similar.setDate(dbFile.getDate());
 
         // Make sure this is not in the list already.
@@ -151,11 +151,13 @@ public class CheckDuplicateFile extends ImportStep {
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
         LOG.info("Checking duplicate file");
-        getSimilarByMd5(file.getMd5(), file);
+        if(file.getMd5Optional().isPresent()) {
+            getSimilarByMd5(file.getMd5Optional().get().toString(), file);
+        }
         getSimilarByDate(file.getDate(), file);
         getImportNameAndSizeCloseDate(file.getFilename(), file.getSize(), file.getDate(), file);
-        if(file.getImportMd5() != null) {
-            getSimilarByMd5(file.getMd5(), file);
+        if(file.getImportMd5Optional().isPresent()) {
+            getSimilarByMd5(file.getImportMd5Optional().get().toString(), file);
         }
         if(file.getImportDate() != null) {
             getSimilarByDate(file.getImportDate(), file);
@@ -172,11 +174,13 @@ public class CheckDuplicateFile extends ImportStep {
                 return TrafficLightType.TL_RED;
             }
 
-            existingMd5s.add(next.getMd5());
+            if(next.getMd5Optional().isPresent()) {
+                existingMd5s.add(next.getMd5Optional().get().toString());
+            }
         }
 
         // If there are multiple files with the same date/time then this is a bit suspect.
-       List<LocalDateTime> existingDateTime = new ArrayList<>();
+        List<LocalDateTime> existingDateTime = new ArrayList<>();
         for(ImportFileBaseDTO next: file.getSimilarFiles()) {
             if(existingDateTime.contains(next.getDate())) {
                 // This looks like there is a duplicate.

@@ -1,9 +1,13 @@
 package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.FileInfo;
+import com.jbr.middletier.backup.data.MD5;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Data
 public class FileDTO {
@@ -12,6 +16,7 @@ public class FileDTO {
     private String fullFilename;
     private long size;
     private LocalDateTime date;
+    @Getter
     private String md5;
     private boolean isImage;
     private boolean isVideo;
@@ -25,10 +30,10 @@ public class FileDTO {
         this.name = fileInfo.getName();
         this.date = fileInfo.getDate();
         this.size = fileInfo.getSize();
-        if(fileInfo.getMD5() !=null) {
-            this.md5 = fileInfo.getMD5().toString();
+        if(fileInfo.getMd5().isPresent()) {
+            this.md5 = fileInfo.getMd5().toString();
         } else {
-            this.md5 = "";
+            this.md5 = null;
         }
         if(fileInfo.getClassification() !=null) {
             this.isImage = fileInfo.getClassification().getIsImage();
@@ -44,4 +49,8 @@ public class FileDTO {
         this.locationName = location;
         this.expiry = fileInfo.getExpiry();
     }
+
+    public void setMd5(MD5 md5) { this.md5 = md5 != null ? md5.toString() : null; }
+
+    public Optional<MD5> getMd5Optional() { return this.md5 == null ? Optional.empty() : Optional.of(new MD5(this.md5)); }
 }

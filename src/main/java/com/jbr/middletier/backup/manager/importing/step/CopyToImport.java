@@ -149,7 +149,7 @@ public class CopyToImport extends ReadPreImportFile {
         if(dbRecord.getImportName() == null) {
             LOG.info("Save details of the import file {}", file.getFilename());
             dbRecord.setImportName(file.getImportName());
-            dbRecord.setImportMd5(file.getImportMd5());
+            dbRecord.setImportMd5(file.getImportMd5Optional().isPresent() ? file.getImportMd5Optional().get() : null);
             dbRecord.setImportSize(file.getImportSize());
             dbRecord.setImportDate(file.getImportDate());
             return true;

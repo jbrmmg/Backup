@@ -175,7 +175,6 @@ public class ImportIT extends FileTester {
         updateClassification.setIsVideo(nextClassification.getIsVideo());
         updateClassification.setOrder(1);
         updateClassification.setIsImage(true);
-        updateClassification.setUseMD5(true);
         return updateClassification;
     }
 

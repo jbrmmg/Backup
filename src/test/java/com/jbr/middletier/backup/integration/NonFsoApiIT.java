@@ -333,7 +333,6 @@ public class NonFsoApiIT extends WebTester {
         ClassificationDTO classificationDTO = new ClassificationDTO();
         classificationDTO.setIsVideo(false);
         classificationDTO.setOrder(33);
-        classificationDTO.setUseMD5(true);
         classificationDTO.setAction(ClassificationActionType.CA_BACKUP);
         classificationDTO.setRegex("*/sdaf");
         classificationDTO.setIcon("Flahr");
@@ -352,7 +351,6 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$", hasSize(33)))
                 .andExpect(jsonPath("$[32].id", is(33)))
                 .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction().toString())))
-                .andExpect(jsonPath("$[32].useMD5", is(classificationDTO.getUseMD5())))
                 .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
                 .andExpect(jsonPath("$[32].isVideo", is(classificationDTO.getIsVideo())))
                 .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())))

@@ -70,7 +70,7 @@ public class FileProcessingIT extends FileTester {
 
     private static class BasicDbDirectory extends DbDirectory {
         public BasicDbDirectory(DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
-            super(null, directoryInfo, fileRepository, directoryRepository, true);
+            super(null, directoryInfo, fileRepository, directoryRepository);
         }
 
         public boolean test(BasicDbDirectory another, boolean anotherEqual) {
@@ -82,16 +82,16 @@ public class FileProcessingIT extends FileTester {
                 Assert.assertEquals("Database Directory children must be Database Directory or File.", e.getMessage());
             }
 
-            Assert.assertEquals(DbNodeCompareResultType.DBC_EQUAL,compare(this));
+            Assert.assertTrue(compare(this));
 
             FileInfo fileInfo = new FileInfo();
-            DbNode dbNode = new DbFile(null, fileInfo, true);
-            Assert.assertEquals(DbNodeCompareResultType.DBC_NOT_EQUAL,compare(dbNode));
+            DbNode dbNode = new DbFile(null, fileInfo);
+            Assert.assertTrue(compare(dbNode));
 
             if(anotherEqual) {
-                Assert.assertEquals(DbNodeCompareResultType.DBC_EQUAL, compare(another));
+                Assert.assertTrue(compare(another));
             } else {
-                Assert.assertEquals(DbNodeCompareResultType.DBC_NOT_EQUAL, compare(another));
+                Assert.assertFalse(compare(another));
             }
 
             return true;
@@ -214,7 +214,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -257,7 +257,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -314,7 +314,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -384,7 +384,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -461,7 +461,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -532,7 +532,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -584,7 +584,7 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Compare
-        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot, true);
+        RwDbTree rwDbTree = new RwDbTree(rwRoot, dbRoot);
         rwDbTree.compare();
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
@@ -694,8 +694,8 @@ public class FileProcessingIT extends FileTester {
         when(mockRwFile.getFile()).thenReturn(mockFile);
 
         FileInfo fileInfo = new FileInfo();
-        DbFile dbFile = new DbFile(null, fileInfo, true);
-        RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile, true);
+        DbFile dbFile = new DbFile(null, fileInfo);
+        RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
         Assert.assertNotNull(testNode);
     }
 

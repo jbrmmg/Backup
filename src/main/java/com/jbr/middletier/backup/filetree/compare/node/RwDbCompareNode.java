@@ -26,9 +26,15 @@ public class RwDbCompareNode extends FileTreeNode {
     private ActionType actionType;
     private final boolean isDirectory;
 
-    private boolean updateRequired(FileInfo dbData, File rwFile, boolean checkDate) {
-        if(!checkDate) {
-            return false;
+    private boolean updateRequired(FileInfo dbData, File rwFile) {
+        // Check the size.
+        if(Math.abs(dbData.getSize() - rwFile.length()) > 0){
+            return true;
+        }
+
+        // If there is no MD5 then update.
+        if(dbData.getMd5().isEmpty()) {
+            return true;
         }
 
         // Check the date.
@@ -42,7 +48,7 @@ public class RwDbCompareNode extends FileTreeNode {
         return Math.abs(timeDifference) > 5000;
     }
 
-    public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode, boolean checkDate) {
+    public RwDbCompareNode(FileTreeNode parent, RwNode realWorldNode, DbNode databaseNode) {
         super(parent);
 
         this.realWorldNode = realWorldNode;
@@ -57,11 +63,11 @@ public class RwDbCompareNode extends FileTreeNode {
                 calculatedActionType = ActionType.RECREATE_AS_FILE;
             }
         } else if (!realWorldNode.isDirectory()) {
-            // They are equal in name, but check the size, date and MD5 if that is required.
+            // They are equal in name, but check the size and MD5.
             FileInfo dbFileInfo = (FileInfo)databaseNode.getFSO();
             RwFile rwFile = (RwFile)realWorldNode;
 
-            if(updateRequired(dbFileInfo, rwFile.getFile(), checkDate)) {
+            if(updateRequired(dbFileInfo, rwFile.getFile())) {
                 calculatedActionType = ActionType.UPDATE;
             }
         }

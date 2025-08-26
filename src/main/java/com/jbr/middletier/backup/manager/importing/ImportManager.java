@@ -191,7 +191,7 @@ public class ImportManager extends FileProcessor {
             importFile.setId(dbFile.getIdAndType().getId());
             importFile.setDate(dbFile.getDate());
             importFile.setSize(dbFile.getSize());
-            importFile.setMd5(dbFile.getMD5().toString());
+            importFile.setMd5(dbFile.getMd5().isPresent() ? dbFile.getMd5().get() : null);
             importFile.setDuration(dbFile.getDuration());
             importFile.setImage(dbFile.getImage());
             if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
@@ -199,7 +199,7 @@ public class ImportManager extends FileProcessor {
             } else {
                 importFile.setImageSize(null);
             }
-            importFile.setImportMd5(dbFile.getImportMd5());
+            importFile.setImportMd5(dbFile.getImportMd5().isPresent() ?  dbFile.getImportMd5().get() : null);
             importFile.setImportName(dbFile.getImportName());
             importFile.setImportDate(dbFile.getImportDate());
             importFile.setImportSize(dbFile.getImportSize());
@@ -432,13 +432,13 @@ public class ImportManager extends FileProcessor {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Cannot un-ignore a file unless all data is known.
-            if(file.getMd5() == null || file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
+            if(file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
                 LOG.info("{} Cannot remove from ignore table because md5, size and/or date is missing.", filename);
                 return false;
             }
 
             // This must already be in the table
-            for(IgnoreFile next: ignoreFileRepository.findByMd5(file.getMd5())) {
+            for(IgnoreFile next: ignoreFileRepository.findByMd5(file.getMd5Optional().get().toString())) {
                 if(next.getDate().equals(file.getDate()) &&
                         next.getSize().equals(file.getSize()) &&
                         next.getName().equals(filename)) {
@@ -467,13 +467,13 @@ public class ImportManager extends FileProcessor {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Insert the details of this file into the ignore table - we must have an MD5 to do this.
-            if(file.getMd5() == null || file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
+            if(file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
                 LOG.info("{} Cannot ignore this file because md5, size and/or date is missing.", filename);
                 return false;
             }
 
             // Make sure this file is not ignored already
-            for(IgnoreFile next: ignoreFileRepository.findByMd5(file.getMd5())) {
+            for(IgnoreFile next: ignoreFileRepository.findByMd5(file.getMd5Optional().get().toString())) {
                 if(next.getDate().equals(file.getDate()) &&
                     next.getSize().equals(file.getSize())) {
                     // Its already ignored.
@@ -487,7 +487,7 @@ public class ImportManager extends FileProcessor {
             ignoreFile.setName(filename);
             ignoreFile.setDate(file.getDate());
             ignoreFile.setSize(file.getSize());
-            ignoreFile.setMD5(new MD5(file.getMd5()));
+            ignoreFile.setMd5(file.getMd5Optional().get());
 
             LOG.info("{} has been inserted into the ignore table.", filename);
             ignoreFileRepository.save(ignoreFile);

@@ -6,6 +6,7 @@ import lombok.Setter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @SuppressWarnings({"DefaultAnnotationParam"})
 @Entity
@@ -47,9 +48,9 @@ public class FileInfo extends FileSystemObject {
 
     public void setSize(long size) { this.size = size; }
 
-    public void setMD5(MD5 md5) { this.md5 = md5.toString().isEmpty() ? null : md5.toString(); }
+    public void setMd5(MD5 md5) { this.md5 = md5 != null ? md5.toString() : null; }
 
-    public MD5 getMD5() { return new MD5(this.md5); }
+    public Optional<MD5> getMd5() { return this.md5 == null ? Optional.empty() : Optional.of(new MD5(this.md5)); }
 
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
         if(this.getIdAndType().equals(otherFile.getIdAndType())) {

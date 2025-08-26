@@ -128,6 +128,9 @@ databaseChangeLog:
               - column:
                   name: status
                   value: OK
+              - column:
+                  name: primary_source
+                  valueBoolean: "true"
 
         - insert:
             tableName: file_system_object
@@ -186,9 +189,6 @@ databaseChangeLog:
               - column:
                   name: action
                   value: "BACKUP"
-              - column:
-                  name: useMD5
-                  valueBoolean: "true"
               - column:
                   name: is_image
                   valueBoolean: "true"
