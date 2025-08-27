@@ -230,7 +230,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
-        validateSource(fileSystemObjectManager, synchronize.getSource(),sourceDescription);
+        validateSource(fileSystemObjectManager, synchronize.getSource(), sourceDescription);
 
         // Update the directory structure again.
         sourceDescription = getTestStructure("test3");
