@@ -109,5 +109,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-037-removeflags.yaml
 
   - include:
+      file: /db/changelog/db.changelog-038-source-update.yaml
+
+  - include:
       file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

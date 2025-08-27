@@ -171,28 +171,47 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void TestMD5() {
+        MD5 md5c;
+
+        // First check the invalid checks.
         try {
-            MD5 md5 = new MD5((String) null);
+            md5c = new MD5((String) null);
             Assert.fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
         }
 
         try {
-            MD5 md5b = new MD5("");
+            md5c = new MD5("");
             Assert.fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
         }
 
-        MD5 md5c = new MD5("Test");
+        try {
+            md5c = new MD5("1234567890123456789012345678901");
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("You must create MD5 with 32 characters", e.getMessage());
+        }
 
-        MD5 md5d = new MD5("Test2");
+        try {
+            md5c = new MD5("1234567890123456789012345678901G");
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("MD5 must only contain HEX digits (0-9 or A-F)", e.getMessage());
+        }
 
-        MD5 md5e = new MD5("Test");
+        md5c = new MD5("12345678901234567890123456789012");
+
+        MD5 md5d = new MD5("12345678901234567890123456789013");
+
+        MD5 md5e = new MD5("12345678901234567890123456789012");
 
         Assert.assertEquals(md5c, md5c);
         Assert.assertEquals(md5c, md5e);
         Assert.assertNotEquals(md5c, md5d);
-        Assert.assertNotEquals(md5c, md5d);
+        Assert.assertNotEquals(md5d, md5c);
     }
 
     @Test
@@ -1129,7 +1148,7 @@ public class TestGeneral extends WebTester {
         fileInfo.setId(1);
         fileInfo.setName("TestFile.txt");
         fileInfo.setSize(380);
-        fileInfo.setMd5(new MD5("testMD5"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setParent(null);
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
@@ -1142,7 +1161,7 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("TestFile.txt", fileInfoDTO.getFilename());
         Assert.assertEquals(LocalDateTime.parse("2022-02-27 22:23",formatter), fileInfoDTO.getDate());
         Assert.assertEquals(380, fileInfoDTO.getSize().intValue());
-        Assert.assertEquals("testMD5", fileInfoDTO.getMd5());
+        Assert.assertEquals("12345678901234567890123456789012", fileInfoDTO.getMd5());
         Assert.assertEquals(2, fileInfoDTO.getParentId().intValue());
         Assert.assertEquals("DIRY", fileInfoDTO.getParentType());
         Assert.assertEquals(testDateTime,fileInfoDTO.getExpiry());
@@ -1164,7 +1183,7 @@ public class TestGeneral extends WebTester {
         fileInfo.setId(4);
         fileInfo.setName("TestFile2.txt");
         fileInfo.setSize(2423);
-        fileInfo.setMd5(new MD5("testMD5Again"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setParent(null);
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
@@ -1204,7 +1223,7 @@ public class TestGeneral extends WebTester {
         fileInfo.setName("Test");
         fileInfo.setDate(LocalDateTime.now());
         fileInfo.setSize(10);
-        fileInfo.setMd5(new MD5("md5"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setClassification(classification);
 
         FileDTO fileDTO = new FileDTO(fileInfo,"full", "path", "location");

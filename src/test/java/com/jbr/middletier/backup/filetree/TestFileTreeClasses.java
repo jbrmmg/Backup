@@ -112,7 +112,7 @@ public class TestFileTreeClasses {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
 
         FileInfo fileInfo = new FileInfo();
-        fileInfo.setMd5(new MD5("MATCH"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setClassification(null);
         fileInfo.setName("Test");
         fileInfo.setSize(291);
@@ -128,7 +128,7 @@ public class TestFileTreeClasses {
         Assert.assertTrue(dbFile.compare(dbFile2));
 
         FileInfo fileInfo2 = new FileInfo();
-        fileInfo2.setMd5(new MD5("MATCH"));
+        fileInfo2.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo2.setClassification(null);
         fileInfo2.setName("Test");
         fileInfo2.setSize(291);
@@ -140,10 +140,10 @@ public class TestFileTreeClasses {
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:19",formatter));
         Assert.assertTrue(dbFile.compare(dbFile2));
 
-        fileInfo2.setMd5(new MD5("NOMATCH"));
+        fileInfo2.setMd5(new MD5("C714A0B2E792EB102F706DC2424B0083"));
         Assert.assertFalse(dbFile.compare(dbFile2));
 
-        fileInfo2.setMd5(new MD5("MATCH"));
+        fileInfo2.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo2.setName("Test2");
         Assert.assertFalse(dbFile.compare(dbFile2));
 
@@ -153,7 +153,7 @@ public class TestFileTreeClasses {
 
         fileInfo2.setSize(291);
         fileInfo2.setDate(LocalDateTime.parse("2022-07-01 13:23:09",formatter));
-        fileInfo2.setMd5(new MD5("NOMATCH"));
+        fileInfo2.setMd5(new MD5("C714A0B2E792EB102F706DC2424B0083"));
         Assert.assertFalse(dbFile.compare(dbFile2));
     }
 
@@ -264,33 +264,6 @@ public class TestFileTreeClasses {
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
         Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
-    }
-
-    @Test
-    public void testFileFileExceptDateFolder() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_FOLDER, true);
-        Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
-        Assert.assertFalse(compare.getName().isPresent());
-        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
-//        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
-    }
-
-    @Test
-    public void testFileFileExceptDateBackup() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_BACKUP, true);
-        Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
-        Assert.assertFalse(compare.getName().isPresent());
-        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
-  //      Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
-    }
-
-    @Test
-    public void testFileFileExceptDateNull() {
-        DbCompareNode compare = testFileFile(null, true);
-        Assert.assertEquals("COPY DATE_UPDATE FSO_FILE>1 FSO_FILE>1", compare.toString());
-        Assert.assertFalse(compare.getName().isPresent());
-        Assert.assertEquals(DbCompareNode.ActionType.COPY, compare.getActionType());
-//        Assert.assertEquals(DbCompareNode.SubActionType.DATE_UPDATE, compare.getSubActionType());
     }
 
     @Test

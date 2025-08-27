@@ -164,7 +164,7 @@ public class FsoIT   {
         fileInfo.setName("Blah");
         fileInfo.setClassification(classificationList.get(0));
         fileInfo.setDate(aDate);
-        fileInfo.setMd5(new MD5("XYZ"));
+        fileInfo.setMd5(new MD5("C714A0B2E792EB102F706DC2424B0083"));
         fileInfo.setSize(291L);
 
         fileRepository.save(fileInfo);
@@ -178,14 +178,16 @@ public class FsoIT   {
         Assert.assertEquals("Blah", theFile.get().getName());
         Assert.assertEquals(classificationList.get(0).getId(), theFile.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile.get().getDate());
-        Assert.assertEquals("XYZ", theFile.get().getMd5().toString());
+        Assert.assertTrue(theFile.get().getMd5().isPresent());
+        Assert.assertTrue(theFile.get().getMd5().isPresent());
+        Assert.assertEquals("C714A0B2E792EB102F706DC2424B0083", theFile.get().getMd5().get().toString());
         Assert.assertEquals(Long.valueOf(291L), theFile.get().getSize());
 
         aDate = LocalDateTime.parse("2022-06-02 11:03:10", formatter);
         theFile.get().setName("not Blah");
         theFile.get().setClassification(classificationList.get(1));
         theFile.get().setDate(aDate);
-        theFile.get().setMd5(new MD5("BHS"));
+        theFile.get().setMd5(new MD5("12345678901234567890123456789012"));
         theFile.get().setSize(293L);
         fileRepository.save(theFile.get());
 
@@ -197,7 +199,7 @@ public class FsoIT   {
         Assert.assertEquals("not Blah", theFile2.get().getName());
         Assert.assertEquals(classificationList.get(1).getId(), theFile2.get().getClassification().getId());
         Assert.assertEquals(aDate, theFile2.get().getDate());
-        Assert.assertEquals("BHS", theFile2.get().getMd5().toString());
+        Assert.assertEquals("12345678901234567890123456789012", theFile2.get().getMd5().toString());
         Assert.assertEquals(Long.valueOf(293L), theFile2.get().getSize());
 
         fileRepository.delete(theFile2.get());
@@ -274,7 +276,7 @@ public class FsoIT   {
         IgnoreFile testIgnoreFile = new IgnoreFile();
         testIgnoreFile.setName("Ignore file");
         testIgnoreFile.setDate(aDate);
-        testIgnoreFile.setMd5(new MD5("YTWVS"));
+        testIgnoreFile.setMd5(new MD5("12345678901234567890123456789012"));
         testIgnoreFile.setSize(8310L);
         testIgnoreFile.setParent(null);
 
@@ -287,7 +289,7 @@ public class FsoIT   {
 
         Assert.assertEquals("Ignore file", findIgnoreFile.get().getName());
         Assert.assertEquals(aDate, findIgnoreFile.get().getDate());
-        Assert.assertEquals("YTWVS", findIgnoreFile.get().getMd5().toString());
+        Assert.assertEquals("12345678901234567890123456789012", findIgnoreFile.get().getMd5().toString());
         Assert.assertEquals(Long.valueOf(8310L), findIgnoreFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IGNORE_FILE, findIgnoreFile.get().getIdAndType().getType());
 
@@ -315,7 +317,7 @@ public class FsoIT   {
         ImportFile testImportFile = new ImportFile();
         testImportFile.setName("Ignore file");
         testImportFile.setDate(aDate);
-        testImportFile.setMd5(new MD5("YTWVS"));
+        testImportFile.setMd5(new MD5("12345678901234567890123456789012"));
         testImportFile.setSize(8310L);
 
         importFileRepository.save(testImportFile);
@@ -327,7 +329,7 @@ public class FsoIT   {
 
         Assert.assertEquals("Ignore file", findImportFile.get().getName());
         Assert.assertEquals(aDate, findImportFile.get().getDate());
-        Assert.assertEquals("YTWVS", findImportFile.get().getMd5().toString());
+        Assert.assertEquals("12345678901234567890123456789012", findImportFile.get().getMd5().toString());
         Assert.assertEquals(Long.valueOf(8310L), findImportFile.get().getSize());
         Assert.assertEquals(FileSystemObjectType.FSO_IMPORT_FILE, findImportFile.get().getIdAndType().getType());
 

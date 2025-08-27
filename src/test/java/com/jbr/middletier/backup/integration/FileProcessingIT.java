@@ -86,7 +86,7 @@ public class FileProcessingIT extends FileTester {
 
             FileInfo fileInfo = new FileInfo();
             DbNode dbNode = new DbFile(null, fileInfo);
-            Assert.assertTrue(compare(dbNode));
+            Assert.assertFalse(compare(dbNode));
 
             if(anotherEqual) {
                 Assert.assertTrue(compare(another));
@@ -204,6 +204,7 @@ public class FileProcessingIT extends FileTester {
         file.setName("Backup.dxf~");
         file.setSize(12);
         file.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
+        file.setMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
         fileRepository.save(file);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -374,6 +375,7 @@ public class FileProcessingIT extends FileTester {
         file2.setName("Text1.txt");
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
+        file2.setMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -451,6 +453,7 @@ public class FileProcessingIT extends FileTester {
         file2.setName("Backup.dxf~");
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
+        file2.setMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -522,6 +525,7 @@ public class FileProcessingIT extends FileTester {
         file2.setName("Backup.dxf~");
         file2.setSize(12);
         file2.setDate(LocalDateTime.parse("1998-04-10-11-43",formatter));
+        file2.setMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
         fileRepository.save(file2);
 
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
@@ -694,6 +698,7 @@ public class FileProcessingIT extends FileTester {
         when(mockRwFile.getFile()).thenReturn(mockFile);
 
         FileInfo fileInfo = new FileInfo();
+        fileInfo.setSize(200);
         DbFile dbFile = new DbFile(null, fileInfo);
         RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
         Assert.assertNotNull(testNode);

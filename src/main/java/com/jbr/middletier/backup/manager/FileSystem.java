@@ -159,9 +159,10 @@ public class FileSystem {
                 }
                 md = dis.getMessageDigest();
             }
-            LOG.debug("End get MD5 for {}", path);
+            MD5 md5 = new MD5(bytesToHex(md.digest()));
+            LOG.debug("End get MD5 for {} {}", path, md5);
 
-            return Optional.of(new MD5(bytesToHex(md.digest())));
+            return Optional.of(md5);
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
             dbLoggingManager.error("Cannot get MD5 - " + path.toString(), id, null);

@@ -12,6 +12,10 @@ public class MD5 {
             throw new IllegalArgumentException("You must create MD5 with 32 characters");
         }
 
+        if(!md5.matches("[0-9a-fA-F]+")) {
+            throw new IllegalArgumentException("MD5 must only contain HEX digits (0-9 or A-F)");
+        }
+
         this.md5Value = md5.toUpperCase();
     }
 
