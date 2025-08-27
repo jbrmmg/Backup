@@ -31,7 +31,7 @@ public class FileDTO {
         this.date = fileInfo.getDate();
         this.size = fileInfo.getSize();
         if(fileInfo.getMd5().isPresent()) {
-            this.md5 = fileInfo.getMd5().toString();
+            this.md5 = fileInfo.getMd5().get().toString();
         } else {
             this.md5 = null;
         }

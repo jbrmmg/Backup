@@ -111,6 +111,14 @@ public class SyncApiIT extends FileTester {
         addClassification(associatedFileDataManager,".*\\.mov$", ClassificationActionType.CA_BACKUP, 2, false, true);
         addClassification(associatedFileDataManager,".*\\.mp4$", ClassificationActionType.CA_BACKUP, 2, false, true);
 
+        // Update the JPG so that it gets metadata.
+        for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
+            if(nextClassification.getRegex().contains("jpg") || nextClassification.getRegex().contains("jpeg")) {
+                ClassificationDTO updateClassification = initialiseClassification(nextClassification);
+                associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(updateClassification));
+            }
+        }
+
         // During this test create files in the following directories
         deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
         Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
@@ -1810,7 +1818,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(jsonPath("$.file.id", is(findId)))
-                .andExpect(jsonPath("$.file.md5", is("")))
+                .andExpect(jsonPath("$.file.md5", is("56FDC164DC8A27C015170014821A7DCE")))
                 .andExpect(jsonPath("$.metaData").value(IsNull.nullValue()))
                 .andExpect(jsonPath("$.backups[0].md5", is("")));
 
