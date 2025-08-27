@@ -1518,7 +1518,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesDeleted", is(0)))
                 .andExpect(jsonPath("$[0].directoriesDeleted", is(0)))
                 .andExpect(jsonPath("$[0].sourcesRemoved", is(0)))
-                .andExpect(jsonPath("$[0].datesUpdated", is(1)))
+                .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1533,13 +1533,14 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(0)))
                 .andExpect(jsonPath("$[1].failed", is(false)))
-                .andExpect(jsonPath("$[1].filesInserted", is(1)))
+                .andExpect(jsonPath("$[1].filesInserted", is(0)))
                 .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
                 .andExpect(jsonPath("$[1].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[1].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[1].deletes", is(0)));
 
-        validateSource(fileSystemObjectManager,synchronize.getDestination(),sourceDescription);
+        // Check that destination is unaffected just because the date is modified (size/MD5 are used to detect changes)
+        validateSource(fileSystemObjectManager,synchronize.getDestination(),destinationDescription);
     }
 
     @Test
@@ -1820,7 +1821,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$.file.id", is(findId)))
                 .andExpect(jsonPath("$.file.md5", is("56FDC164DC8A27C015170014821A7DCE")))
                 .andExpect(jsonPath("$.metaData").value(IsNull.nullValue()))
-                .andExpect(jsonPath("$.backups[0].md5", is("")));
+                .andExpect(jsonPath("$.backups[0].md5", is("56FDC164DC8A27C015170014821A7DCE")));
 
         // Add the classification.
         Classification jpgxClassification = new Classification();

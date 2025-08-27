@@ -525,6 +525,7 @@ public class FileSystemObjectManager {
         // Check for backups
         long size = result.getFile().getSize();
         Optional<MD5> md5 = result.getFile().getMd5Optional();
+        FileSystemObject parent = getParent(originalFile);
 
         Iterable<FileSystemObject> sameName = findFileSystemObjectByName(result.getFile().getName(), FileSystemObjectType.FSO_FILE);
         for (FileSystemObject nextSameName: sameName) {
@@ -537,7 +538,7 @@ public class FileSystemObjectManager {
             Optional<MD5> nextMD5 = nextFile.getMd5();
             FileSystemObject nextParent = getParent(nextFile);
 
-            if(size == nextSize && nextParent != null && associatedFile.getParent() != null && nextParent.getName().equals(associatedFile.getParent()) && md5.equals(nextMD5)) {
+            if(size == nextSize && nextParent != null && parent != null && nextParent.getName().equals(parent.getName()) && md5.equals(nextMD5)) {
                 File associatedBackupFile = getFile(nextFile);
                 result.addFile(nextFile,associatedBackupFile.getPath(),associatedBackupFile.getPath(),associatedBackupFile.getParent());
             }
