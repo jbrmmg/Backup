@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 public abstract class ProcessBase {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessBase.class);
 
+    @Getter
     private final ImportFileStatusType type;
     protected final ImportSourceManager importSourceManager;
 
@@ -87,7 +89,7 @@ public abstract class ProcessBase {
         return new File(this.importSourceManager.getPostImportDirectory(), file.getImportName());
     }
 
-    protected void deleteFile(PreImportFileDTO file) throws IOException  {
+    protected void deleteFile(PreImportFileDTO file) throws IOException {
         // Remove from all import directories PostImport, Import then PreImport.
         File postImportFile = getPostImportFilename(file);
         if(postImportFile.exists()) {
@@ -127,10 +129,6 @@ public abstract class ProcessBase {
                 throw new ImportProcessException(file.getFilename() + " invalid step " + entry.getKey() + " status " + status);
             }
         }
-    }
-
-    public ImportFileStatusType getType() {
-        return type;
     }
 
     public abstract TrafficLightType process(PreImportFileDTO file) throws ImportProcessException;
