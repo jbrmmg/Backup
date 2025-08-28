@@ -1,11 +1,13 @@
 package com.jbr.middletier.backup;
 
+import lombok.Getter;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.http.MockHttpOutputMessage;
+import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -16,8 +18,9 @@ import java.util.Arrays;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@Component
 public class WebTester {
+    @Getter
     private MockMvc mockMvc;
 
     @SuppressWarnings("rawtypes")
@@ -29,7 +32,7 @@ public class WebTester {
     @Autowired
     void setConverters(HttpMessageConverter<?>[] converters) {
         this.mappingJackson2HttpMessageConverter = Arrays.stream(converters)
-                .filter(hmc -> hmc instanceof MappingJackson2HttpMessageConverter)
+                .filter(MappingJackson2HttpMessageConverter.class::isInstance)
                 .findAny()
                 .orElse(null);
 
@@ -55,9 +58,5 @@ public class WebTester {
         return new MediaType(MediaType.APPLICATION_JSON.getType(),
                 MediaType.APPLICATION_JSON.getSubtype(),
                 StandardCharsets.UTF_8);
-    }
-
-    public MockMvc getMockMvc() {
-        return this.mockMvc;
     }
 }

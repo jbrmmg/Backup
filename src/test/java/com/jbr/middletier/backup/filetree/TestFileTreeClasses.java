@@ -186,15 +186,6 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    public void testFileFileEqualWarn() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, true);
-        Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
-        Assert.assertFalse(compare.getName().isPresent());
-        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
-    }
-
-    @Test
     public void testFileFileEqualIgnore() {
         DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, true);
         Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
@@ -240,30 +231,12 @@ public class TestFileTreeClasses {
     }
 
     @Test
-    public void testFileFileExceptDateWarn() {
+    public void testFileFileEqualWarn() {
         DbCompareNode compare = testFileFile(ClassificationActionType.CA_WARN, true);
         Assert.assertEquals("REMOVE WARN FSO_FILE>1 FSO_FILE>1", compare.toString());
         Assert.assertFalse(compare.getName().isPresent());
         Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
         Assert.assertEquals(DbCompareNode.SubActionType.WARN, compare.getSubActionType());
-    }
-
-    @Test
-    public void testFileFileExceptDateIgnore() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_IGNORE, true);
-        Assert.assertEquals("REMOVE IGNORE FSO_FILE>1 FSO_FILE>1", compare.toString());
-        Assert.assertFalse(compare.getName().isPresent());
-        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.IGNORE, compare.getSubActionType());
-    }
-
-    @Test
-    public void testFileFileExceptDateDelete() {
-        DbCompareNode compare = testFileFile(ClassificationActionType.CA_DELETE, true);
-        Assert.assertEquals("REMOVE REMOVE_SOURCE FSO_FILE>1 FSO_FILE>1", compare.toString());
-        Assert.assertFalse(compare.getName().isPresent());
-        Assert.assertEquals(DbCompareNode.ActionType.REMOVE, compare.getActionType());
-        Assert.assertEquals(DbCompareNode.SubActionType.REMOVE_SOURCE, compare.getSubActionType());
     }
 
     @Test

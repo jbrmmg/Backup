@@ -160,6 +160,31 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
+    private void transferFromDb(PreImportFileDTO importFile, ImportFile dbFile) {
+        importFile.setDestination(dbFile.getDestination());
+        importFile.setId(dbFile.getIdAndType().getId());
+        importFile.setDate(dbFile.getDate());
+        importFile.setSize(dbFile.getSize());
+        importFile.setMd5(dbFile.getMd5().isPresent() ? dbFile.getMd5().get() : null);
+        importFile.setDuration(dbFile.getDuration());
+        importFile.setImage(dbFile.getImage());
+        if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
+            importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageHeight()));
+        } else {
+            importFile.setImageSize(null);
+        }
+        importFile.setImportMd5(dbFile.getImportMd5().isPresent() ?  dbFile.getImportMd5().get() : null);
+        importFile.setImportName(dbFile.getImportName());
+        importFile.setImportDate(dbFile.getImportDate());
+        importFile.setImportSize(dbFile.getImportSize());
+        if(dbFile.getLatitude() != null && dbFile.getLongitude() != null) {
+            importFile.setLocation(new LatLong(dbFile.getLatitude(),dbFile.getLongitude()));
+        } else {
+            importFile.setLocation(null);
+        }
+        importFile.setVideo(dbFile.getVideo());
+    }
+
     private PreImportFileDTO getOrCreateCachedData(String nextFilename, boolean resetStatus, Map<String,ImportFile> importFilesDb) {
         String lowerNextFilename = nextFilename.toLowerCase();
 
@@ -186,29 +211,7 @@ public class ImportManager extends FileProcessor {
 
             // Transfer the data from the database.
             ImportFile dbFile = importFilesDb.get(nextFilename.toLowerCase());
-
-            importFile.setDestination(dbFile.getDestination());
-            importFile.setId(dbFile.getIdAndType().getId());
-            importFile.setDate(dbFile.getDate());
-            importFile.setSize(dbFile.getSize());
-            importFile.setMd5(dbFile.getMd5().isPresent() ? dbFile.getMd5().get() : null);
-            importFile.setDuration(dbFile.getDuration());
-            importFile.setImage(dbFile.getImage());
-            if(dbFile.getImageHeight() != null && dbFile.getImageWidth() != null) {
-                importFile.setImageSize(new ImageSize(dbFile.getImageWidth(), dbFile.getImageHeight()));
-            } else {
-                importFile.setImageSize(null);
-            }
-            importFile.setImportMd5(dbFile.getImportMd5().isPresent() ?  dbFile.getImportMd5().get() : null);
-            importFile.setImportName(dbFile.getImportName());
-            importFile.setImportDate(dbFile.getImportDate());
-            importFile.setImportSize(dbFile.getImportSize());
-            if(dbFile.getLatitude() != null && dbFile.getLongitude() != null) {
-                importFile.setLocation(new LatLong(dbFile.getLatitude(),dbFile.getLongitude()));
-            } else {
-                importFile.setLocation(null);
-            }
-            importFile.setVideo(dbFile.getVideo());
+            transferFromDb(importFile, dbFile);
         }
 
         this.importFileCache.put(lowerNextFilename, importFile);
@@ -432,7 +435,7 @@ public class ImportManager extends FileProcessor {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Cannot un-ignore a file unless all data is known.
-            if(file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
+            if(file.getMd5Optional().isEmpty() || file.getSize() == null || file.getDate() == null) {
                 LOG.info("{} Cannot remove from ignore table because md5, size and/or date is missing.", filename);
                 return false;
             }
@@ -467,7 +470,7 @@ public class ImportManager extends FileProcessor {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
             // Insert the details of this file into the ignore table - we must have an MD5 to do this.
-            if(file.getMd5().isEmpty() || file.getSize() == null || file.getDate() == null) {
+            if(file.getMd5Optional().isEmpty() || file.getSize() == null || file.getDate() == null) {
                 LOG.info("{} Cannot ignore this file because md5, size and/or date is missing.", filename);
                 return false;
             }

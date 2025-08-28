@@ -171,45 +171,43 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void TestMD5() {
-        MD5 md5c;
-
         // First check the invalid checks.
         try {
-            md5c = new MD5((String) null);
+            new MD5((String) null);
             Assert.fail();
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
         }
 
         try {
-            md5c = new MD5("");
+            new MD5("");
             Assert.fail();
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
         }
 
         try {
-            md5c = new MD5("1234567890123456789012345678901");
+            new MD5("1234567890123456789012345678901");
             Assert.fail();
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("You must create MD5 with 32 characters", e.getMessage());
         }
 
         try {
-            md5c = new MD5("1234567890123456789012345678901G");
+            new MD5("1234567890123456789012345678901G");
             Assert.fail();
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("MD5 must only contain HEX digits (0-9 or A-F)", e.getMessage());
         }
 
-        md5c = new MD5("12345678901234567890123456789012");
+        MD5 md5c = new MD5("12345678901234567890123456789012");
 
         MD5 md5d = new MD5("12345678901234567890123456789013");
 
         MD5 md5e = new MD5("12345678901234567890123456789012");
 
-        Assert.assertEquals(md5c, md5c);
         Assert.assertEquals(md5c, md5e);
+        Assert.assertEquals(md5e, md5c);
         Assert.assertNotEquals(md5c, md5d);
         Assert.assertNotEquals(md5d, md5c);
     }

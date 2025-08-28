@@ -69,10 +69,8 @@ public class DbCompareNode  extends FileTreeNode {
         }
 
         private static String getCompareKey(DbNode source, DbNode destination) {
-            if(source != null && destination != null) {
-                if(source.compare(destination)) {
-                    return "EQUAL";
-                }
+            if(source != null && destination != null && source.compare(destination)) {
+                return "EQUAL";
             }
 
             return "NOT_EQUAL";

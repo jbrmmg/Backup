@@ -163,24 +163,18 @@ public abstract class FileProcessor {
         return Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    private void processFileAddUpdate(Source source, RwDbCompareNode node) {
+    private FileSystemObject getExistingFile(FileSystemObjectId id) {
         // If there is a database object, then read it first.
         Optional<FileSystemObject> existingFile = Optional.empty();
-        if(node.getDatabaseObjectId() != null) {
-            existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
+        if(id != null) {
+            existingFile = fileSystemObjectManager.findFileSystemObject(id);
         }
 
-        if(existingFile.isEmpty()) {
-            existingFile = Optional.of(createNewFile());
-        }
+        return existingFile.orElseGet(this::createNewFile);
+    }
 
-        // Get the real-world object.
-        RwFile rwNode = (RwFile)getRwNode(node);
-
-        if(rwNode.getName().isEmpty())
-            throw new IllegalStateException("Cannot insert a file with no name.");
-
-        FileInfo file = (FileInfo) existingFile.get();
+    private FileInfo saveFile(FileSystemObject existingFile, Source source, RwDbCompareNode node, RwFile rwNode) {
+        FileInfo file = (FileInfo) existingFile;
         file.setName(rwNode.getName().orElse(""));
         file.setParentId(getParentId(node).orElse(null));
 
@@ -230,20 +224,35 @@ public abstract class FileProcessor {
         }
 
         fileSystemObjectManager.save(file);
+        return file;
+    }
+
+    private void processFileAddUpdate(Source source, RwDbCompareNode node) {
+        // Get the existing file.
+        FileSystemObject existingFile = getExistingFile(node.getDatabaseObjectId());
+
+        // Get the real-world object.
+        RwFile rwNode = (RwFile)getRwNode(node);
+
+        if(rwNode.getName().isEmpty())
+            throw new IllegalStateException("Cannot insert a file with no name.");
+
+        // Save the file
+        FileInfo file = saveFile(existingFile, source, node, rwNode);
 
         // If required, gather meta data as well.
         if(source.getGatherMetaData() && file.getClassification() != null && file.getClassification().getCheckMetaData()) {
             LOG.info("Gathering metadata for {}",file.getName());
 
             Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(rwNode.getFile());
-            if(imageData.isPresent() && imageData.get().isValid() && existingFile.get().getIdAndType() != null) {
+            if(imageData.isPresent() && imageData.get().isValid() && existingFile.getIdAndType() != null) {
                 // Save the metadata.
-                fileSystemObjectManager.saveMetaData(new MetaData(existingFile.get().getIdAndType().getId(), imageData.get()));
+                fileSystemObjectManager.saveMetaData(new MetaData(existingFile.getIdAndType().getId(), imageData.get()));
             }
         }
 
         // Store the id of this item.
-        node.setDatabaseObjectId(existingFile.get());
+        node.setDatabaseObjectId(existingFile);
     }
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, GatherDataDTO gatherData) throws IOException {
