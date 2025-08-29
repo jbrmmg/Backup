@@ -74,7 +74,7 @@ public class CheckActivePhotoFile extends ImportStep {
 
     private boolean timeIsClose(FileInfo existingFile, PreImportFileDTO file) {
         // Are they the same date?
-        if (existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate())) {
+        if (!existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate())) {
             return false;
         }
 

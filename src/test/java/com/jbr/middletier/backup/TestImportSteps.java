@@ -1,12 +1,16 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.dataaccess.FileRepository;
+import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
+import com.jbr.middletier.backup.manager.importing.step.CheckActivePhotoFile;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportFile;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportProcessException;
 import org.junit.Assert;
@@ -17,6 +21,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import static com.jbr.middletier.backup.manager.importing.FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED;
 import static org.mockito.Mockito.*;
@@ -39,7 +46,6 @@ public class TestImportSteps {
 
         // Check invalid step
         try {
-            //{FileProcessingStepType@17793}FPS_CHECK_FILE_CONFIRMED_IMPORTED -> {ArrayList@17852} size = 3
             importFile.process(preImportFileDTO);
             Assert.fail();
         } catch (ImportProcessException ex) {
@@ -64,7 +70,6 @@ public class TestImportSteps {
 
         // Check invalid step
         try {
-            //{FileProcessingStepType@17793}FPS_CHECK_FILE_CONFIRMED_IMPORTED -> {ArrayList@17852} size = 3
             importFile.process(preImportFileDTO);
             Assert.fail();
         } catch (ImportProcessException ex) {
@@ -90,7 +95,6 @@ public class TestImportSteps {
 
         // Check invalid step
         try {
-            //{FileProcessingStepType@17793}FPS_CHECK_FILE_CONFIRMED_IMPORTED -> {ArrayList@17852} size = 3
             importFile.process(preImportFileDTO);
             Assert.fail();
         } catch (ImportProcessException ex) {
@@ -119,11 +123,54 @@ public class TestImportSteps {
 
         // Check invalid step
         try {
-            //{FileProcessingStepType@17793}FPS_CHECK_FILE_CONFIRMED_IMPORTED -> {ArrayList@17852} size = 3
             importFile.process(preImportFileDTO);
             Assert.fail();
         } catch (ImportProcessException ex) {
             Assert.assertEquals("The file TEST_FILE.txt does not exist.", ex.getMessage());
         }
+    }
+
+    @Test
+    public void TestStepCheckActivePhotoFile() {
+        com.jbr.middletier.backup.data.ImportFile fileInfo = mock(com.jbr.middletier.backup.data.ImportFile.class);
+        when(fileInfo.getDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,0));
+        List<FileInfo> fileInfos = Collections.singletonList(fileInfo);
+
+        ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
+        ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        FileRepository fileRepository = mock(FileRepository.class);
+        when(fileRepository.findByName(any())).thenReturn(fileInfos);
+
+        CheckActivePhotoFile checkActivePhotoFile = new  CheckActivePhotoFile(importFileRepository,fileRepository,importSourceManager);
+
+        PreImportFileDTO preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.isVideo()).thenReturn(true);
+        when(preImportFileDTO.getDuration()).thenReturn(10.0);
+
+        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.isVideo()).thenReturn(true);
+        when(preImportFileDTO.getDuration()).thenReturn(2.1);
+        when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.txt");
+
+        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.isVideo()).thenReturn(true);
+        when(preImportFileDTO.getDuration()).thenReturn(2.1);
+        when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.mov");
+        when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.txt");
+
+        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.isVideo()).thenReturn(true);
+        when(preImportFileDTO.getDuration()).thenReturn(2.1);
+        when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.mov");
+        when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
+        when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,1));
+
+        Assert.assertEquals(TrafficLightType.TL_RED,checkActivePhotoFile.performStep(preImportFileDTO));
     }
 }
