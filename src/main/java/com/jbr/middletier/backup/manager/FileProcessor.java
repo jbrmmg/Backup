@@ -227,7 +227,7 @@ public abstract class FileProcessor {
         return file;
     }
 
-    private void processFileAddUpdate(Source source, RwDbCompareNode node) {
+    private FileInfo processFileAddUpdate(Source source, RwDbCompareNode node) {
         // Get the existing file.
         FileSystemObject existingFile = getExistingFile(node.getDatabaseObjectId());
 
@@ -253,6 +253,8 @@ public abstract class FileProcessor {
 
         // Store the id of this item.
         node.setDatabaseObjectId(existingFile);
+
+        return file;
     }
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, GatherDataDTO gatherData) throws IOException {
@@ -294,8 +296,11 @@ public abstract class FileProcessor {
                         gatherData.increment(GatherDataDTO.GatherDataCountType.DIRECTORIES_INSERTED);
                         break;
                     case FILE_FOR_INSERT:
-                        processFileAddUpdate(source, compareNode);
+                        FileInfo file = processFileAddUpdate(source, compareNode);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
+                        if(file.isMd5Regenerated()) {
+                            gatherData.increment(GatherDataDTO.GatherDataCountType.MD5_UPDATES);
+                        }
                         break;
                 }
             } else {

@@ -146,6 +146,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setStatus("OK");
         sourceDTO.setPath(SOURCE_DIRECTORY);
         sourceDTO.setGatherMetaData(true);
+        sourceDTO.setPrimary(true);
 
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
 
@@ -1865,5 +1866,283 @@ public class SyncApiIT extends FileTester {
         fileSystemObjectManager.delete(files.get(0));
         fileSystemObjectManager.delete(files.get(1));
         associatedFileDataManager.deleteClassification(jpgxClassification);
+    }
+
+    @Test
+    public void TestPrimarySourceDateChange() throws Exception {
+        // Simulate a date change (but no MD5 change) on a primary source - should recalculate the MD5.
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test18");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> destinationDescription = getTestStructure("test18");
+        copyFiles(destinationDescription, DESTINATION_DIRECTORY);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        // Now change the date of the source.
+        File file = new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.jpgx");
+
+        if(file.exists()){
+            Assert.assertTrue(file.setLastModified(System.currentTimeMillis()));
+        } else {
+            Assert.fail();
+        }
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(1)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        // Updating the date on the destination should not cause an MD5 update.
+        file = new File("./target/it_test/destination/Photo/2013/October/AtHome/IMG_8231.jpgx");
+
+        if(file.exists()){
+            Assert.assertTrue(file.setLastModified(System.currentTimeMillis()));
+        } else {
+            Assert.fail();
+        }
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+    }
+
+    private void modify(File file, int changePosition, long length, boolean insert) throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(file.getAbsolutePath(), "rw")) {
+            long position = insert ? length - changePosition : changePosition; // index of byte you want to modify (0-based)
+            byte newValue = (byte) 0x7F; // new byte value
+
+            // Move the file pointer to the position
+            raf.seek(position);
+
+            if(insert){
+                // Insert the byte
+                byte[] bytes = new byte[(int) changePosition];
+                raf.readFully(bytes);
+
+                raf.seek(position);
+                raf.write(newValue);
+                raf.write(bytes);
+            } else {
+                // Overwrite the byte
+                raf.write(newValue);
+            }
+        }
+    }
+
+    @Test
+    public void TestPrimarySourceDateAndMD5Change() throws Exception {
+        // Simulate a date change and MD5 change on a primary source - should recalculate the MD5.
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test18");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> destinationDescription = getTestStructure("test18");
+        copyFiles(destinationDescription, DESTINATION_DIRECTORY);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[0].size",is(1102542)))
+                .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[1].size",is(1102542)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        // Modify a byte within the file.
+        modify(new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, false);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(1)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5",is("88C38F9673F4D0C27E199499B5B413A0")))
+                .andExpect(jsonPath("$[0].size",is(1102542)))
+                .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[1].size",is(1102542)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        // Updating the date on the destination should not cause an MD5 update.
+        modify(new File("./target/it_test/destination/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, false);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5",is("88C38F9673F4D0C27E199499B5B413A0")))
+                .andExpect(jsonPath("$[0].size",is(1102542)))
+                .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[1].size",is(1102542)));
+    }
+
+    @Test
+    public void TestPrimarySourceSizeChange() throws Exception {
+        // Simulate a size change on a primary source - should recalculate the MD5.
+        initialiseDirectories();
+
+        // Copy the resource files into the source directory
+        List<StructureDescription> sourceDescription = getTestStructure("test18");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> destinationDescription = getTestStructure("test18");
+        copyFiles(destinationDescription, DESTINATION_DIRECTORY);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[0].size",is(1102542)))
+                .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[1].size",is(1102542)));
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        // Modify add byte within the file.
+        modify(new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, true);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(1)))
+                .andExpect(jsonPath("$[1].md5Updates",is(0)));
+
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5",is("9CBF6EE6B25038791D91137DB9E2685F")))
+                .andExpect(jsonPath("$[0].size",is(1102543)))
+                .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
+                .andExpect(jsonPath("$[1].size",is(1102542)));
+
+        // Modify add byte within the file.
+        modify(new File("./target/it_test/destination/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, true);
+
+        getMockMvc().perform(post("/jbr/int/backup/gather")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5Updates",is(0)))
+                .andExpect(jsonPath("$[1].md5Updates",is(1)));
+
+        getMockMvc().perform(get("/jbr/int/backup/files")
+                        .content(this.json("Testing"))
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$[0].md5",is("9CBF6EE6B25038791D91137DB9E2685F")))
+                .andExpect(jsonPath("$[0].size",is(1102543)))
+                .andExpect(jsonPath("$[1].md5",is("9CBF6EE6B25038791D91137DB9E2685F")))
+                .andExpect(jsonPath("$[1].size",is(1102543)));
+    }
+
+    @Test
+    public void TestNonPrimarySourceSizeChange() {
+        // Simulate a date change on a non-primary source - should recalculate the MD5.
+    }
+
+    @Test
+    public void TestSyncSizeChange() {
+        // Simulate a size change - should copy the file and regenerate the MD5
+    }
+
+    @Test
+    public void TestSyncNoSizeButMD5Change() {
+        // Simulate an MD5 change - should copy the file and regenerate the MD5 on the destination.
+    }
+
+    @Test
+    public void TestSyncDateChangeNoCopy() {
+        // Simulate a date change on destination - there should be no file copy.
     }
 }

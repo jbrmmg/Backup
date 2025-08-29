@@ -6,7 +6,8 @@ public class GatherDataDTO extends ProcessResultDTO {
         DIRECTORIES_INSERTED("directoriesInserted"),
         FILES_REMOVED("filesRemoved"),
         DIRECTORIES_REMOVED("directoriesRemoved"),
-        DELETES("deletes");
+        DELETES("deletes"),
+        MD5_UPDATES("md5Updates");
 
         private final String type;
 
@@ -28,6 +29,7 @@ public class GatherDataDTO extends ProcessResultDTO {
         getCount(GatherDataCountType.FILES_REMOVED);
         getCount(GatherDataCountType.DIRECTORIES_REMOVED);
         getCount(GatherDataCountType.DELETES);
+        getCount(GatherDataCountType.MD5_UPDATES);
     }
 
     public void increment(GatherDataCountType countType) { increment(countType.getTypeName()); }
