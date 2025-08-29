@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
 import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
 import com.jbr.middletier.backup.util.FileSearch;
@@ -1163,6 +1164,9 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(2, fileInfoDTO.getParentId().intValue());
         Assert.assertEquals("DIRY", fileInfoDTO.getParentType());
         Assert.assertEquals(testDateTime,fileInfoDTO.getExpiry());
+
+        fileInfoDTO.setMd5(null);
+        Assert.assertNull(fileInfoDTO.getMd5());
     }
 
     @Test
@@ -1633,5 +1637,31 @@ public class TestGeneral extends WebTester {
 
         search = new FileSearch("1313");
         Assert.assertEquals(FileSearch.SearchType.SIZE,search.getSearchType());
+    }
+
+    @Test
+    public void testPreImportFileDTO() {
+        PreImportFileDTO preImportFileDTO = new PreImportFileDTO(true);
+        Assert.assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
+        Assert.assertTrue(preImportFileDTO.isStopMarker());
+
+        preImportFileDTO = new PreImportFileDTO(false);
+        Assert.assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
+        Assert.assertFalse(preImportFileDTO.isStopMarker());
+        Assert.assertFalse(preImportFileDTO.isInDatabase());
+        Assert.assertFalse(preImportFileDTO.isInImport());
+        Assert.assertFalse(preImportFileDTO.isInPostImport());
+
+        Assert.assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
+
+        preImportFileDTO.setUpdateTime(LocalDateTime.of(2012,12,23,0,0,0));
+        Assert.assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
+        Assert.assertTrue(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,22,0,0,0)));
+
+        preImportFileDTO.setImportMd5(null);
+        Assert.assertFalse(preImportFileDTO.getImportMd5Optional().isPresent());
+
+        preImportFileDTO.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
+        Assert.assertTrue(preImportFileDTO.getImportMd5Optional().isPresent());
     }
 }

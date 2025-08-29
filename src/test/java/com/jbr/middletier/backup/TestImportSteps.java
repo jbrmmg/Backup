@@ -1,9 +1,9 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
-import com.jbr.middletier.backup.data.FileInfo;
-import com.jbr.middletier.backup.data.TrafficLightType;
+import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
+import com.jbr.middletier.backup.dataaccess.IgnoreFileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import com.jbr.middletier.backup.manager.importing.step.CheckActivePhotoFile;
+import com.jbr.middletier.backup.manager.importing.step.CheckFileIgnored;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportFile;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportProcessException;
 import org.junit.Assert;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.jbr.middletier.backup.manager.importing.FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED;
 import static org.mockito.Mockito.*;
@@ -181,5 +183,52 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,30));
 
         Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+    }
+
+    @Test
+    public void TestStepCheckFileIgnored() {
+        ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
+        IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
+
+        CheckFileIgnored checkFileIgnored = new CheckFileIgnored(importFileRepository,importSourceManager,ignoreFileRepository);
+
+        PreImportFileDTO preImportFileDTO = mock(PreImportFileDTO.class);
+
+        Assert.assertEquals(TrafficLightType.TL_GREEN,checkFileIgnored.performStep(preImportFileDTO));
+
+        IgnoreFile ignoreFile = mock(IgnoreFile.class);
+        when(ignoreFile.getMd5()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF56")));
+        when(ignoreFile.getSize()).thenReturn(10L);
+        when(ignoreFile.getName()).thenReturn("TEST_FILE.txt");
+        when(ignoreFile.getDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,0));
+        when(ignoreFile.getIdAndType()).thenReturn(new FileSystemObjectId(1, FileSystemObjectType.FSO_IGNORE_FILE));
+        List<IgnoreFile> ignoreFiles = Collections.singletonList(ignoreFile);
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.getMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF56")));
+        when(preImportFileDTO.getSize()).thenReturn(10L);
+
+        ignoreFileRepository = mock(IgnoreFileRepository.class);
+        when(ignoreFileRepository.findAllByOrderByIdAsc()).thenReturn(ignoreFiles);
+
+        checkFileIgnored = new CheckFileIgnored(importFileRepository,importSourceManager,ignoreFileRepository);
+
+        Assert.assertEquals(TrafficLightType.TL_RED,checkFileIgnored.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.getMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF57")));
+        when(preImportFileDTO.getSize()).thenReturn(11L);
+        when(preImportFileDTO.getImportMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF56")));
+        when(preImportFileDTO.getImportSize()).thenReturn(10L);
+        Assert.assertEquals(TrafficLightType.TL_RED,checkFileIgnored.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.getMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF57")));
+        when(preImportFileDTO.getSize()).thenReturn(10L);
+        when(preImportFileDTO.getImportMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF57")));
+        when(preImportFileDTO.getImportSize()).thenReturn(11L);
+        when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.txt");
+        Assert.assertEquals(TrafficLightType.TL_AMBER,checkFileIgnored.performStep(preImportFileDTO));
     }
 }
