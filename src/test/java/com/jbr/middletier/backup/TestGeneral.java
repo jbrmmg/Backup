@@ -1245,6 +1245,43 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("icon",fileDTO.getIcon());
         Assert.assertEquals("path field",fileDTO.getPath());
         Assert.assertEquals("location",fileDTO.getLocationName());
+        Assert.assertTrue(fileDTO.getMd5Optional().isPresent());
+        Assert.assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
+
+        fileInfo = new FileInfo();
+        fileInfo.setId(1);
+        fileInfo.setName("Test");
+        fileInfo.setDate(LocalDateTime.now());
+        fileInfo.setSize(10);
+        fileInfo.setMd5(null);
+        fileInfo.setClassification(classification);
+
+        fileDTO = new FileDTO(fileInfo,"full", "path", "location");
+        fileDTO.setId(2);
+        fileDTO.setName("Test Blah");
+        fileDTO.setFullFilename("full name");
+        fileDTO.setSize(11);
+        fileDTO.setDate(LocalDateTime.now());
+        fileDTO.setImage(false);
+        fileDTO.setVideo(false);
+        fileDTO.setIcon("icon");
+        fileDTO.setPath("path field");
+        fileDTO.setLocationName("location");
+
+        Assert.assertEquals(2,fileDTO.getId());
+        Assert.assertEquals("Test Blah",fileDTO.getName());
+        Assert.assertEquals("full name",fileDTO.getFullFilename());
+        Assert.assertEquals(11,fileDTO.getSize());
+        Assert.assertFalse(fileDTO.isImage());
+        Assert.assertFalse(fileDTO.isVideo());
+        Assert.assertEquals("icon",fileDTO.getIcon());
+        Assert.assertEquals("path field",fileDTO.getPath());
+        Assert.assertEquals("location",fileDTO.getLocationName());
+        Assert.assertFalse(fileDTO.getMd5Optional().isPresent());
+
+        fileDTO.setMd5(new MD5("12345678901234567890123456789012"));
+        Assert.assertTrue(fileDTO.getMd5Optional().isPresent());
+        Assert.assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
     }
 
     @Test
