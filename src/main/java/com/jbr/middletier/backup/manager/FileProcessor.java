@@ -204,6 +204,7 @@ public abstract class FileProcessor {
 
         // If there is a size difference, update it and clear the MD5
         if(Math.abs(sizeDifference) > 0) {
+            file.setMd5(null);
             file.setSize(rwNode.getFile().length());
             changes = true;
         }

@@ -70,6 +70,14 @@ public class SynchronizeManager {
                 LOG.warn("Failed to set the last modified date {}", destinationFile);
                 result.setProblems();
             }
+
+            // If there is a destination file already in the database, then clear its MD5.
+            if(node.getDestination() != null && node.getDestination().getFSO() != null) {
+                LOG.info("Process backup (clearing MD5) - {}", node.getDestination().getFSO());
+                FileInfo destinationFileInfo = (FileInfo)node.getDestination().getFSO();
+                destinationFileInfo.setMd5(null);
+                fileSystemObjectManager.save(destinationFileInfo);
+            }
         } catch(Exception ex) {
             dbLoggingManager.error("Failed to backup " + node.toString(),node.getSource().getFSO().getIdAndType().getId(),null);
         }

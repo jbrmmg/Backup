@@ -59,7 +59,9 @@ public class FileInfo extends FileSystemObject {
         this.md5 = md5 != null ? md5.toString() : null;
     }
 
-    public Optional<MD5> getMd5() { return this.md5 == null ? Optional.empty() : Optional.of(new MD5(this.md5)); }
+    public Optional<MD5> getMd5() {
+        return this.md5 == null ? Optional.empty() : Optional.of(new MD5(this.md5));
+    }
 
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
         if(this.getIdAndType().equals(otherFile.getIdAndType())) {
