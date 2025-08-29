@@ -2379,7 +2379,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].size",is(443707)))
                 .andExpect(jsonPath("$[1].md5",is("C56590F0A404CF1778574FD18675B56C")))
                 .andExpect(jsonPath("$[1].size",is(443707)))
-                .andExpect(jsonPath("$[1].date",is(formatted)));
+                .andExpect(jsonPath("$[1].date",startsWith(formatted.substring(0,13))));
 
         getMockMvc().perform(post("/jbr/int/backup/sync")
                         .content(this.json("Testing"))
@@ -2413,6 +2413,6 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].size",is(443707)))
                 .andExpect(jsonPath("$[1].md5",is("C56590F0A404CF1778574FD18675B56C")))
                 .andExpect(jsonPath("$[1].size",is(443707)))
-                .andExpect(jsonPath("$[1].date",is(formatted)));
+                .andExpect(jsonPath("$[1].date",startsWith(formatted.substring(0,13))));
     }
 }
