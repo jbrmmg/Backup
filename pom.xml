@@ -30,6 +30,13 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
+    <scm>
+        <connection>scm:git:git@github.com:jbrmmg/Backup.git</connection>
+        <developerConnection>scm:git:git@github.com:jbrmmg/Backup.git</developerConnection>
+        <url>https://github.com/jbrmmg/Backup</url>
+        <tag>HEAD</tag>
+    </scm>
+
 
     <build>
         <resources>
