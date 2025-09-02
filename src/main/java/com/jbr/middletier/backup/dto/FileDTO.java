@@ -2,7 +2,6 @@ package com.jbr.middletier.backup.dto;
 
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.MD5;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 
@@ -52,5 +51,5 @@ public class FileDTO {
 
     public void setMd5(MD5 md5) { this.md5 = md5 != null ? md5.toString() : null; }
 
-    public Optional<MD5> getMd5Optional() { return this.md5 == null ? Optional.empty() : Optional.of(new MD5(this.md5)); }
+    public Optional<MD5> getMd5Optional() { return this.md5 == null || this.md5.isEmpty() ? Optional.empty() : Optional.of(new MD5(this.md5)); }
 }

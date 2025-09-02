@@ -60,7 +60,7 @@ public class FileInfo extends FileSystemObject {
     }
 
     public Optional<MD5> getMd5() {
-        return this.md5 == null ? Optional.empty() : Optional.of(new MD5(this.md5));
+        return this.md5 == null || this.md5.isEmpty() ? Optional.empty() : Optional.of(new MD5(this.md5));
     }
 
     public boolean duplicate(@org.jetbrains.annotations.NotNull FileInfo otherFile) {
