@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--suppress MavenModelInspection -->
-<project
-        xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.jbr.middle-backup</groupId>
     <artifactId>MiddleTier-Backup</artifactId>
-    <version>3.1.0-SNAPSHOT</version>
+    <version>3.1.0</version>
 
     <packaging>jar</packaging>
     <name>MiddleTier-Backup</name>
@@ -34,7 +31,7 @@
         <connection>scm:git:git@github.com:jbrmmg/Backup.git</connection>
         <developerConnection>scm:git:git@github.com:jbrmmg/Backup.git</developerConnection>
         <url>https://github.com/jbrmmg/Backup</url>
-        <tag>HEAD</tag>
+        <tag>v3.1.0</tag>
     </scm>
 
 
@@ -202,12 +199,12 @@
                         <phase>generate-sources</phase> <!-- Runs early in the build process -->
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/it_test"/>
-                                <mkdir dir="${project.build.directory}/it_test/source"/>
-                                <mkdir dir="${project.build.directory}/it_test/destination"/>
-                                <mkdir dir="${project.build.directory}/it_test/pre-import"/>
-                                <mkdir dir="${project.build.directory}/it_test/import"/>
-                                <mkdir dir="${project.build.directory}/it_test/post-import"/>
+                                <mkdir dir="${project.build.directory}/it_test" />
+                                <mkdir dir="${project.build.directory}/it_test/source" />
+                                <mkdir dir="${project.build.directory}/it_test/destination" />
+                                <mkdir dir="${project.build.directory}/it_test/pre-import" />
+                                <mkdir dir="${project.build.directory}/it_test/import" />
+                                <mkdir dir="${project.build.directory}/it_test/post-import" />
                             </target>
                         </configuration>
                         <goals>
