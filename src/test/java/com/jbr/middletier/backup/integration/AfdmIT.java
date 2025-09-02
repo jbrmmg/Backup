@@ -108,7 +108,6 @@ public class AfdmIT {
         newDTO.setIcon("Fred");
         newDTO.setOrder(1);
         newDTO.setRegex("x");
-        newDTO.setUseMD5(true);
         newDTO.setIsVideo(false);
 
         Classification newClassification = associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(newDTO));
@@ -125,7 +124,6 @@ public class AfdmIT {
         Assert.assertEquals("x", findClassification.get().get().getRegex());
         Assert.assertEquals(false, findClassification.get().get().getIsImage());
         Assert.assertEquals(false, findClassification.get().get().getIsVideo());
-        Assert.assertEquals(true, findClassification.get().get().getUseMD5());
 
         associatedFileDataManager.deleteClassification(findClassification.get().get());
 

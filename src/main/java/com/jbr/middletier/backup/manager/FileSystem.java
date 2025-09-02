@@ -144,11 +144,7 @@ public class FileSystem {
         return new String(hexChars);
     }
 
-    public MD5 getClassifiedFileMD5(Path path, Classification classification, Integer id) {
-        if(classification == null || !classification.getUseMD5()) {
-            return new MD5();
-        }
-
+    public Optional<MD5> getFileMD5(Path path, Integer id) {
         try {
             LOG.debug("Start get MD5 for {}", path);
             // Calculate the MD5 for the file.
@@ -163,15 +159,16 @@ public class FileSystem {
                 }
                 md = dis.getMessageDigest();
             }
-            LOG.debug("End get MD5 for {}", path);
+            MD5 md5 = new MD5(bytesToHex(md.digest()));
+            LOG.debug("End get MD5 for {} {}", path, md5);
 
-            return new MD5(bytesToHex(md.digest()));
+            return Optional.of(md5);
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
             dbLoggingManager.error("Cannot get MD5 - " + path.toString(), id, null);
         }
 
-        return new MD5();
+        return Optional.empty();
     }
 
     public interface FileWalker {

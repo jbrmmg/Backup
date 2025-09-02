@@ -26,7 +26,6 @@ public class HierarchyResponse {
     @Setter
     @Getter
     private LocalDateTime dateTime;
-    @Setter
     @Getter
     private String md5;
     @Setter
@@ -45,6 +44,10 @@ public class HierarchyResponse {
     public void setPath(String path) { this.name = path; }
 
     public String getPath() { return this.name; }
+
+    public void setMd5(MD5 md5) {
+        this.md5 = md5 != null ? md5.toString() : null;
+    }
 
     public boolean getDirectory() { return this.directory; }
 

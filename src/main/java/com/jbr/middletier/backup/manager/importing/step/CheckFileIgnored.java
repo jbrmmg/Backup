@@ -41,7 +41,7 @@ public class CheckFileIgnored extends ImportStep {
         similar.setFilename(ignoreFile.getName() + " [" + ignoreFile.getIdAndType().getType() + "]");
         similar.setDate(ignoreFile.getDate());
         similar.setSize(ignoreFile.getSize());
-        similar.setMd5(ignoreFile.getMD5().toString());
+        similar.setMd5(ignoreFile.getMd5().isPresent() ? ignoreFile.getMd5().get() : null);
 
         return similar;
     }
@@ -49,11 +49,11 @@ public class CheckFileIgnored extends ImportStep {
     private boolean checkOnMd5(PreImportFileDTO file) {
         for(IgnoreFile nextIgnoreFile : ignoreFileRepository.findAllByOrderByIdAsc()) {
             // Does this match on the file MD5
-            if(nextIgnoreFile.getMD5().toString().equals(file.getMd5()) && nextIgnoreFile.getSize().equals(file.getSize())) {
+            if(nextIgnoreFile.getMd5().equals(file.getMd5Optional()) && nextIgnoreFile.getSize().equals(file.getSize())) {
                 file.addSimilarFile(getSimilarFile(nextIgnoreFile));
                 return true;
             }
-            if(nextIgnoreFile.getMD5().toString().equalsIgnoreCase(file.getImportMd5())  && nextIgnoreFile.getSize().equals(file.getSize())) {
+            if(nextIgnoreFile.getMd5().equals(file.getImportMd5Optional()) && nextIgnoreFile.getSize().equals(file.getImportSize())) {
                 file.addSimilarFile(getSimilarFile(nextIgnoreFile));
                 return true;
             }

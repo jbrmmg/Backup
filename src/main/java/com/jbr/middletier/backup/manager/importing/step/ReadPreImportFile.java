@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.jbr.middletier.backup.manager.FileProcessor;
 import java.io.File;
+import java.util.Optional;
 
 @Component
 public class ReadPreImportFile extends ImportStep {
@@ -33,7 +34,9 @@ public class ReadPreImportFile extends ImportStep {
         if(dbRecord.getSize() == null) {
             dbRecord.setSize(file.getSize());
             dbRecord.setDate(file.getDate());
-            dbRecord.setMD5(new MD5(file.getMd5()));
+            if(file.getMd5Optional().isPresent()) {
+                dbRecord.setMd5(file.getMd5Optional().get());
+            }
 
             return true;
         }
@@ -48,13 +51,13 @@ public class ReadPreImportFile extends ImportStep {
 
     protected boolean getMD5(PreImportFileDTO file, File realWorldFile, boolean importMd5) {
         try {
-            Classification dummyClassification = new Classification();
-            dummyClassification.setUseMD5(true);
-            MD5 md5 = fileSystem.getClassifiedFileMD5(realWorldFile.toPath(), dummyClassification, 0);
-            if(importMd5) {
-                file.setImportMd5(md5.toString());
-            } else {
-                file.setMd5(md5.toString());
+            Optional<MD5> md5 = fileSystem.getFileMD5(realWorldFile.toPath(), 0);
+            if(md5.isPresent()) {
+                if(importMd5) {
+                    file.setImportMd5(md5.get());
+                } else {
+                    file.setMd5(md5.get());
+                }
             }
             return true;
         } catch (Exception e) {

@@ -1,5 +1,8 @@
 package com.jbr.middletier.backup.data;
 
+import lombok.Getter;
+
+@Getter
 public enum TrafficLightType {
     TL_UNKNOWN("UNKNOWN"),
     TL_RED("RED"),
@@ -10,10 +13,6 @@ public enum TrafficLightType {
 
     TrafficLightType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return this.value;
     }
 
     public static TrafficLightType getFromName(String name) {

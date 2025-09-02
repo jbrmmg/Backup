@@ -36,8 +36,8 @@ public class Source extends FileSystemObject {
     private Boolean gatherMetaData;
 
     @Setter
-    @Column(name="use_date")
-    private Boolean useDate;
+    @Column(name="primary_source")
+    private Boolean primary;
 
     protected Source(FileSystemObjectType sourceType) {
         super(sourceType);
@@ -68,9 +68,9 @@ public class Source extends FileSystemObject {
         return Optional.of(new File(this.mountCheck));
     }
 
-    public boolean getUseDate() {
-        // Default is true.
-        return useDate == null || useDate;
+    public boolean getPrimary() {
+        // Default is false.
+        return primary != null && primary;
     }
 
     @Override

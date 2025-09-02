@@ -11,11 +11,9 @@ public abstract class DbNode extends FileTreeNode {
 
     public abstract boolean isDirectory();
 
-    public abstract boolean useDate();
-
     public abstract FileSystemObjectId getObjectId();
 
-    public abstract DbNodeCompareResultType compare(DbNode rhs);
+    public abstract boolean compare(DbNode rhs);
 
     public abstract FileSystemObject getFSO();
 }

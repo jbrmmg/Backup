@@ -16,6 +16,7 @@ public class SourceDTO {
     private long totalFileSize;
     private long largestFile;
     private Boolean gatherMetaData;
+    private Boolean primary;
 
     public SourceDTO() {
         setId(null);
@@ -25,6 +26,7 @@ public class SourceDTO {
         this.totalFileSize = 0;
         this.largestFile = 0;
         this.mountCheck = null;
+        this.primary = false;
     }
     public void incrementDirectoryCount() {
         this.directoryCount++;

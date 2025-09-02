@@ -12,7 +12,7 @@ logging:
 
 spring:
   datasource:
-    url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false
+    url: ${db.pdn.backup.server}?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
     username: ${db.pdn.backup.user}
     password: ${db.pdn.backup.password}
 

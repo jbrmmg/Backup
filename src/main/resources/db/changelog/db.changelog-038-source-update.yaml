@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 38
+      author: jason
+      changes:
+
+        - dropColumn:
+            tableName: classification
+            columnName: useMD5
+
+        - dropColumn:
+            tableName: source
+            columnName: use_date
+
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: primary_source
+                  type: boolean

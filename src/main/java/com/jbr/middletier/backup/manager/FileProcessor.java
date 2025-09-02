@@ -163,24 +163,18 @@ public abstract class FileProcessor {
         return Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    private void processFileAddUpdate(Source source, RwDbCompareNode node) {
+    private FileSystemObject getExistingFile(FileSystemObjectId id) {
         // If there is a database object, then read it first.
         Optional<FileSystemObject> existingFile = Optional.empty();
-        if(node.getDatabaseObjectId() != null) {
-            existingFile = fileSystemObjectManager.findFileSystemObject(node.getDatabaseObjectId());
+        if(id != null) {
+            existingFile = fileSystemObjectManager.findFileSystemObject(id);
         }
 
-        if(existingFile.isEmpty()) {
-            existingFile = Optional.of(createNewFile());
-        }
+        return existingFile.orElseGet(this::createNewFile);
+    }
 
-        // Get the real-world object.
-        RwFile rwNode = (RwFile)getRwNode(node);
-
-        if(rwNode.getName().isEmpty())
-            throw new IllegalStateException("Cannot insert a file with no name.");
-
-        FileInfo file = (FileInfo) existingFile.get();
+    private FileInfo saveFile(FileSystemObject existingFile, Source source, RwDbCompareNode node, RwFile rwNode) {
+        FileInfo file = (FileInfo) existingFile;
         file.setName(rwNode.getName().orElse(""));
         file.setParentId(getParentId(node).orElse(null));
 
@@ -196,27 +190,72 @@ public abstract class FileProcessor {
             timeDifference = ChronoUnit.SECONDS.between(fileDate, file.getDate());
         }
 
-        if((file.getSize() == null) || (file.getSize().compareTo(rwNode.getFile().length()) != 0) || (Math.abs(timeDifference) > 1)) {
-            file.setSize(rwNode.getFile().length());
+        // If there is a time difference, update it.
+        boolean changes = false;
+        if(Math.abs(timeDifference) > 1) {
             file.setDate(fileDate);
-            file.setMD5(fileSystem.getClassifiedFileMD5(rwNode.getFile().toPath(), file.getClassification(),file.getIdAndType().getId()));
+            changes = true;
+        }
+
+        long sizeDifference = 100;
+        if(file.getSize() != null) {
+            sizeDifference = file.getSize() - rwNode.getFile().length();
+        }
+
+        // If there is a size difference, update it and clear the MD5
+        if(Math.abs(sizeDifference) > 0) {
+            file.setMd5(null);
+            file.setSize(rwNode.getFile().length());
+            changes = true;
+        }
+
+        // Is this a primary source?
+        if(source.getPrimary()) {
+            // Any changes should re-calculate the MD5
+            if(changes || file.getMd5().isEmpty()) {
+                Optional<MD5> md5 = fileSystem.getFileMD5(rwNode.getFile().toPath(),file.getIdAndType().getId());
+                md5.ifPresent(file::setMd5);
+            }
+        } else {
+            // Only update the MD5 if it is missing.
+            if(file.getMd5().isEmpty()) {
+                Optional<MD5> md5 = fileSystem.getFileMD5(rwNode.getFile().toPath(),file.getIdAndType().getId());
+                md5.ifPresent(file::setMd5);
+            }
         }
 
         fileSystemObjectManager.save(file);
+        return file;
+    }
+
+    private FileInfo processFileAddUpdate(Source source, RwDbCompareNode node) {
+        // Get the existing file.
+        FileSystemObject existingFile = getExistingFile(node.getDatabaseObjectId());
+
+        // Get the real-world object.
+        RwFile rwNode = (RwFile)getRwNode(node);
+
+        if(rwNode.getName().isEmpty())
+            throw new IllegalStateException("Cannot insert a file with no name.");
+
+        // Save the file
+        FileInfo file = saveFile(existingFile, source, node, rwNode);
 
         // If required, gather meta data as well.
         if(source.getGatherMetaData() && file.getClassification() != null && file.getClassification().getCheckMetaData()) {
             LOG.info("Gathering metadata for {}",file.getName());
 
             Optional<FileSystemImageData> imageData = fileSystem.readImageMetaData(rwNode.getFile());
-            if(imageData.isPresent() && imageData.get().isValid() && existingFile.get().getIdAndType() != null) {
+            if(imageData.isPresent() && imageData.get().isValid() && existingFile.getIdAndType() != null) {
                 // Save the metadata.
-                fileSystemObjectManager.saveMetaData(new MetaData(existingFile.get().getIdAndType().getId(), imageData.get()));
+                fileSystemObjectManager.saveMetaData(new MetaData(existingFile.getIdAndType().getId(), imageData.get()));
             }
         }
 
         // Store the id of this item.
-        node.setDatabaseObjectId(existingFile.get());
+        node.setDatabaseObjectId(existingFile);
+
+        return file;
     }
 
     protected void updateDatabase(Source source, List<ActionConfirm> deletes, GatherDataDTO gatherData) throws IOException {
@@ -231,7 +270,7 @@ public abstract class FileProcessor {
 
         // Compare the real world with the database.
         LOG.info("Perform the compare.");
-        RwDbTree compare = new RwDbTree(realWorld, database, source.getUseDate());
+        RwDbTree compare = new RwDbTree(realWorld, database);
         compare.compare();
 
         // Perform deletes
@@ -258,8 +297,11 @@ public abstract class FileProcessor {
                         gatherData.increment(GatherDataDTO.GatherDataCountType.DIRECTORIES_INSERTED);
                         break;
                     case FILE_FOR_INSERT:
-                        processFileAddUpdate(source, compareNode);
+                        FileInfo file = processFileAddUpdate(source, compareNode);
                         gatherData.increment(GatherDataDTO.GatherDataCountType.FILES_INSERTED);
+                        if(file.isMd5Regenerated()) {
+                            gatherData.increment(GatherDataDTO.GatherDataCountType.MD5_UPDATES);
+                        }
                         break;
                 }
             } else {

@@ -39,7 +39,7 @@ public class CheckActivePhotoFile extends ImportStep {
         similar.setFilename(importFile.getName() + " [" + importFile.getIdAndType().getType() + "]");
         similar.setDate(importFile.getImportDate());
         similar.setSize(importFile.getImportSize());
-        similar.setMd5(importFile.getImportMd5());
+        similar.setMd5(importFile.getImportMd5().isPresent() ? importFile.getImportMd5().get() : null);
 
         return similar;
     }
@@ -50,7 +50,7 @@ public class CheckActivePhotoFile extends ImportStep {
         similar.setFilename(existingFile.getName());
         similar.setDate(existingFile.getDate());
         similar.setSize(existingFile.getSize());
-        similar.setMd5(existingFile.getMD5().toString());
+        similar.setMd5(existingFile.getMd5().isPresent() ? existingFile.getMd5().get() : null);
 
         return similar;
     }
@@ -74,7 +74,7 @@ public class CheckActivePhotoFile extends ImportStep {
 
     private boolean timeIsClose(FileInfo existingFile, PreImportFileDTO file) {
         // Are they the same date?
-        if (existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate())) {
+        if (!existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate())) {
             return false;
         }
 

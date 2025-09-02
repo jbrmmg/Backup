@@ -255,7 +255,6 @@ public class TestBasicCRUD extends WebTester {
             ClassificationDTO classification = new ClassificationDTO();
             classification.setAction(ClassificationActionType.CA_BACKUP);
             classification.setOrder(10131);
-            classification.setUseMD5(true);
 
             getMockMvc().perform(post("/jbr/ext/backup/classification")
                     .content(this.json(classification))
@@ -267,7 +266,6 @@ public class TestBasicCRUD extends WebTester {
             for(Classification next: classificationRepository.findAll()) {
                 if(next.getOrder().equals(10131)) {
                     id = next.getId();
-                    Assert.assertTrue(next.getUseMD5());
                     Assert.assertEquals(id + "-null", next.toString());
                 }
             }
@@ -276,7 +274,6 @@ public class TestBasicCRUD extends WebTester {
             classification.setId(id);
             classification.setOrder(1);
             classification.setAction(ClassificationActionType.CA_BACKUP);
-            classification.setUseMD5(false);
 
             LOG.info("Classification {}", classification);
 

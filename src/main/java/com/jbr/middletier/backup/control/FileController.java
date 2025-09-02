@@ -156,7 +156,7 @@ public class FileController {
             response.setDisplayName(nextFile.getName());
             response.setUnderlyingId(nextFile.getIdAndType().getId());
             response.setSize(nextFile.getSize());
-            response.setMd5(nextFile.getMD5().getValue());
+            response.setMd5(nextFile.getMd5().isPresent() ? nextFile.getMd5().get() : null);
             response.setDateTime(nextFile.getDate());
 
             result.add(response);
@@ -175,9 +175,8 @@ public class FileController {
     }
 
     @PostMapping(path="/refresh-file-data")
-    public FileInfoExtra refreshFileData(@RequestParam("id") Integer id,
-                                         @RequestParam(value = "forceMD5",required = false) Boolean forceMD5) throws InvalidFileIdException {
-        return fileSystemObjectManager.refreshFileData(id, forceMD5 != null && forceMD5);
+    public FileInfoExtra refreshFileData(@RequestParam("id") Integer id) throws InvalidFileIdException {
+        return fileSystemObjectManager.refreshFileData(id);
     }
 
     @GetMapping(path="/findfile")

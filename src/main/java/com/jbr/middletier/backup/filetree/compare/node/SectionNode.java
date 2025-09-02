@@ -1,10 +1,12 @@
 package com.jbr.middletier.backup.filetree.compare.node;
 
 import com.jbr.middletier.backup.filetree.FileTreeNode;
+import lombok.Getter;
 
 import java.util.Objects;
 import java.util.Optional;
 
+@Getter
 public class SectionNode extends FileTreeNode  {
     public enum SectionNodeType { FILE_FOR_REMOVE, DIRECTORY_FOR_REMOVE, DIRECTORY_FOR_INSERT, FILE_FOR_INSERT }
 
@@ -13,10 +15,6 @@ public class SectionNode extends FileTreeNode  {
     public SectionNode(SectionNodeType section) {
         super(null);
         this.section = Objects.requireNonNull(section,"Cannot initialise a Rw DB Section with null.");
-    }
-
-    public SectionNodeType getSection() {
-        return this.section;
     }
 
     @Override

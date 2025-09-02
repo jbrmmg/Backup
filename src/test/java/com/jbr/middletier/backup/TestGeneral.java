@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.ApiError;
 import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
 import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
 import com.jbr.middletier.backup.util.FileSearch;
@@ -171,30 +172,45 @@ public class TestGeneral extends WebTester {
 
     @Test
     public void TestMD5() {
-        MD5 md5 = new MD5((String)null);
-        Assert.assertFalse(md5.isSet());
+        // First check the invalid checks.
+        try {
+            new MD5((String) null);
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
+        }
 
-        MD5 md5b = new MD5("");
-        Assert.assertFalse(md5b.isSet());
+        try {
+            new MD5("");
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
+        }
 
-        md5b = new MD5(md5);
-        Assert.assertFalse(md5.isSet());
+        try {
+            new MD5("1234567890123456789012345678901");
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("You must create MD5 with 32 characters", e.getMessage());
+        }
 
-        MD5 md5c = new MD5("Test");
-        Assert.assertTrue(md5c.isSet());
+        try {
+            new MD5("1234567890123456789012345678901G");
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("MD5 must only contain HEX digits (0-9 or A-F)", e.getMessage());
+        }
 
-        MD5 md5d = new MD5("Test2");
-        Assert.assertTrue(md5d.isSet());
+        MD5 md5c = new MD5("12345678901234567890123456789012");
 
-        MD5 md5e = new MD5("Test");
-        Assert.assertTrue(md5e.isSet());
+        MD5 md5d = new MD5("12345678901234567890123456789013");
 
-        Assert.assertTrue(md5c.compare(md5c, false));
-        Assert.assertTrue(md5c.compare(md5e, false));
-        Assert.assertFalse(md5c.compare(md5d, false));
-        Assert.assertTrue(md5c.compare(md5b,true));
-        Assert.assertTrue(md5b.compare(md5c,true));
-        Assert.assertFalse(md5c.compare(md5d,true));
+        MD5 md5e = new MD5("12345678901234567890123456789012");
+
+        Assert.assertEquals(md5c, md5e);
+        Assert.assertEquals(md5e, md5c);
+        Assert.assertNotEquals(md5c, md5d);
+        Assert.assertNotEquals(md5d, md5c);
     }
 
     @Test
@@ -748,7 +764,6 @@ public class TestGeneral extends WebTester {
         classificationDTO.setAction(CA_DELETE);
         classificationDTO.setOrder(1);
         classificationDTO.setRegex("Blah");
-        classificationDTO.setUseMD5(false);
         classificationDTO.setIcon("fred");
 
         Classification classification = associatedFileDataManager.convertToEntity(classificationDTO);
@@ -758,7 +773,6 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(CA_DELETE, classification.getAction());
         Assert.assertEquals(1,classification.getOrder().intValue());
         Assert.assertEquals("Blah", classification.getRegex());
-        Assert.assertFalse(classification.getUseMD5());
         Assert.assertEquals("fred", classification.getIcon());
     }
 
@@ -771,7 +785,6 @@ public class TestGeneral extends WebTester {
         classification.setAction(CA_DELETE);
         classification.setOrder(1);
         classification.setRegex("Blah");
-        classification.setUseMD5(false);
         classification.setIcon("fred");
 
         ClassificationDTO classificationDTO = associatedFileDataManager.convertToDTO(classification);
@@ -781,7 +794,6 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals(CA_DELETE, classificationDTO.getAction());
         Assert.assertEquals(1,classificationDTO.getOrder().intValue());
         Assert.assertEquals("Blah", classificationDTO.getRegex());
-        Assert.assertFalse(classificationDTO.getUseMD5());
         Assert.assertEquals("fred", classificationDTO.getIcon());
     }
 
@@ -1130,13 +1142,12 @@ public class TestGeneral extends WebTester {
         classification.setAction(CA_DELETE);
         classification.setOrder(1);
         classification.setRegex("Blah");
-        classification.setUseMD5(false);
         classification.setIcon("fred");
         FileInfo fileInfo = new FileInfo();
         fileInfo.setId(1);
         fileInfo.setName("TestFile.txt");
         fileInfo.setSize(380);
-        fileInfo.setMD5(new MD5("testMD5"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setParent(null);
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
@@ -1149,10 +1160,13 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("TestFile.txt", fileInfoDTO.getFilename());
         Assert.assertEquals(LocalDateTime.parse("2022-02-27 22:23",formatter), fileInfoDTO.getDate());
         Assert.assertEquals(380, fileInfoDTO.getSize().intValue());
-        Assert.assertEquals("testMD5", fileInfoDTO.getMd5());
+        Assert.assertEquals("12345678901234567890123456789012", fileInfoDTO.getMd5());
         Assert.assertEquals(2, fileInfoDTO.getParentId().intValue());
         Assert.assertEquals("DIRY", fileInfoDTO.getParentType());
         Assert.assertEquals(testDateTime,fileInfoDTO.getExpiry());
+
+        fileInfoDTO.setMd5(null);
+        Assert.assertNull(fileInfoDTO.getMd5());
     }
 
     @Test
@@ -1166,13 +1180,12 @@ public class TestGeneral extends WebTester {
         classification.setAction(CA_BACKUP);
         classification.setOrder(1);
         classification.setRegex("Blah");
-        classification.setUseMD5(false);
         classification.setIcon("fred");
         FileInfo fileInfo = new FileInfo();
         fileInfo.setId(4);
         fileInfo.setName("TestFile2.txt");
         fileInfo.setSize(2423);
-        fileInfo.setMD5(new MD5("testMD5Again"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setParent(null);
         fileInfo.setClassification(classification);
         fileInfo.setDate(LocalDateTime.parse("2022-02-27 22:23",formatter));
@@ -1212,7 +1225,7 @@ public class TestGeneral extends WebTester {
         fileInfo.setName("Test");
         fileInfo.setDate(LocalDateTime.now());
         fileInfo.setSize(10);
-        fileInfo.setMD5(new MD5("md5"));
+        fileInfo.setMd5(new MD5("12345678901234567890123456789012"));
         fileInfo.setClassification(classification);
 
         FileDTO fileDTO = new FileDTO(fileInfo,"full", "path", "location");
@@ -1236,6 +1249,43 @@ public class TestGeneral extends WebTester {
         Assert.assertEquals("icon",fileDTO.getIcon());
         Assert.assertEquals("path field",fileDTO.getPath());
         Assert.assertEquals("location",fileDTO.getLocationName());
+        Assert.assertTrue(fileDTO.getMd5Optional().isPresent());
+        Assert.assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
+
+        fileInfo = new FileInfo();
+        fileInfo.setId(1);
+        fileInfo.setName("Test");
+        fileInfo.setDate(LocalDateTime.now());
+        fileInfo.setSize(10);
+        fileInfo.setMd5(null);
+        fileInfo.setClassification(classification);
+
+        fileDTO = new FileDTO(fileInfo,"full", "path", "location");
+        fileDTO.setId(2);
+        fileDTO.setName("Test Blah");
+        fileDTO.setFullFilename("full name");
+        fileDTO.setSize(11);
+        fileDTO.setDate(LocalDateTime.now());
+        fileDTO.setImage(false);
+        fileDTO.setVideo(false);
+        fileDTO.setIcon("icon");
+        fileDTO.setPath("path field");
+        fileDTO.setLocationName("location");
+
+        Assert.assertEquals(2,fileDTO.getId());
+        Assert.assertEquals("Test Blah",fileDTO.getName());
+        Assert.assertEquals("full name",fileDTO.getFullFilename());
+        Assert.assertEquals(11,fileDTO.getSize());
+        Assert.assertFalse(fileDTO.isImage());
+        Assert.assertFalse(fileDTO.isVideo());
+        Assert.assertEquals("icon",fileDTO.getIcon());
+        Assert.assertEquals("path field",fileDTO.getPath());
+        Assert.assertEquals("location",fileDTO.getLocationName());
+        Assert.assertFalse(fileDTO.getMd5Optional().isPresent());
+
+        fileDTO.setMd5(new MD5("12345678901234567890123456789012"));
+        Assert.assertTrue(fileDTO.getMd5Optional().isPresent());
+        Assert.assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
     }
 
     @Test
@@ -1587,5 +1637,31 @@ public class TestGeneral extends WebTester {
 
         search = new FileSearch("1313");
         Assert.assertEquals(FileSearch.SearchType.SIZE,search.getSearchType());
+    }
+
+    @Test
+    public void testPreImportFileDTO() {
+        PreImportFileDTO preImportFileDTO = new PreImportFileDTO(true);
+        Assert.assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
+        Assert.assertTrue(preImportFileDTO.isStopMarker());
+
+        preImportFileDTO = new PreImportFileDTO(false);
+        Assert.assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
+        Assert.assertFalse(preImportFileDTO.isStopMarker());
+        Assert.assertFalse(preImportFileDTO.isInDatabase());
+        Assert.assertFalse(preImportFileDTO.isInImport());
+        Assert.assertFalse(preImportFileDTO.isInPostImport());
+
+        Assert.assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
+
+        preImportFileDTO.setUpdateTime(LocalDateTime.of(2012,12,23,0,0,0));
+        Assert.assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
+        Assert.assertTrue(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,22,0,0,0)));
+
+        preImportFileDTO.setImportMd5(null);
+        Assert.assertFalse(preImportFileDTO.getImportMd5Optional().isPresent());
+
+        preImportFileDTO.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
+        Assert.assertTrue(preImportFileDTO.getImportMd5Optional().isPresent());
     }
 }

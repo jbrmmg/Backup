@@ -1,2 +1,2 @@
-Text.txt        Documents             Text1            2013-05-12-14-24          12
-Text.txt        Documents             Text2            2013-05-12-14-24          12
+Text.txt        Documents             Text1            2013-05-12-14-24          12          8D4F46976377897DFADF214D0526CF56
+Text.txt        Documents             Text2            2013-05-12-14-24          12          8D4F46976377897DFADF214D0526CF56

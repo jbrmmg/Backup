@@ -13,22 +13,17 @@ import java.util.Optional;
 public class DbDirectory extends DbNode {
     private final DirectoryInfo directoryInfo;
 
-    public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository, boolean useDate) {
+    public DbDirectory(FileTreeNode parent, DirectoryInfo directoryInfo, FileRepository fileRepository, DirectoryRepository directoryRepository) {
         super(parent);
         this.directoryInfo = directoryInfo;
 
         for(DirectoryInfo nextDirectory : directoryRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository, useDate));
+            addChild(new DbDirectory(this, nextDirectory, fileRepository, directoryRepository));
         }
 
         for(FileInfo nextFile : fileRepository.findByParentId(directoryInfo.getIdAndType().getId())) {
-            addChild(new DbFile(this, nextFile, useDate));
+            addChild(new DbFile(this, nextFile));
         }
-    }
-
-    @Override
-    public boolean useDate() {
-        return false;
     }
 
     @Override
@@ -56,15 +51,15 @@ public class DbDirectory extends DbNode {
     }
 
     @Override
-    public DbNodeCompareResultType compare(DbNode rhs) {
+    public boolean compare(DbNode rhs) {
         if(rhs == this)
-            return DbNodeCompareResultType.DBC_EQUAL;
+            return true;
 
         if( !(rhs instanceof DbDirectory lhs) )
-            return DbNodeCompareResultType.DBC_NOT_EQUAL;
+            return false;
 
         // They are equal if the names match.
-        return this.directoryInfo.getName().equals(lhs.directoryInfo.getName()) ? DbNodeCompareResultType.DBC_EQUAL : DbNodeCompareResultType.DBC_NOT_EQUAL;
+        return this.directoryInfo.getName().equals(lhs.directoryInfo.getName());
     }
 
     @Override

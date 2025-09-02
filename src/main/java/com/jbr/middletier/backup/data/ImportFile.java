@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Setter
 @Getter
@@ -50,4 +51,8 @@ public class ImportFile extends FileInfo {
     public ImportFile() {
         super(FileSystemObjectType.FSO_IMPORT_FILE);
     }
+
+    public void setImportMd5(MD5 md5) { this.importMd5 = md5 != null ? md5.toString() : null; }
+
+    public Optional<MD5> getImportMd5() { return this.importMd5 == null ? Optional.empty() : Optional.of(new MD5(this.importMd5)); }
 }

@@ -6,7 +6,7 @@ import org.junit.Assert;
 
 public class BasicDbFile extends DbFile {
     public BasicDbFile() {
-        super(null, new FileInfo(), true);
+        super(null, new FileInfo());
     }
 
     public boolean test() {
