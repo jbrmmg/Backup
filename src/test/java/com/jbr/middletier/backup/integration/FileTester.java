@@ -40,6 +40,7 @@ public class FileTester extends WebTester {
         public final String md5;
         public final LocalDateTime dateTime;
         public final Long fileSize;
+        public final String modify;
 
         public StructureDescription(String description) {
             String[] structureItems = description.split("\\s+");
@@ -49,6 +50,7 @@ public class FileTester extends WebTester {
             this.destinationName = structureItems[2];
             this.fileSize = (structureItems.length > 4) ? Long.parseLong(structureItems[4]) : null;
             this.md5 = (structureItems.length > 5) ? structureItems[5] : "";
+            this.modify = (structureItems.length > 6) ? structureItems[6] : "";
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
             this.dateTime = LocalDateTime.parse(structureItems[3],formatter);
@@ -197,7 +199,7 @@ public class FileTester extends WebTester {
                     text.append(">");
                 }
                 overallAssert = false;
-                text.append(" | | ");
+                text.append("| | | ");
             }
             text.append("|");
 
@@ -386,6 +388,36 @@ public class FileTester extends WebTester {
         return result;
     }
 
+    protected void modifyFile(Path destinationFile, String modify) {
+        // The modify instruction is the position in the file then the new value; 80298->242 sets the 80,298th byte in the file to be 242.
+        String[] split = modify.split("->");
+
+        if(split.length != 2) {
+            LOG.warn("Wrong number of split in modify file");
+            return;
+        }
+
+        long position = Long.parseLong(split[0]);
+        int value = Integer.parseInt(split[1]);
+
+        if(value < 0 || value > 255) {
+            LOG.warn("Value out of range.");
+            return;
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(destinationFile.toString(),"rw")) {
+            if(raf.length() <= position) {
+                LOG.warn("File is too small.");
+                return;
+            }
+
+            raf.seek(position);
+            raf.writeByte(value);
+        } catch (IOException e) {
+            LOG.error(e.getMessage(),e);
+        }
+    }
+
     protected void copyFiles(List<StructureDescription> description, String destination) throws IOException {
         for(StructureDescription nextFile: description) {
             Files.createDirectories(new File(destination + FileSystems.getDefault().getSeparator() + nextFile.directory).toPath());
@@ -397,6 +429,11 @@ public class FileTester extends WebTester {
                 Files.copy(stream,
                         destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
+
+                // If there is a modify instruction then update the file.
+                if(nextFile.modify != null) {
+                    modifyFile(destinationFile, nextFile.modify);
+                }
 
                 ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneId.systemDefault());
                 Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(zonedFileTime.toInstant().toEpochMilli()));

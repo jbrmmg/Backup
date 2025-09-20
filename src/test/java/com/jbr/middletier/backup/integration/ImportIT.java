@@ -624,7 +624,7 @@ public class ImportIT extends FileTester {
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
-        // Ask to remove any ignored.
+        // Ask to remove any confirmed as imported.
         getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -642,5 +642,36 @@ public class ImportIT extends FileTester {
         await()
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+    }
+
+    @Test
+    public void testFileIsDuplicate() throws Exception {
+        List<StructureDescription> sourceDescription = getTestStructure("test20");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> importDescription = getTestStructure("test20_import");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
+
+        // Import the source data
+        driveManager.gather(null);
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // get details of what is in the database.
+        for(PreImportFileDTO next : importManager.getImportFiles(0,0, null, null)) {
+            LOG.info("next {} similar count {}", next.getFilename(), next.getSimilarFiles().size());
+            for(FileProcessingStepType step : FileProcessingStepType.values()) {
+                LOG.info(" {} {}", step,  next.getStepStatus(step));
+            }
+        }
     }
 }
