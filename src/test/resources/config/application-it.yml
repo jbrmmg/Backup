@@ -5,9 +5,10 @@ spring:
 
 logging.file.name: ./target/test/log/itegrationtest.log
 logging:
-  file:
-    max-history: 3
-    max-size: 100MB
+  logback:
+    rollingpolicy:
+      max-history: 3
+      max-file-size: 100MB
 
 backup:
   enabled: false

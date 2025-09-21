@@ -3,7 +3,7 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/it-import/db.changelog-it-import-master.yaml
 
-logging.file.name: /home/jason/Downloads/DebugTest.log
+logging.file.name: ./target/test/log/itegrationtest.log
 logging:
   logback:
     rollingpolicy:
