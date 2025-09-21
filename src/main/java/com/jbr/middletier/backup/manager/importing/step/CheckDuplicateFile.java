@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import java.io.File;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,65 +108,31 @@ public class CheckDuplicateFile extends ImportStep {
         return file;
     }
 
-    private void getSimilarByMd5(String md5, PreImportFileDTO importFile) {
+    private void getSimilarByMd5AndSize(String md5, Long size, PreImportFileDTO importFile) {
         for(FileInfo next : fileRepository.findByMd5(md5)) {
             File file = validSource(next);
-            if(file != null) {
+            if(file != null && next.getSize().equals(size)) {
                 // Add this to the similar file list if it's not already there.
                 addSimilarFile(file, next, importFile);
             }
-        }
-    }
-
-    private void getSimilarByDate(LocalDateTime date, PreImportFileDTO importFile) {
-        for(FileInfo next : fileRepository.findByDate(date)) {
-            File file = validSource(next);
-            if(file != null) {
-                // Add this to the similar file list if it's not already there.
-                addSimilarFile(file, next, importFile);
-            }
-        }
-    }
-
-    private void getImportNameAndSizeCloseDate(String name, long size, LocalDateTime date, PreImportFileDTO importFile) {
-        for(FileInfo next : fileRepository.findByName(name)) {
-            File file = validSource(next);
-            long seconds = next.getDate() == null ? 86400 : Duration.between(next.getDate(), date).toSeconds();
-
-            // File not from valid source, size does not match, date does not batch or time is too far apart then continue.
-            if(file == null ||
-                    next.getDate() == null ||
-                    (next.getSize() != size) ||
-                    !next.getDate().toLocalDate().equals(date.toLocalDate()) ||
-                    (Math.abs(seconds) > 3600) ) {
-                continue;
-            }
-
-            // Add this to the similar file list if it's not already there.
-            addSimilarFile(file, next, importFile);
         }
     }
 
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
-        LOG.info("Checking duplicate file");
+        LOG.info("Checking duplicate file {}", file.getImportName());
         if(file.getMd5Optional().isPresent()) {
-            getSimilarByMd5(file.getMd5Optional().get().toString(), file);
+            LOG.debug("Md5 found for {}", file.getMd5Optional().get());
+            getSimilarByMd5AndSize(file.getMd5Optional().get().toString(), file.getSize(), file);
         }
-        getSimilarByDate(file.getDate(), file);
-        getImportNameAndSizeCloseDate(file.getFilename(), file.getSize(), file.getDate(), file);
         if(file.getImportMd5Optional().isPresent()) {
-            getSimilarByMd5(file.getImportMd5Optional().get().toString(), file);
-        }
-        if(file.getImportDate() != null) {
-            getSimilarByDate(file.getImportDate(), file);
-        }
-        if(file.getImportName() != null && file.getImportSize() != null && file.getImportDate() != null) {
-            getImportNameAndSizeCloseDate(file.getImportName(), file.getImportSize(), file.getImportDate(), file);
+            LOG.debug("Md5 (import) found for {}", file.getMd5Optional().get());
+            getSimilarByMd5AndSize(file.getImportMd5Optional().get().toString(), file.getImportSize(), file);
         }
 
         // If there are multiple files with the same MD5 then this file has been duplicated.
         List<String> existingMd5s = new ArrayList<>();
+        LOG.debug("Similar files? {}", file.getSimilarFiles().size());
         for(ImportFileBaseDTO next: file.getSimilarFiles()) {
             if(existingMd5s.contains(next.getMd5())) {
                 // This looks like there is a duplicate.

@@ -104,8 +104,11 @@ public class ImportManager extends FileProcessor {
 
             this.valid = true;
 
-            // Read the files currently in the import directories.
-            updateCache();
+            // Read the files currently in the import directories (if required).
+            if(this.importFileCache.loadCacheOnStartup()) {
+                LOG.info("Import file cache is loading.");
+                updateCache();
+            }
         } catch (Exception e) {
             this.valid = false;
             LOG.info("Error while initializing ImportManager, imports will be disabled.", e);
@@ -403,6 +406,7 @@ public class ImportManager extends FileProcessor {
         if(statusName != null && !statusName.isEmpty()) {
             status = TrafficLightType.getFromName(statusName);
         }
+        LOG.info("Import files: {} {}", step, status);
 
         // Get data from the pre-import directory.
         List<PreImportFileDTO> result = new ArrayList<>();

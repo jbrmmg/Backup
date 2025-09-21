@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.manager.importing;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,13 @@ public class ImportFileCache {
      */
     private final Map<String,ImportFileCacheEntry> cache;
     private final ImportFileWorkQueue importFileWorkQueue;
+    private final ApplicationProperties applicationProperties;
 
-    public ImportFileCache(ImportFileWorkQueue importFileWorkQueue) {
+    public ImportFileCache(ImportFileWorkQueue importFileWorkQueue,
+                           ApplicationProperties applicationProperties) {
         this.cache = new HashMap<>();
         this.importFileWorkQueue = importFileWorkQueue;
+        this.applicationProperties = applicationProperties;
     }
 
     public boolean containsKey(String filename) {
@@ -75,5 +79,14 @@ public class ImportFileCache {
 
     public int inQueue() {
         return this.importFileWorkQueue.itemsInQueue();
+    }
+
+    public boolean loadCacheOnStartup() {
+        // If not specified, default to true.
+        if(this.applicationProperties.getLoadCacheOnStartup() == null) {
+            return true;
+        }
+
+        return this.applicationProperties.getLoadCacheOnStartup();
     }
 }

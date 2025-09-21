@@ -26,11 +26,14 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
 
+import static java.time.Month.MAY;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -93,6 +96,12 @@ public class ImportIT extends FileTester {
     @Before
     public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException {
         initialiseDirectories();
+
+        // Ensure nothing is in the queue.
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+        importManager.clearCacheData();
 
         // Update JPG so it gets an MD5
         for (Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
@@ -624,7 +633,7 @@ public class ImportIT extends FileTester {
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
-        // Ask to remove any ignored.
+        // Ask to remove any confirmed as imported.
         getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -642,5 +651,202 @@ public class ImportIT extends FileTester {
         await()
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+    }
+
+    private void checkImportStatus(Map<String,String> expected) {
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
+            StringBuilder log = new StringBuilder();
+            for (FileProcessingStepType step : FileProcessingStepType.values()) {
+                switch (next.getStepStatus(step)) {
+                    case TL_GREEN -> log.append("G");
+                    case TL_RED -> log.append("R");
+                    case TL_UNKNOWN -> log.append("?");
+                    case TL_AMBER -> log.append("a");
+                }
+            }
+
+            LOG.info("next {} similar count {} status {}", next.getFilename(), next.getSimilarFiles().size(), log);
+
+            // Check the expected.
+            if(expected.containsKey(next.getFilename())) {
+                Assert.assertEquals(expected.get(next.getFilename()), log.toString());
+            } else {
+                Assert.assertEquals(expected.get(""), log.toString());
+            }
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+    }
+
+    @Test
+    public void testFileIsDuplicate() throws Exception {
+        List<StructureDescription> sourceDescription = getTestStructure("test20");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> importDescription = getTestStructure("test20_import");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
+
+        // Import the source data
+        driveManager.gather(null);
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        // Insert a file to be ignored.
+        //Photo.jpg       /                   Photo10.jpg         2013-10-11-15-32   1102542      BBA36F29D448E65C371CFCC45119C871  1009->20
+        IgnoreFile ignoreFile = new IgnoreFile();
+        ignoreFile.setName("Photo3");
+        ignoreFile.setSize(1102542);
+        ignoreFile.setMd5(new MD5("BD2C25281A1AC890F764D50A8D12EF27"));
+        ignoreFile.setDate(LocalDateTime.of(2013, MAY, 12, 3, 2, 3));
+        ignoreFileRepository.save(ignoreFile);
+
+        // trigger the refresh.
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // get details of what is in the database.
+        checkImportStatus(Map.of("Photo08.jpg", "GGGGGGGGG", "Photo03.jpg", "GGGRGGRGG", "Photo01.jpg", "GGGGGRRGG", "", "GGGGGGRGG"));
+
+        // Delete any files marked as ignored.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-ignored")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Photo03.jpg should now be removed.
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
+            Assert.assertNotEquals("Photo03.jpg", next.getFilename());
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Delete any files that are alrady imported.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Photo08.jpg should now be removed.
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
+            Assert.assertNotEquals("Photo08.jpg", next.getFilename());
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Delete the duplicate file.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-import-file")
+                        .content("Photo01.jpg")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Photo01.jpg should now be removed.
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
+            Assert.assertNotEquals("Photo01.jpg", next.getFilename());
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+    }
+
+    @Test
+    public void testImportFiles() throws Exception {
+        List<StructureDescription> sourceDescription = getTestStructure("test20");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> importDescription = getTestStructure("test20_import2");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
+
+        // Import the source data
+        driveManager.gather(null);
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        // Get the names of the import files.
+        List<String> names = new ArrayList<>();
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
+            names.add(next.getFilename());
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Set the import location for the remaining files.
+        for(String name : names) {
+            DestinationUpdateDTO request = new DestinationUpdateDTO();
+            request.setFilename(name);
+            request.setDestination("AtHome");
+
+            getMockMvc().perform(post("/jbr/int/backup/update-destination")
+                            .content(this.json(request))
+                            .contentType(getContentType()))
+                    .andExpect(status().isOk())
+                    .andDo(MockMvcResultHandlers.print())
+                    .andReturn();
+        }
+
+        // Perform the import.
+        getMockMvc().perform(post("/jbr/int/backup/import-photos")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // Perform gather
+        driveManager.gather(null);
+        List<StructureDescription> destinationDescription = getTestStructure("test20_import_after");
+        validateSource(fileSystemObjectManager, this.source, destinationDescription);
+
+        // Get the data again
+        getMockMvc().perform(delete("/jbr/int/backup/clear-cache")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        getMockMvc().perform(get("/jbr/int/backup/import-files?limit=0")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        checkImportStatus(Map.of("","GGGGGGGGG"));
+
+        // Remove all the imported files.
+        getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")
+                        .contentType(getContentType()))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        // There should now be no imported files.
+        Assert.assertEquals(0, importManager.getImportFiles(0, null, null, null).size());
     }
 }

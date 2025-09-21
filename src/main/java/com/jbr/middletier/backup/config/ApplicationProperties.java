@@ -307,6 +307,9 @@ public class ApplicationProperties {
     @Setter
     @Getter
     private Integer importThreads;
+    @Setter
+    @Getter
+    private Boolean loadCacheOnStartup;
     @Getter
     @Setter
     private String gatherSchedule;

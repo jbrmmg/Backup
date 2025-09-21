@@ -40,6 +40,7 @@ public class FileTester extends WebTester {
         public final String md5;
         public final LocalDateTime dateTime;
         public final Long fileSize;
+        public final String modify;
 
         public StructureDescription(String description) {
             String[] structureItems = description.split("\\s+");
@@ -49,6 +50,7 @@ public class FileTester extends WebTester {
             this.destinationName = structureItems[2];
             this.fileSize = (structureItems.length > 4) ? Long.parseLong(structureItems[4]) : null;
             this.md5 = (structureItems.length > 5) ? structureItems[5] : "";
+            this.modify = (structureItems.length > 6) ? structureItems[6] : "";
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
             this.dateTime = LocalDateTime.parse(structureItems[3],formatter);
@@ -197,7 +199,7 @@ public class FileTester extends WebTester {
                     text.append(">");
                 }
                 overallAssert = false;
-                text.append(" | | ");
+                text.append("| | | ");
             }
             text.append("|");
 
@@ -386,6 +388,91 @@ public class FileTester extends WebTester {
         return result;
     }
 
+    protected void modifyFileBinary(Path destinationFile, String modify) {
+        // The modify instruction is the position in the file then the new value; 80298->242 sets the 80,298th byte in the file to be 242.
+        String[] split = modify.split("->");
+
+        if(split.length != 2) {
+            LOG.warn("Wrong number of split in modify file");
+            return;
+        }
+
+        long position = Long.parseLong(split[0]);
+        int value = Integer.parseInt(split[1]);
+
+        if(value < 0 || value > 255) {
+            LOG.warn("Value out of range.");
+            return;
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(destinationFile.toString(),"rw")) {
+            if(raf.length() <= position) {
+                LOG.warn("File is too small.");
+                return;
+            }
+
+            raf.seek(position);
+            raf.writeByte(value);
+        } catch (IOException e) {
+            LOG.error(e.getMessage(),e);
+        }
+    }
+
+    protected void modifyFileDate(Path destinationFile, String modify) {
+        try {
+            // The modify instruction is the date for the meta data.
+            String[] split = modify.split("=");
+
+            if (split.length != 2) {
+                LOG.warn("Wrong number of split in modify file");
+                return;
+            }
+
+            //2013-10-11-15-35
+            //1234567890123456
+            if (split[1].length() != 16) {
+                LOG.warn("Date is the wrong length");
+                return;
+            }
+
+            // Transform the date time - specified as yyyy-MM-dd-hh-mm into yyyy:MM:dd hh:mm:00
+            //                                        0123456789012345
+            String date = split[1].substring(0, 4) + ":" + split[1].substring(5, 7) + ":" + split[1].substring(8, 10) + " " + split[1].substring(11, 13) + ":" + split[1].substring(14) + ":00";
+
+            // Use the exiftool to overwrite the date/time original.
+            List<String> command = List.of(
+                    "exiftool",
+                    "-DateTimeOriginal=" + date,
+                    "-overwrite_original",
+                    destinationFile.toString()
+            );
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            int exitCode = process.waitFor();
+            if(exitCode == 0) {
+                LOG.info("{} successfully modified.", date);
+            } else {
+                LOG.error("{} failed to modify ({}).", date, exitCode);
+            }
+        } catch (Exception e) {
+            LOG.error("Failed to modify file data: {}", e.getMessage(), e);
+        }
+    }
+
+    protected void modifyFile(Path destinationFile, String modify) {
+        // Process the modifications.
+        for(String next : modify.split(",")) {
+            if(next.toLowerCase().startsWith("meta-date")) {
+                modifyFileDate(destinationFile, next);
+            } else if(next.contains("->")) {
+                modifyFileBinary(destinationFile, next);
+            }
+        }
+    }
+
     protected void copyFiles(List<StructureDescription> description, String destination) throws IOException {
         for(StructureDescription nextFile: description) {
             Files.createDirectories(new File(destination + FileSystems.getDefault().getSeparator() + nextFile.directory).toPath());
@@ -397,6 +484,11 @@ public class FileTester extends WebTester {
                 Files.copy(stream,
                         destinationFile,
                         StandardCopyOption.REPLACE_EXISTING);
+
+                // If there is a modify instruction then update the file.
+                if(nextFile.modify != null) {
+                    modifyFile(destinationFile, nextFile.modify);
+                }
 
                 ZonedDateTime zonedFileTime = nextFile.dateTime.atZone(ZoneId.systemDefault());
                 Files.setLastModifiedTime(destinationFile, FileTime.fromMillis(zonedFileTime.toInstant().toEpochMilli()));

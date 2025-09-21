@@ -32,11 +32,14 @@ public class CheckFileConfirmedImported extends ImportStep {
 
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
-        LOG.info("Checking if file has been imported");
+        LOG.info("Checking if file has been imported {}", file.getImportName());
 
         // If it's been imported then there will be a similar file with the same name, md5, date/time and size.
         int count = 0;
         for(ImportFileBaseDTO next: file.getSimilarFiles()) {
+            LOG.debug("Similar check {} - {} {} {} {} {}", next.getFilename(), next.getType(), next.getMd5().equals(file.getImportMd5()), next.getFilename().toLowerCase().endsWith(file.getImportName().toLowerCase()), Objects.equals(next.getSize(), file.getImportSize()), next.getDate().equals(file.getImportDate()));
+            LOG.debug("Similar check date 1 {}", next.getDate());
+            LOG.debug("Similar check date 2 {}", file.getImportDate());
             if(next.getType() == FileSystemObjectType.FSO_FILE &&
                 next.getMd5().equals(file.getImportMd5()) &&
                 next.getFilename().toLowerCase().endsWith(file.getImportName().toLowerCase()) &&
