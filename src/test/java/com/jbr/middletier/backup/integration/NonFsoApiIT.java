@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.integration;
 
+import com.jayway.jsonpath.JsonPath;
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.ClassificationActionType;
@@ -329,10 +330,17 @@ public class NonFsoApiIT extends WebTester {
 
     @Test
     public void classificationApi() throws Exception {
-        // TODO - do not assume the size is 33 - work it out.
+        // Get the number of classifications
+        String response = getMockMvc().perform(get("/jbr/ext/backup/classification")
+                        .contentType(getContentType()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        int size = JsonPath.read(response, "$.length()");
+
         ClassificationDTO classificationDTO = new ClassificationDTO();
         classificationDTO.setIsVideo(false);
-        classificationDTO.setOrder(33);
+        classificationDTO.setOrder(size + 1);
         classificationDTO.setAction(ClassificationActionType.CA_BACKUP);
         classificationDTO.setRegex("*/sdaf");
         classificationDTO.setIcon("Flahr");
@@ -348,16 +356,16 @@ public class NonFsoApiIT extends WebTester {
         getMockMvc().perform(get("/jbr/ext/backup/classification")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(33)))
-                .andExpect(jsonPath("$[32].id", is(33)))
-                .andExpect(jsonPath("$[32].action", is(classificationDTO.getAction().toString())))
-                .andExpect(jsonPath("$[32].regex", is(classificationDTO.getRegex())))
-                .andExpect(jsonPath("$[32].isVideo", is(classificationDTO.getIsVideo())))
-                .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())))
-                .andExpect(jsonPath("$[32].isImage", is(classificationDTO.getIsImage())));
+                .andExpect(jsonPath("$", hasSize(size + 1)))
+                .andExpect(jsonPath("$[" + size + "].id", is(size + 1)))
+                .andExpect(jsonPath("$[" + size + "].action", is(classificationDTO.getAction().toString())))
+                .andExpect(jsonPath("$[" + size + "].regex", is(classificationDTO.getRegex())))
+                .andExpect(jsonPath("$[" + size + "].isVideo", is(classificationDTO.getIsVideo())))
+                .andExpect(jsonPath("$[" + size + "].icon", is(classificationDTO.getIcon())))
+                .andExpect(jsonPath("$[" + size + "].isImage", is(classificationDTO.getIsImage())));
 
         LOG.info("Modify the classification.");
-        classificationDTO.setId(33);
+        classificationDTO.setId(size + 1);
         classificationDTO.setIcon("FlahrXX");
         getMockMvc().perform(put("/jbr/ext/backup/classification")
                         .content(this.json(classificationDTO))
@@ -367,7 +375,7 @@ public class NonFsoApiIT extends WebTester {
         getMockMvc().perform(get("/jbr/ext/backup/classification")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[32].icon", is(classificationDTO.getIcon())));
+                .andExpect(jsonPath("$[" + size + "].icon", is(classificationDTO.getIcon())));
 
         LOG.info("Delete the hardware.");
         getMockMvc().perform(delete("/jbr/ext/backup/classification")
