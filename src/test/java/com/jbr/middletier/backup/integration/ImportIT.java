@@ -101,6 +101,7 @@ public class ImportIT extends FileTester {
         await()
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+        importManager.clearCacheData();
 
         // Update JPG so it gets an MD5
         for (Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
