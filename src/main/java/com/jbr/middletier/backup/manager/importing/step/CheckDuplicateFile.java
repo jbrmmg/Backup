@@ -111,12 +111,9 @@ public class CheckDuplicateFile extends ImportStep {
     private void getSimilarByMd5AndSize(String md5, Long size, PreImportFileDTO importFile) {
         for(FileInfo next : fileRepository.findByMd5(md5)) {
             File file = validSource(next);
-            if(file != null) {
-                // Is the size the same?
-                if(next.getSize().equals(size)) {
-                    // Add this to the similar file list if it's not already there.
-                    addSimilarFile(file, next, importFile);
-                }
+            if(file != null && next.getSize().equals(size)) {
+                // Add this to the similar file list if it's not already there.
+                addSimilarFile(file, next, importFile);
             }
         }
     }

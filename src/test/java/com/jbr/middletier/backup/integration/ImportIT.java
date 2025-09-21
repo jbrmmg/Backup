@@ -647,6 +647,32 @@ public class ImportIT extends FileTester {
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
     }
 
+    private void checkImportStatus(Map<String,String> expected) {
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
+            StringBuilder log = new StringBuilder();
+            for (FileProcessingStepType step : FileProcessingStepType.values()) {
+                switch (next.getStepStatus(step)) {
+                    case TL_GREEN -> log.append("G");
+                    case TL_RED -> log.append("R");
+                    case TL_UNKNOWN -> log.append("?");
+                    case TL_AMBER -> log.append("a");
+                }
+            }
+
+            LOG.info("next {} similar count {} status {}", next.getFilename(), next.getSimilarFiles().size(), log);
+
+            // Check the expected.
+            if(expected.containsKey(next.getFilename())) {
+                Assert.assertEquals(expected.get(next.getFilename()), log.toString());
+            } else {
+                Assert.assertEquals(expected.get(""), log.toString());
+            }
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+    }
+
     @Test
     public void testFileIsDuplicate() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test20");
@@ -679,35 +705,7 @@ public class ImportIT extends FileTester {
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // get details of what is in the database.
-        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
-            StringBuilder log = new StringBuilder();
-            for (FileProcessingStepType step : FileProcessingStepType.values()) {
-                switch (next.getStepStatus(step)) {
-                    case TL_GREEN -> log.append("G");
-                    case TL_RED -> log.append("R");
-                    case TL_UNKNOWN -> log.append("?");
-                    case TL_AMBER -> log.append("a");
-                }
-            }
-
-            LOG.info("next {} similar count {} status {}", next.getFilename(), next.getSimilarFiles().size(), log);
-
-            if (next.getFilename().equalsIgnoreCase("Photo08.jpg")) {
-                // Photo08 should be marked as already imported
-                Assert.assertEquals("GGGGGGGGG", log.toString());
-            } else if (next.getFilename().equalsIgnoreCase("Photo03.jpg")) {
-                // Photo03 should be marked as ignored.
-                Assert.assertEquals("GGGRGGRGG", log.toString());
-            } else if (next.getFilename().equalsIgnoreCase("Photo01.jpg")) {
-                // Photo01 should be marked as duplicated.
-                Assert.assertEquals("GGGGGRRGG", log.toString());
-            } else {
-                Assert.assertEquals("GGGGGGRGG", log.toString());
-            }
-        }
-        await()
-                .atMost(2, TimeUnit.MINUTES)
-                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+        checkImportStatus(Map.of("Photo08.jpg","GGGGGGGGG","Photo03.jpg","GGGRGGRGG","Photo01.jpg","GGGGGRRGG","","GGGGGGRGG"));
 
         // Delete any files marked as ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-ignored")
@@ -810,20 +808,7 @@ public class ImportIT extends FileTester {
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
-        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
-            StringBuilder log = new StringBuilder();
-            for (FileProcessingStepType step : FileProcessingStepType.values()) {
-                switch (next.getStepStatus(step)) {
-                    case TL_GREEN -> log.append("G");
-                    case TL_RED -> log.append("R");
-                    case TL_UNKNOWN -> log.append("?");
-                    case TL_AMBER -> log.append("a");
-                }
-            }
-
-            Assert.assertEquals("GGGGGGGGG", log.toString());
-            LOG.info("all imported {} similar count {} status {}", next.getFilename(), next.getSimilarFiles().size(), log);
-        }
+        checkImportStatus(Map.of("","GGGGGGGGG"));
 
         // Remove all the imported files.
         getMockMvc().perform(delete("/jbr/int/backup/delete-confirmed-imports")

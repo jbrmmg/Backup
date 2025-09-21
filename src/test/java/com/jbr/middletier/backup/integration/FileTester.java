@@ -450,8 +450,6 @@ public class FileTester extends WebTester {
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
-            // Put this line back in if you want to see output from exiftool.
-            //process.getInputStream().transferTo(System.out);
 
             int exitCode = process.waitFor();
             if(exitCode == 0) {

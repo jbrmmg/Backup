@@ -383,7 +383,6 @@ public class ImportManager extends FileProcessor {
     }
 
     public List<PreImportFileDTO> getImportFiles(Integer limit, Integer page, String stepName, String statusName) {
-        LOG.info("Import files {} {} {} {}", limit, page, stepName, statusName);
         updateCache();
 
         // If the limit is zero, return all the files.
@@ -407,6 +406,7 @@ public class ImportManager extends FileProcessor {
         if(statusName != null && !statusName.isEmpty()) {
             status = TrafficLightType.getFromName(statusName);
         }
+        LOG.info("Import files: {} {}", step, status);
 
         // Get data from the pre-import directory.
         List<PreImportFileDTO> result = new ArrayList<>();
