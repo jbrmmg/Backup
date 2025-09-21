@@ -705,7 +705,7 @@ public class ImportIT extends FileTester {
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // get details of what is in the database.
-        checkImportStatus(Map.of("Photo08.jpg","GGGGGGGGG","Photo03.jpg","GGGRGGRGG","Photo01.jpg","GGGGGRRGG","","GGGGGGRGG"));
+        checkImportStatus(Map.of("Photo08.jpg", "GGGGGGGGG", "Photo03.jpg", "GGGRGGRGG", "Photo01.jpg", "GGGGGRRGG", "", "GGGGGGRGG"));
 
         // Delete any files marked as ignored.
         getMockMvc().perform(delete("/jbr/int/backup/delete-ignored")
@@ -758,6 +758,28 @@ public class ImportIT extends FileTester {
         List<String> names = new ArrayList<>();
         for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
             Assert.assertNotEquals("Photo01.jpg", next.getFilename());
+            names.add(next.getFilename());
+        }
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+    }
+
+    @Test
+    public void testImportFiles() throws Exception {
+        List<StructureDescription> sourceDescription = getTestStructure("test20");
+        copyFiles(sourceDescription, SOURCE_DIRECTORY);
+
+        List<StructureDescription> importDescription = getTestStructure("test20_import2");
+        copyFiles(importDescription, PRE_IMPORT_DIRECTORY);
+
+        // Import the source data
+        driveManager.gather(null);
+        validateSource(fileSystemObjectManager, this.source, sourceDescription);
+
+        // Get the names of the import files.
+        List<String> names = new ArrayList<>();
+        for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
             names.add(next.getFilename());
         }
         await()
