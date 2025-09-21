@@ -97,6 +97,11 @@ public class ImportIT extends FileTester {
     public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException {
         initialiseDirectories();
 
+        // Ensure nothing is in the queue.
+        await()
+                .atMost(2, TimeUnit.MINUTES)
+                .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
         // Update JPG so it gets an MD5
         for (Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if (nextClassification.getRegex().contains("jpg")) {
