@@ -6,12 +6,16 @@ import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImportFileDTO extends ImportFileBaseDTO {
+    private static final Logger LOG = LoggerFactory.getLogger(ImportFileDTO.class);
+
     @Setter
     private volatile Integer id;
     @Getter
@@ -40,6 +44,9 @@ public class ImportFileDTO extends ImportFileBaseDTO {
     }
 
     public void addSimilarFile(ImportFileBaseDTO file) {
+        // Log that this file is being added.
+        LOG.info("Similar File for {}, {} - {} - {} - {}", this.getFilename(), file.getFilename(), file.getSize(), file.getMd5(), file.getDate().toString());
+
         // Only add if the file is not already in the list (by name)
         AtomicBoolean alreadyExists = new AtomicBoolean(false);
         this.similarFileList.forEach(f -> {
