@@ -755,10 +755,8 @@ public class ImportIT extends FileTester {
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
 
         // Photo01.jpg should now be removed.
-        List<String> names = new ArrayList<>();
         for (PreImportFileDTO next : importManager.getImportFiles(0, null, null, null)) {
             Assert.assertNotEquals("Photo01.jpg", next.getFilename());
-            names.add(next.getFilename());
         }
         await()
                 .atMost(2, TimeUnit.MINUTES)
