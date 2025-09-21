@@ -14,4 +14,5 @@ backup:
   enabled: false
   ffmpeg-command: cp %%INPUT%% %%OUTPUT%%
   summary-enabled: true
-  import-threads: 3
+  import-threads: 5
+  load-cache-on-startup: false

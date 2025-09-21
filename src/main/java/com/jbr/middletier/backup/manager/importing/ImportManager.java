@@ -104,8 +104,11 @@ public class ImportManager extends FileProcessor {
 
             this.valid = true;
 
-            // Read the files currently in the import directories.
-            updateCache();
+            // Read the files currently in the import directories (if required).
+            if(this.importFileCache.loadCacheOnStartup()) {
+                LOG.info("Import file cache is loading.");
+                updateCache();
+            }
         } catch (Exception e) {
             this.valid = false;
             LOG.info("Error while initializing ImportManager, imports will be disabled.", e);
@@ -380,6 +383,7 @@ public class ImportManager extends FileProcessor {
     }
 
     public List<PreImportFileDTO> getImportFiles(Integer limit, Integer page, String stepName, String statusName) {
+        LOG.info("Import files {} {} {} {}", limit, page, stepName, statusName);
         updateCache();
 
         // If the limit is zero, return all the files.

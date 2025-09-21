@@ -13,9 +13,10 @@ spring:
 
 logging.file.name: /var/log/jbr/MiddleTier-Backup-PDN.log
 logging:
-  file:
-    max-history: 3
-    max-size: 100MB
+  logback:
+    rollingpolicy:
+      max-history: 3
+      max-file-size: 100MB
 
 server:
   port: 12013
