@@ -188,15 +188,11 @@ public class ImportManager extends FileProcessor {
         importFile.setVideo(dbFile.getVideo());
     }
 
-    private PreImportFileDTO getOrCreateCachedData(String nextFilename, boolean resetStatus, Map<String,ImportFile> importFilesDb) {
+    private PreImportFileDTO getOrCreateCachedData(String nextFilename, Map<String,ImportFile> importFilesDb) {
         String lowerNextFilename = nextFilename.toLowerCase();
 
         if(this.importFileCache.containsKey(lowerNextFilename)) {
-            PreImportFileDTO result =  this.importFileCache.get(lowerNextFilename);
-            if(resetStatus) {
-                result.setStatus(ImportFileStatusType.IFS_READ);
-            }
-            return result;
+            return this.importFileCache.get(lowerNextFilename);
         }
 
         // Create a cache entry.
@@ -242,7 +238,7 @@ public class ImportManager extends FileProcessor {
                                    Map<String,ImportFile> importFilesDb) {
         for(String nextPreImport : preImportFiles) {
             // Get cached data.
-            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport,true, importFilesDb);
+            PreImportFileDTO importFile = getOrCreateCachedData(nextPreImport, importFilesDb);
 
             // Is this in the import directory?
             for(String nextImport : importFiles) {
@@ -263,16 +259,20 @@ public class ImportManager extends FileProcessor {
     }
 
     public void checkExtraImport(Set<String> preImportFiles, Set<String> importFiles, boolean postImport) {
+        boolean found = false;
         for(String nextPostImport : importFiles) {
             // Is this file in the pre-import directory?
-            for(String  nextPreImport : preImportFiles) {
+            for(String nextPreImport : preImportFiles) {
                 if(filenamesMatch(nextPreImport, nextPostImport)) {
+                    found = true;
                     break;
                 }
+            }
 
+            if(!found) {
                 // This is a problem.
-                PreImportFileDTO importFileError = getOrCreateCachedData(nextPreImport,true, null);
-                if(postImport) {
+                PreImportFileDTO importFileError = getOrCreateCachedData(nextPostImport, null);
+                if (postImport) {
                     importFileError.setErrorInPostImport(true);
                 } else {
                     importFileError.setErrorInImport(true);
@@ -301,7 +301,7 @@ public class ImportManager extends FileProcessor {
     private void cleanupCache() {
         List<String> remove = new ArrayList<>();
         for(String filename : this.importFileCache.getFiles()) {
-            PreImportFileDTO importFile = getOrCreateCachedData(filename,false,null);
+            PreImportFileDTO importFile = getOrCreateCachedData(filename,null);
 
             if(importFile.getStatus().equalsIgnoreCase("removed")) {
                 remove.add(filename);
