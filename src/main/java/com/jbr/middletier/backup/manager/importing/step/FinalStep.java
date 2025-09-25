@@ -40,8 +40,10 @@ public class FinalStep extends ImportStep {
             Thread.sleep(1000);
             LOG.info("Performed Final Step {}", file.getFilename());
 
-            // Reset the status to be read.
-            file.setStatus(ImportFileStatusType.IFS_READ);
+            // Reset the status to be read (if not removed).
+            if(!file.getStatus().equalsIgnoreCase("removed")) {
+                file.setStatus(ImportFileStatusType.IFS_READ);
+            }
         } catch (InterruptedException e) {
             LOG.info("Final step aborted.");
             Thread.currentThread().interrupt();
