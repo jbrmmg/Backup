@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
 import com.jbr.middletier.backup.data.ImportFile;
+import com.jbr.middletier.backup.data.ImportFileStatusType;
 import com.jbr.middletier.backup.data.TrafficLightType;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
@@ -38,6 +39,11 @@ public class FinalStep extends ImportStep {
             LOG.info("Performing Final Step {}", file.getFilename());
             Thread.sleep(1000);
             LOG.info("Performed Final Step {}", file.getFilename());
+
+            // Reset the status to be read (if not removed).
+            if(!file.getStatus().equalsIgnoreCase("removed")) {
+                file.setStatus(ImportFileStatusType.IFS_READ);
+            }
         } catch (InterruptedException e) {
             LOG.info("Final step aborted.");
             Thread.currentThread().interrupt();

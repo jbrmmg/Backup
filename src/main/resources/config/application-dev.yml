@@ -11,11 +11,15 @@ spring:
     console:
       enabled: false
 
-logging.file.name: /var/log/jbr/MiddleTier-Backup-DEV.log
+logging.file.name: /home/jason/Working/DevBackup/MiddleTier-Backup-DEV.log
 logging:
-  file:
-    max-history: 3
-    max-size: 100MB
+  logback:
+    rollingpolicy:
+      max-history: 3
+      max-file-size: 100MB
+
+#  level:
+#    com.zaxxer.hikari: DEBUG
 
 server:
   port: 10013

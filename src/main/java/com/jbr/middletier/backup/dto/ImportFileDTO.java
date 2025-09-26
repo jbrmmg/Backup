@@ -40,6 +40,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
     }
 
     public void setStatus(ImportFileStatusType status) {
+        LOG.info("File {} status changed from {} to {}", getFilename(), this.status, status);
         this.status = status.getTypeName();
     }
 
