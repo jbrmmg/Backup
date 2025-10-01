@@ -28,6 +28,7 @@ spring:
       matching-strategy: ant_path_matcher
 
 backup:
+  version: "@project.version@"
   db-backup-command: mysqldump -h $$server$$ -u $$user$$ -p$$password$$ $$dbname$$ > $$todaydir$$/$$backupname$$/$$output$$.sql
   db-backup-max-time: 600
   vid-to-image-command: ffmpeg -i %%INPUT%% -vf "select=eq(n\,0)" -q:v 3 -frames:v 1 %%OUTPUT%%

@@ -1,9 +1,11 @@
 package com.jbr.middletier.backup.control;
 
+import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
+import com.jbr.middletier.backup.dto.VersionDTO;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
@@ -25,6 +27,7 @@ import java.util.Optional;
 public class BackupController {
     private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
+    private final ApplicationProperties applicationProperties;
     private final BackupRepository backupRepository;
     private final BackupCtrl backupCtrl;
     private final ModelMapper modelMapper;
@@ -33,10 +36,12 @@ public class BackupController {
     @Autowired
     BackupController(BackupRepository backupRepository,
                      BackupCtrl backupCtrl,
-                     ModelMapper modelMapper) {
+                     ModelMapper modelMapper,
+                     ApplicationProperties applicationProperties) {
         this.backupRepository = backupRepository;
         this.backupCtrl = backupCtrl;
         this.modelMapper = modelMapper;
+        this.applicationProperties = applicationProperties;
     }
 
     @GetMapping(path="/byId")
@@ -117,5 +122,13 @@ public class BackupController {
         backupRepository.delete(storedBackup.get());
 
         return OkStatus.getOkStatus();
+    }
+
+    @GetMapping("/version")
+    public VersionDTO getVersion() {
+        VersionDTO version = new VersionDTO();
+        version.setVersion(applicationProperties.getVersion());
+
+        return version;
     }
 }

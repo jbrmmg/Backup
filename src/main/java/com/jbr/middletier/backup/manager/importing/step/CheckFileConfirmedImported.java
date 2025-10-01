@@ -31,11 +31,11 @@ public class CheckFileConfirmedImported extends ImportStep {
     }
 
     private boolean checkMD5(ImportFileBaseDTO next, PreImportFileDTO file) {
-        if(next.getMd5() == null || next.getMd5().isEmpty()){
+        if(next.getMd5() == null){
             return false;
         }
 
-        if(file.getImportMd5() == null || file.getImportMd5().isEmpty()){
+        if(file.getImportMd5() == null){
             return false;
         }
 
@@ -47,7 +47,7 @@ public class CheckFileConfirmedImported extends ImportStep {
             return false;
         }
 
-        if(file.getFilename() == null || file.getFilename().isEmpty()){
+        if(file.getImportName() == null || file.getImportName().isEmpty()){
             return false;
         }
 
@@ -85,7 +85,7 @@ public class CheckFileConfirmedImported extends ImportStep {
         // If it's been imported then there will be a similar file with the same name, md5, date/time and size.
         int count = 0;
         for(ImportFileBaseDTO next: file.getSimilarFiles()) {
-            LOG.debug("Similar check {} - {} {} {} {} {}", next.getFilename(), next.getType(), next.getMd5().equals(file.getImportMd5()), next.getFilename().toLowerCase().endsWith(file.getImportName().toLowerCase()), Objects.equals(next.getSize(), file.getImportSize()), next.getDate().equals(file.getImportDate()));
+            LOG.debug("Similar check {} {}", next.getFilename(), file.getImportName());
             LOG.debug("Similar check date 1 {}", next.getDate());
             LOG.debug("Similar check date 2 {}", file.getImportDate());
             if(next.getType() == FileSystemObjectType.FSO_FILE && checkMD5(next, file) && checkFilename(next, file) && checkSize(next, file) && checkDate(next, file)) {
