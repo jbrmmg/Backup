@@ -25,6 +25,8 @@
         <sonar.coverage.exclusions>**/SpringFoxConfig.java,**/MiddleTier.java</sonar.coverage.exclusions>
         <sonar.organization>jbrmmg</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+        <project.version>${project.version}</project.version>
     </properties>
 
     <scm>

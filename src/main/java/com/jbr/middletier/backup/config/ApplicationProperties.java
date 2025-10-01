@@ -333,6 +333,9 @@ public class ApplicationProperties {
     @Setter
     @Getter
     private String vidToImageLocation;
+    @Setter
+    @Getter
+    private String version;
 
     public boolean getCacheWebLog() { return this.cacheWebLog; }
 
