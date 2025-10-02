@@ -185,6 +185,24 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,30));
 
         Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.isVideo()).thenReturn(true);
+        when(preImportFileDTO.getDuration()).thenReturn(2.1);
+        when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.mov");
+        when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
+        when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,22,0,0,30));
+
+        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+
+        preImportFileDTO = mock(PreImportFileDTO.class);
+        when(preImportFileDTO.isVideo()).thenReturn(true);
+        when(preImportFileDTO.getDuration()).thenReturn(2.1);
+        when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.mov");
+        when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
+        when(preImportFileDTO.getImportDate()).thenReturn(null);
+
+        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
     }
 
     @Test

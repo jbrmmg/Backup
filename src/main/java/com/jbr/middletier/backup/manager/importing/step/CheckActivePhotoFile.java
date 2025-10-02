@@ -72,9 +72,21 @@ public class CheckActivePhotoFile extends ImportStep {
         return fileName.substring(0, fileName.lastIndexOf("."));
     }
 
+    private boolean areTheSameDate(FileInfo existingFile, PreImportFileDTO file) {
+        if(existingFile.getDate() == null) {
+            return false;
+        }
+
+        if(file.getImportDate() == null) {
+            return false;
+        }
+
+        return existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate());
+    }
+
     private boolean timeIsClose(FileInfo existingFile, PreImportFileDTO file) {
         // Are they the same date?
-        if (!existingFile.getDate().toLocalDate().equals(file.getImportDate().toLocalDate())) {
+        if (!areTheSameDate(existingFile, file)) {
             return false;
         }
 
@@ -87,6 +99,7 @@ public class CheckActivePhotoFile extends ImportStep {
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
         LOG.info("Checking active photo file");
+
         // This check only applies to a file that ends MOV and the import is mp4.
         if(!isCorrectTypeForActivePhoto(file)) {
             return TrafficLightType.TL_GREEN;
