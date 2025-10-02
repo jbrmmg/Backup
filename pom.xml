@@ -6,7 +6,7 @@
 
     <groupId>com.jbr.middle-backup</groupId>
     <artifactId>MiddleTier-Backup</artifactId>
-    <version>25.10.0-SNAPSHOT</version>
+    <version>25.10.1</version>
 
     <packaging>jar</packaging>
     <name>MiddleTier-Backup</name>
@@ -33,7 +33,7 @@
         <connection>scm:git:git@github.com:jbrmmg/Backup.git</connection>
         <developerConnection>scm:git:git@github.com:jbrmmg/Backup.git</developerConnection>
         <url>https://github.com/jbrmmg/Backup</url>
-        <tag>HEAD</tag>
+        <tag>v25.10.1</tag>
     </scm>
 
 
