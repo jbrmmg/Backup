@@ -21,6 +21,7 @@ public class Summary {
     boolean valid;
     Date validAt;
     List<SourceDTO> sources;
+    String version;
 
     private record SummaryInitializer(Summary instance, AssociatedFileDataManager associatedFileDataManager,
                                       FileSystemObjectManager fileSystemObjectManager,
@@ -63,6 +64,7 @@ public class Summary {
 
                     // Set the object to valid.
                     instance.validAt = new Date();
+                    instance.version = applicationProperties.getVersion();
                     instance.valid = true;
                 }
             } catch (Exception e) {
