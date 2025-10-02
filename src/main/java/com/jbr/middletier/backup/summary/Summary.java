@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +19,12 @@ import java.util.*;
 public class Summary {
     private static final Logger LOG = LoggerFactory.getLogger(Summary.class);
 
+    @Getter
     boolean valid;
+    @Getter
     Date validAt;
     List<SourceDTO> sources;
+    @Getter
     String version;
 
     private record SummaryInitializer(Summary instance, AssociatedFileDataManager associatedFileDataManager,
@@ -99,14 +103,6 @@ public class Summary {
     private Summary() {
         LOG.info("Initialise the summary data.");
         this.valid = false;
-    }
-
-    public Date getValidAt() {
-        return validAt;
-    }
-
-    public boolean isValid() {
-        return this.valid;
     }
 
     public List<SourceDTO> getSources() {
