@@ -375,6 +375,8 @@ public class ImportIT extends FileTester {
 
     @Test
     public void testImport() throws Exception {
+        LOG.info("Starting testImport.");
+
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -449,6 +451,8 @@ public class ImportIT extends FileTester {
         await()
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> Assert.assertTrue(queueCompleted()));
+
+        LOG.info("End testImport.");
     }
 
     @Test
