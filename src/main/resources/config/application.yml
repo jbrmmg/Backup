@@ -47,13 +47,10 @@ backup:
     date-format: yyyy-MM-dd
   review-directory: /home/jason/Working/ImportReview
   email:
-    host: smtp.ionos.co.uk
-    port: 25
-    authenticate: true
-    user: backups@jbrmmg.me.uk
-    password: ${email.pdn.backup.password}
-    from: backups@jbrmmg.me.uk
+    host: smtp.jbrmmg.me.uk
+    port: 1025
     to: jason@jbrmmg.me.uk
+    from: system@jbrmmg.me.uk
     enabled: false
 
 management:

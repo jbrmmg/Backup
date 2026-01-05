@@ -253,13 +253,7 @@ public class ActionManager {
             LOG.info("Sending the actions email.");
             Properties properties = getProperties();
 
-            Session session = Session.getInstance(properties,
-                    new javax.mail.Authenticator() {
-                        @Override
-                        protected PasswordAuthentication getPasswordAuthentication() {
-                            return new PasswordAuthentication(applicationProperties.getEmail().getUser(), applicationProperties.getEmail().getPassword());
-                        }
-                    });
+            Session session = Session.getInstance(properties);
 
             Message message = new MimeMessage(session);
 
@@ -278,12 +272,9 @@ public class ActionManager {
     @NotNull
     private Properties getProperties() {
         Properties properties = new Properties();
-        properties.put("mail.smtp.auth", applicationProperties.getEmail().getAuthenticate().toString());
-        properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.smtp.auth", "false");
         properties.put("mail.smtp.host", applicationProperties.getEmail().getHost());
         properties.put("mail.smtp.port", applicationProperties.getEmail().getPort().toString());
-        properties.put("mail.smtp.starttls.required", "true");
-        properties.put("mail.smtp.ssl.protocols", "TLSv1.2");
         return properties;
     }
 }

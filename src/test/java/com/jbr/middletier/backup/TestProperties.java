@@ -50,22 +50,16 @@ public class TestProperties {
     @DisplayName("Test the property class (2).")
     public void TestPropertyClass2() {
         ApplicationProperties test = new ApplicationProperties();
-        test.getEmail().setAuthenticate(true);
-        assertTrue(test.getEmail().getAuthenticate());
         test.getEmail().setEnabled(true);
         assertTrue(test.getEmail().getEnabled());
         test.getEmail().setFrom("from");
         assertEquals("from", test.getEmail().getFrom());
         test.getEmail().setHost("host");
         assertEquals("host", test.getEmail().getHost());
-        test.getEmail().setPassword("passwd");
-        assertEquals("passwd", test.getEmail().getPassword());
         test.getEmail().setPort(900);
         assertEquals((Integer) 900, test.getEmail().getPort());
         test.getEmail().setTo("to");
         assertEquals("to", test.getEmail().getTo());
-        test.getEmail().setUser("usr");
-        assertEquals("usr", test.getEmail().getUser());
         test.setVidToImageCommand("test");
         assertEquals("test", test.getVidToImageCommand());
         test.setVidToImageLocation("test");
