@@ -263,13 +263,10 @@ public class ApplicationProperties {
     @Getter
     public static class Email {
         private String host;
-        private String user;
-        private String password;
         private String from;
         private String to;
         private Boolean enabled;
         private Integer port;
-        private Boolean authenticate;
     }
 
     @Getter
