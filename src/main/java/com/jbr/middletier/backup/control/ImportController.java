@@ -154,6 +154,17 @@ public class ImportController {
         return FAILED;
     }
 
+    @PostMapping(path = "/un-ignore-import")
+    public String unIgnoreImport() {
+        LOG.info("Remove the current files in the import directory from the ignore files.");
+
+        if(importManager.unIgnoreAllImport()) {
+            return OK;
+        }
+
+        return FAILED;
+    }
+
     @PostMapping(path = "/recipe-file")
     public String recipeFile(@RequestBody String filename) {
         LOG.info("Import the file as a recipe file.");

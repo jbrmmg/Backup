@@ -433,6 +433,24 @@ public class ImportManager extends FileProcessor {
         return result;
     }
 
+    public boolean unIgnoreAllImport() {
+        LOG.info("Un-ignore all the files that are in the import");
+
+        // Any file in the cache that has a confirmed imported status of GREEN.
+        for(String nextFile: this.importFileCache.getFiles()) {
+            // Get the file.
+            PreImportFileDTO file = importFileCache.get(nextFile);
+
+            // Is this imported and does it have a destination?
+            file.setStatus(ImportFileStatusType.IFS_UN_IGNORE);
+            file.setStepStatus(FileProcessingStepType.FPS_PROCESS_IMPORT, TrafficLightType.TL_UNKNOWN);
+
+            importFileCache.queueForUpdates(file);
+        }
+
+        return true;
+    }
+
     public boolean unIgnoreSelectedFile(String filename) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {
