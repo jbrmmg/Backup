@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static com.jbr.middletier.backup.manager.importing.ImportManager.BACKUP_FILE_DESTINATION;
 import static com.jbr.middletier.backup.manager.importing.ImportManager.RECIPE_FILE_DESTINATION;
 
 @Component
@@ -94,9 +95,16 @@ public class ImportFile extends ProcessBase {
             DateTimeFormatter dtf1 = DateTimeFormatter.ofPattern("yyyy");
             DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("MMMM");
 
+            if(file.getDestination().equalsIgnoreCase(BACKUP_FILE_DESTINATION)) {
+                destinationFilename += "/0000/backup";
+            }
+
             destinationFilename += "/" + dtf1.format(file.getImportDate());
             destinationFilename += "/" + dtf2.format(file.getImportDate());
-            destinationFilename += "/" + file.getDestination();
+
+            if(!file.getDestination().equalsIgnoreCase(BACKUP_FILE_DESTINATION)) {
+                destinationFilename += "/" + file.getDestination();
+            }
         }
 
         try {

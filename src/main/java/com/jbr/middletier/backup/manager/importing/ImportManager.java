@@ -24,6 +24,7 @@ public class ImportManager extends FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImportManager.class);
 
     public static final String RECIPE_FILE_DESTINATION = "[** recipe **]";
+    public static final String BACKUP_FILE_DESTINATION = "[** backup **]";
     private final ImportFileRepository importFileRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final ImportFileCache importFileCache;
@@ -34,6 +35,11 @@ public class ImportManager extends FileProcessor {
     private boolean valid;
 
     private final List<Pair<String,String>> equivalentFileTypes;
+
+    public enum SpecialDestinationType {
+        RECIPE,
+        BACKUP
+    }
 
     @Autowired
     public ImportManager(ImportFileRepository importFileRepository,
@@ -561,26 +567,40 @@ public class ImportManager extends FileProcessor {
         return false;
     }
 
-    public boolean recipeFile(String filename) {
+    private String getDestination(SpecialDestinationType destination) {
+        switch (destination) {
+            case BACKUP -> {
+                return BACKUP_FILE_DESTINATION;
+            }
+
+            case RECIPE -> {
+                return RECIPE_FILE_DESTINATION;
+            }
+        }
+
+        throw new IllegalStateException("Destination type is not supported.");
+    }
+
+    public boolean specialDestinationFile(String filename, SpecialDestinationType destination) {
         // This file must be in the cache for this action to be performed.
         if(importFileCache.containsKey(filename.toLowerCase())) {
             PreImportFileDTO file = importFileCache.get(filename.toLowerCase());
 
-            // Has this already been marked as a recipe?
-            if(file.getDestination() != null && file.getDestination().equalsIgnoreCase(RECIPE_FILE_DESTINATION)) {
+            // Has this already been marked as a special destination?
+            if(file.getDestination() != null && file.getDestination().equalsIgnoreCase(getDestination(destination))) {
                 return true;
             }
 
             // Set the destination of the file and store in the database.
             for(FileInfo next: this.importFileRepository.findByName(filename)) {
                 if(next instanceof ImportFile importFile) {
-                    importFile.setDestination(RECIPE_FILE_DESTINATION);
+                    importFile.setDestination(getDestination(destination));
 
                     importFileRepository.save(importFile);
                 }
             }
 
-            file.setDestination(RECIPE_FILE_DESTINATION);
+            file.setDestination(getDestination(destination));
             return true;
         }
 
