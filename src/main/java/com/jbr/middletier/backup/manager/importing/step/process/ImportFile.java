@@ -48,6 +48,30 @@ public class ImportFile extends ProcessBase {
         this.requiredStepStatus.put(FileProcessingStepType.FPS_CHECK_FILE_IGNORED,getMustNotBeRed());
     }
 
+    private String getDestinationFilename(String path, PreImportFileDTO file) {
+        String result = path;
+
+        if(file.getDestination().equalsIgnoreCase(RECIPE_FILE_DESTINATION)) {
+            result += "/0000/recipe";
+        } else {
+            DateTimeFormatter dtf1 = DateTimeFormatter.ofPattern("yyyy");
+            DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("MMMM");
+
+            if(file.getDestination().equalsIgnoreCase(BACKUP_FILE_DESTINATION)) {
+                result += "/0000/backup";
+            }
+
+            result += "/" + dtf1.format(file.getImportDate());
+            result += "/" + dtf2.format(file.getImportDate());
+
+            if(!file.getDestination().equalsIgnoreCase(BACKUP_FILE_DESTINATION)) {
+                result += "/" + file.getDestination();
+            }
+        }
+
+        return result;
+    }
+
     @Override
     public TrafficLightType process(PreImportFileDTO file) throws ImportProcessException {
         validateStepStatus(file, requiredStepStatus);
@@ -87,25 +111,7 @@ public class ImportFile extends ProcessBase {
             throw new ImportProcessException("Import destination is invalid.");
         }
 
-        String destinationFilename = destination.get().getPath();
-
-        if(file.getDestination().equalsIgnoreCase(RECIPE_FILE_DESTINATION)) {
-            destinationFilename += "/0000/recipe";
-        } else {
-            DateTimeFormatter dtf1 = DateTimeFormatter.ofPattern("yyyy");
-            DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("MMMM");
-
-            if(file.getDestination().equalsIgnoreCase(BACKUP_FILE_DESTINATION)) {
-                destinationFilename += "/0000/backup";
-            }
-
-            destinationFilename += "/" + dtf1.format(file.getImportDate());
-            destinationFilename += "/" + dtf2.format(file.getImportDate());
-
-            if(!file.getDestination().equalsIgnoreCase(BACKUP_FILE_DESTINATION)) {
-                destinationFilename += "/" + file.getDestination();
-            }
-        }
+        String destinationFilename = getDestinationFilename(destination.get().getPath(), file);
 
         try {
             LOG.info("Moving {} to {}", file.getFilename(), destinationFilename);

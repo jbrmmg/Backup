@@ -568,14 +568,12 @@ public class ImportManager extends FileProcessor {
     }
 
     private String getDestination(SpecialDestinationType destination) {
-        switch (destination) {
-            case BACKUP -> {
-                return BACKUP_FILE_DESTINATION;
-            }
+        if(destination == SpecialDestinationType.BACKUP) {
+            return BACKUP_FILE_DESTINATION;
+        }
 
-            case RECIPE -> {
-                return RECIPE_FILE_DESTINATION;
-            }
+        if(destination == SpecialDestinationType.RECIPE) {
+            return RECIPE_FILE_DESTINATION;
         }
 
         throw new IllegalStateException("Destination type is not supported.");
