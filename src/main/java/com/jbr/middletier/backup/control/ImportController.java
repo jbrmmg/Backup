@@ -154,11 +154,33 @@ public class ImportController {
         return FAILED;
     }
 
+    @PostMapping(path = "/un-ignore-import")
+    public String unIgnoreImport() {
+        LOG.info("Remove the current files in the import directory from the ignore files.");
+
+        if(importManager.unIgnoreAllImport()) {
+            return OK;
+        }
+
+        return FAILED;
+    }
+
     @PostMapping(path = "/recipe-file")
     public String recipeFile(@RequestBody String filename) {
         LOG.info("Import the file as a recipe file.");
 
-        if(importManager.recipeFile(filename)) {
+        if(importManager.specialDestinationFile(filename, ImportManager.SpecialDestinationType.RECIPE)) {
+            return OK;
+        }
+
+        return FAILED;
+    }
+
+    @PostMapping(path = "/backup-file")
+    public String justBackupFile(@RequestBody String filename) {
+        LOG.info("Import the file as a backup file.");
+
+        if(importManager.specialDestinationFile(filename, ImportManager.SpecialDestinationType.BACKUP)) {
             return OK;
         }
 
