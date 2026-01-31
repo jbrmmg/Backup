@@ -16,7 +16,7 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springboot.version>3.4.5</org.springboot.version>
+        <org.springboot.version>3.4.10</org.springboot.version>
 
         <!--
          Exclude these two classes; SpringFoxConfig because it's provided by somebody else, MiddleTier because
