@@ -9,9 +9,10 @@ import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.manager.LabelManager;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,11 +54,11 @@ public class TestFsoExtra {
 
         AtomicInteger count = new AtomicInteger(0);
         manager.findAllByType(FileSystemObjectType.FSO_DIRECTORY).forEach(nextDirectory -> {
-            Assert.assertEquals("Test", nextDirectory.getName());
+            assertEquals("Test", nextDirectory.getName());
             int i = count.get();
             count.set(++i);
         });
-        Assert.assertEquals(1, count.get());
+        assertEquals(1, count.get());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class TestFsoExtra {
             int i = count.get();
             count.set(++i);
         });
-        Assert.assertEquals(0, count.get());
+        assertEquals(0, count.get());
     }
 
     @Test
@@ -123,9 +124,9 @@ public class TestFsoExtra {
 
         try {
             manager.save(fso);
-            Assert.fail();
+            fail();
         } catch(IllegalStateException e) {
-            Assert.assertEquals("Save not supported for 0", e.getMessage());
+            assertEquals("Save not supported for 0", e.getMessage());
         }
     }
 
@@ -156,9 +157,9 @@ public class TestFsoExtra {
 
         try {
             manager.delete(fso);
-            Assert.fail();
+            fail();
         } catch(IllegalStateException e) {
-            Assert.assertEquals("Delete not supported for 0", e.getMessage());
+            assertEquals("Delete not supported for 0", e.getMessage());
         }
     }
 
@@ -187,7 +188,7 @@ public class TestFsoExtra {
                 fileSystem);
 
         Optional<FileSystemObject> result = manager.findFileSystemObject(new FileSystemObjectId(1, FileSystemObjectType.FSO_IGNORE_FILE));
-        Assert.assertFalse(result.isPresent());
+        assertFalse(result.isPresent());
     }
 
     @Test
@@ -215,7 +216,7 @@ public class TestFsoExtra {
                 fileSystem);
 
         Optional<FileSystemObject> result = manager.findFileSystemObject(new FileSystemObjectId(1, FileSystemObjectType.FSO_IMPORT_FILE));
-        Assert.assertFalse(result.isPresent());
+        assertFalse(result.isPresent());
     }
 
     @Test
@@ -241,7 +242,7 @@ public class TestFsoExtra {
                 fileSystem);
 
         Optional<FileSystemObject> result = manager.findFileSystemObject(new FileSystemObjectId(1, FileSystemObjectType.FSO_SOURCE));
-        Assert.assertFalse(result.isPresent());
+        assertFalse(result.isPresent());
     }
 
     @Test
@@ -271,7 +272,7 @@ public class TestFsoExtra {
             int i = count.get();
             count.set(++i);
         });
-        Assert.assertEquals(0, count.get());
+        assertEquals(0, count.get());
     }
 
     @Test
@@ -300,6 +301,6 @@ public class TestFsoExtra {
         when(testFso.getParentId()).thenReturn(Optional.of(new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY)));
 
         File result = manager.getFile(testFso);
-        Assert.assertEquals("null", result.getName());
+        assertEquals("null", result.getName());
     }
 }
