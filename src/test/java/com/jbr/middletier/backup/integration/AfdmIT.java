@@ -9,12 +9,9 @@ import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import com.jbr.middletier.backup.exception.*;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +22,11 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,17 +34,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {AfdmIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class AfdmIT {
     private static final Logger LOG = LoggerFactory.getLogger(AfdmIT.class);
 
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -79,7 +77,7 @@ public class AfdmIT {
         associatedFileDataManager.createLocation(associatedFileDataManager.convertToEntity(newLocation));
 
         Optional<Location> findLocation = associatedFileDataManager.findLocationById(1000);
-        Assert.assertTrue(findLocation.isPresent());
+        assertTrue(findLocation.isPresent());
 
         LocationDTO updateLocation = associatedFileDataManager.convertToDTO(findLocation.get());
         updateLocation.setName("Test 2");
@@ -87,15 +85,15 @@ public class AfdmIT {
         associatedFileDataManager.updateLocation(associatedFileDataManager.convertToEntity(updateLocation));
 
         Optional<Location> findLocation2 = associatedFileDataManager.findLocationById(1000);
-        Assert.assertTrue(findLocation2.isPresent());
+        assertTrue(findLocation2.isPresent());
 
-        Assert.assertEquals("Test 2", findLocation2.get().getName());
-        Assert.assertEquals("1GB", findLocation2.get().getSize());
+        assertEquals("Test 2", findLocation2.get().getName());
+        assertEquals("1GB", findLocation2.get().getSize());
 
         associatedFileDataManager.deleteLocation(findLocation2.get());
 
         findLocation2 = associatedFileDataManager.findLocationById(1000);
-        Assert.assertFalse(findLocation2.isPresent());
+        assertFalse(findLocation2.isPresent());
     }
 
     @Test
@@ -118,12 +116,12 @@ public class AfdmIT {
                 findClassification.set(Optional.of(classification));
             }
         });
-        Assert.assertTrue(findClassification.get().isPresent());
-        Assert.assertEquals("BACKUP", findClassification.get().get().getAction().getTypeName());
-        Assert.assertEquals("Fred", findClassification.get().get().getIcon());
-        Assert.assertEquals("x", findClassification.get().get().getRegex());
-        Assert.assertEquals(false, findClassification.get().get().getIsImage());
-        Assert.assertEquals(false, findClassification.get().get().getIsVideo());
+        assertTrue(findClassification.get().isPresent());
+        assertEquals("BACKUP", findClassification.get().get().getAction().getTypeName());
+        assertEquals("Fred", findClassification.get().get().getIcon());
+        assertEquals("x", findClassification.get().get().getRegex());
+        assertEquals(false, findClassification.get().get().getIsImage());
+        assertEquals(false, findClassification.get().get().getIsVideo());
 
         associatedFileDataManager.deleteClassification(findClassification.get().get());
 
@@ -133,7 +131,7 @@ public class AfdmIT {
                 findClassification.set(Optional.of(classification));
             }
         });
-        Assert.assertFalse(findClassification.get().isPresent());
+        assertFalse(findClassification.get().isPresent());
     }
 
     @Test
@@ -175,10 +173,10 @@ public class AfdmIT {
                 findSync.set(Optional.of(synchronize));
             }
         });
-        Assert.assertTrue(findSync.get().isPresent());
+        assertTrue(findSync.get().isPresent());
 
-        Assert.assertEquals("/test/directory", findSync.get().get().getDestination().getPath());
-        Assert.assertEquals("/test/directory2", findSync.get().get().getSource().getPath());
+        assertEquals("/test/directory", findSync.get().get().getDestination().getPath());
+        assertEquals("/test/directory2", findSync.get().get().getSource().getPath());
 
         findSync.get().get().setDestination(createdSource2);
         findSync.get().get().setSource(createdSource1);
@@ -190,10 +188,10 @@ public class AfdmIT {
                 findSync2.set(Optional.of(synchronize));
             }
         });
-        Assert.assertTrue(findSync2.get().isPresent());
+        assertTrue(findSync2.get().isPresent());
 
-        Assert.assertEquals("/test/directory2", findSync2.get().get().getDestination().getPath());
-        Assert.assertEquals("/test/directory", findSync2.get().get().getSource().getPath());
+        assertEquals("/test/directory2", findSync2.get().get().getDestination().getPath());
+        assertEquals("/test/directory", findSync2.get().get().getSource().getPath());
 
         associatedFileDataManager.deleteSynchronize(findSync2.get().get());
         findSync2.set(Optional.empty());
@@ -202,7 +200,7 @@ public class AfdmIT {
                 findSync2.set(Optional.of(nextSync));
             }
         }
-        Assert.assertFalse(findSync2.get().isPresent());
+        assertFalse(findSync2.get().isPresent());
 
         associatedFileDataManager.deleteSource(createdSource1);
         associatedFileDataManager.deleteSource(createdSource2);
@@ -235,9 +233,9 @@ public class AfdmIT {
 
         try {
             testAFDM.updateSynchronize(synchronize);
-            Assert.fail();
+            fail();
         } catch (InvalidSynchronizeIdException e) {
-            Assert.assertEquals("Synchronize with id (1) not found.", e.getMessage());
+            assertEquals("Synchronize with id (1) not found.", e.getMessage());
         }
     }
 
@@ -265,7 +263,7 @@ public class AfdmIT {
             testAFDM.updateSourceStatus(testSource, SourceStatusType.SST_OK);
         } catch (Exception e) {
             // Should not propagate the exception.
-            Assert.fail();
+            fail();
         }
     }
 }

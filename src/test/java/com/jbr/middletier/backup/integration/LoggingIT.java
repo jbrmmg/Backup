@@ -4,12 +4,9 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.DbLogType;
 import com.jbr.middletier.backup.manager.DbLoggingManager;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +16,11 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -30,16 +29,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SuppressWarnings("rawtypes")
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {LoggingIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class LoggingIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingIT.class);
 
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -104,6 +102,6 @@ public class LoggingIT extends WebTester {
 
         dbLoggingManager.error("Error Message",null,null);
 
-        Assert.assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
+        assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
     }
 }

@@ -2,13 +2,11 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+
+import static org.junit.jupiter.api.Assertions.*;
 import com.jbr.middletier.backup.manager.FileSystem;
 
 import java.io.File;
@@ -17,9 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@WebAppConfiguration
 public class TestMetaData {
     @Autowired
     FileSystem fileSystem;
@@ -30,22 +26,22 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(jpeg);
 
-        Assert.assertTrue(meta.isPresent());
-        Assert.assertTrue(meta.get().isValid());
-        Assert.assertNotNull(meta.get().getImageSize());
-        Assert.assertNotNull(meta.get().getDateTime());
-        Assert.assertNotNull(meta.get().getLatLong());
-        Assert.assertEquals("image/jpeg",meta.get().getMimeType());
-        Assert.assertEquals(1536,meta.get().getImageSize().width());
-        Assert.assertEquals(2048,meta.get().getImageSize().height());
-        Assert.assertEquals(51.456225,meta.get().getLatLong().getLatitude(),0.00001);
-        Assert.assertEquals(-2.6257111,meta.get().getLatLong().getLongitude(),0.00001);
-        Assert.assertEquals(2025,meta.get().getDateTime().getYear());
-        Assert.assertEquals(Month.MARCH,meta.get().getDateTime().getMonth());
-        Assert.assertEquals(1,meta.get().getDateTime().getDayOfMonth());
-        Assert.assertEquals(13,meta.get().getDateTime().getHour());
-        Assert.assertEquals(56,meta.get().getDateTime().getMinute());
-        Assert.assertEquals(44,meta.get().getDateTime().getSecond());
+        assertTrue(meta.isPresent());
+        assertTrue(meta.get().isValid());
+        assertNotNull(meta.get().getImageSize());
+        assertNotNull(meta.get().getDateTime());
+        assertNotNull(meta.get().getLatLong());
+        assertEquals("image/jpeg",meta.get().getMimeType());
+        assertEquals(1536,meta.get().getImageSize().width());
+        assertEquals(2048,meta.get().getImageSize().height());
+        assertEquals(51.456225,meta.get().getLatLong().getLatitude(),0.00001);
+        assertEquals(-2.6257111,meta.get().getLatLong().getLongitude(),0.00001);
+        assertEquals(2025,meta.get().getDateTime().getYear());
+        assertEquals(Month.MARCH,meta.get().getDateTime().getMonth());
+        assertEquals(1,meta.get().getDateTime().getDayOfMonth());
+        assertEquals(13,meta.get().getDateTime().getHour());
+        assertEquals(56,meta.get().getDateTime().getMinute());
+        assertEquals(44,meta.get().getDateTime().getSecond());
     }
 
     @Test
@@ -54,22 +50,22 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(jpeg);
 
-        Assert.assertTrue(meta.isPresent());
-        Assert.assertTrue(meta.get().isValid());
-        Assert.assertNotNull(meta.get().getImageSize());
-        Assert.assertNotNull(meta.get().getDateTime());
-        Assert.assertNotNull(meta.get().getLatLong());
-        Assert.assertEquals("video/quicktime",meta.get().getMimeType());
-        Assert.assertEquals(960,meta.get().getImageSize().width());
-        Assert.assertEquals(720,meta.get().getImageSize().height());
-        Assert.assertEquals(51.4562,meta.get().getLatLong().getLatitude(),0.00001);
-        Assert.assertEquals(-2.6257,meta.get().getLatLong().getLongitude(),0.00001);
-        Assert.assertEquals(2025,meta.get().getDateTime().getYear());
-        Assert.assertEquals(Month.MARCH,meta.get().getDateTime().getMonth());
-        Assert.assertEquals(1,meta.get().getDateTime().getDayOfMonth());
-        Assert.assertEquals(13,meta.get().getDateTime().getHour());
-        Assert.assertEquals(56,meta.get().getDateTime().getMinute());
-        Assert.assertEquals(43,meta.get().getDateTime().getSecond());
+        assertTrue(meta.isPresent());
+        assertTrue(meta.get().isValid());
+        assertNotNull(meta.get().getImageSize());
+        assertNotNull(meta.get().getDateTime());
+        assertNotNull(meta.get().getLatLong());
+        assertEquals("video/quicktime",meta.get().getMimeType());
+        assertEquals(960,meta.get().getImageSize().width());
+        assertEquals(720,meta.get().getImageSize().height());
+        assertEquals(51.4562,meta.get().getLatLong().getLatitude(),0.00001);
+        assertEquals(-2.6257,meta.get().getLatLong().getLongitude(),0.00001);
+        assertEquals(2025,meta.get().getDateTime().getYear());
+        assertEquals(Month.MARCH,meta.get().getDateTime().getMonth());
+        assertEquals(1,meta.get().getDateTime().getDayOfMonth());
+        assertEquals(13,meta.get().getDateTime().getHour());
+        assertEquals(56,meta.get().getDateTime().getMinute());
+        assertEquals(43,meta.get().getDateTime().getSecond());
     }
 
     @Test
@@ -78,20 +74,20 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(mp4);
 
-        Assert.assertTrue(meta.isPresent());
-        Assert.assertTrue(meta.get().isValid());
-        Assert.assertNotNull(meta.get().getImageSize());
-        Assert.assertNotNull(meta.get().getDateTime());
-        Assert.assertNull(meta.get().getLatLong());
-        Assert.assertEquals("video/mp4",meta.get().getMimeType());
-        Assert.assertEquals(1920,meta.get().getImageSize().width());
-        Assert.assertEquals(1080,meta.get().getImageSize().height());
-        Assert.assertEquals(2017,meta.get().getDateTime().getYear());
-        Assert.assertEquals(Month.DECEMBER,meta.get().getDateTime().getMonth());
-        Assert.assertEquals(24,meta.get().getDateTime().getDayOfMonth());
-        Assert.assertEquals(15,meta.get().getDateTime().getHour());
-        Assert.assertEquals(25,meta.get().getDateTime().getMinute());
-        Assert.assertEquals(14,meta.get().getDateTime().getSecond());
+        assertTrue(meta.isPresent());
+        assertTrue(meta.get().isValid());
+        assertNotNull(meta.get().getImageSize());
+        assertNotNull(meta.get().getDateTime());
+        assertNull(meta.get().getLatLong());
+        assertEquals("video/mp4",meta.get().getMimeType());
+        assertEquals(1920,meta.get().getImageSize().width());
+        assertEquals(1080,meta.get().getImageSize().height());
+        assertEquals(2017,meta.get().getDateTime().getYear());
+        assertEquals(Month.DECEMBER,meta.get().getDateTime().getMonth());
+        assertEquals(24,meta.get().getDateTime().getDayOfMonth());
+        assertEquals(15,meta.get().getDateTime().getHour());
+        assertEquals(25,meta.get().getDateTime().getMinute());
+        assertEquals(14,meta.get().getDateTime().getSecond());
     }
 
     @Test
@@ -100,7 +96,7 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(pdf);
 
-        Assert.assertFalse(meta.isPresent());
+        assertFalse(meta.isPresent());
     }
 
     @Test
@@ -109,7 +105,7 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(pdf);
 
-        Assert.assertFalse(meta.isPresent());
+        assertFalse(meta.isPresent());
     }
 
     @Test
@@ -118,7 +114,7 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
 
-        Assert.assertFalse(meta.isPresent());
+        assertFalse(meta.isPresent());
     }
 
     @Test
@@ -127,22 +123,22 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
 
-        Assert.assertTrue(meta.isPresent());
-        Assert.assertTrue(meta.get().isValid());
-        Assert.assertNotNull(meta.get().getImageSize());
-        Assert.assertNotNull(meta.get().getDateTime());
-        Assert.assertNotNull(meta.get().getLatLong());
-        Assert.assertEquals("image/heic",meta.get().getMimeType());
-        Assert.assertEquals(53.26959,meta.get().getLatLong().getLatitude(),0.00001);
-        Assert.assertEquals(-9.05526,meta.get().getLatLong().getLongitude(),0.00001);
-        Assert.assertEquals(3024,meta.get().getImageSize().width());
-        Assert.assertEquals(4032,meta.get().getImageSize().height());
-        Assert.assertEquals(2022,meta.get().getDateTime().getYear());
-        Assert.assertEquals(Month.AUGUST,meta.get().getDateTime().getMonth());
-        Assert.assertEquals(20,meta.get().getDateTime().getDayOfMonth());
-        Assert.assertEquals(9,meta.get().getDateTime().getHour());
-        Assert.assertEquals(13,meta.get().getDateTime().getMinute());
-        Assert.assertEquals(37,meta.get().getDateTime().getSecond());
+        assertTrue(meta.isPresent());
+        assertTrue(meta.get().isValid());
+        assertNotNull(meta.get().getImageSize());
+        assertNotNull(meta.get().getDateTime());
+        assertNotNull(meta.get().getLatLong());
+        assertEquals("image/heic",meta.get().getMimeType());
+        assertEquals(53.26959,meta.get().getLatLong().getLatitude(),0.00001);
+        assertEquals(-9.05526,meta.get().getLatLong().getLongitude(),0.00001);
+        assertEquals(3024,meta.get().getImageSize().width());
+        assertEquals(4032,meta.get().getImageSize().height());
+        assertEquals(2022,meta.get().getDateTime().getYear());
+        assertEquals(Month.AUGUST,meta.get().getDateTime().getMonth());
+        assertEquals(20,meta.get().getDateTime().getDayOfMonth());
+        assertEquals(9,meta.get().getDateTime().getHour());
+        assertEquals(13,meta.get().getDateTime().getMinute());
+        assertEquals(37,meta.get().getDateTime().getSecond());
     }
 
     @Test
@@ -151,23 +147,23 @@ public class TestMetaData {
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
 
-        Assert.assertTrue(meta.isPresent());
-        Assert.assertTrue(meta.get().isValid());
-        Assert.assertNotNull(meta.get().getImageSize());
-        Assert.assertNotNull(meta.get().getDateTime());
-        Assert.assertNotNull(meta.get().getLatLong());
-        Assert.assertNull(meta.get().getDuration());
-        Assert.assertEquals("image/png",meta.get().getMimeType());
-        Assert.assertEquals(51.601416666666665,meta.get().getLatLong().getLatitude(),0.00001);
-        Assert.assertEquals(-0.37810,meta.get().getLatLong().getLongitude(),0.00001);
-        Assert.assertEquals(3024,meta.get().getImageSize().width());
-        Assert.assertEquals(4032,meta.get().getImageSize().height());
-        Assert.assertEquals(2022,meta.get().getDateTime().getYear());
-        Assert.assertEquals(Month.MAY,meta.get().getDateTime().getMonth());
-        Assert.assertEquals(20,meta.get().getDateTime().getDayOfMonth());
-        Assert.assertEquals(13,meta.get().getDateTime().getHour());
-        Assert.assertEquals(21,meta.get().getDateTime().getMinute());
-        Assert.assertEquals(59,meta.get().getDateTime().getSecond());
+        assertTrue(meta.isPresent());
+        assertTrue(meta.get().isValid());
+        assertNotNull(meta.get().getImageSize());
+        assertNotNull(meta.get().getDateTime());
+        assertNotNull(meta.get().getLatLong());
+        assertNull(meta.get().getDuration());
+        assertEquals("image/png",meta.get().getMimeType());
+        assertEquals(51.601416666666665,meta.get().getLatLong().getLatitude(),0.00001);
+        assertEquals(-0.37810,meta.get().getLatLong().getLongitude(),0.00001);
+        assertEquals(3024,meta.get().getImageSize().width());
+        assertEquals(4032,meta.get().getImageSize().height());
+        assertEquals(2022,meta.get().getDateTime().getYear());
+        assertEquals(Month.MAY,meta.get().getDateTime().getMonth());
+        assertEquals(20,meta.get().getDateTime().getDayOfMonth());
+        assertEquals(13,meta.get().getDateTime().getHour());
+        assertEquals(21,meta.get().getDateTime().getMinute());
+        assertEquals(59,meta.get().getDateTime().getSecond());
     }
 
     @Test
@@ -180,10 +176,10 @@ public class TestMetaData {
 
         FileSystemImageData imageData = new FileSystemImageData(map);
 
-        Assert.assertTrue(imageData.isValid());
-        Assert.assertTrue(imageData.isImage());
-        Assert.assertEquals(10,imageData.getImageSize().width());
-        Assert.assertEquals(12,imageData.getImageSize().height());
+        assertTrue(imageData.isValid());
+        assertTrue(imageData.isImage());
+        assertEquals(10,imageData.getImageSize().width());
+        assertEquals(12,imageData.getImageSize().height());
 
         // Check the video.
         map = new HashMap<>();
@@ -194,11 +190,11 @@ public class TestMetaData {
         map.put("duration","1:01");
 
         FileSystemImageData videoData = new FileSystemImageData(map);
-        Assert.assertTrue(videoData.isValid());
-        Assert.assertTrue(videoData.isVideo());
-        Assert.assertEquals(10,videoData.getImageSize().width());
-        Assert.assertEquals(12,videoData.getImageSize().height());
-        Assert.assertEquals(61,videoData.getDuration(),0.00001);
+        assertTrue(videoData.isValid());
+        assertTrue(videoData.isVideo());
+        assertEquals(10,videoData.getImageSize().width());
+        assertEquals(12,videoData.getImageSize().height());
+        assertEquals(61,videoData.getDuration(),0.00001);
 
         // Check the video.
         map = new HashMap<>();
@@ -209,8 +205,8 @@ public class TestMetaData {
         map.put("duration","1:01:01");
 
         videoData = new FileSystemImageData(map);
-        Assert.assertTrue(videoData.isValid());
-        Assert.assertTrue(videoData.isVideo());
-        Assert.assertEquals(3661,videoData.getDuration(),0.00001);
+        assertTrue(videoData.isValid());
+        assertTrue(videoData.isVideo());
+        assertEquals(3661,videoData.getDuration(),0.00001);
     }
 }

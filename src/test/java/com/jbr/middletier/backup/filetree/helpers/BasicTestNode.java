@@ -1,7 +1,7 @@
 package com.jbr.middletier.backup.filetree.helpers;
 
 import com.jbr.middletier.backup.filetree.FileTreeNode;
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 
@@ -26,14 +26,14 @@ public class BasicTestNode extends FileTreeNode {
 
     public boolean test() {
         // Test the null node.
-        Assert.assertFalse(nullNode.getName().isPresent());
+        assertFalse(nullNode.getName().isPresent());
 
         try {
             nullNode.addChild(null);
-            Assert.fail();
+            fail();
             return false;
         } catch (IllegalStateException e) {
-            Assert.assertEquals("Null node - cannot add children", e.getMessage());
+            assertEquals("Null node - cannot add children", e.getMessage());
         }
 
         return true;

@@ -6,7 +6,7 @@ import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.exception.ClassificationIdException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -369,7 +369,7 @@ public class FileTester extends WebTester {
         if(!tree.allOK()) {
             LOG.warn("Something is different.");
         }
-        Assert.assertTrue(tree.allOK());
+        assertTrue(tree.allOK());
     }
 
     protected List<StructureDescription> getTestStructure(String testName) throws IOException {

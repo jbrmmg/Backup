@@ -10,12 +10,9 @@ import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,26 +24,27 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {ActionManagerIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class ActionManagerIT {
     private static final Logger LOG = LoggerFactory.getLogger(AfdmIT.class);
 
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -90,13 +88,13 @@ public class ActionManagerIT {
                 foundAction.set(Optional.of(unconfirmedAction));
             }
         });
-        Assert.assertTrue(foundAction.get().isPresent());
+        assertTrue(foundAction.get().isPresent());
 
-        Assert.assertEquals("DELETE", foundAction.get().get().getAction());
-        Assert.assertNull(foundAction.get().get().getFlags());
-        Assert.assertNull(foundAction.get().get().getParameter());
-        Assert.assertEquals(false, foundAction.get().get().getParameterRequired());
-        Assert.assertEquals(fileId, foundAction.get().get().getFileId());
+        assertEquals("DELETE", foundAction.get().get().getAction());
+        assertNull(foundAction.get().get().getFlags());
+        assertNull(foundAction.get().get().getParameter());
+        assertEquals(false, foundAction.get().get().getParameterRequired());
+        assertEquals(fileId, foundAction.get().get().getFileId());
 
         ConfirmActionRequest request = new ConfirmActionRequest();
         request.setConfirm(true);
@@ -111,9 +109,9 @@ public class ActionManagerIT {
                 foundAction2.set(Optional.of(confirmedAction));
             }
         });
-        Assert.assertTrue(foundAction2.get().isPresent());
+        assertTrue(foundAction2.get().isPresent());
 
-        Assert.assertEquals("HERE", foundAction2.get().get().getParameter());
+        assertEquals("HERE", foundAction2.get().get().getParameter());
 
         actionManager.deleteAllActions();
 
@@ -123,7 +121,7 @@ public class ActionManagerIT {
                 foundAction3.set(Optional.of(unconfirmedAction));
             }
         });
-        Assert.assertFalse(foundAction3.get().isPresent());
+        assertFalse(foundAction3.get().isPresent());
     }
 
     @Test
@@ -192,6 +190,6 @@ public class ActionManagerIT {
                 fileSystem, modelMapper);
 
         ActionConfirmDTO action = localActionManager.createFileDeleteDuplicateAction(file);
-        Assert.assertEquals("DELETE_DUP", action.getAction());
+        assertEquals("DELETE_DUP", action.getAction());
     }
 }

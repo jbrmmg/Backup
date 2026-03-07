@@ -7,13 +7,9 @@ import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.dto.PreImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +19,10 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -34,18 +31,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {FsoApiIT.Initializer.class})
 @ActiveProfiles(value="it")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Testcontainers
 public class FsoApiIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FsoApiIT.class);
 
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")

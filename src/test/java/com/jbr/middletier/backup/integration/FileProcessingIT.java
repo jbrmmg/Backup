@@ -16,9 +16,10 @@ import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.manager.FileSystem;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -26,9 +27,11 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,15 +44,14 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {FileProcessingIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class FileProcessingIT extends FileTester {
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -76,22 +78,22 @@ public class FileProcessingIT extends FileTester {
         public boolean test(BasicDbDirectory another, boolean anotherEqual) {
             try {
                 childAdded(nullNode);
-                Assert.fail();
+                fail();
                 return false;
             } catch (IllegalStateException e) {
-                Assert.assertEquals("Database Directory children must be Database Directory or File.", e.getMessage());
+                assertEquals("Database Directory children must be Database Directory or File.", e.getMessage());
             }
 
-            Assert.assertTrue(compare(this));
+            assertTrue(compare(this));
 
             FileInfo fileInfo = new FileInfo();
             DbNode dbNode = new DbFile(null, fileInfo);
-            Assert.assertFalse(compare(dbNode));
+            assertFalse(compare(dbNode));
 
             if(anotherEqual) {
-                Assert.assertTrue(compare(another));
+                assertTrue(compare(another));
             } else {
-                Assert.assertFalse(compare(another));
+                assertFalse(compare(another));
             }
 
             return true;
@@ -113,7 +115,7 @@ public class FileProcessingIT extends FileTester {
     @Autowired
     LocationRepository locationRepository;
 
-    @Before
+    @BeforeEach
     public void initialise() throws IOException {
         initialiseDirectories();
     }
@@ -126,24 +128,24 @@ public class FileProcessingIT extends FileTester {
         RwRoot rwRoot = new RwRoot(SOURCE_DIRECTORY, fileSystem);
 
         // Check that the details were read as expected.
-        Assert.assertFalse(rwRoot.getName().isPresent());
+        assertFalse(rwRoot.getName().isPresent());
         int count = 0;
         for (FileTreeNode nextNode : rwRoot.getChildren()) {
             for (FileTreeNode children : nextNode.getChildren()) {
-                Assert.assertTrue(children.getName().isPresent());
-                Assert.assertEquals("Backup.dxf~", children.getName().get());
+                assertTrue(children.getName().isPresent());
+                assertEquals("Backup.dxf~", children.getName().get());
                 count++;
             }
         }
-        Assert.assertEquals(1, count);
+        assertEquals(1, count);
 
-        Assert.assertEquals("Real World (R): " + SOURCE_DIRECTORY + " 1", rwRoot.toString());
+        assertEquals("Real World (R): " + SOURCE_DIRECTORY + " 1", rwRoot.toString());
     }
 
     @Test
     public void basicDatabase() {
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -164,16 +166,16 @@ public class FileProcessingIT extends FileTester {
         DbRoot dbRoot = new DbRoot(source, fileRepository, directoryRepository);
 
         // Check that the details were read as expected.
-        Assert.assertFalse(dbRoot.getName().isPresent());
+        assertFalse(dbRoot.getName().isPresent());
         int count = 0;
         for (FileTreeNode nextNode : dbRoot.getChildren()) {
             for (FileTreeNode children : nextNode.getChildren()) {
-                Assert.assertTrue(children.getName().isPresent());
-                Assert.assertEquals("testFile.txt", children.getName().get());
+                assertTrue(children.getName().isPresent());
+                assertEquals("testFile.txt", children.getName().get());
                 count++;
             }
         }
-        Assert.assertEquals(1, count);
+        assertEquals(1, count);
 
         fileRepository.delete(file);
         directoryRepository.delete(level1);
@@ -185,7 +187,7 @@ public class FileProcessingIT extends FileTester {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -220,14 +222,14 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(4, nodes.size());
+        assertEquals(4, nodes.size());
         for (FileTreeNode nextNode : nodes) {
-            Assert.assertTrue(nextNode instanceof SectionNode);
+            assertInstanceOf(SectionNode.class, nextNode);
             SectionNode sectionNode = (SectionNode) nextNode;
-            Assert.assertFalse(sectionNode.getName().isPresent());
+            assertFalse(sectionNode.getName().isPresent());
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
+        assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.deleteAll();
         directoryRepository.deleteAll();
@@ -237,7 +239,7 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void compareRwDb2() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -263,23 +265,23 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(5, nodes.size());
+        assertEquals(5, nodes.size());
         int sectionCount = 0;
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode sectionNode) {
-                Assert.assertFalse(sectionNode.getName().isPresent());
+                assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode compareNode) {
-                Assert.assertFalse(compareNode.getName().isPresent());
-                Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
-                Assert.assertFalse(compareNode.isDirectory());
+                assertFalse(compareNode.getName().isPresent());
+                assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                assertFalse(compareNode.isDirectory());
             } else {
-                Assert.fail();
+                fail();
             }
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
-        Assert.assertEquals(4, sectionCount);
+        assertFalse(rwDbTree.getName().isPresent());
+        assertEquals(4, sectionCount);
 
         fileRepository.deleteAll();
         directoryRepository.deleteAll();
@@ -289,7 +291,7 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void compareRwDb3() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -320,27 +322,27 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(6, nodes.size());
+        assertEquals(6, nodes.size());
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode sectionNode) {
-                Assert.assertFalse(sectionNode.getName().isPresent());
+                assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode compareNode) {
-                Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
-                Assert.assertFalse(compareNode.isDirectory());
+                assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_FILE, compareNode.getActionType());
+                assertFalse(compareNode.isDirectory());
                 compareCount++;
             } else {
-                Assert.fail();
+                fail();
             }
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
-        Assert.assertEquals(4, sectionCount);
-        Assert.assertEquals(2, compareCount);
+        assertFalse(rwDbTree.getName().isPresent());
+        assertEquals(4, sectionCount);
+        assertEquals(2, compareCount);
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
+        assertFalse(rwDbTree.getName().isPresent());
 
         directoryRepository.delete(file);
         directoryRepository.delete(level1);
@@ -352,7 +354,7 @@ public class FileProcessingIT extends FileTester {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -391,33 +393,33 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(7, nodes.size());
+        assertEquals(7, nodes.size());
         int sectionCount = 0;
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode sectionNode) {
-                Assert.assertFalse(sectionNode.getName().isPresent());
+                assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 if (compareNode.isDirectory()) {
-                    Assert.assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compareNode.getActionType());
+                    assertEquals(RwDbCompareNode.ActionType.RECREATE_AS_DIRECTORY, compareNode.getActionType());
                     compareDirectoryCount++;
                 } else {
-                    Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                    assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                     compareFileCount++;
                 }
             } else {
-                Assert.fail();
+                fail();
             }
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
-        Assert.assertEquals(4, sectionCount);
-        Assert.assertEquals(2, compareDirectoryCount);
-        Assert.assertEquals(1, compareFileCount);
+        assertFalse(rwDbTree.getName().isPresent());
+        assertEquals(4, sectionCount);
+        assertEquals(2, compareDirectoryCount);
+        assertEquals(1, compareFileCount);
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
+        assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.delete(file);
         fileRepository.delete(file2);
@@ -430,7 +432,7 @@ public class FileProcessingIT extends FileTester {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -469,27 +471,27 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(5, nodes.size());
+        assertEquals(5, nodes.size());
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode sectionNode) {
-                Assert.assertFalse(sectionNode.getName().isPresent());
+                assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode compareNode) {
-                Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
-                Assert.assertFalse(compareNode.isDirectory());
+                assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
+                assertFalse(compareNode.isDirectory());
                 compareCount++;
             } else {
-                Assert.fail();
+                fail();
             }
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
-        Assert.assertEquals(4, sectionCount);
-        Assert.assertEquals(1, compareCount);
+        assertFalse(rwDbTree.getName().isPresent());
+        assertEquals(4, sectionCount);
+        assertEquals(1, compareCount);
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
+        assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.delete(file2);
         fileRepository.delete(file);
@@ -502,7 +504,7 @@ public class FileProcessingIT extends FileTester {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -541,27 +543,27 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(5, nodes.size());
+        assertEquals(5, nodes.size());
         int sectionCount = 0;
         int compareCount = 0;
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode sectionNode) {
-                Assert.assertFalse(sectionNode.getName().isPresent());
+                assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode compareNode) {
-                Assert.assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
-                Assert.assertTrue(compareNode.isDirectory());
+                assertEquals(RwDbCompareNode.ActionType.DELETE, compareNode.getActionType());
+                assertTrue(compareNode.isDirectory());
                 compareCount++;
             } else {
-                Assert.fail();
+                fail();
             }
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
-        Assert.assertEquals(4, sectionCount);
-        Assert.assertEquals(1, compareCount);
+        assertFalse(rwDbTree.getName().isPresent());
+        assertEquals(4, sectionCount);
+        assertEquals(1, compareCount);
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
+        assertFalse(rwDbTree.getName().isPresent());
 
         fileRepository.delete(file2);
         directoryRepository.delete(extraDirectory);
@@ -572,7 +574,7 @@ public class FileProcessingIT extends FileTester {
     @Test
     public void compareRwDb7() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
-        Assert.assertTrue(location.isPresent());
+        assertTrue(location.isPresent());
 
         Source source = new Source();
         source.setLocation(location.get());
@@ -593,33 +595,33 @@ public class FileProcessingIT extends FileTester {
 
         List<FileTreeNode> nodes = rwDbTree.getOrderedNodeList();
 
-        Assert.assertEquals(6, nodes.size());
+        assertEquals(6, nodes.size());
         int sectionCount = 0;
         int compareDirectoryCount = 0;
         int compareFileCount = 0;
         for (FileTreeNode nextNode : nodes) {
             if (nextNode instanceof SectionNode sectionNode) {
-                Assert.assertFalse(sectionNode.getName().isPresent());
+                assertFalse(sectionNode.getName().isPresent());
                 sectionCount++;
             } else if (nextNode instanceof RwDbCompareNode compareNode) {
                 if (compareNode.isDirectory()) {
-                    Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                    assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                     compareDirectoryCount++;
                 } else {
-                    Assert.assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
+                    assertEquals(RwDbCompareNode.ActionType.INSERT, compareNode.getActionType());
                     compareFileCount++;
                 }
             } else {
-                Assert.fail();
+                fail();
             }
         }
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
-        Assert.assertEquals(4, sectionCount);
-        Assert.assertEquals(1, compareFileCount);
-        Assert.assertEquals(1, compareDirectoryCount);
+        assertFalse(rwDbTree.getName().isPresent());
+        assertEquals(4, sectionCount);
+        assertEquals(1, compareFileCount);
+        assertEquals(1, compareDirectoryCount);
 
-        Assert.assertFalse(rwDbTree.getName().isPresent());
+        assertFalse(rwDbTree.getName().isPresent());
 
         sourceRepository.deleteAll();
     }
@@ -633,27 +635,27 @@ public class FileProcessingIT extends FileTester {
 
         int childCount = 0;
         for(FileTreeNode nextChild : rwRoot.getChildren()) {
-            Assert.assertTrue(nextChild instanceof RwNode);
+            assertInstanceOf(RwNode.class, nextChild);
             childCount++;
         }
-        Assert.assertEquals(3, childCount);
+        assertEquals(3, childCount);
 
         rwRoot.removeFilteredChildren(null);
         rwRoot.removeFilteredChildren("");
         childCount = 0;
         for(FileTreeNode nextChild : rwRoot.getChildren()) {
-            Assert.assertTrue(nextChild instanceof RwNode);
+            assertInstanceOf(RwNode.class, nextChild);
             childCount++;
         }
-        Assert.assertEquals(3, childCount);
+        assertEquals(3, childCount);
 
         rwRoot.removeFilteredChildren("\\d{4}$");
         childCount = 0;
         for(FileTreeNode nextChild : rwRoot.getChildren()) {
-            Assert.assertTrue(nextChild instanceof RwNode);
+            assertInstanceOf(RwNode.class, nextChild);
             childCount++;
         }
-        Assert.assertEquals(1, childCount);
+        assertEquals(1, childCount);
     }
 
     @Test
@@ -670,12 +672,12 @@ public class FileProcessingIT extends FileTester {
 
         BasicDbDirectory testDbDirectory = new BasicDbDirectory(tempDirectory, fileRepository, directoryRepository);
         BasicDbDirectory another = new BasicDbDirectory(tempDirectory2, fileRepository, directoryRepository);
-        Assert.assertTrue(testDbDirectory.test(another,true));
+        assertTrue(testDbDirectory.test(another,true));
 
         tempDirectory2.setName("Documents2");
-        Assert.assertTrue(testDbDirectory.test(another,false));
+        assertTrue(testDbDirectory.test(another,false));
 
-        Assert.assertNotNull(testDbDirectory.getFSO());
+        assertNotNull(testDbDirectory.getFSO());
 
         directoryRepository.deleteAll();
     }
@@ -701,7 +703,7 @@ public class FileProcessingIT extends FileTester {
         fileInfo.setSize(200);
         DbFile dbFile = new DbFile(null, fileInfo);
         RwDbCompareNode testNode = new RwDbCompareNode(null, mockRwFile, dbFile);
-        Assert.assertNotNull(testNode);
+        assertNotNull(testNode);
     }
 
     @Test
@@ -709,7 +711,7 @@ public class FileProcessingIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        Assert.assertFalse(fileSystem.directoryIsEmpty(new File(SOURCE_DIRECTORY).toPath()));
+        assertFalse(fileSystem.directoryIsEmpty(new File(SOURCE_DIRECTORY).toPath()));
     }
 
     @Test
@@ -718,7 +720,7 @@ public class FileProcessingIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         File testFile = new File(SOURCE_DIRECTORY + "/does not exist.txt");
-        Assert.assertFalse(fileSystem.directoryIsEmpty(testFile.toPath()));
+        assertFalse(fileSystem.directoryIsEmpty(testFile.toPath()));
     }
 
     @Test

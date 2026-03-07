@@ -10,12 +10,9 @@ import com.jbr.middletier.backup.data.SourceStatusType;
 import com.jbr.middletier.backup.dataaccess.LocationRepository;
 import com.jbr.middletier.backup.dataaccess.SourceRepository;
 import com.jbr.middletier.backup.dto.*;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +22,11 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Objects;
 
@@ -37,17 +36,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {NonFsoApiIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class NonFsoApiIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(FsoApiIT.class);
 
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -127,7 +125,7 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("Synchronize with id (1) already exists.", error);
+        assertEquals("Synchronize with id (1) already exists.", error);
 
         LOG.info("Get the synchronize that was created");
         getMockMvc().perform(get("/jbr/ext/backup/synchronize")
@@ -166,7 +164,7 @@ public class NonFsoApiIT extends WebTester {
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("Synchronize with id (1) not found.", error);
+        assertEquals("Synchronize with id (1) not found.", error);
 
         sourceRepository.delete(newSource1);
         sourceRepository.delete(newSource2);

@@ -13,14 +13,12 @@ import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
 import com.jbr.middletier.backup.util.FileSearch;
 import com.jbr.middletier.backup.util.ImageSize;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+
+import static org.junit.jupiter.api.Assertions.*;
 import org.hibernate.boot.model.naming.Identifier;
 
 import java.io.File;
@@ -33,9 +31,7 @@ import java.util.*;
 import static com.jbr.middletier.backup.data.ClassificationActionType.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@WebAppConfiguration
 public class TestGeneral extends WebTester {
     @Autowired
     AssociatedFileDataManager associatedFileDataManager;
@@ -50,57 +46,57 @@ public class TestGeneral extends WebTester {
     public void TestDefaultProfile() {
         SpringApplication app = mock(SpringApplication.class);
 
-        Assert.assertNotNull(app);
+        assertNotNull(app);
         DefaultProfileUtil.addDefaultProfile(app);
     }
 
     @Test
     public void TestClassificationActionType() {
-        Assert.assertEquals(CA_BACKUP,ClassificationActionType.getClassificationActionType("BACKUP"));
-        Assert.assertEquals(CA_DELETE,ClassificationActionType.getClassificationActionType("DELETE"));
-        Assert.assertEquals(CA_FOLDER,ClassificationActionType.getClassificationActionType("FOLDER"));
-        Assert.assertEquals(CA_IGNORE,ClassificationActionType.getClassificationActionType("IGNORE"));
-        Assert.assertEquals(CA_WARN,ClassificationActionType.getClassificationActionType("WARN"));
+        assertEquals(CA_BACKUP,ClassificationActionType.getClassificationActionType("BACKUP"));
+        assertEquals(CA_DELETE,ClassificationActionType.getClassificationActionType("DELETE"));
+        assertEquals(CA_FOLDER,ClassificationActionType.getClassificationActionType("FOLDER"));
+        assertEquals(CA_IGNORE,ClassificationActionType.getClassificationActionType("IGNORE"));
+        assertEquals(CA_WARN,ClassificationActionType.getClassificationActionType("WARN"));
 
         try {
             ClassificationActionType.getClassificationActionType("BLAH");
-            Assert.fail();
+            fail();
         } catch (IllegalStateException e) {
-            Assert.assertEquals("BLAH is not a valid Classification Action", e.getMessage());
+            assertEquals("BLAH is not a valid Classification Action", e.getMessage());
         }
     }
 
     @Test
     public void TestDTOs() {
         GatherDataDTO gatherDataDTO = new GatherDataDTO(1);
-        Assert.assertEquals(1,gatherDataDTO.getUnderlyingId());
+        assertEquals(1,gatherDataDTO.getUnderlyingId());
 
         gatherDataDTO.setProblems();
-        Assert.assertTrue(gatherDataDTO.hasProblems());
+        assertTrue(gatherDataDTO.hasProblems());
 
         SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
         synchronizeDTO.setId(1);
-        Assert.assertEquals((Integer) 1, synchronizeDTO.getId());
+        assertEquals((Integer) 1, synchronizeDTO.getId());
 
         SyncDataDTO syncDataDTO = new SyncDataDTO(1);
         syncDataDTO.increment(SyncDataDTO.SyncDataCountType.FILES_DELETED);
         syncDataDTO.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED);
         syncDataDTO.increment(SyncDataDTO.SyncDataCountType.FILES_COPIED);
         syncDataDTO.increment(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED);
-        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.FILES_DELETED));
-        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED));
-        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.FILES_COPIED));
-        Assert.assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED));
+        assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.FILES_DELETED));
+        assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED));
+        assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.FILES_COPIED));
+        assertEquals(1,syncDataDTO.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED));
 
         OkStatus okStatus = new OkStatus();
         okStatus.setStatus("Test");
-        Assert.assertEquals("Test", okStatus.getStatus());
+        assertEquals("Test", okStatus.getStatus());
 
         SourceDTO sourceDTO = new SourceDTO();
         sourceDTO.setId(1);
         sourceDTO.setPath("Test");
-        Assert.assertEquals((Integer)1,sourceDTO.getId());
-        Assert.assertEquals("Test",sourceDTO.getPath());
+        assertEquals((Integer)1,sourceDTO.getId());
+        assertEquals("Test",sourceDTO.getPath());
         sourceDTO.setLocation(new LocationDTO());
         sourceDTO.setStatus("OK");
         sourceDTO.setFilter("Test");
@@ -112,7 +108,7 @@ public class TestGeneral extends WebTester {
 
         ImportSourceDTO importSourceDTO = new ImportSourceDTO();
         importSourceDTO.setDestinationId(1);
-        Assert.assertEquals((Integer)1,importSourceDTO.getDestinationId());
+        assertEquals((Integer)1,importSourceDTO.getDestinationId());
 
         FileInfo mockFileInfo = mock(FileInfo.class);
         when(mockFileInfo.getIdAndType()).thenReturn(new FileSystemObjectId(1,FileSystemObjectType.FSO_FILE));
@@ -134,27 +130,27 @@ public class TestGeneral extends WebTester {
         actionConfirmDTO.setConfirmed(false);
         actionConfirmDTO.setFileName("file");
         actionConfirmDTO.setFileId(1);
-        Assert.assertEquals("IMPORT",actionConfirmDTO.getAction());
-        Assert.assertEquals(1,actionConfirmDTO.getId());
-        Assert.assertEquals("flag",actionConfirmDTO.getFlags());
-        Assert.assertEquals("n",actionConfirmDTO.getParameter());
-        Assert.assertFalse(actionConfirmDTO.getParameterRequired());
-        Assert.assertFalse(actionConfirmDTO.getConfirmed());
-        Assert.assertEquals("file",actionConfirmDTO.getFileName());
-        Assert.assertEquals(1,actionConfirmDTO.getFileId());
+        assertEquals("IMPORT",actionConfirmDTO.getAction());
+        assertEquals(1,actionConfirmDTO.getId());
+        assertEquals("flag",actionConfirmDTO.getFlags());
+        assertEquals("n",actionConfirmDTO.getParameter());
+        assertFalse(actionConfirmDTO.getParameterRequired());
+        assertFalse(actionConfirmDTO.getConfirmed());
+        assertEquals("file",actionConfirmDTO.getFileName());
+        assertEquals(1,actionConfirmDTO.getFileId());
     }
 
     @Test
     public void TestActionConfirmType() {
-        Assert.assertEquals(ActionConfirmType.AC_DELETE,ActionConfirmType.getActionConfirmType("DELETE"));
-        Assert.assertEquals(ActionConfirmType.AC_DELETE_DUPLICATE,ActionConfirmType.getActionConfirmType("DELETE_DUP"));
-        Assert.assertEquals(ActionConfirmType.AC_IMPORT,ActionConfirmType.getActionConfirmType("IMPORT"));
+        assertEquals(ActionConfirmType.AC_DELETE,ActionConfirmType.getActionConfirmType("DELETE"));
+        assertEquals(ActionConfirmType.AC_DELETE_DUPLICATE,ActionConfirmType.getActionConfirmType("DELETE_DUP"));
+        assertEquals(ActionConfirmType.AC_IMPORT,ActionConfirmType.getActionConfirmType("IMPORT"));
 
         try {
             ActionConfirmType.getActionConfirmType("BLAH");
-            Assert.fail();
+            fail();
         } catch (IllegalStateException e) {
-            Assert.assertEquals("BLAH is not a valid Action Confirm type", e.getMessage());
+            assertEquals("BLAH is not a valid Action Confirm type", e.getMessage());
         }
     }
 
@@ -165,9 +161,9 @@ public class TestGeneral extends WebTester {
 
         ApiError test = new ApiError(null, "Blah", ex);
 
-        Assert.assertNotNull(test.getTimestamp());
-        Assert.assertEquals("Blah", test.getMessage());
-        Assert.assertEquals("Error", test.getDebugMessage());
+        assertNotNull(test.getTimestamp());
+        assertEquals("Blah", test.getMessage());
+        assertEquals("Error", test.getDebugMessage());
     }
 
     @Test
@@ -175,30 +171,30 @@ public class TestGeneral extends WebTester {
         // First check the invalid checks.
         try {
             new MD5((String) null);
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
+            assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
         }
 
         try {
             new MD5("");
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
+            assertEquals("Cannot create MD5 with null or empty string", e.getMessage());
         }
 
         try {
             new MD5("1234567890123456789012345678901");
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("You must create MD5 with 32 characters", e.getMessage());
+            assertEquals("You must create MD5 with 32 characters", e.getMessage());
         }
 
         try {
             new MD5("1234567890123456789012345678901G");
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("MD5 must only contain HEX digits (0-9 or A-F)", e.getMessage());
+            assertEquals("MD5 must only contain HEX digits (0-9 or A-F)", e.getMessage());
         }
 
         MD5 md5c = new MD5("12345678901234567890123456789012");
@@ -207,10 +203,10 @@ public class TestGeneral extends WebTester {
 
         MD5 md5e = new MD5("12345678901234567890123456789012");
 
-        Assert.assertEquals(md5c, md5e);
-        Assert.assertEquals(md5e, md5c);
-        Assert.assertNotEquals(md5c, md5d);
-        Assert.assertNotEquals(md5d, md5c);
+        assertEquals(md5c, md5e);
+        assertEquals(md5e, md5c);
+        assertNotEquals(md5c, md5d);
+        assertNotEquals(md5d, md5c);
     }
 
     @Test
@@ -220,34 +216,34 @@ public class TestGeneral extends WebTester {
         FileSystemObjectId fsoId3 = new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY);
         FileSystemObjectId fsoId4 = new FileSystemObjectId(1,FileSystemObjectType.FSO_FILE);
         Object testObj = "not an id";
-        Assert.assertNotEquals(fsoId3.hashCode(),fsoId.hashCode());
-        Assert.assertNotEquals(fsoId, fsoId2);
-        Assert.assertNotEquals(testObj, fsoId);
-        Assert.assertNotEquals(null, fsoId);
-        Assert.assertNotEquals(fsoId, fsoId3);
-        Assert.assertEquals(fsoId, fsoId4);
+        assertNotEquals(fsoId3.hashCode(),fsoId.hashCode());
+        assertNotEquals(fsoId, fsoId2);
+        assertNotEquals(testObj, fsoId);
+        assertNotEquals(null, fsoId);
+        assertNotEquals(fsoId, fsoId3);
+        assertEquals(fsoId, fsoId4);
 
         @SuppressWarnings("ConstantConditions")
         boolean test = fsoId.equals(null);
         //noinspection ConstantConditions
-        Assert.assertFalse(test);
+        assertFalse(test);
 
         //noinspection EqualsBetweenInconvertibleTypes
         test = fsoId.equals(testObj);
-        Assert.assertFalse(test);
+        assertFalse(test);
     }
 
     @Test
     public void TestSourceStatus() {
-        Assert.assertEquals(SourceStatusType.SST_OK, SourceStatusType.getSourceStatusType("OK"));
-        Assert.assertEquals(SourceStatusType.SST_GATHERING, SourceStatusType.getSourceStatusType("GATHERING"));
-        Assert.assertEquals(SourceStatusType.SST_ERROR, SourceStatusType.getSourceStatusType("ERROR"));
+        assertEquals(SourceStatusType.SST_OK, SourceStatusType.getSourceStatusType("OK"));
+        assertEquals(SourceStatusType.SST_GATHERING, SourceStatusType.getSourceStatusType("GATHERING"));
+        assertEquals(SourceStatusType.SST_ERROR, SourceStatusType.getSourceStatusType("ERROR"));
 
         try {
             SourceStatusType.getSourceStatusType("Blah");
-            Assert.fail();
+            fail();
         } catch (IllegalStateException e) {
-            Assert.assertEquals("Blah is not a valid Source Status type", e.getMessage());
+            assertEquals("Blah is not a valid Source Status type", e.getMessage());
         }
     }
 
@@ -272,16 +268,16 @@ public class TestGeneral extends WebTester {
 
         Synchronize synchronize = associatedFileDataManager.convertToEntity(synchronizeDTO);
 
-        Assert.assertEquals("Test -> Test", synchronize.toString());
+        assertEquals("Test -> Test", synchronize.toString());
     }
 
     @Test
     public void TestHierarchyResponse() {
         HierarchyResponse hierarchyResponse = new HierarchyResponse();
-        Assert.assertEquals(-1,hierarchyResponse.getId());
-        Assert.assertEquals("",hierarchyResponse.getDisplayName());
-        Assert.assertEquals("/",hierarchyResponse.getPath());
-        Assert.assertTrue(hierarchyResponse.getDirectory());
+        assertEquals(-1,hierarchyResponse.getId());
+        assertEquals("",hierarchyResponse.getDisplayName());
+        assertEquals("/",hierarchyResponse.getPath());
+        assertTrue(hierarchyResponse.getDirectory());
     }
 
     @Test
@@ -293,7 +289,7 @@ public class TestGeneral extends WebTester {
         location.setSize("1G");
 
         LocationDTO locationDTO = associatedFileDataManager.convertToDTO(location);
-        Assert.assertEquals("Test", locationDTO.getName());
+        assertEquals("Test", locationDTO.getName());
     }
 
     @Test
@@ -312,7 +308,7 @@ public class TestGeneral extends WebTester {
         source.setLocation(location);
 
         SourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
-        Assert.assertNotNull(sourceDTO);
+        assertNotNull(sourceDTO);
     }
 
     @Test
@@ -407,15 +403,15 @@ public class TestGeneral extends WebTester {
     @Test
     public void validateFileStatusType() {
         ImportFileStatusType type = ImportFileStatusType.getFileStatusType("COMPLETE");
-        Assert.assertEquals(ImportFileStatusType.IFS_COMPLETE, type);
+        assertEquals(ImportFileStatusType.IFS_COMPLETE, type);
 
         type = ImportFileStatusType.getFileStatusType("READ");
-        Assert.assertEquals(ImportFileStatusType.IFS_READ, type);
+        assertEquals(ImportFileStatusType.IFS_READ, type);
 
         try {
             ImportFileStatusType.getFileStatusType("Blah");
         } catch (IllegalStateException e) {
-            Assert.assertEquals("Blah is not a valid Import File Status", e.getMessage());
+            assertEquals("Blah is not a valid Import File Status", e.getMessage());
         }
     }
 
@@ -457,8 +453,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
-        Assert.assertEquals(1, syncData.size());
-        Assert.assertTrue(syncData.get(0).hasProblems());
+        assertEquals(1, syncData.size());
+        assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",1,null);
     }
 
@@ -500,8 +496,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
-        Assert.assertEquals(1, syncData.size());
-        Assert.assertTrue(syncData.get(0).hasProblems());
+        assertEquals(1, syncData.size());
+        assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",3,null);
     }
 
@@ -544,8 +540,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
-        Assert.assertEquals(1, syncData.size());
-        Assert.assertTrue(syncData.get(0).hasProblems());
+        assertEquals(1, syncData.size());
+        assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",5,null);
     }
 
@@ -588,8 +584,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
-        Assert.assertEquals(1, syncData.size());
-        Assert.assertTrue(syncData.get(0).hasProblems());
+        assertEquals(1, syncData.size());
+        assertTrue(syncData.get(0).hasProblems());
         verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",6,null);
     }
 
@@ -628,8 +624,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
-        Assert.assertEquals(1, syncData.size());
-        Assert.assertTrue(syncData.get(0).hasProblems());
+        assertEquals(1, syncData.size());
+        assertTrue(syncData.get(0).hasProblems());
     }
 
     @Test
@@ -664,8 +660,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<GatherDataDTO> gatherData = driveManager.gather(null);
-        Assert.assertEquals(1, gatherData.size());
-        Assert.assertTrue(gatherData.get(0).hasProblems());
+        assertEquals(1, gatherData.size());
+        assertTrue(gatherData.get(0).hasProblems());
         verify(mockAssociatedFileDataManager, times(1)).updateSourceStatus(source,SourceStatusType.SST_ERROR);
     }
 
@@ -698,8 +694,8 @@ public class TestGeneral extends WebTester {
                 fileSystem);
 
         List<GatherDataDTO> gatherData = driveManager.gather(null);
-        Assert.assertEquals(1, gatherData.size());
-        Assert.assertTrue(gatherData.get(0).hasProblems());
+        assertEquals(1, gatherData.size());
+        assertTrue(gatherData.get(0).hasProblems());
     }
 
     @Test
@@ -711,10 +707,10 @@ public class TestGeneral extends WebTester {
         location.setCheckDuplicates(true);
 
         LocationDTO locationDTO = associatedFileDataManager.convertToDTO(location);
-        Assert.assertEquals(1, locationDTO.getId().intValue());
-        Assert.assertEquals("Test", locationDTO.getName());
-        Assert.assertEquals("1TB", locationDTO.getSize());
-        Assert.assertEquals(true, locationDTO.getCheckDuplicates());
+        assertEquals(1, locationDTO.getId().intValue());
+        assertEquals("Test", locationDTO.getName());
+        assertEquals("1TB", locationDTO.getSize());
+        assertEquals(true, locationDTO.getCheckDuplicates());
 
         location = new Location();
         location.setId(1);
@@ -722,10 +718,10 @@ public class TestGeneral extends WebTester {
         location.setSize("1TB");
 
         locationDTO = associatedFileDataManager.convertToDTO(location);
-        Assert.assertEquals(1, locationDTO.getId().intValue());
-        Assert.assertEquals("Test", locationDTO.getName());
-        Assert.assertEquals("1TB", locationDTO.getSize());
-        Assert.assertNull(locationDTO.getCheckDuplicates());
+        assertEquals(1, locationDTO.getId().intValue());
+        assertEquals("Test", locationDTO.getName());
+        assertEquals("1TB", locationDTO.getSize());
+        assertNull(locationDTO.getCheckDuplicates());
     }
 
     @Test
@@ -737,10 +733,10 @@ public class TestGeneral extends WebTester {
         locationDTO.setCheckDuplicates(false);
 
         Location location = associatedFileDataManager.convertToEntity(locationDTO);
-        Assert.assertEquals(1, location.getId());
-        Assert.assertEquals("Test", location.getName());
-        Assert.assertEquals("1TB", location.getSize());
-        Assert.assertEquals(false, location.getCheckDuplicates());
+        assertEquals(1, location.getId());
+        assertEquals("Test", location.getName());
+        assertEquals("1TB", location.getSize());
+        assertEquals(false, location.getCheckDuplicates());
 
         locationDTO = new LocationDTO();
         locationDTO.setId(1);
@@ -749,10 +745,10 @@ public class TestGeneral extends WebTester {
         locationDTO.setCheckDuplicates(true);
 
         location = associatedFileDataManager.convertToEntity(locationDTO);
-        Assert.assertEquals(1, location.getId());
-        Assert.assertEquals("Test", location.getName());
-        Assert.assertEquals("1TB", location.getSize());
-        Assert.assertEquals(true, location.getCheckDuplicates());
+        assertEquals(1, location.getId());
+        assertEquals("Test", location.getName());
+        assertEquals("1TB", location.getSize());
+        assertEquals(true, location.getCheckDuplicates());
     }
 
     @Test
@@ -767,13 +763,13 @@ public class TestGeneral extends WebTester {
         classificationDTO.setIcon("fred");
 
         Classification classification = associatedFileDataManager.convertToEntity(classificationDTO);
-        Assert.assertEquals(1,classification.getId().intValue());
-        Assert.assertTrue(classification.getIsVideo());
-        Assert.assertTrue(classification.getIsImage());
-        Assert.assertEquals(CA_DELETE, classification.getAction());
-        Assert.assertEquals(1,classification.getOrder().intValue());
-        Assert.assertEquals("Blah", classification.getRegex());
-        Assert.assertEquals("fred", classification.getIcon());
+        assertEquals(1,classification.getId().intValue());
+        assertTrue(classification.getIsVideo());
+        assertTrue(classification.getIsImage());
+        assertEquals(CA_DELETE, classification.getAction());
+        assertEquals(1,classification.getOrder().intValue());
+        assertEquals("Blah", classification.getRegex());
+        assertEquals("fred", classification.getIcon());
     }
 
     @Test
@@ -788,13 +784,13 @@ public class TestGeneral extends WebTester {
         classification.setIcon("fred");
 
         ClassificationDTO classificationDTO = associatedFileDataManager.convertToDTO(classification);
-        Assert.assertEquals(1,classificationDTO.getId().intValue());
-        Assert.assertTrue(classificationDTO.getIsVideo());
-        Assert.assertTrue(classificationDTO.getIsImage());
-        Assert.assertEquals(CA_DELETE, classificationDTO.getAction());
-        Assert.assertEquals(1,classificationDTO.getOrder().intValue());
-        Assert.assertEquals("Blah", classificationDTO.getRegex());
-        Assert.assertEquals("fred", classificationDTO.getIcon());
+        assertEquals(1,classificationDTO.getId().intValue());
+        assertTrue(classificationDTO.getIsVideo());
+        assertTrue(classificationDTO.getIsImage());
+        assertEquals(CA_DELETE, classificationDTO.getAction());
+        assertEquals(1,classificationDTO.getOrder().intValue());
+        assertEquals("Blah", classificationDTO.getRegex());
+        assertEquals("fred", classificationDTO.getIcon());
     }
 
     @Test
@@ -813,15 +809,15 @@ public class TestGeneral extends WebTester {
         sourceDTO.setFilter("Blah");
 
         Source source = associatedFileDataManager.convertToEntity(sourceDTO);
-        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
-        Assert.assertEquals("Cheese", source.getPath());
-        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
-        Assert.assertEquals(1,source.getLocation().getId());
-        Assert.assertEquals("1TB", source.getLocation().getSize());
-        Assert.assertEquals("Test", source.getLocation().getName());
-        Assert.assertTrue(source.getMountCheck().isPresent());
-        Assert.assertEquals("Check", source.getMountCheck().get().toString());
-        Assert.assertEquals("Blah", source.getFilter());
+        assertEquals(1,source.getIdAndType().getId().intValue());
+        assertEquals("Cheese", source.getPath());
+        assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        assertEquals(1,source.getLocation().getId());
+        assertEquals("1TB", source.getLocation().getSize());
+        assertEquals("Test", source.getLocation().getName());
+        assertTrue(source.getMountCheck().isPresent());
+        assertEquals("Check", source.getMountCheck().get().toString());
+        assertEquals("Blah", source.getFilter());
     }
 
     @Test
@@ -840,14 +836,14 @@ public class TestGeneral extends WebTester {
         source.setFilter("Blah");
 
         SourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
-        Assert.assertEquals(1, sourceDTO.getId().intValue());
-        Assert.assertEquals("Cheese", sourceDTO.getPath());
-        Assert.assertEquals("OK", sourceDTO.getStatus());
-        Assert.assertEquals(1, sourceDTO.getLocation().getId().intValue());
-        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
-        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
-        Assert.assertEquals("Check", sourceDTO.getMountCheck());
-        Assert.assertEquals("Blah", sourceDTO.getFilter());
+        assertEquals(1, sourceDTO.getId().intValue());
+        assertEquals("Cheese", sourceDTO.getPath());
+        assertEquals("OK", sourceDTO.getStatus());
+        assertEquals(1, sourceDTO.getLocation().getId().intValue());
+        assertEquals("1TB", sourceDTO.getLocation().getSize());
+        assertEquals("Test", sourceDTO.getLocation().getName());
+        assertEquals("Check", sourceDTO.getMountCheck());
+        assertEquals("Blah", sourceDTO.getFilter());
     }
 
     @Test
@@ -855,16 +851,16 @@ public class TestGeneral extends WebTester {
         ImportSourceDTO sourceDTO = getImportSourceDTO();
 
         ImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
-        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
-        Assert.assertEquals("Cheese", source.getPath());
-        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
-        Assert.assertEquals(1,source.getLocation().getId());
-        Assert.assertEquals("1TB", source.getLocation().getSize());
-        Assert.assertEquals("Test", source.getLocation().getName());
-        Assert.assertTrue(source.getMountCheck().isPresent());
-        Assert.assertEquals("Check", source.getMountCheck().get().toString());
-        Assert.assertEquals("Blah", source.getFilter());
-        Assert.assertEquals(1, source.getDestination().getIdAndType().getId().intValue());
+        assertEquals(1,source.getIdAndType().getId().intValue());
+        assertEquals("Cheese", source.getPath());
+        assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        assertEquals(1,source.getLocation().getId());
+        assertEquals("1TB", source.getLocation().getSize());
+        assertEquals("Test", source.getLocation().getName());
+        assertTrue(source.getMountCheck().isPresent());
+        assertEquals("Check", source.getMountCheck().get().toString());
+        assertEquals("Blah", source.getFilter());
+        assertEquals(1, source.getDestination().getIdAndType().getId().intValue());
     }
 
     @NotNull
@@ -890,15 +886,15 @@ public class TestGeneral extends WebTester {
         ImportSource source = getImportSource();
 
         ImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
-        Assert.assertEquals(1,sourceDTO.getId().intValue());
-        Assert.assertEquals("Cheese", sourceDTO.getPath());
-        Assert.assertEquals("OK", sourceDTO.getStatus());
-        Assert.assertEquals(1,sourceDTO.getLocation().getId().intValue());
-        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
-        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
-        Assert.assertEquals("Check", sourceDTO.getMountCheck());
-        Assert.assertEquals("Blah", sourceDTO.getFilter());
-        Assert.assertEquals(1, sourceDTO.getDestinationId().intValue());
+        assertEquals(1,sourceDTO.getId().intValue());
+        assertEquals("Cheese", sourceDTO.getPath());
+        assertEquals("OK", sourceDTO.getStatus());
+        assertEquals(1,sourceDTO.getLocation().getId().intValue());
+        assertEquals("1TB", sourceDTO.getLocation().getSize());
+        assertEquals("Test", sourceDTO.getLocation().getName());
+        assertEquals("Check", sourceDTO.getMountCheck());
+        assertEquals("Blah", sourceDTO.getFilter());
+        assertEquals(1, sourceDTO.getDestinationId().intValue());
     }
 
     @NotNull
@@ -937,15 +933,15 @@ public class TestGeneral extends WebTester {
         sourceDTO.setFilter("Blah");
 
         PreImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
-        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
-        Assert.assertEquals("Cheese", source.getPath());
-        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
-        Assert.assertEquals(1,source.getLocation().getId());
-        Assert.assertEquals("1TB", source.getLocation().getSize());
-        Assert.assertEquals("Test", source.getLocation().getName());
-        Assert.assertTrue(source.getMountCheck().isPresent());
-        Assert.assertEquals("Check", source.getMountCheck().get().toString());
-        Assert.assertEquals("Blah", source.getFilter());
+        assertEquals(1,source.getIdAndType().getId().intValue());
+        assertEquals("Cheese", source.getPath());
+        assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        assertEquals(1,source.getLocation().getId());
+        assertEquals("1TB", source.getLocation().getSize());
+        assertEquals("Test", source.getLocation().getName());
+        assertTrue(source.getMountCheck().isPresent());
+        assertEquals("Check", source.getMountCheck().get().toString());
+        assertEquals("Blah", source.getFilter());
     }
 
     @Test
@@ -964,14 +960,14 @@ public class TestGeneral extends WebTester {
         source.setFilter("Blah");
 
         PreImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
-        Assert.assertEquals(1, sourceDTO.getId().intValue());
-        Assert.assertEquals("Cheese", sourceDTO.getPath());
-        Assert.assertEquals("OK", sourceDTO.getStatus());
-        Assert.assertEquals(1, sourceDTO.getLocation().getId().intValue());
-        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
-        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
-        Assert.assertEquals("Check", sourceDTO.getMountCheck());
-        Assert.assertEquals("Blah", sourceDTO.getFilter());
+        assertEquals(1, sourceDTO.getId().intValue());
+        assertEquals("Cheese", sourceDTO.getPath());
+        assertEquals("OK", sourceDTO.getStatus());
+        assertEquals(1, sourceDTO.getLocation().getId().intValue());
+        assertEquals("1TB", sourceDTO.getLocation().getSize());
+        assertEquals("Test", sourceDTO.getLocation().getName());
+        assertEquals("Check", sourceDTO.getMountCheck());
+        assertEquals("Blah", sourceDTO.getFilter());
     }
 
     @Test
@@ -990,15 +986,15 @@ public class TestGeneral extends WebTester {
         sourceDTO.setFilter("Blah");
 
         PostImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
-        Assert.assertEquals(1,source.getIdAndType().getId().intValue());
-        Assert.assertEquals("Cheese", source.getPath());
-        Assert.assertEquals(SourceStatusType.SST_OK, source.getStatus());
-        Assert.assertEquals(1,source.getLocation().getId());
-        Assert.assertEquals("1TB", source.getLocation().getSize());
-        Assert.assertEquals("Test", source.getLocation().getName());
-        Assert.assertTrue(source.getMountCheck().isPresent());
-        Assert.assertEquals("Check", source.getMountCheck().get().toString());
-        Assert.assertEquals("Blah", source.getFilter());
+        assertEquals(1,source.getIdAndType().getId().intValue());
+        assertEquals("Cheese", source.getPath());
+        assertEquals(SourceStatusType.SST_OK, source.getStatus());
+        assertEquals(1,source.getLocation().getId());
+        assertEquals("1TB", source.getLocation().getSize());
+        assertEquals("Test", source.getLocation().getName());
+        assertTrue(source.getMountCheck().isPresent());
+        assertEquals("Check", source.getMountCheck().get().toString());
+        assertEquals("Blah", source.getFilter());
     }
 
     @Test
@@ -1017,14 +1013,14 @@ public class TestGeneral extends WebTester {
         source.setFilter("Blah");
 
         PostImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
-        Assert.assertEquals(1, sourceDTO.getId().intValue());
-        Assert.assertEquals("Cheese", sourceDTO.getPath());
-        Assert.assertEquals("OK", sourceDTO.getStatus());
-        Assert.assertEquals(1, sourceDTO.getLocation().getId().intValue());
-        Assert.assertEquals("1TB", sourceDTO.getLocation().getSize());
-        Assert.assertEquals("Test", sourceDTO.getLocation().getName());
-        Assert.assertEquals("Check", sourceDTO.getMountCheck());
-        Assert.assertEquals("Blah", sourceDTO.getFilter());
+        assertEquals(1, sourceDTO.getId().intValue());
+        assertEquals("Cheese", sourceDTO.getPath());
+        assertEquals("OK", sourceDTO.getStatus());
+        assertEquals(1, sourceDTO.getLocation().getId().intValue());
+        assertEquals("1TB", sourceDTO.getLocation().getSize());
+        assertEquals("Test", sourceDTO.getLocation().getName());
+        assertEquals("Check", sourceDTO.getMountCheck());
+        assertEquals("Blah", sourceDTO.getFilter());
     }
 
     @Test
@@ -1032,27 +1028,27 @@ public class TestGeneral extends WebTester {
         SynchronizeDTO synchronizeDTO = getSynchronizeDTO();
 
         Synchronize synchronize = associatedFileDataManager.convertToEntity(synchronizeDTO);
-        Assert.assertEquals(1, synchronize.getId().intValue());
-        Assert.assertEquals(1, synchronize.getSource().getIdAndType().getId().intValue());
-        Assert.assertEquals(1, synchronize.getSource().getLocation().getId());
-        Assert.assertEquals("1TB", synchronize.getSource().getLocation().getSize());
-        Assert.assertEquals("Test", synchronize.getSource().getLocation().getName());
-        Assert.assertTrue(synchronize.getSource().getLocation().getCheckDuplicates());
-        Assert.assertEquals("notFilter", synchronize.getSource().getFilter());
-        Assert.assertEquals(SourceStatusType.SST_OK, synchronize.getSource().getStatus());
-        Assert.assertEquals("Side", synchronize.getSource().getPath());
-        Assert.assertTrue(synchronize.getSource().getMountCheck().isPresent());
-        Assert.assertEquals("Chis", synchronize.getSource().getMountCheck().get().toString());
-        Assert.assertEquals(2, synchronize.getDestination().getIdAndType().getId().intValue());
-        Assert.assertEquals(1, synchronize.getDestination().getLocation().getId());
-        Assert.assertEquals("1TB", synchronize.getDestination().getLocation().getSize());
-        Assert.assertEquals("Test", synchronize.getDestination().getLocation().getName());
-        Assert.assertTrue(synchronize.getDestination().getLocation().getCheckDuplicates());
-        Assert.assertEquals("filter", synchronize.getDestination().getFilter());
-        Assert.assertEquals(SourceStatusType.SST_OK, synchronize.getDestination().getStatus());
-        Assert.assertEquals("Foot", synchronize.getDestination().getPath());
-        Assert.assertTrue(synchronize.getDestination().getMountCheck().isPresent());
-        Assert.assertEquals("Check", synchronize.getDestination().getMountCheck().get().toString());
+        assertEquals(1, synchronize.getId().intValue());
+        assertEquals(1, synchronize.getSource().getIdAndType().getId().intValue());
+        assertEquals(1, synchronize.getSource().getLocation().getId());
+        assertEquals("1TB", synchronize.getSource().getLocation().getSize());
+        assertEquals("Test", synchronize.getSource().getLocation().getName());
+        assertTrue(synchronize.getSource().getLocation().getCheckDuplicates());
+        assertEquals("notFilter", synchronize.getSource().getFilter());
+        assertEquals(SourceStatusType.SST_OK, synchronize.getSource().getStatus());
+        assertEquals("Side", synchronize.getSource().getPath());
+        assertTrue(synchronize.getSource().getMountCheck().isPresent());
+        assertEquals("Chis", synchronize.getSource().getMountCheck().get().toString());
+        assertEquals(2, synchronize.getDestination().getIdAndType().getId().intValue());
+        assertEquals(1, synchronize.getDestination().getLocation().getId());
+        assertEquals("1TB", synchronize.getDestination().getLocation().getSize());
+        assertEquals("Test", synchronize.getDestination().getLocation().getName());
+        assertTrue(synchronize.getDestination().getLocation().getCheckDuplicates());
+        assertEquals("filter", synchronize.getDestination().getFilter());
+        assertEquals(SourceStatusType.SST_OK, synchronize.getDestination().getStatus());
+        assertEquals("Foot", synchronize.getDestination().getPath());
+        assertTrue(synchronize.getDestination().getMountCheck().isPresent());
+        assertEquals("Check", synchronize.getDestination().getMountCheck().get().toString());
     }
 
     @NotNull
@@ -1110,25 +1106,25 @@ public class TestGeneral extends WebTester {
         synchronize.setDestination(destination);
 
         SynchronizeDTO synchronizeDTO = associatedFileDataManager.convertToDTO(synchronize);
-        Assert.assertEquals(1, synchronizeDTO.getId().intValue());
-        Assert.assertEquals(1, synchronizeDTO.getSource().getId().intValue());
-        Assert.assertEquals(1, synchronizeDTO.getSource().getLocation().getId().intValue());
-        Assert.assertEquals("1TB", synchronizeDTO.getSource().getLocation().getSize());
-        Assert.assertEquals("Test", synchronizeDTO.getSource().getLocation().getName());
-        Assert.assertTrue(synchronizeDTO.getSource().getLocation().getCheckDuplicates());
-        Assert.assertEquals("notFilter", synchronizeDTO.getSource().getFilter());
-        Assert.assertEquals("OK", synchronizeDTO.getSource().getStatus());
-        Assert.assertEquals("Side", synchronizeDTO.getSource().getPath());
-        Assert.assertEquals("Chis", synchronizeDTO.getSource().getMountCheck());
-        Assert.assertEquals(2, synchronizeDTO.getDestination().getId().intValue());
-        Assert.assertEquals(1, synchronizeDTO.getDestination().getLocation().getId().intValue());
-        Assert.assertEquals("1TB", synchronizeDTO.getDestination().getLocation().getSize());
-        Assert.assertEquals("Test", synchronizeDTO.getDestination().getLocation().getName());
-        Assert.assertTrue(synchronizeDTO.getDestination().getLocation().getCheckDuplicates());
-        Assert.assertEquals("filter", synchronizeDTO.getDestination().getFilter());
-        Assert.assertEquals("OK", synchronizeDTO.getDestination().getStatus());
-        Assert.assertEquals("Foot", synchronizeDTO.getDestination().getPath());
-        Assert.assertEquals("Check", synchronizeDTO.getDestination().getMountCheck());
+        assertEquals(1, synchronizeDTO.getId().intValue());
+        assertEquals(1, synchronizeDTO.getSource().getId().intValue());
+        assertEquals(1, synchronizeDTO.getSource().getLocation().getId().intValue());
+        assertEquals("1TB", synchronizeDTO.getSource().getLocation().getSize());
+        assertEquals("Test", synchronizeDTO.getSource().getLocation().getName());
+        assertTrue(synchronizeDTO.getSource().getLocation().getCheckDuplicates());
+        assertEquals("notFilter", synchronizeDTO.getSource().getFilter());
+        assertEquals("OK", synchronizeDTO.getSource().getStatus());
+        assertEquals("Side", synchronizeDTO.getSource().getPath());
+        assertEquals("Chis", synchronizeDTO.getSource().getMountCheck());
+        assertEquals(2, synchronizeDTO.getDestination().getId().intValue());
+        assertEquals(1, synchronizeDTO.getDestination().getLocation().getId().intValue());
+        assertEquals("1TB", synchronizeDTO.getDestination().getLocation().getSize());
+        assertEquals("Test", synchronizeDTO.getDestination().getLocation().getName());
+        assertTrue(synchronizeDTO.getDestination().getLocation().getCheckDuplicates());
+        assertEquals("filter", synchronizeDTO.getDestination().getFilter());
+        assertEquals("OK", synchronizeDTO.getDestination().getStatus());
+        assertEquals("Foot", synchronizeDTO.getDestination().getPath());
+        assertEquals("Check", synchronizeDTO.getDestination().getMountCheck());
     }
 
     @Test
@@ -1156,17 +1152,17 @@ public class TestGeneral extends WebTester {
         fileInfo.setExpiry(testDateTime);
 
         FileInfoDTO fileInfoDTO = fileSystemObjectManager.convertToDTO(fileInfo);
-        Assert.assertEquals("FILE", fileInfoDTO.getType());
-        Assert.assertEquals("TestFile.txt", fileInfoDTO.getFilename());
-        Assert.assertEquals(LocalDateTime.parse("2022-02-27 22:23",formatter), fileInfoDTO.getDate());
-        Assert.assertEquals(380, fileInfoDTO.getSize().intValue());
-        Assert.assertEquals("12345678901234567890123456789012", fileInfoDTO.getMd5());
-        Assert.assertEquals(2, fileInfoDTO.getParentId().intValue());
-        Assert.assertEquals("DIRY", fileInfoDTO.getParentType());
-        Assert.assertEquals(testDateTime,fileInfoDTO.getExpiry());
+        assertEquals("FILE", fileInfoDTO.getType());
+        assertEquals("TestFile.txt", fileInfoDTO.getFilename());
+        assertEquals(LocalDateTime.parse("2022-02-27 22:23",formatter), fileInfoDTO.getDate());
+        assertEquals(380, fileInfoDTO.getSize().intValue());
+        assertEquals("12345678901234567890123456789012", fileInfoDTO.getMd5());
+        assertEquals(2, fileInfoDTO.getParentId().intValue());
+        assertEquals("DIRY", fileInfoDTO.getParentType());
+        assertEquals(testDateTime,fileInfoDTO.getExpiry());
 
         fileInfoDTO.setMd5(null);
-        Assert.assertNull(fileInfoDTO.getMd5());
+        assertNull(fileInfoDTO.getMd5());
     }
 
     @Test
@@ -1199,17 +1195,17 @@ public class TestGeneral extends WebTester {
         actionConfirm.setParameter("X");
 
         ActionConfirmDTO actionConfirmDTO = actionManager.convertToDTO(actionConfirm);
-        Assert.assertEquals("IMPORT", actionConfirmDTO.getAction());
-        Assert.assertTrue(actionConfirmDTO.getConfirmed());
-        Assert.assertEquals("T",actionConfirmDTO.getFlags());
-        Assert.assertFalse(actionConfirmDTO.getParameterRequired());
-        Assert.assertEquals("X",actionConfirmDTO.getParameter());
-        Assert.assertTrue(actionConfirmDTO.isImage());
-        Assert.assertFalse(actionConfirmDTO.isVideo());
-        Assert.assertEquals(4, actionConfirmDTO.getFileId());
-        Assert.assertEquals("TestFile2.txt", actionConfirmDTO.getFileName());
-        Assert.assertEquals(2423, actionConfirmDTO.getSize().longValue());
-        Assert.assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getDate()));
+        assertEquals("IMPORT", actionConfirmDTO.getAction());
+        assertTrue(actionConfirmDTO.getConfirmed());
+        assertEquals("T",actionConfirmDTO.getFlags());
+        assertFalse(actionConfirmDTO.getParameterRequired());
+        assertEquals("X",actionConfirmDTO.getParameter());
+        assertTrue(actionConfirmDTO.isImage());
+        assertFalse(actionConfirmDTO.isVideo());
+        assertEquals(4, actionConfirmDTO.getFileId());
+        assertEquals("TestFile2.txt", actionConfirmDTO.getFileName());
+        assertEquals(2423, actionConfirmDTO.getSize().longValue());
+        assertEquals("2022-02-27 22:23", formatter.format(actionConfirmDTO.getDate()));
     }
 
     @Test
@@ -1240,17 +1236,17 @@ public class TestGeneral extends WebTester {
         fileDTO.setPath("path field");
         fileDTO.setLocationName("location");
 
-        Assert.assertEquals(2,fileDTO.getId());
-        Assert.assertEquals("Test Blah",fileDTO.getName());
-        Assert.assertEquals("full name",fileDTO.getFullFilename());
-        Assert.assertEquals(11,fileDTO.getSize());
-        Assert.assertFalse(fileDTO.isImage());
-        Assert.assertFalse(fileDTO.isVideo());
-        Assert.assertEquals("icon",fileDTO.getIcon());
-        Assert.assertEquals("path field",fileDTO.getPath());
-        Assert.assertEquals("location",fileDTO.getLocationName());
-        Assert.assertTrue(fileDTO.getMd5Optional().isPresent());
-        Assert.assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
+        assertEquals(2,fileDTO.getId());
+        assertEquals("Test Blah",fileDTO.getName());
+        assertEquals("full name",fileDTO.getFullFilename());
+        assertEquals(11,fileDTO.getSize());
+        assertFalse(fileDTO.isImage());
+        assertFalse(fileDTO.isVideo());
+        assertEquals("icon",fileDTO.getIcon());
+        assertEquals("path field",fileDTO.getPath());
+        assertEquals("location",fileDTO.getLocationName());
+        assertTrue(fileDTO.getMd5Optional().isPresent());
+        assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
 
         fileInfo = new FileInfo();
         fileInfo.setId(1);
@@ -1272,20 +1268,20 @@ public class TestGeneral extends WebTester {
         fileDTO.setPath("path field");
         fileDTO.setLocationName("location");
 
-        Assert.assertEquals(2,fileDTO.getId());
-        Assert.assertEquals("Test Blah",fileDTO.getName());
-        Assert.assertEquals("full name",fileDTO.getFullFilename());
-        Assert.assertEquals(11,fileDTO.getSize());
-        Assert.assertFalse(fileDTO.isImage());
-        Assert.assertFalse(fileDTO.isVideo());
-        Assert.assertEquals("icon",fileDTO.getIcon());
-        Assert.assertEquals("path field",fileDTO.getPath());
-        Assert.assertEquals("location",fileDTO.getLocationName());
-        Assert.assertFalse(fileDTO.getMd5Optional().isPresent());
+        assertEquals(2,fileDTO.getId());
+        assertEquals("Test Blah",fileDTO.getName());
+        assertEquals("full name",fileDTO.getFullFilename());
+        assertEquals(11,fileDTO.getSize());
+        assertFalse(fileDTO.isImage());
+        assertFalse(fileDTO.isVideo());
+        assertEquals("icon",fileDTO.getIcon());
+        assertEquals("path field",fileDTO.getPath());
+        assertEquals("location",fileDTO.getLocationName());
+        assertFalse(fileDTO.getMd5Optional().isPresent());
 
         fileDTO.setMd5(new MD5("12345678901234567890123456789012"));
-        Assert.assertTrue(fileDTO.getMd5Optional().isPresent());
-        Assert.assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
+        assertTrue(fileDTO.getMd5Optional().isPresent());
+        assertEquals("12345678901234567890123456789012",fileDTO.getMd5Optional().get().toString());
     }
 
     @Test
@@ -1296,9 +1292,9 @@ public class TestGeneral extends WebTester {
         dbLog.setType(DbLogType.DLT_DEBUG);
         dbLog.setMessage("Test");
 
-        Assert.assertEquals(1,dbLog.getId().intValue());
-        Assert.assertEquals(DbLogType.DLT_DEBUG,dbLog.getType());
-        Assert.assertEquals("Test",dbLog.getMessage());
+        assertEquals(1,dbLog.getId().intValue());
+        assertEquals(DbLogType.DLT_DEBUG,dbLog.getType());
+        assertEquals("Test",dbLog.getMessage());
     }
 
     @Test
@@ -1306,11 +1302,11 @@ public class TestGeneral extends WebTester {
         Map<String,String> metadata = getMetadata("2022:01:21 11:04:10");
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
-        Assert.assertTrue(fileSystemImageData.isValid());
+        assertTrue(fileSystemImageData.isValid());
         ImageSize size = fileSystemImageData.getImageSize();
-        Assert.assertEquals(10,size.height());
-        Assert.assertEquals(10,size.width());
-        Assert.assertEquals("21-January-2022 11:04 image/jpeg",fileSystemImageData.toString());
+        assertEquals(10,size.height());
+        assertEquals(10,size.width());
+        assertEquals("21-January-2022 11:04 image/jpeg",fileSystemImageData.toString());
     }
 
     @NotNull
@@ -1333,7 +1329,7 @@ public class TestGeneral extends WebTester {
         Map<String,String> metadata = getMetadata("invalid");
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
-        Assert.assertFalse(fileSystemImageData.isValid());
+        assertFalse(fileSystemImageData.isValid());
     }
 
     @Test
@@ -1346,56 +1342,56 @@ public class TestGeneral extends WebTester {
 
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
-        Assert.assertTrue(fileSystemImageData.isValid());
-        Assert.assertEquals("21-January-2022 11:04 video/mp4",fileSystemImageData.toString());
+        assertTrue(fileSystemImageData.isValid());
+        assertEquals("21-January-2022 11:04 video/mp4",fileSystemImageData.toString());
     }
 
     @Test
     public void testPhysicalNamingStrategy() {
         Identifier id = new Identifier("string", true);
         Identifier id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalCatalogName(id,null);
-        Assert.assertEquals(id,id2);
-        Assert.assertNotEquals(id.toString(),id2.toString());
+        assertEquals(id,id2);
+        assertNotEquals(id.toString(),id2.toString());
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalCatalogName(null,null);
-        Assert.assertNull(id2);
+        assertNull(id2);
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalSchemaName(id,null);
-        Assert.assertEquals(id,id2);
-        Assert.assertNotEquals(id.toString(),id2.toString());
+        assertEquals(id,id2);
+        assertNotEquals(id.toString(),id2.toString());
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalSchemaName(null,null);
-        Assert.assertNull(id2);
+        assertNull(id2);
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalTableName(id,null);
-        Assert.assertEquals(id,id2);
-        Assert.assertNotEquals(id.toString(),id2.toString());
+        assertEquals(id,id2);
+        assertNotEquals(id.toString(),id2.toString());
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalTableName(null,null);
-        Assert.assertNull(id2);
+        assertNull(id2);
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalSequenceName(id,null);
-        Assert.assertEquals(id,id2);
-        Assert.assertNotEquals(id.toString(),id2.toString());
+        assertEquals(id,id2);
+        assertNotEquals(id.toString(),id2.toString());
 
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalSequenceName(null,null);
-        Assert.assertNull(id2);
+        assertNull(id2);
 
         id = new Identifier("filter",false);
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalColumnName(id,null);
-        Assert.assertEquals("`filter`",id2.toString());
+        assertEquals("`filter`",id2.toString());
 
         id = new Identifier("order",false);
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalColumnName(id,null);
-        Assert.assertEquals("`order`",id2.toString());
+        assertEquals("`order`",id2.toString());
 
         id = new Identifier("classificationid",false);
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalColumnName(id,null);
-        Assert.assertEquals("classification_id",id2.toString());
+        assertEquals("classification_id",id2.toString());
 
         id = new Identifier("fileid",false);
         id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalColumnName(id,null);
-        Assert.assertEquals("file_id",id2.toString());
+        assertEquals("file_id",id2.toString());
     }
 
     @Test
@@ -1404,8 +1400,8 @@ public class TestGeneral extends WebTester {
         FileExpiryDTO expiry = new FileExpiryDTO();
         expiry.setId(209);
         expiry.setExpiry(testTime);
-        Assert.assertEquals(209,(long)expiry.getId());
-        Assert.assertEquals(testTime,expiry.getExpiry());
+        assertEquals(209,(long)expiry.getId());
+        assertEquals(testTime,expiry.getExpiry());
     }
 
     @Test
@@ -1413,38 +1409,38 @@ public class TestGeneral extends WebTester {
         FileLabelId id = new FileLabelId();
         id.setLabelId(10);
         id.setFileId(390);
-        Assert.assertEquals("390-10", id.toString());
+        assertEquals("390-10", id.toString());
         String idString = "390-10";
-        Assert.assertEquals(idString.hashCode(),id.hashCode());
+        assertEquals(idString.hashCode(),id.hashCode());
         //noinspection RedundantCast
-        Assert.assertEquals(id, (Object)id);
-        Assert.assertNotEquals(null, id);
+        assertEquals(id, (Object)id);
+        assertNotEquals(null, id);
         //noinspection EqualsBetweenInconvertibleTypes
         boolean check = id.equals(idString);
-        Assert.assertFalse(check);
+        assertFalse(check);
 
         FileLabelId id2 = new FileLabelId();
         id2.setLabelId(10);
         id2.setFileId(390);
-        Assert.assertEquals(id,id2);
+        assertEquals(id,id2);
 
-        Assert.assertEquals(10,(long)id2.getLabelId());
-        Assert.assertEquals(390,(long)id2.getFileId());
+        assertEquals(10,(long)id2.getLabelId());
+        assertEquals(390,(long)id2.getFileId());
 
         FileLabel label = new FileLabel();
         label.setId(id);
-        Assert.assertEquals(id2,label.getId());
+        assertEquals(id2,label.getId());
 
         FileLabelDTO fileLabelDTO = new FileLabelDTO();
         fileLabelDTO.setFileId(10);
-        Assert.assertEquals(10,(long)fileLabelDTO.getFileId());
-        Assert.assertEquals(0,fileLabelDTO.getLabels().size());
+        assertEquals(10,(long)fileLabelDTO.getFileId());
+        assertEquals(0,fileLabelDTO.getLabels().size());
 
         LabelDTO labelDTO = new LabelDTO();
         labelDTO.setId(10);
         labelDTO.setName("here");
-        Assert.assertEquals(10,(long)labelDTO.getId());
-        Assert.assertEquals("here", labelDTO.getName());
+        assertEquals(10,(long)labelDTO.getId());
+        assertEquals("here", labelDTO.getName());
 
     }
 
@@ -1453,14 +1449,14 @@ public class TestGeneral extends WebTester {
         LabelDTO label = new LabelDTO();
         label.setName("blah");
         label.setId(102);
-        Assert.assertEquals("blah",label.getName());
-        Assert.assertEquals(102,(long)label.getId());
+        assertEquals("blah",label.getName());
+        assertEquals(102,(long)label.getId());
 
         Label label2 = new Label();
         label2.setId(212);
         label2.setName("fred");
-        Assert.assertEquals(212,(long)label2.getId());
-        Assert.assertEquals("fred",label2.getName());
+        assertEquals(212,(long)label2.getId());
+        assertEquals("fred",label2.getName());
     }
 
     @Test
@@ -1472,12 +1468,12 @@ public class TestGeneral extends WebTester {
         print.setBlackWhite(false);
         print.setSizeId(12);
         print.setFileId(102);
-        Assert.assertEquals("IMG.JPG",print.getFileName());
-        Assert.assertEquals("2x2",print.getSizeName());
-        Assert.assertFalse(print.getBorder());
-        Assert.assertFalse(print.getBlackWhite());
-        Assert.assertEquals(12,print.getSizeId());
-        Assert.assertEquals(102,print.getFileId());
+        assertEquals("IMG.JPG",print.getFileName());
+        assertEquals("2x2",print.getSizeName());
+        assertFalse(print.getBorder());
+        assertFalse(print.getBlackWhite());
+        assertEquals(12,print.getSizeId());
+        assertEquals(102,print.getFileId());
     }
 
     @Test
@@ -1489,12 +1485,12 @@ public class TestGeneral extends WebTester {
         size.setWidth(3.0);
         size.setPanoramic(true);
         size.setRetro(true);
-        Assert.assertEquals(10,(long)size.getId());
-        Assert.assertEquals("4x3",size.getName());
-        Assert.assertEquals(4.0,size.getHeight(),0.01);
-        Assert.assertEquals(3.0,size.getWidth(),0.01);
-        Assert.assertTrue(size.getPanoramic());
-        Assert.assertTrue(size.getRetro());
+        assertEquals(10,(long)size.getId());
+        assertEquals("4x3",size.getName());
+        assertEquals(4.0,size.getHeight(),0.01);
+        assertEquals(3.0,size.getWidth(),0.01);
+        assertTrue(size.getPanoramic());
+        assertTrue(size.getRetro());
 
         PrintSizeDTO sizeDTO = new PrintSizeDTO();
         sizeDTO.setId(10);
@@ -1503,12 +1499,12 @@ public class TestGeneral extends WebTester {
         sizeDTO.setWidth(3.0);
         sizeDTO.setPanoramic(true);
         sizeDTO.setRetro(true);
-        Assert.assertEquals(10,(long)sizeDTO.getId());
-        Assert.assertEquals("4x3",sizeDTO.getName());
-        Assert.assertEquals(4.0,sizeDTO.getHeight(),0.01);
-        Assert.assertEquals(3.0,sizeDTO.getWidth(),0.01);
-        Assert.assertTrue(sizeDTO.getPanoramic());
-        Assert.assertTrue(sizeDTO.getRetro());
+        assertEquals(10,(long)sizeDTO.getId());
+        assertEquals("4x3",sizeDTO.getName());
+        assertEquals(4.0,sizeDTO.getHeight(),0.01);
+        assertEquals(3.0,sizeDTO.getWidth(),0.01);
+        assertTrue(sizeDTO.getPanoramic());
+        assertTrue(sizeDTO.getRetro());
     }
 
     @Test
@@ -1516,9 +1512,9 @@ public class TestGeneral extends WebTester {
         PrintId id = new PrintId();
         id.setSizeId(21);
         id.setFileId(1);
-        Assert.assertEquals(21,(long)id.getSizeId());
-        Assert.assertEquals(1,(long)id.getFileId());
-        Assert.assertEquals("1-21",id.toString());
+        assertEquals(21,(long)id.getSizeId());
+        assertEquals(1,(long)id.getFileId());
+        assertEquals("1-21",id.toString());
     }
 
     @Test
@@ -1533,15 +1529,15 @@ public class TestGeneral extends WebTester {
         metaData.setImageHeight(213);
         metaData.setImageWidth(214);
         metaData.setDate(LocalDateTime.of(2024,10,21,2, 30,12));
-        Assert.assertEquals(10, (long)metaData.getId());
-        Assert.assertEquals(12.2, metaData.getDuration(),0.01);
-        Assert.assertTrue(metaData.getImage());
-        Assert.assertFalse(metaData.getVideo());
-        Assert.assertEquals(10.2, metaData.getLatitude(), 0.01);
-        Assert.assertEquals(22.2, metaData.getLongitude(), 0.01);
-        Assert.assertEquals(213, (long)metaData.getImageHeight());
-        Assert.assertEquals(214, (long)metaData.getImageWidth());
-        Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), metaData.getDate());
+        assertEquals(10, (long)metaData.getId());
+        assertEquals(12.2, metaData.getDuration(),0.01);
+        assertTrue(metaData.getImage());
+        assertFalse(metaData.getVideo());
+        assertEquals(10.2, metaData.getLatitude(), 0.01);
+        assertEquals(22.2, metaData.getLongitude(), 0.01);
+        assertEquals(213, (long)metaData.getImageHeight());
+        assertEquals(214, (long)metaData.getImageWidth());
+        assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), metaData.getDate());
 
         MetaDataDTO testDTO = new MetaDataDTO();
         testDTO.setDuration(12.2);
@@ -1552,24 +1548,24 @@ public class TestGeneral extends WebTester {
         testDTO.setImageHeight(213);
         testDTO.setImageWidth(214);
         testDTO.setDate(LocalDateTime.of(2024,10,21,2, 30,12));
-        Assert.assertEquals(12.2, testDTO.getDuration(),0.01);
-        Assert.assertTrue(testDTO.getImage());
-        Assert.assertFalse(testDTO.getVideo());
-        Assert.assertEquals(10.2, testDTO.getLatitude(), 0.01);
-        Assert.assertEquals(22.2, testDTO.getLongitude(), 0.01);
-        Assert.assertEquals(213, (long)testDTO.getImageHeight());
-        Assert.assertEquals(214, (long)testDTO.getImageWidth());
-        Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
+        assertEquals(12.2, testDTO.getDuration(),0.01);
+        assertTrue(testDTO.getImage());
+        assertFalse(testDTO.getVideo());
+        assertEquals(10.2, testDTO.getLatitude(), 0.01);
+        assertEquals(22.2, testDTO.getLongitude(), 0.01);
+        assertEquals(213, (long)testDTO.getImageHeight());
+        assertEquals(214, (long)testDTO.getImageWidth());
+        assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
 
         testDTO = new MetaDataDTO(metaData);
-        Assert.assertEquals(12.2, testDTO.getDuration(),0.01);
-        Assert.assertTrue(testDTO.getImage());
-        Assert.assertFalse(testDTO.getVideo());
-        Assert.assertEquals(10.2, testDTO.getLatitude(), 0.01);
-        Assert.assertEquals(22.2, testDTO.getLongitude(), 0.01);
-        Assert.assertEquals(213, (long)testDTO.getImageHeight());
-        Assert.assertEquals(214, (long)testDTO.getImageWidth());
-        Assert.assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
+        assertEquals(12.2, testDTO.getDuration(),0.01);
+        assertTrue(testDTO.getImage());
+        assertFalse(testDTO.getVideo());
+        assertEquals(10.2, testDTO.getLatitude(), 0.01);
+        assertEquals(22.2, testDTO.getLongitude(), 0.01);
+        assertEquals(213, (long)testDTO.getImageHeight());
+        assertEquals(214, (long)testDTO.getImageWidth());
+        assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
     }
 
     @Test
@@ -1586,16 +1582,16 @@ public class TestGeneral extends WebTester {
         try {
             resultFile = fileSystem.getImageFileFromVideoFile(testFile);
         } catch (Exception e) {
-            Assert.fail();
+            fail();
             return;
         }
 
         // Check the name of the file.
-        Assert.assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
+        assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
 
         // File should be created at target/76be016232b7fd49a1151dd8f4b33d97.jpg
         if(!resultFile.exists()) {
-            Assert.fail("File should have been created at target/76be016232b7fd49a1151dd8f4b33d97.jpg");
+            fail("File should have been created at target/76be016232b7fd49a1151dd8f4b33d97.jpg");
             return;
         }
 
@@ -1605,63 +1601,63 @@ public class TestGeneral extends WebTester {
         try {
             resultFile = fileSystem.getImageFileFromVideoFile(testFile);
         } catch (Exception e) {
-            Assert.fail();
+            fail();
             return;
         }
 
-        Assert.assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
+        assertEquals("76be016232b7fd49a1151dd8f4b33d97.jpg", resultFile.getName());
 
         // Delete the file.
         try {
             Files.delete(resultFile.toPath());
         } catch (IOException e) {
-            Assert.fail();
+            fail();
         }
     }
 
     @Test
     public void testFileSearch() {
         FileSearch search = new FileSearch("76be016232b7fd49a1151dd8f4b33d97");
-        Assert.assertEquals(FileSearch.SearchType.MD5,search.getSearchType());
+        assertEquals(FileSearch.SearchType.MD5,search.getSearchType());
 
         search = new FileSearch("2025-03-21 12:09:12");
-        Assert.assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
-        Assert.assertEquals(LocalDateTime.of(2025,3,21,12,9,12),search.getDateTime());
+        assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
+        assertEquals(LocalDateTime.of(2025,3,21,12,9,12),search.getDateTime());
 
         search = new FileSearch("2025-03-21 12:09");
-        Assert.assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
+        assertEquals(FileSearch.SearchType.DATETIME,search.getSearchType());
 
         search = new FileSearch("FilesSearch.jpg");
-        Assert.assertEquals(FileSearch.SearchType.NAME,search.getSearchType());
-        Assert.assertEquals("FilesSearch.jpg", search.getSearch());
+        assertEquals(FileSearch.SearchType.NAME,search.getSearchType());
+        assertEquals("FilesSearch.jpg", search.getSearch());
 
         search = new FileSearch("1313");
-        Assert.assertEquals(FileSearch.SearchType.SIZE,search.getSearchType());
+        assertEquals(FileSearch.SearchType.SIZE,search.getSearchType());
     }
 
     @Test
     public void testPreImportFileDTO() {
         PreImportFileDTO preImportFileDTO = new PreImportFileDTO(true);
-        Assert.assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
-        Assert.assertTrue(preImportFileDTO.isStopMarker());
+        assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
+        assertTrue(preImportFileDTO.isStopMarker());
 
         preImportFileDTO = new PreImportFileDTO(false);
-        Assert.assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
-        Assert.assertFalse(preImportFileDTO.isStopMarker());
-        Assert.assertFalse(preImportFileDTO.isInDatabase());
-        Assert.assertFalse(preImportFileDTO.isInImport());
-        Assert.assertFalse(preImportFileDTO.isInPostImport());
+        assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
+        assertFalse(preImportFileDTO.isStopMarker());
+        assertFalse(preImportFileDTO.isInDatabase());
+        assertFalse(preImportFileDTO.isInImport());
+        assertFalse(preImportFileDTO.isInPostImport());
 
-        Assert.assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
+        assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
 
         preImportFileDTO.setUpdateTime(LocalDateTime.of(2012,12,23,0,0,0));
-        Assert.assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
-        Assert.assertTrue(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,22,0,0,0)));
+        assertFalse(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,23,0,0,0)));
+        assertTrue(preImportFileDTO.updatedSince(LocalDateTime.of(2012,12,22,0,0,0)));
 
         preImportFileDTO.setImportMd5(null);
-        Assert.assertFalse(preImportFileDTO.getImportMd5Optional().isPresent());
+        assertFalse(preImportFileDTO.getImportMd5Optional().isPresent());
 
         preImportFileDTO.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
-        Assert.assertTrue(preImportFileDTO.getImportMd5Optional().isPresent());
+        assertTrue(preImportFileDTO.getImportMd5Optional().isPresent());
     }
 }
