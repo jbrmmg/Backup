@@ -10,9 +10,11 @@ import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.manager.LabelManager;
 import com.jbr.middletier.backup.manager.PrintManager;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -20,9 +22,9 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,20 +36,19 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {PrintIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class PrintIT extends FileTester {
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -83,7 +84,7 @@ public class PrintIT extends FileTester {
 
     private Source source;
 
-    @Before
+    @BeforeEach
     public void setupTest() throws IOException, InvalidLocationIdException, SourceAlreadyExistsException {
         deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
         Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
@@ -105,7 +106,7 @@ public class PrintIT extends FileTester {
         this.source = associatedFileDataManager.createSource(associatedFileDataManager.convertToEntity(sourceDTO));
     }
 
-    @After
+    @AfterEach
     public void cleanUpTest() {
         // Remove the sources, files & directories.
         associatedFileDataManager.deleteAllSynchronize();
@@ -157,7 +158,7 @@ public class PrintIT extends FileTester {
             }
         }
 
-        Assert.assertTrue(testFile.isPresent());
+        assertTrue(testFile.isPresent());
         return testFile.get().getIdAndType().getId().toString();
     }
 
@@ -227,16 +228,16 @@ public class PrintIT extends FileTester {
         String id = setupPrint("IMG_3891.jpeg");
 
         List<PrintSizeDTO> size = printManager.getPrintSizes();
-        Assert.assertEquals(25,size.size());
+        assertEquals(25,size.size());
 
-        Assert.assertEquals("6x4 in",printManager.getPrintSize(12).getName());
+        assertEquals("6x4 in",printManager.getPrintSize(12).getName());
 
         SelectedPrintDTO printRequest = new SelectedPrintDTO();
         printRequest.setFileId(Integer.parseInt(id));
         printRequest.setSizeId(12);
         printRequest.setBlackWhite(false);
         printRequest.setBorder(false);
-        Assert.assertEquals(Integer.parseInt(id),(long)printManager.select(printRequest));
+        assertEquals(Integer.parseInt(id),(long)printManager.select(printRequest));
 
         List<FileInfo> files = new ArrayList<>();
         List<DirectoryInfo> directories = new ArrayList<>();
@@ -260,25 +261,25 @@ public class PrintIT extends FileTester {
                 nonExistentId++;
             }
         }
-        Assert.assertFalse(testFile.isEmpty());
+        assertFalse(testFile.isEmpty());
         printRequest.setFileId(nonExistentId);
-        Assert.assertNull(printManager.select(printRequest));
-        Assert.assertNull(printManager.unselect(nonExistentId));
+        assertNull(printManager.select(printRequest));
+        assertNull(printManager.unselect(nonExistentId));
         printManager.deletePrints();
 
         // Check labels
         List<LabelDTO> label = labelManager.getLabels();
-        Assert.assertEquals(2,label.size());
+        assertEquals(2,label.size());
         label = labelManager.getLabels();
-        Assert.assertEquals(2,label.size());
+        assertEquals(2,label.size());
 
         labelManager.addLabelToFile(testFile.get().getIdAndType(),1);
         List<String> labels = labelManager.getLabelsForFile(testFile.get().getIdAndType());
-        Assert.assertEquals(1,labels.size());
+        assertEquals(1,labels.size());
 
         labelManager.removeLabelFromFile(testFile.get().getIdAndType(),1);
         labels = labelManager.getLabelsForFile(testFile.get().getIdAndType());
-        Assert.assertEquals(0,labels.size());
+        assertEquals(0,labels.size());
     }
 
     @Test

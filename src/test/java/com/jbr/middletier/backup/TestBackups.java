@@ -14,19 +14,15 @@ import com.jbr.middletier.backup.type.CleanBackup;
 import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -38,12 +34,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestBackups {
     private static final Logger LOG = LoggerFactory.getLogger(TestBackups.class);
 
@@ -72,7 +67,7 @@ public class TestBackups {
         try {
             File testFile = new File(applicationProperties.getDirectory().getName() + "/2020-01-01");
             Files.createDirectories(testFile.toPath());
-            Assert.assertTrue(testFile.exists());
+            assertTrue(testFile.exists());
 
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("CLN");
@@ -110,9 +105,9 @@ public class TestBackups {
 
         try {
             cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
-            Assert.fail();
+            fail();
         } catch (IllegalStateException e) {
-            Assert.assertEquals("Backup directory does not exist.", e.getMessage());
+            assertEquals("Backup directory does not exist.", e.getMessage());
         }
     }
 
@@ -120,13 +115,13 @@ public class TestBackups {
     public void TestCleanBackupFailure2() throws IOException {
         File testFile = new File(applicationProperties.getDirectory().getName() + "/20201401");
         Files.createDirectories(testFile.toPath());
-        Assert.assertTrue(testFile.exists());
+        assertTrue(testFile.exists());
 
         File testFile2 = new File(applicationProperties.getDirectory().getName() + "/20201401/Text.txt");
         if(!testFile2.exists()) {
             Files.createFile(testFile2.toPath());
         }
-        Assert.assertTrue(testFile2.exists());
+        assertTrue(testFile2.exists());
 
         DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
@@ -781,7 +776,7 @@ public class TestBackups {
         try {
             File backupDir = new File("./target/testfiles/Backup");
             Files.createDirectories(backupDir.toPath());
-            Assert.assertTrue(backupDir.exists());
+            assertTrue(backupDir.exists());
 
             // Create a logging manager.
             DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
@@ -905,10 +900,10 @@ public class TestBackups {
             DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
-            Assert.assertNotNull(dbBackup);
+            assertNotNull(dbBackup);
             dbBackup.performBackup(manager, dbLoggingManager, fileSystem, backup);
         } catch(Exception e) {
-            Assert.fail();
+            fail();
         }
     }
 
@@ -934,10 +929,10 @@ public class TestBackups {
             DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
 
             DatabaseBackup dbBackup = new DatabaseBackup(properties);
-            Assert.assertNotNull(dbBackup);
+            assertNotNull(dbBackup);
             dbBackup.performBackup(manager, dbLoggingManager, fileSystem, backup);
         } catch(Exception e) {
-            Assert.fail();
+            fail();
         }
     }
 }

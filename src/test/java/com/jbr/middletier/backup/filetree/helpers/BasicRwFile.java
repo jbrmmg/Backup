@@ -1,7 +1,7 @@
 package com.jbr.middletier.backup.filetree.helpers;
 
 import com.jbr.middletier.backup.filetree.realworld.RwFile;
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.Optional;
@@ -14,9 +14,9 @@ public class BasicRwFile extends RwFile {
     public boolean test() {
         try {
             childAdded(null);
-            Assert.fail();
+            fail();
         } catch(IllegalStateException e) {
-            Assert.assertEquals("Cannot add child nodes to a file node.", e.getMessage());
+            assertEquals("Cannot add child nodes to a file node.", e.getMessage());
             return true;
         }
 

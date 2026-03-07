@@ -16,12 +16,10 @@ import com.jbr.middletier.backup.manager.importing.step.CheckFileConfirmedImport
 import com.jbr.middletier.backup.manager.importing.step.CheckFileIgnored;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportFile;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportProcessException;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -32,9 +30,7 @@ import java.util.Optional;
 import static com.jbr.middletier.backup.manager.importing.FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@WebAppConfiguration
 public class TestImportSteps {
     @Test
     public void TestStepProcessImportFileInvalidState() {
@@ -51,9 +47,9 @@ public class TestImportSteps {
         // Check invalid step
         try {
             importFile.process(preImportFileDTO);
-            Assert.fail();
+            fail();
         } catch (ImportProcessException ex) {
-            Assert.assertEquals("TEST_FILE.txt invalid step FPS_CHECK_FILE_CONFIRMED_IMPORTED status TL_GREEN", ex.getMessage());
+            assertEquals("TEST_FILE.txt invalid step FPS_CHECK_FILE_CONFIRMED_IMPORTED status TL_GREEN", ex.getMessage());
         }
     }
 
@@ -75,9 +71,9 @@ public class TestImportSteps {
         // Check invalid step
         try {
             importFile.process(preImportFileDTO);
-            Assert.fail();
+            fail();
         } catch (ImportProcessException ex) {
-            Assert.assertEquals("Destination of TEST_FILE.txt is empty", ex.getMessage());
+            assertEquals("Destination of TEST_FILE.txt is empty", ex.getMessage());
         }
     }
 
@@ -100,9 +96,9 @@ public class TestImportSteps {
         // Check invalid step
         try {
             importFile.process(preImportFileDTO);
-            Assert.fail();
+            fail();
         } catch (ImportProcessException ex) {
-            Assert.assertEquals("Destination of TEST_FILE.txt is empty", ex.getMessage());
+            assertEquals("Destination of TEST_FILE.txt is empty", ex.getMessage());
         }
     }
 
@@ -128,9 +124,9 @@ public class TestImportSteps {
         // Check invalid step
         try {
             importFile.process(preImportFileDTO);
-            Assert.fail();
+            fail();
         } catch (ImportProcessException ex) {
-            Assert.assertEquals("The file TEST_FILE.txt does not exist.", ex.getMessage());
+            assertEquals("The file TEST_FILE.txt does not exist.", ex.getMessage());
         }
     }
 
@@ -151,14 +147,14 @@ public class TestImportSteps {
         when(preImportFileDTO.isVideo()).thenReturn(true);
         when(preImportFileDTO.getDuration()).thenReturn(10.0);
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.isVideo()).thenReturn(true);
         when(preImportFileDTO.getDuration()).thenReturn(2.1);
         when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.txt");
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.isVideo()).thenReturn(true);
@@ -166,7 +162,7 @@ public class TestImportSteps {
         when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.mov");
         when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.txt");
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.isVideo()).thenReturn(true);
@@ -175,7 +171,7 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
         when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,1));
 
-        Assert.assertEquals(TrafficLightType.TL_RED,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_RED,checkActivePhotoFile.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.isVideo()).thenReturn(true);
@@ -184,7 +180,7 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
         when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,30));
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.isVideo()).thenReturn(true);
@@ -193,7 +189,7 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
         when(preImportFileDTO.getImportDate()).thenReturn(LocalDateTime.of(2023,12,22,0,0,30));
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.isVideo()).thenReturn(true);
@@ -202,7 +198,7 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportName()).thenReturn("TEST_FILE.mp4");
         when(preImportFileDTO.getImportDate()).thenReturn(null);
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkActivePhotoFile.performStep(preImportFileDTO));
     }
 
     @Test
@@ -215,7 +211,7 @@ public class TestImportSteps {
 
         PreImportFileDTO preImportFileDTO = mock(PreImportFileDTO.class);
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,checkFileIgnored.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_GREEN,checkFileIgnored.performStep(preImportFileDTO));
 
         IgnoreFile ignoreFile = mock(IgnoreFile.class);
         when(ignoreFile.getMd5()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF56")));
@@ -234,14 +230,14 @@ public class TestImportSteps {
 
         checkFileIgnored = new CheckFileIgnored(importFileRepository,importSourceManager,ignoreFileRepository);
 
-        Assert.assertEquals(TrafficLightType.TL_RED,checkFileIgnored.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_RED,checkFileIgnored.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.getMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF57")));
         when(preImportFileDTO.getSize()).thenReturn(11L);
         when(preImportFileDTO.getImportMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF56")));
         when(preImportFileDTO.getImportSize()).thenReturn(10L);
-        Assert.assertEquals(TrafficLightType.TL_RED,checkFileIgnored.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_RED,checkFileIgnored.performStep(preImportFileDTO));
 
         preImportFileDTO = mock(PreImportFileDTO.class);
         when(preImportFileDTO.getMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF57")));
@@ -249,7 +245,7 @@ public class TestImportSteps {
         when(preImportFileDTO.getImportMd5Optional()).thenReturn(Optional.of(new MD5("8D4F46976377897DFADF214D0526CF57")));
         when(preImportFileDTO.getImportSize()).thenReturn(11L);
         when(preImportFileDTO.getFilename()).thenReturn("TEST_FILE.txt");
-        Assert.assertEquals(TrafficLightType.TL_AMBER,checkFileIgnored.performStep(preImportFileDTO));
+        assertEquals(TrafficLightType.TL_AMBER,checkFileIgnored.performStep(preImportFileDTO));
     }
 
     private PreImportFileDTO setupImportFile() {
@@ -288,33 +284,33 @@ public class TestImportSteps {
         PreImportFileDTO  importFile = new PreImportFileDTO();
         importFile.setInPostImport(true);
 
-        Assert.assertEquals(TrafficLightType.TL_AMBER, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_AMBER, checkFileConfirmedImported.performStep(importFile));
 
         // Check that its red if there are no matches.
         importFile = new PreImportFileDTO();
 
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         // Need to get the process to go through all the paths.
         importFile = setupImportFile();
         ImportFileDTO similarFile = setupSimilarFile(importFile);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setType(FileSystemObjectType.FSO_FILE);
         similarFile.setMd5(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setMd5(new MD5("8D4F46976377897DFADF214D0526CF57"));
         importFile.setImportMd5(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setMd5(new MD5("8D4F46976377897DFADF214D0526CF57"));
         importFile.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF58"));
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setMd5(new MD5("8D4F46976377897DFADF214D0526CF57"));
         importFile.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF57"));
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
     }
 
     @Test
@@ -331,23 +327,23 @@ public class TestImportSteps {
         importFile.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF57"));
 
         similarFile.setFilename(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setFilename("");
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setFilename("similar.txt");
         importFile.setImportName(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportName("");
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportName("sim.txt");
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportName("similar.txt");
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
     }
 
     @Test
@@ -366,17 +362,17 @@ public class TestImportSteps {
         similarFile.setType(FileSystemObjectType.FSO_FILE);
 
         similarFile.setSize(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setSize(10L);
         importFile.setImportSize(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportSize(11L);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportSize(10L);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
     }
 
     @Test
@@ -397,17 +393,17 @@ public class TestImportSteps {
         importFile.setImportMd5(new MD5("8D4F46976377897DFADF214D0526CF57"));
 
         similarFile.setDate(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         similarFile.setDate(LocalDateTime.of(2020, 1, 1, 0, 0));
         importFile.setImportDate(null);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportDate(LocalDateTime.of(2020, 1, 2, 0, 0));
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
 
         importFile.setImportDate(LocalDateTime.of(2020, 1, 1, 0, 0));
-        Assert.assertEquals(TrafficLightType.TL_GREEN, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_GREEN, checkFileConfirmedImported.performStep(importFile));
 
         // Add a second similar file.
         ImportFileDTO similarFile2 = new ImportFileDTO();
@@ -417,6 +413,6 @@ public class TestImportSteps {
         similarFile2.setDate(LocalDateTime.of(2020, 1, 1, 0, 0));
         similarFile2.setType(FileSystemObjectType.FSO_FILE);
         importFile.addSimilarFile(similarFile2);
-        Assert.assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
     }
 }

@@ -14,16 +14,14 @@ import com.jbr.middletier.backup.manager.importing.step.process.Delete;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportFile;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportProcessException;
 import com.jbr.middletier.backup.manager.importing.step.process.Read;
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,10 +35,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@WebAppConfiguration
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestImportComponents extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestImportComponents.class);
 
@@ -63,15 +59,15 @@ public class TestImportComponents extends FileTester {
 
         try {
             delete.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch (ImportProcessException e) {
-            Assert.assertEquals("TestFile.txt invalid step FPS_GATHER_META_DATA status TL_UNKNOWN", e.getMessage());
+            assertEquals("TestFile.txt invalid step FPS_GATHER_META_DATA status TL_UNKNOWN", e.getMessage());
         }
 
         file.setStepStatus(FileProcessingStepType.FPS_GATHER_META_DATA,TrafficLightType.TL_GREEN);
         TrafficLightType result = delete.process(file);
-        Assert.assertEquals(TrafficLightType.TL_GREEN,result);
-        Assert.assertEquals("REMOVED",file.getStatus());
+        assertEquals(TrafficLightType.TL_GREEN,result);
+        assertEquals("REMOVED",file.getStatus());
     }
 
     @Test
@@ -104,26 +100,26 @@ public class TestImportComponents extends FileTester {
 
         try {
             importFile.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch (ImportProcessException e) {
-            Assert.assertEquals("IMG_8231.jpeg invalid step FPS_CHECK_FILE_CONFIRMED_IMPORTED status TL_GREEN", e.getMessage());
+            assertEquals("IMG_8231.jpeg invalid step FPS_CHECK_FILE_CONFIRMED_IMPORTED status TL_GREEN", e.getMessage());
         }
 
         file.setStepStatus(FileProcessingStepType.FPS_CHECK_FILE_CONFIRMED_IMPORTED,TrafficLightType.TL_RED);
         try {
             importFile.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch(ImportProcessException e) {
-            Assert.assertEquals("Destination of IMG_8231.jpeg is empty", e.getMessage());
+            assertEquals("Destination of IMG_8231.jpeg is empty", e.getMessage());
         }
 
         file.setDestination("Directory");
         file.setInPostImport(true);
         try {
             importFile.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch(ImportProcessException e) {
-            Assert.assertEquals("IMG_8231.jpeg cannot be in the post import directory.", e.getMessage());
+            assertEquals("IMG_8231.jpeg cannot be in the post import directory.", e.getMessage());
         }
 
         File source = new File(PRE_IMPORT_DIRECTORY,"IMG_8231.jpeg");
@@ -133,9 +129,9 @@ public class TestImportComponents extends FileTester {
         file.setInPostImport(false);
         try {
             importFile.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch(ImportProcessException e) {
-            Assert.assertEquals("Import source is invalid.", e.getMessage());
+            assertEquals("Import source is invalid.", e.getMessage());
         }
 
         List<ImportSource> importSources = new ArrayList<>();
@@ -152,16 +148,16 @@ public class TestImportComponents extends FileTester {
 
         try {
             importFile.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch (ImportProcessException e) {
-            Assert.assertEquals("Import destination is invalid.", e.getMessage());
+            assertEquals("Import destination is invalid.", e.getMessage());
         }
 
         file.setImportDate(LocalDateTime.of(2022, 5, 22, 14, 23, 21));
         when(mockAssociatedFileDataManager.findSourceIfExists(any())).thenReturn(Optional.of(importSource));
         TrafficLightType result = importFile.process(file);
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,result);
+        assertEquals(TrafficLightType.TL_GREEN,result);
     }
 
     @Test
@@ -175,14 +171,14 @@ public class TestImportComponents extends FileTester {
         Read readStep = new Read(mockImportSourceManager);
         try {
             readStep.process(file);
-            Assert.fail("Should have thrown an exception");
+            fail("Should have thrown an exception");
         } catch(ImportProcessException e) {
-            Assert.assertEquals("Testing.txt invalid step FPS_READ_PREIMPORT_FILE status TL_RED", e.getMessage());
+            assertEquals("Testing.txt invalid step FPS_READ_PREIMPORT_FILE status TL_RED", e.getMessage());
         }
 
         file.setStepStatus(FileProcessingStepType.FPS_READ_PREIMPORT_FILE,TrafficLightType.TL_GREEN);
         TrafficLightType result = readStep.process(file);
 
-        Assert.assertEquals(TrafficLightType.TL_GREEN,result);
+        assertEquals(TrafficLightType.TL_GREEN,result);
     }
 }

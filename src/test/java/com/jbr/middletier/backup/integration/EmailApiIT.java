@@ -6,9 +6,10 @@ import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.WebTester;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,29 +19,28 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.file.FileSystems;
 import java.util.Optional;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {EmailApiIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class EmailApiIT extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(EmailApiIT.class);
 
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -77,7 +77,7 @@ public class EmailApiIT extends WebTester {
     @SuppressWarnings("FieldCanBeLocal")
     private GreenMail testSMTP;
 
-    @Before
+    @BeforeEach
     public void setupSMTP() {
         testSMTP = new GreenMail(ServerSetupTest.SMTP);
         testSMTP.start();
@@ -114,7 +114,7 @@ public class EmailApiIT extends WebTester {
             action.setAction(ActionConfirmType.AC_DELETE);
             action.setConfirmed(false);
             action.setFileInfo(file);
-            Assert.assertTrue(action.toString().startsWith("Action Confirmed [null]"));
+            assertTrue(action.toString().startsWith("Action Confirmed [null]"));
             actionConfirmRepository.save(action);
 
             getMockMvc().perform(post("/jbr/int/backup/actionemail")

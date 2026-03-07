@@ -4,7 +4,7 @@ import com.jbr.middletier.backup.filetree.FileTreeNode;
 import com.jbr.middletier.backup.filetree.compare.DbTree;
 import com.jbr.middletier.backup.filetree.compare.node.DbCompareNode;
 import com.jbr.middletier.backup.filetree.database.DbDirectory;
-import org.junit.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class BasicDbTree extends DbTree {
             createCompareNode(CompareStatusType.REMOVED, null, null, null);
             return false;
         } catch(IllegalStateException e) {
-            Assert.assertEquals("Status is removed, but no source provided", e.getMessage());
+            assertEquals("Status is removed, but no source provided", e.getMessage());
         }
 
         return true;
@@ -47,10 +47,10 @@ public class BasicDbTree extends DbTree {
     public boolean testAddedNoDestinationFailure() {
         try {
             createCompareNode(CompareStatusType.ADDED, null, null, null);
-            Assert.fail();
+            fail();
             return false;
         } catch(IllegalStateException e) {
-            Assert.assertEquals("Status is added, but no destination provided", e.getMessage());
+            assertEquals("Status is added, but no destination provided", e.getMessage());
         }
 
         return true;

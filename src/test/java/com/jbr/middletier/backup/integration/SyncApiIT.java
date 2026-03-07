@@ -9,9 +9,11 @@ import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.summary.Summary;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.core.IsNull;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,10 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,7 +36,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -42,17 +44,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@WebAppConfiguration
+@TestMethodOrder(MethodOrderer.MethodName.class)
 @ContextConfiguration(initializers = {SyncApiIT.Initializer.class})
 @ActiveProfiles(value="it")
+@Testcontainers
 public class SyncApiIT extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(SyncApiIT.class);
 
     @SuppressWarnings("rawtypes")
-    @ClassRule
+    @Container
     public static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0.28")
             .withDatabaseName("integration-tests-db")
             .withUsername("sa")
@@ -104,7 +105,7 @@ public class SyncApiIT extends FileTester {
         return updateClassification;
     }
 
-    @Before
+    @BeforeEach
     public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
         dbLoggingManager.clearMessageCache();
 
@@ -186,7 +187,7 @@ public class SyncApiIT extends FileTester {
         this.synchronize = associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(synchronizeDTO));
     }
 
-    @After
+    @AfterEach
     public void cleanUpTest() {
         // Remove the sources, files and directories.
         associatedFileDataManager.deleteAllSynchronize();
@@ -267,7 +268,7 @@ public class SyncApiIT extends FileTester {
         // Test the get file.
         List<FileSystemObject> files = new ArrayList<>();
         fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE).forEach(files::add);
-        Assert.assertNotEquals(0, files.size());
+        assertNotEquals(0, files.size());
         getMockMvc().perform(get("/jbr/int/backup/file?id="+files.get(0).getIdAndType().getId())
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -282,7 +283,7 @@ public class SyncApiIT extends FileTester {
             }
         }
 
-        Assert.assertTrue(idOfJpeg.isPresent());
+        assertTrue(idOfJpeg.isPresent());
 
         // Get the details for the jpeg file.
         getMockMvc().perform(get("/jbr/int/backup/file?id="+idOfJpeg.get())
@@ -336,21 +337,21 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+        assertEquals("File with id ("+missingId+") not found.", error);
 
         error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+        assertEquals("File with id ("+missingId+") not found.", error);
 
         error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+        assertEquals("File with id ("+missingId+") not found.", error);
     }
 
     @Test
@@ -380,21 +381,21 @@ public class SyncApiIT extends FileTester {
                 testFile = Optional.of(nextFile);
             }
         }
-        Assert.assertTrue(testFile.isPresent());
+        assertTrue(testFile.isPresent());
 
         String error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + testFile.get().getIdAndType().getId())
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isBadRequest())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("File is not of type image", error);
+        assertEquals("File is not of type image", error);
 
         error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + testFile.get().getIdAndType().getId())
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isBadRequest())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("File is not of type video", error);
+        assertEquals("File is not of type video", error);
     }
 
     @Test
@@ -437,8 +438,8 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].filesWarned", is(1)));
 
         // Check that no errors.
-        Assert.assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_WARNING).size());
-        Assert.assertEquals(0, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
+        assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_WARNING).size());
+        assertEquals(0, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
 
         LOG.info("Gather the data again.");
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -589,7 +590,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         validateSource(fileSystemObjectManager, this.source,sourceDescription);
-        Assert.assertTrue(Files.exists(new File(SOURCE_DIRECTORY + "/Documents/Text1.txt").toPath()));
+        assertTrue(Files.exists(new File(SOURCE_DIRECTORY + "/Documents/Text1.txt").toPath()));
 
         Optional<FileInfo> deleteFile = Optional.empty();
         List<FileInfo> files = new ArrayList<>();
@@ -600,7 +601,7 @@ public class SyncApiIT extends FileTester {
                 deleteFile = Optional.of(nextFile);
             }
         }
-        Assert.assertTrue(deleteFile.isPresent());
+        assertTrue(deleteFile.isPresent());
         ActionConfirmDTO action =  actionManager.createFileDeleteAction(deleteFile.get());
         ConfirmActionRequest confirmRequest = new ConfirmActionRequest();
         confirmRequest.setId(action.getId());
@@ -620,7 +621,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(1)))
                 .andExpect(jsonPath("$[0].failed", is(false)));
-        Assert.assertFalse(Files.exists(new File(SOURCE_DIRECTORY + "/Documents/Text1.txt").toPath()));
+        assertFalse(Files.exists(new File(SOURCE_DIRECTORY + "/Documents/Text1.txt").toPath()));
     }
 
     @Test
@@ -684,7 +685,7 @@ public class SyncApiIT extends FileTester {
                 validId = nextFile.getIdAndType().getId();
             }
         }
-        Assert.assertNotEquals(-1,validId);
+        assertNotEquals(-1,validId);
         while(usedIds.contains(missingId)) {
             missingId++;
         }
@@ -700,7 +701,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("File with id ("+missingId+") not found.", error);
+        assertEquals("File with id ("+missingId+") not found.", error);
     }
 
     @Test
@@ -775,7 +776,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("Source with id (1) not found.", error);
+        assertEquals("Source with id (1) not found.", error);
 
         associatedFileDataManager.findSourceById(this.source.getIdAndType().getId());
 
@@ -787,7 +788,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isConflict())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("Source with id (" + sourceDTO.getId() + ") already exists.", error);
+        assertEquals("Source with id (" + sourceDTO.getId() + ") already exists.", error);
     }
 
     @Test
@@ -801,7 +802,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
-        Assert.assertEquals("Action 1 not found.", error);
+        assertEquals("Action 1 not found.", error);
     }
 
     @Test
@@ -843,8 +844,8 @@ public class SyncApiIT extends FileTester {
             count++;
             actionId = next.getId();
         }
-        Assert.assertEquals(2, count);
-        Assert.assertNotEquals(-1, actionId);
+        assertEquals(2, count);
+        assertNotEquals(-1, actionId);
 
         // Confirm the action.
         ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
@@ -909,8 +910,8 @@ public class SyncApiIT extends FileTester {
             count++;
             actionId = next.getId();
         }
-        Assert.assertEquals(2, count);
-        Assert.assertNotEquals(-1, actionId);
+        assertEquals(2, count);
+        assertNotEquals(-1, actionId);
 
         // Confirm the action.
         ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
@@ -992,7 +993,7 @@ public class SyncApiIT extends FileTester {
                 deleteId = nextFile.getIdAndType().getId();
             }
         }
-        Assert.assertNotEquals(-1, deleteId);
+        assertNotEquals(-1, deleteId);
 
         getMockMvc().perform(delete("/jbr/int/backup/file?id=" + deleteId)
                         .content(this.json("Testing"))
@@ -1007,8 +1008,8 @@ public class SyncApiIT extends FileTester {
             count++;
             actionId = next.getId();
         }
-        Assert.assertEquals(1, count);
-        Assert.assertNotEquals(-1, actionId);
+        assertEquals(1, count);
+        assertNotEquals(-1, actionId);
 
         // Confirm the action.
         ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
@@ -1177,8 +1178,8 @@ public class SyncApiIT extends FileTester {
             count++;
             actionId = next.getId();
         }
-        Assert.assertEquals(1, count);
-        Assert.assertNotEquals(-1, actionId);
+        assertEquals(1, count);
+        assertNotEquals(-1, actionId);
 
         // Confirm the action.
         ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
@@ -1327,8 +1328,8 @@ public class SyncApiIT extends FileTester {
             count++;
             actionId = next.getId();
         }
-        Assert.assertEquals(1, count);
-        Assert.assertNotEquals(-1, actionId);
+        assertEquals(1, count);
+        assertNotEquals(-1, actionId);
 
         // Confirm the action.
         ConfirmActionRequest confirmActionRequest = new ConfirmActionRequest();
@@ -1604,17 +1605,17 @@ public class SyncApiIT extends FileTester {
         Summary.forceInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
         Summary summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
 
-        Assert.assertTrue(summary.isValid());
+        assertTrue(summary.isValid());
         List<SourceDTO> sources = summary.getSources();
-        Assert.assertEquals(3,sources.size());
-        Assert.assertEquals(14,sources.get(0).getFileCount());
-        Assert.assertEquals(11,sources.get(0).getDirectoryCount());
-        Assert.assertEquals(6622444,sources.get(0).getLargestFile());
-        Assert.assertEquals(15859756,sources.get(0).getTotalFileSize());
-        Assert.assertEquals(0,sources.get(1).getFileCount());
-        Assert.assertEquals(0,sources.get(1).getDirectoryCount());
-        Assert.assertEquals(0,sources.get(1).getLargestFile());
-        Assert.assertEquals(0,sources.get(1).getTotalFileSize());
+        assertEquals(3,sources.size());
+        assertEquals(14,sources.get(0).getFileCount());
+        assertEquals(11,sources.get(0).getDirectoryCount());
+        assertEquals(6622444,sources.get(0).getLargestFile());
+        assertEquals(15859756,sources.get(0).getTotalFileSize());
+        assertEquals(0,sources.get(1).getFileCount());
+        assertEquals(0,sources.get(1).getDirectoryCount());
+        assertEquals(0,sources.get(1).getLargestFile());
+        assertEquals(0,sources.get(1).getTotalFileSize());
     }
 
     @Test
@@ -1805,16 +1806,16 @@ public class SyncApiIT extends FileTester {
         fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE).forEach(files::add);
 
         // There should be two files, with no classification.
-        Assert.assertEquals(2, files.size());
+        assertEquals(2, files.size());
         FileInfo fileInfo = (FileInfo) files.get(0);
         int findId = fileInfo.getIdAndType().getId();
-        Assert.assertNull(fileInfo.getClassification());
+        assertNull(fileInfo.getClassification());
         fileInfo = (FileInfo) files.get(1);
         // Use the lowest id to find, as this will be the first created.
         if(fileInfo.getIdAndType().getId() < findId) {
             findId = fileInfo.getIdAndType().getId();
         }
-        Assert.assertNull(fileInfo.getClassification());
+        assertNull(fileInfo.getClassification());
 
         // Test the get file.
         getMockMvc().perform(get("/jbr/int/backup/file?id=" + findId)
@@ -1859,7 +1860,7 @@ public class SyncApiIT extends FileTester {
         }
         Optional<MetaData> metaData = fileSystemObjectManager.findMetaDataForFile(fileInfo);
 
-        Assert.assertTrue(metaData.isPresent());
+        assertTrue(metaData.isPresent());
         metaData.get().setDuration(10.0);
         fileSystemObjectManager.updateMetaData(metaData.get());
 
@@ -1901,9 +1902,9 @@ public class SyncApiIT extends FileTester {
         File file = new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.jpgx");
 
         if(file.exists()){
-            Assert.assertTrue(file.setLastModified(System.currentTimeMillis()));
+            assertTrue(file.setLastModified(System.currentTimeMillis()));
         } else {
-            Assert.fail();
+            fail();
         }
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -1926,9 +1927,9 @@ public class SyncApiIT extends FileTester {
         file = new File("./target/it_test/destination/Photo/2013/October/AtHome/IMG_8231.jpgx");
 
         if(file.exists()){
-            Assert.assertTrue(file.setLastModified(System.currentTimeMillis()));
+            assertTrue(file.setLastModified(System.currentTimeMillis()));
         } else {
-            Assert.fail();
+            fail();
         }
 
         getMockMvc().perform(post("/jbr/int/backup/gather")
@@ -2351,9 +2352,9 @@ public class SyncApiIT extends FileTester {
 
         long fileTime = System.currentTimeMillis();
         if(file.exists()){
-            Assert.assertTrue(file.setLastModified(fileTime));
+            assertTrue(file.setLastModified(fileTime));
         } else {
-            Assert.fail();
+            fail();
         }
 
         // Turn the file time into a string.

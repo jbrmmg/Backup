@@ -1,7 +1,7 @@
 package com.jbr.middletier.backup;
 
 import lombok.Getter;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @Component
@@ -36,11 +36,11 @@ public class WebTester {
                 .findAny()
                 .orElse(null);
 
-        assertNotNull("the JSON message converter must not be null",
-                this.mappingJackson2HttpMessageConverter);
+        assertNotNull(this.mappingJackson2HttpMessageConverter,
+                "the JSON message converter must not be null");
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         // Set up the mock web context.
         this.mockMvc = webAppContextSetup(webApplicationContext).build();

@@ -8,34 +8,27 @@ import com.jbr.middletier.backup.data.ClassificationActionType;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dataaccess.ClassificationRepository;
 import com.jbr.middletier.backup.dto.*;
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.io.File;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SuppressWarnings("ConstantConditions")
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = MiddleTier.class)
-@WebAppConfiguration
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestBasicCRUD extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestBasicCRUD.class);
 
@@ -79,7 +72,7 @@ public class TestBasicCRUD extends WebTester {
                     .andExpect(status().is(409))
                     .andDo(MockMvcResultHandlers.print())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Backup with id (TST) already exists.", error);
+            assertEquals("Backup with id (TST) already exists.", error);
 
             backup.setType("What");
             getMockMvc().perform(put("/jbr/ext/backup")
@@ -95,7 +88,7 @@ public class TestBasicCRUD extends WebTester {
                             .contentType(getContentType()))
                             .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Backup with id (TSTX) not found.", error);
+            assertEquals("Backup with id (TSTX) not found.", error);
 
             getMockMvc().perform(get("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -114,7 +107,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Backup with id (XXX) not found.", error);
+            assertEquals("Backup with id (XXX) not found.", error);
 
             getMockMvc().perform(delete("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -126,14 +119,14 @@ public class TestBasicCRUD extends WebTester {
                             .contentType(getContentType()))
                             .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Backup with id (TSTX) not found.", error);
+            assertEquals("Backup with id (TSTX) not found.", error);
 
             error = getMockMvc().perform(post("/jbr/ext/backup/run")
                             .content(this.json(backup2))
                             .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Backup with id () not found.", error);
+            assertEquals("Backup with id () not found.", error);
 
             getMockMvc().perform(get("/jbr/ext/backup")
                     .content(this.json(backup))
@@ -202,7 +195,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isConflict())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Location with id (6) already exists.", error);
+            assertEquals("Location with id (6) already exists.", error);
 
             location.setName("TestUpd");
             getMockMvc().perform(put("/jbr/ext/backup/location")
@@ -224,14 +217,14 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Location with id (6) not found.", error);
+            assertEquals("Location with id (6) not found.", error);
 
             error = getMockMvc().perform(delete("/jbr/ext/backup/location")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Location with id (6) not found.", error);
+            assertEquals("Location with id (6) not found.", error);
 
             getMockMvc().perform(get("/jbr/ext/backup/location")
                     .content(this.json(location))
@@ -266,7 +259,7 @@ public class TestBasicCRUD extends WebTester {
             for(Classification next: classificationRepository.findAll()) {
                 if(next.getOrder().equals(10131)) {
                     id = next.getId();
-                    Assert.assertEquals(id + "-null", next.toString());
+                    assertEquals(id + "-null", next.toString());
                 }
             }
 
@@ -301,21 +294,21 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Classification with id (" + id + ") not found.", error);
+            assertEquals("Classification with id (" + id + ") not found.", error);
 
             error = getMockMvc().perform(delete("/jbr/ext/backup/classification")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Classification with id (" + id + ") not found.", error);
+            assertEquals("Classification with id (" + id + ") not found.", error);
 
             error = getMockMvc().perform(post("/jbr/ext/backup/classification")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isConflict())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Classification must not be specified on creation", error);
+            assertEquals("Classification must not be specified on creation", error);
         } catch (Exception ex) {
             fail();
         }
@@ -345,7 +338,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isConflict())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Hardware with id (00:00:00:00:00:00) already exists.", error);
+            assertEquals("Hardware with id (00:00:00:00:00:00) already exists.", error);
 
             getMockMvc().perform(get("/jbr/ext/hardware")
                     .content(this.json(hardware))
@@ -380,7 +373,7 @@ public class TestBasicCRUD extends WebTester {
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
-            Assert.assertEquals("Hardware with id (00:00:00:00:00:10) not found.", error);
+            assertEquals("Hardware with id (00:00:00:00:00:10) not found.", error);
 
             getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:00")
                             .content(this.json(hardware))
