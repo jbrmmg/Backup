@@ -95,13 +95,15 @@ public class ImportIT extends FileTester {
 
     @BeforeEach
     public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException {
-        initialiseDirectories();
-
-        // Ensure nothing is in the queue.
+        // Ensure nothing is in the queue before cleaning up directories, otherwise
+        // the background thread may be processing files that are about to be deleted,
+        // causing errors that leave items in TL_UNKNOWN and the await never completes.
         await()
                 .atMost(2, TimeUnit.MINUTES)
                 .untilAsserted(() -> assertTrue(queueCompleted()));
         importManager.clearCacheData();
+
+        initialiseDirectories();
 
         // Update JPG so it gets an MD5
         for (Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
