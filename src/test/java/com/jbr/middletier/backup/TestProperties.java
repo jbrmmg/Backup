@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestProperties {
+class TestProperties {
     @Test
     @DisplayName("Test the property class (1).")
     public void TestPropertyClass1() {

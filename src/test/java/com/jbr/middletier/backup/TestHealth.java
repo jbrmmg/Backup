@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = MiddleTier.class)
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestHealth extends WebTester {
+class TestHealth extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestHealth.class);
 
     @Test

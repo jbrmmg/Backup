@@ -32,7 +32,7 @@ import static com.jbr.middletier.backup.data.ClassificationActionType.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = MiddleTier.class)
-public class TestGeneral extends WebTester {
+class TestGeneral extends WebTester {
     @Autowired
     AssociatedFileDataManager associatedFileDataManager;
 

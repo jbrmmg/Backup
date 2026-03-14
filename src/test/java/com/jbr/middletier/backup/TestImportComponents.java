@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = MiddleTier.class)
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestImportComponents extends FileTester {
+class TestImportComponents extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestImportComponents.class);
 
     @Test

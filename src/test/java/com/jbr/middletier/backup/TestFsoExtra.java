@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestFsoExtra {
+class TestFsoExtra {
     @Test
     public void findByTypeDirectory() {
         ModelMapper modelMapper = mock(ModelMapper.class);

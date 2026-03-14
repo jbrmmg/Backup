@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("ConstantConditions")
 @SpringBootTest(classes = MiddleTier.class)
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestBasicCRUD extends WebTester {
+class TestBasicCRUD extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestBasicCRUD.class);
 
     @Autowired
