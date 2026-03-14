@@ -17,7 +17,7 @@ public class TestGatherScheduler extends WebTester {
     GatherSynchronizeCtrl gatherSynchronizeCtrl;
 
     @Test
-    public void TestGather() {
+    void TestGather() {
         gatherSynchronizeCtrl.gatherCron();
         assertTrue(true);
     }

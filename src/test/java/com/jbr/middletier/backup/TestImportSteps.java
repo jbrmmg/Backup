@@ -31,9 +31,9 @@ import static com.jbr.middletier.backup.manager.importing.FileProcessingStepType
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = MiddleTier.class)
-public class TestImportSteps {
+class TestImportSteps {
     @Test
-    public void TestStepProcessImportFileInvalidState() {
+    void TestStepProcessImportFileInvalidState() {
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         FileSystem fileSystem = mock(FileSystem.class);
@@ -54,7 +54,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void TestStepProcessImportFileDestinationEmpty1() {
+    void TestStepProcessImportFileDestinationEmpty1() {
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         FileSystem fileSystem = mock(FileSystem.class);
@@ -78,7 +78,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void TestStepProcessImportFileDestinationEmpty2() {
+    void TestStepProcessImportFileDestinationEmpty2() {
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
         AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
         FileSystem fileSystem = mock(FileSystem.class);
@@ -103,7 +103,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void TestStepProcessImportFileNotExist() {
+    void TestStepProcessImportFileNotExist() {
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
         when(importSourceManager.getImportDirectory()).thenReturn(new File("./target/"));
 
@@ -131,7 +131,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void TestStepCheckActivePhotoFile() {
+    void TestStepCheckActivePhotoFile() {
         com.jbr.middletier.backup.data.ImportFile fileInfo = mock(com.jbr.middletier.backup.data.ImportFile.class);
         when(fileInfo.getDate()).thenReturn(LocalDateTime.of(2023,12,23,0,0,0));
         List<FileInfo> fileInfos = Collections.singletonList(fileInfo);
@@ -202,7 +202,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void TestStepCheckFileIgnored() {
+    void TestStepCheckFileIgnored() {
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
         IgnoreFileRepository ignoreFileRepository = mock(IgnoreFileRepository.class);
@@ -274,7 +274,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void checkFileConfirmedImportedMd5() {
+    void checkFileConfirmedImportedMd5() {
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
 
@@ -314,7 +314,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void checkFileConfirmedImportedFilename() {
+    void checkFileConfirmedImportedFilename() {
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
 
@@ -347,7 +347,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void checkFileConfirmedImportedFileSize() {
+    void checkFileConfirmedImportedFileSize() {
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
 
@@ -376,7 +376,7 @@ public class TestImportSteps {
     }
 
     @Test
-    public void checkFileConfirmedImportedFileDate() {
+    void checkFileConfirmedImportedFileDate() {
         ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
         ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
 

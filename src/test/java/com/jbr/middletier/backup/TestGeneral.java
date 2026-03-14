@@ -43,7 +43,7 @@ public class TestGeneral extends WebTester {
     FileSystemObjectManager fileSystemObjectManager;
 
     @Test
-    public void TestDefaultProfile() {
+    void TestDefaultProfile() {
         SpringApplication app = mock(SpringApplication.class);
 
         assertNotNull(app);
@@ -51,7 +51,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestClassificationActionType() {
+    void TestClassificationActionType() {
         assertEquals(CA_BACKUP,ClassificationActionType.getClassificationActionType("BACKUP"));
         assertEquals(CA_DELETE,ClassificationActionType.getClassificationActionType("DELETE"));
         assertEquals(CA_FOLDER,ClassificationActionType.getClassificationActionType("FOLDER"));
@@ -67,7 +67,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestDTOs() {
+    void TestDTOs() {
         GatherDataDTO gatherDataDTO = new GatherDataDTO(1);
         assertEquals(1,gatherDataDTO.getUnderlyingId());
 
@@ -141,7 +141,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestActionConfirmType() {
+    void TestActionConfirmType() {
         assertEquals(ActionConfirmType.AC_DELETE,ActionConfirmType.getActionConfirmType("DELETE"));
         assertEquals(ActionConfirmType.AC_DELETE_DUPLICATE,ActionConfirmType.getActionConfirmType("DELETE_DUP"));
         assertEquals(ActionConfirmType.AC_IMPORT,ActionConfirmType.getActionConfirmType("IMPORT"));
@@ -155,7 +155,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestApiError() {
+    void TestApiError() {
         Throwable ex = mock(Throwable.class);
         when(ex.getLocalizedMessage()).thenReturn("Error");
 
@@ -167,7 +167,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestMD5() {
+    void TestMD5() {
         // First check the invalid checks.
         try {
             new MD5((String) null);
@@ -210,7 +210,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestFsoId() {
+    void TestFsoId() {
         FileSystemObjectId fsoId = new FileSystemObjectId(1,FileSystemObjectType.FSO_FILE);
         FileSystemObjectId fsoId2 = new FileSystemObjectId(2,FileSystemObjectType.FSO_FILE);
         FileSystemObjectId fsoId3 = new FileSystemObjectId(1,FileSystemObjectType.FSO_DIRECTORY);
@@ -234,7 +234,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestSourceStatus() {
+    void TestSourceStatus() {
         assertEquals(SourceStatusType.SST_OK, SourceStatusType.getSourceStatusType("OK"));
         assertEquals(SourceStatusType.SST_GATHERING, SourceStatusType.getSourceStatusType("GATHERING"));
         assertEquals(SourceStatusType.SST_ERROR, SourceStatusType.getSourceStatusType("ERROR"));
@@ -248,7 +248,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestSynchronizeRecord() {
+    void TestSynchronizeRecord() {
         SynchronizeDTO synchronizeDTO = new SynchronizeDTO();
         synchronizeDTO.setSource(new SourceDTO());
         synchronizeDTO.setDestination(new SourceDTO());
@@ -272,7 +272,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestHierarchyResponse() {
+    void TestHierarchyResponse() {
         HierarchyResponse hierarchyResponse = new HierarchyResponse();
         assertEquals(-1,hierarchyResponse.getId());
         assertEquals("",hierarchyResponse.getDisplayName());
@@ -281,7 +281,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestLocationDTO() {
+    void TestLocationDTO() {
         Location location = new Location();
         location.setId(1);
         location.setCheckDuplicates(true);
@@ -293,7 +293,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestSourceDTO() {
+    void TestSourceDTO() {
         Source source = new Source();
         source.setStatus(SourceStatusType.SST_OK);
         source.setPath("Test");
@@ -312,7 +312,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestCronClass() {
+    void TestCronClass() {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(true);
 
@@ -341,7 +341,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestCronClassFail() {
+    void TestCronClassFail() {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(true);
 
@@ -371,7 +371,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void TestCronClassDisabled() {
+    void TestCronClassDisabled() {
         ApplicationProperties applicationProperties = mock(ApplicationProperties.class);
         when(applicationProperties.getGatherEnabled()).thenReturn(false);
 
@@ -401,7 +401,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void validateFileStatusType() {
+    void validateFileStatusType() {
         ImportFileStatusType type = ImportFileStatusType.getFileStatusType("COMPLETE");
         assertEquals(ImportFileStatusType.IFS_COMPLETE, type);
 
@@ -416,7 +416,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void synchronizeProblem1() {
+    void synchronizeProblem1() {
         FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
         when(idAndType.getId()).thenReturn(1);
 
@@ -459,7 +459,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void synchronizeProblem2() {
+    void synchronizeProblem2() {
         FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
         when(idAndType.getId()).thenReturn(3);
 
@@ -502,7 +502,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void synchronizeProblem3() {
+    void synchronizeProblem3() {
         FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
         when(idAndType.getId()).thenReturn(5);
 
@@ -546,7 +546,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void synchronizeProblem4() {
+    void synchronizeProblem4() {
         FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
         when(idAndType.getId()).thenReturn(6);
 
@@ -590,7 +590,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void synchronizeProblem5() {
+    void synchronizeProblem5() {
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
@@ -629,7 +629,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testDriveManagerProblems() throws IOException {
+    void testDriveManagerProblems() throws IOException {
         List<Source> sources = new ArrayList<>();
         Source source = mock(Source.class);
         when(source.getStatus()).thenReturn(null);
@@ -666,7 +666,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testDriveManagerProblems2() {
+    void testDriveManagerProblems2() {
         List<Source> sources = new ArrayList<>();
         Source source = mock(Source.class);
         when(source.getStatus()).thenReturn(SourceStatusType.SST_GATHERING);
@@ -699,7 +699,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testLocationToDTO() {
+    void testLocationToDTO() {
         Location location = new Location();
         location.setId(1);
         location.setName("Test");
@@ -725,7 +725,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testLocationToEntity() {
+    void testLocationToEntity() {
         LocationDTO locationDTO = new LocationDTO();
         locationDTO.setId(1);
         locationDTO.setName("Test");
@@ -752,7 +752,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testClassificationToEntity() {
+    void testClassificationToEntity() {
         ClassificationDTO classificationDTO = new ClassificationDTO();
         classificationDTO.setId(1);
         classificationDTO.setIsImage(true);
@@ -773,7 +773,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testClassificationToDTO() {
+    void testClassificationToDTO() {
         Classification classification = new Classification();
         classification.setId(1);
         classification.setIsImage(true);
@@ -794,7 +794,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testSourceEntity() {
+    void testSourceEntity() {
         LocationDTO locationDTO = new LocationDTO();
         locationDTO.setId(1);
         locationDTO.setSize("1TB");
@@ -821,7 +821,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testSourceDTO() {
+    void testSourceDTO() {
         Location location = new Location();
         location.setId(1);
         location.setSize("1TB");
@@ -847,7 +847,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testImportSourceEntity() {
+    void testImportSourceEntity() {
         ImportSourceDTO sourceDTO = getImportSourceDTO();
 
         ImportSource source = associatedFileDataManager.convertToEntity(sourceDTO);
@@ -882,7 +882,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testImportSourceDTO() {
+    void testImportSourceDTO() {
         ImportSource source = getImportSource();
 
         ImportSourceDTO sourceDTO = associatedFileDataManager.convertToDTO(source);
@@ -918,7 +918,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPreImportSourceEntity() {
+    void testPreImportSourceEntity() {
         LocationDTO locationDTO = new LocationDTO();
         locationDTO.setId(1);
         locationDTO.setSize("1TB");
@@ -945,7 +945,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPreImportSourceDTO() {
+    void testPreImportSourceDTO() {
         Location location = new Location();
         location.setId(1);
         location.setSize("1TB");
@@ -971,7 +971,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPostImportSourceEntity() {
+    void testPostImportSourceEntity() {
         LocationDTO locationDTO = new LocationDTO();
         locationDTO.setId(1);
         locationDTO.setSize("1TB");
@@ -998,7 +998,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPostImportSourceDTO() {
+    void testPostImportSourceDTO() {
         Location location = new Location();
         location.setId(1);
         location.setSize("1TB");
@@ -1024,7 +1024,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testSynchronizeEntity() {
+    void testSynchronizeEntity() {
         SynchronizeDTO synchronizeDTO = getSynchronizeDTO();
 
         Synchronize synchronize = associatedFileDataManager.convertToEntity(synchronizeDTO);
@@ -1080,7 +1080,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testSynchronizeDTO() {
+    void testSynchronizeDTO() {
         Location location = new Location();
         location.setId(1);
         location.setSize("1TB");
@@ -1128,7 +1128,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileInfoDto() {
+    void testFileInfoDto() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         Classification classification = new Classification();
@@ -1166,7 +1166,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testActionConfirmDTO() {
+    void testActionConfirmDTO() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm");
 
         Classification classification = new Classification();
@@ -1209,7 +1209,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileDTO() {
+    void testFileDTO() {
         Classification classification = new Classification();
         classification.setId(1);
         classification.setIsImage(true);
@@ -1285,7 +1285,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testDbLog() {
+    void testDbLog() {
         DbLog dbLog = new DbLog();
         dbLog.setId(1);
         dbLog.setDate(LocalDateTime.now());
@@ -1298,7 +1298,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileSystemImageData() {
+    void testFileSystemImageData() {
         Map<String,String> metadata = getMetadata("2022:01:21 11:04:10");
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
@@ -1325,7 +1325,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileSystemImageDataInvalid() {
+    void testFileSystemImageDataInvalid() {
         Map<String,String> metadata = getMetadata("invalid");
 
         FileSystemImageData fileSystemImageData = new FileSystemImageData(metadata);
@@ -1333,7 +1333,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileSystemImageDataMp4() {
+    void testFileSystemImageDataMp4() {
         Map<String,String> metadata = new HashMap<>();
         metadata.put("creation date","2022:01:21 11:04:12");
         metadata.put("image size","10x10");
@@ -1347,7 +1347,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPhysicalNamingStrategy() {
+    void testPhysicalNamingStrategy() {
         Identifier id = new Identifier("string", true);
         Identifier id2 = DebugPhysicalNamingStrategyImpl.INSTANCE.toPhysicalCatalogName(id,null);
         assertEquals(id,id2);
@@ -1395,7 +1395,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileExpiryDTO() {
+    void testFileExpiryDTO() {
         LocalDateTime testTime = LocalDateTime.of(2023,12,1,11,49,32,1);
         FileExpiryDTO expiry = new FileExpiryDTO();
         expiry.setId(209);
@@ -1405,7 +1405,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileLabel() {
+    void testFileLabel() {
         FileLabelId id = new FileLabelId();
         id.setLabelId(10);
         id.setFileId(390);
@@ -1445,7 +1445,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testLabel() {
+    void testLabel() {
         LabelDTO label = new LabelDTO();
         label.setName("blah");
         label.setId(102);
@@ -1460,7 +1460,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testSelectPrint() {
+    void testSelectPrint() {
         SelectedPrintDTO print = new SelectedPrintDTO();
         print.setFileName("IMG.JPG");
         print.setSizeName("2x2");
@@ -1477,7 +1477,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPrintSize() {
+    void testPrintSize() {
         PrintSize size = new PrintSize();
         size.setId(10);
         size.setName("4x3");
@@ -1508,7 +1508,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPrintId() {
+    void testPrintId() {
         PrintId id = new PrintId();
         id.setSizeId(21);
         id.setFileId(1);
@@ -1518,7 +1518,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testMetaData() {
+    void testMetaData() {
         MetaData metaData = new MetaData();
         metaData.setId(10);
         metaData.setDuration(12.2);
@@ -1569,7 +1569,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testGetImageFromVideo() {
+    void testGetImageFromVideo() {
         ApplicationProperties applicationProperties = new ApplicationProperties();
         applicationProperties.setVidToImageLocation("target/");
         applicationProperties.setVidToImageCommand("cp %%INPUT%% %%OUTPUT%%");
@@ -1616,7 +1616,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testFileSearch() {
+    void testFileSearch() {
         FileSearch search = new FileSearch("76be016232b7fd49a1151dd8f4b33d97");
         assertEquals(FileSearch.SearchType.MD5,search.getSearchType());
 
@@ -1636,7 +1636,7 @@ public class TestGeneral extends WebTester {
     }
 
     @Test
-    public void testPreImportFileDTO() {
+    void testPreImportFileDTO() {
         PreImportFileDTO preImportFileDTO = new PreImportFileDTO(true);
         assertEquals(TrafficLightType.TL_UNKNOWN, preImportFileDTO.getStepStatus().getStepStatus(FileProcessingStepType.FPS_COPY_FILE_TO_IMPORT));
         assertTrue(preImportFileDTO.isStopMarker());

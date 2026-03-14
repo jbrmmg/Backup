@@ -28,14 +28,14 @@ public class TestHealth extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestHealth.class);
 
     @Test
-    public void TestHealthURL() throws Exception {
+    void TestHealthURL() throws Exception {
         getMockMvc().perform(get("/actuator/health")
                 .contentType(getContentType()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void TestHealthObject() {
+    void TestHealthObject() {
         BackupRepository backupRepository = mock(BackupRepository.class);
         when(backupRepository.findAll()).thenThrow(IllegalStateException.class);
 
@@ -49,7 +49,7 @@ public class TestHealth extends WebTester {
     }
 
     @Test
-    public void TestFSOFailure() {
+    void TestFSOFailure() {
         LOG.info("Test FSO Failure");
         try {
             FileSystemObjectType.getFileSystemObjectType("BLAH");
@@ -62,7 +62,7 @@ public class TestHealth extends WebTester {
     }
 
     @Test
-    public void TestSourceCTOR() {
+    void TestSourceCTOR() {
         LOG.info("Test FSO Failure");
         try {
             Source source = new Source();

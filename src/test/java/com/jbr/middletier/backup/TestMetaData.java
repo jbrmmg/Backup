@@ -16,12 +16,12 @@ import java.util.Map;
 import java.util.Optional;
 
 @SpringBootTest(classes = MiddleTier.class)
-public class TestMetaData {
+class TestMetaData {
     @Autowired
     FileSystem fileSystem;
 
     @Test
-    public void testMetaDataJpeg() {
+    void testMetaDataJpeg() {
         File jpeg = new File("src/test/resources/synchronise/IMG_1015.JPEG");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(jpeg);
@@ -45,7 +45,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataMov() {
+    void testMetaDataMov() {
         File jpeg = new File("src/test/resources/synchronise/IMG_1015.MOV");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(jpeg);
@@ -69,7 +69,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataMp4() {
+    void testMetaDataMp4() {
         File mp4 = new File("src/test/resources/synchronise/20171224_152453.mp4");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(mp4);
@@ -91,7 +91,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataPDF() {
+    void testMetaDataPDF() {
         File pdf = new File("src/test/resources/synchronise/Document.PDF");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(pdf);
@@ -100,7 +100,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataODT() {
+    void testMetaDataODT() {
         File pdf = new File("src/test/resources/synchronise/Document.odt");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(pdf);
@@ -109,7 +109,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataText() {
+    void testMetaDataText() {
         File text = new File("src/test/resources/synchronise/Text.txt");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
@@ -118,7 +118,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataHEIC() {
+    void testMetaDataHEIC() {
         File text = new File("src/test/resources/synchronise/Photo.HEIC");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
@@ -142,7 +142,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataPNG() {
+    void testMetaDataPNG() {
         File text = new File("src/test/resources/synchronise/Photo.png");
 
         Optional<FileSystemImageData> meta = fileSystem.readImageMetaData(text);
@@ -167,7 +167,7 @@ public class TestMetaData {
     }
 
     @Test
-    public void testMetaDataInterpretation() {
+    void testMetaDataInterpretation() {
         Map<String,String> map = new HashMap<>();
         map.put("mime type","image/jpeg");
         map.put("date/time original","2023:05:21 12:37:23");
