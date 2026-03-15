@@ -106,7 +106,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @BeforeEach
-    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
+    void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
         dbLoggingManager.clearMessageCache();
 
         addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false);
@@ -188,7 +188,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @AfterEach
-    public void cleanUpTest() {
+    void cleanUpTest() {
         // Remove the sources, files and directories.
         associatedFileDataManager.deleteAllSynchronize();
         actionManager.deleteAllActions();

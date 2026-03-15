@@ -116,12 +116,12 @@ public class FileProcessingIT extends FileTester {
     LocationRepository locationRepository;
 
     @BeforeEach
-    public void initialise() throws IOException {
+    void initialise() throws IOException {
         initialiseDirectories();
     }
 
     @Test
-    public void basicRealWorld() throws Exception {
+    void basicRealWorld() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -143,7 +143,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void basicDatabase() {
+    void basicDatabase() {
         Optional<Location> location = locationRepository.findById(1);
         assertTrue(location.isPresent());
 
@@ -183,7 +183,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb1() throws Exception {
+    void compareRwDb1() throws Exception {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
@@ -237,7 +237,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb2() throws Exception {
+    void compareRwDb2() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         assertTrue(location.isPresent());
 
@@ -289,7 +289,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb3() throws Exception {
+    void compareRwDb3() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         assertTrue(location.isPresent());
 
@@ -350,7 +350,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb4() throws Exception {
+    void compareRwDb4() throws Exception {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
@@ -428,7 +428,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb5() throws Exception {
+    void compareRwDb5() throws Exception {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
@@ -500,7 +500,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb6() throws Exception {
+    void compareRwDb6() throws Exception {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm");
 
         Optional<Location> location = locationRepository.findById(1);
@@ -572,7 +572,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void compareRwDb7() throws Exception {
+    void compareRwDb7() throws Exception {
         Optional<Location> location = locationRepository.findById(1);
         assertTrue(location.isPresent());
 
@@ -627,7 +627,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkFilter() throws Exception {
+    void checkFilter() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test5");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 

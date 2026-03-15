@@ -94,7 +94,7 @@ public class ImportIT extends FileTester {
     PostImportSource postImportSource;
 
     @BeforeEach
-    public void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException {
+    void initialise() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException {
         // Ensure nothing is in the queue before cleaning up directories, otherwise
         // the background thread may be processing files that are about to be deleted,
         // causing errors that leave items in TL_UNKNOWN and the await never completes.

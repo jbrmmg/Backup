@@ -78,7 +78,7 @@ public class EmailApiIT extends WebTester {
     private GreenMail testSMTP;
 
     @BeforeEach
-    public void setupSMTP() {
+    void setupSMTP() {
         testSMTP = new GreenMail(ServerSetupTest.SMTP);
         testSMTP.start();
     }
