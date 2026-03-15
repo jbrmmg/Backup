@@ -46,7 +46,7 @@ public class ImportFileDTO extends ImportFileBaseDTO {
 
     public void addSimilarFile(ImportFileBaseDTO file) {
         // Log that this file is being added.
-        LOG.info("Similar File for {}, {} - {} - {} - {}", this.getFilename(), file.getFilename(), file.getSize(), file.getMd5(), file.getDate().toString());
+        LOG.info("Similar File for {}, {} - {} - {} - {}", this.getFilename(), file.getFilename(), file.getSize(), file.getMd5(), file.getDate());
 
         // Only add if the file is not already in the list (by name)
         AtomicBoolean alreadyExists = new AtomicBoolean(false);
