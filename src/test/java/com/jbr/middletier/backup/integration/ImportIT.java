@@ -209,7 +209,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void basicImportTest() throws Exception {
+    void basicImportTest() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -272,7 +272,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testIgnore() throws Exception {
+    void testIgnore() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -376,7 +376,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testImport() throws Exception {
+    void testImport() throws Exception {
         LOG.info("Starting testImport.");
 
         List<StructureDescription> sourceDescription = getTestStructure("test7");
@@ -458,7 +458,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testRecipe() throws Exception {
+    void testRecipe() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -532,7 +532,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testRemoveActivePhoto() throws Exception {
+    void testRemoveActivePhoto() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -582,7 +582,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testHeicFile() throws Exception {
+    void testHeicFile() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test17");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -686,7 +686,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testFileIsDuplicate() throws Exception {
+    void testFileIsDuplicate() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test20");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -776,7 +776,7 @@ public class ImportIT extends FileTester {
     }
 
     @Test
-    public void testImportFiles() throws Exception {
+    void testImportFiles() throws Exception {
         List<StructureDescription> sourceDescription = getTestStructure("test20");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 

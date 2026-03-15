@@ -71,7 +71,7 @@ public class NonFsoApiIT extends WebTester {
     LocationRepository locationRepository;
 
     @Test
-    public void synchronizeApi() throws Exception {
+    void synchronizeApi() throws Exception {
         LOG.info("Synchronize API Testing");
 
         // Setup basic source & location.
@@ -172,7 +172,7 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    public void locationApi() throws Exception {
+    void locationApi() throws Exception {
         LocationDTO location = new LocationDTO();
         location.setId(10);
         location.setName("Test");
@@ -214,7 +214,7 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    public void hardwareApi() throws Exception {
+    void hardwareApi() throws Exception {
         HardwareDTO hardwareDTO = new HardwareDTO();
         hardwareDTO.setMacAddress("01:02:04:06:A2:49");
         hardwareDTO.setName("Test");
@@ -266,7 +266,7 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    public void backupApi() throws Exception {
+    void backupApi() throws Exception {
         BackupDTO backupDTO = new BackupDTO();
         backupDTO.setId("TXST");
         backupDTO.setTime(100);
@@ -327,7 +327,7 @@ public class NonFsoApiIT extends WebTester {
     }
 
     @Test
-    public void classificationApi() throws Exception {
+    void classificationApi() throws Exception {
         // Get the number of classifications
         String response = getMockMvc().perform(get("/jbr/ext/backup/classification")
                         .contentType(getContentType()))

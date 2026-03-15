@@ -60,28 +60,10 @@ public class DatabaseIT {
     BackupRepository backupRepository;
 
     @Autowired
-    LocationRepository locationRepository;
-
-    @Autowired
-    ClassificationRepository classificationRepository;
-
-    @Autowired
-    ActionConfirmRepository actionConfirmRepository;
-
-    @Autowired
-    FileRepository fileRepository;
-
-    @Autowired
-    SynchronizeRepository synchronizeRepository;
-
-    @Autowired
-    SourceRepository sourceRepository;
-
-    @Autowired
     ModelMapper modelMapper;
 
     @Test
-    public void hardware(){
+    void hardware(){
         LOG.info("Basic test of the Hardware object");
         String id = "EF:C9:99:92:93:93";
 
@@ -111,7 +93,7 @@ public class DatabaseIT {
     }
 
     @Test
-    public void backup() {
+    void backup() {
         LOG.info("Basic test of the backup object");
 
         BackupDTO newBackupDTO = new BackupDTO();

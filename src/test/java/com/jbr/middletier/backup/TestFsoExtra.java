@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 class TestFsoExtra {
     @Test
-    public void findByTypeDirectory() {
+    void findByTypeDirectory() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -62,7 +62,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void findByTypeDirectory2() {
+    void findByTypeDirectory2() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -98,7 +98,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoSaveUnsupported() {
+    void fsoSaveUnsupported() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -131,7 +131,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoDeleteUnsupported() {
+    void fsoDeleteUnsupported() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -164,7 +164,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoFind1() {
+    void fsoFind1() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -192,7 +192,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoFind2() {
+    void fsoFind2() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -220,7 +220,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoFind3() {
+    void fsoFind3() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -246,7 +246,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoFindByName() {
+    void fsoFindByName() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);
@@ -276,7 +276,7 @@ class TestFsoExtra {
     }
 
     @Test
-    public void fsoPaths() {
+    void fsoPaths() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileRepository fileRepository = mock(FileRepository.class);
         MetaDataRepository metaDataRepository = mock(MetaDataRepository.class);

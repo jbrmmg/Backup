@@ -66,7 +66,7 @@ public class AfdmIT {
     AssociatedFileDataManager associatedFileDataManager;
 
     @Test
-    public void location() throws LocationAlreadyExistsException, InvalidLocationIdException {
+    void location() throws LocationAlreadyExistsException, InvalidLocationIdException {
         LOG.info("Testing location new, amend, delete");
 
         LocationDTO newLocation = new LocationDTO();
@@ -97,7 +97,7 @@ public class AfdmIT {
     }
 
     @Test
-    public void classification() throws ClassificationIdException, InvalidClassificationIdException {
+    void classification() throws ClassificationIdException, InvalidClassificationIdException {
         LOG.info("Testing classification new, amend, delete");
 
         ClassificationDTO newDTO = new ClassificationDTO();
@@ -135,7 +135,7 @@ public class AfdmIT {
     }
 
     @Test
-    public void synchronize() throws LocationAlreadyExistsException, SourceAlreadyExistsException, InvalidSourceIdException, SynchronizeAlreadyExistsException, InvalidSynchronizeIdException, InvalidLocationIdException {
+    void synchronize() throws LocationAlreadyExistsException, SourceAlreadyExistsException, InvalidSourceIdException, SynchronizeAlreadyExistsException, InvalidSynchronizeIdException, InvalidLocationIdException {
         LOG.info("Testing synchronize new, amend, delete");
 
         LocationDTO newLocation = new LocationDTO();
@@ -208,7 +208,7 @@ public class AfdmIT {
     }
 
     @Test
-    public void updateSynchronizeTest() {
+    void updateSynchronizeTest() {
         Synchronize synchronize = mock(Synchronize.class);
         when(synchronize.getId()).thenReturn(1);
 
@@ -240,7 +240,7 @@ public class AfdmIT {
     }
 
     @Test
-    public void sourceStatusTest() {
+    void sourceStatusTest() {
         Source testSource = new Source();
 
         ModelMapper modelMapper = mock(ModelMapper.class);

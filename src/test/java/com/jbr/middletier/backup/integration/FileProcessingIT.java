@@ -659,7 +659,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDbDirectoryException() {
+    void checkDbDirectoryException() {
         DirectoryInfo tempDirectory = new DirectoryInfo();
         tempDirectory.setParent(null);
         tempDirectory.setName("Documents");
@@ -683,7 +683,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkCompareIO() throws IOException {
+    void checkCompareIO() throws IOException {
         Path mockPath = mock(Path.class);
         FileSystemProvider fsProvider = mock(FileSystemProvider.class);
         doThrow(new IOException("Fail to delete")).when(fsProvider).deleteIfExists(mockPath);
@@ -707,7 +707,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDirectoryNotEmpty() throws IOException {
+    void checkDirectoryNotEmpty() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -715,7 +715,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDirectoryNotEmpty2() throws IOException {
+    void checkDirectoryNotEmpty2() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -724,7 +724,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteDoesNotExist() throws IOException {
+    void checkDeleteDoesNotExist() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -739,7 +739,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteFileWithDirectory() throws IOException {
+    void checkDeleteFileWithDirectory() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -756,7 +756,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteDirDoesNotExist() throws IOException {
+    void checkDeleteDirDoesNotExist() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
@@ -771,7 +771,7 @@ public class FileProcessingIT extends FileTester {
     }
 
     @Test
-    public void checkDeleteDirectoryWithFile() throws IOException {
+    void checkDeleteDirectoryWithFile() throws IOException {
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 

@@ -86,7 +86,7 @@ public class FsoIT {
 
 
     @Test
-    public void source() {
+    void source() {
         LOG.info("Source Testing");
 
         Optional<Location> location = locationRepository.findById(1);
@@ -129,7 +129,7 @@ public class FsoIT {
     }
 
     @Test
-    public void file() {
+    void file() {
         LOG.info("Test the basic file object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -208,7 +208,7 @@ public class FsoIT {
     }
 
     @Test
-    public void directory() {
+    void directory() {
         LOG.info("Test the basic directory object");
 
         Optional<Location> testLocation = locationRepository.findById(1);
@@ -266,7 +266,7 @@ public class FsoIT {
     }
 
     @Test
-    public void ignoreFile() {
+    void ignoreFile() {
         LOG.info("Test the basic ignore file object");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
@@ -309,7 +309,7 @@ public class FsoIT {
     }
 
     @Test
-    public void importFile() {
+    void importFile() {
         LOG.info("Test the basic import file object");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
@@ -347,7 +347,7 @@ public class FsoIT {
     }
 
     @Test
-    public void importSource() {
+    void importSource() {
         LOG.info("Test the basic import source object");
 
         Optional<Location> location = locationRepository.findById(1);

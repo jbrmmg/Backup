@@ -163,7 +163,7 @@ public class PrintIT extends FileTester {
     }
 
     @Test
-    public void testPrintController() throws Exception {
+    void testPrintController() throws Exception {
         String id = setupPrint("IMG_8231.jpg");
 
         SelectedPrintDTO print = new SelectedPrintDTO();
@@ -224,7 +224,7 @@ public class PrintIT extends FileTester {
     }
 
     @Test
-    public void testPrintManager() throws Exception {
+    void testPrintManager() throws Exception {
         String id = setupPrint("IMG_3891.jpeg");
 
         List<PrintSizeDTO> size = printManager.getPrintSizes();
@@ -283,7 +283,7 @@ public class PrintIT extends FileTester {
     }
 
     @Test
-    public void testExpireAndLabel() throws Exception {
+    void testExpireAndLabel() throws Exception {
         String id = setupPrint("IMG_3891.jpeg");
 
         FileExpiryDTO fileExpiry = new FileExpiryDTO();

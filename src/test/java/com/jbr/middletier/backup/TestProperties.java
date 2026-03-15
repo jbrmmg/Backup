@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TestProperties {
     @Test
     @DisplayName("Test the property class (1).")
-    public void TestPropertyClass1() {
+    void TestPropertyClass1() {
         ApplicationProperties test = new ApplicationProperties();
         test.setDbBackupCommand("DBCmd");
         assertEquals("DBCmd", test.getDbBackupCommand());
@@ -48,7 +48,7 @@ class TestProperties {
 
     @Test
     @DisplayName("Test the property class (2).")
-    public void TestPropertyClass2() {
+    void TestPropertyClass2() {
         ApplicationProperties test = new ApplicationProperties();
         test.getEmail().setEnabled(true);
         assertTrue(test.getEmail().getEnabled());
