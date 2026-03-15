@@ -563,7 +563,9 @@ public class ImportManager extends FileProcessor {
             return true;
         }
 
-        LOG.info("Failed to update destination on {} its not in the cache.", destinationUpdate.getFilename().replaceAll("[\n\r]", "_"));
+        if(LOG.isInfoEnabled()) {
+            LOG.info("Failed to update destination on {} its not in the cache.", destinationUpdate.getFilename().replaceAll("[\n\r]", "_"));
+        }
         return false;
     }
 
