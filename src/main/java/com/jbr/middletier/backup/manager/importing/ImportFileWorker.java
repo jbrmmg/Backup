@@ -19,22 +19,22 @@ public class ImportFileWorker implements Runnable {
     }
 
     private void performStep (FileProcessingStepType nextUnknown, PreImportFileDTO file) {
+        ImportStep nextStep = this.queue.getStepProcessor(nextUnknown);
+        if (nextStep == null) {
+            LOG.error("There is no processor for step {}", nextUnknown);
+            file.setStepStatus(nextUnknown, TrafficLightType.TL_RED);
+            return;
+        }
+
         try {
-            ImportStep nextStep = this.queue.getStepProcessor(nextUnknown);
-
-            if (nextStep != null) {
-                LOG.info("Performing step {} for {}", nextStep.getStepType(), file.getFilename());
-                file.setStepStatus(nextUnknown, nextStep.performStep(file));
-                LOG.debug("Completed step {} for {}", nextStep.getStepType(), file.getFilename());
-
-                if(nextStep.getStepType() != FileProcessingStepType.FPS_FINAL_UPDATE) {
-                    this.cache.queueForUpdates(file);
-                }
-            } else {
-                throw new IllegalStateException("There is no processor for step " + nextUnknown);
+            LOG.info("Performing step {} for {}", nextStep.getStepType(), file.getFilename());
+            file.setStepStatus(nextUnknown, nextStep.performStep(file));
+            LOG.debug("Completed step {} for {}", nextStep.getStepType(), file.getFilename());
+            if(nextStep.getStepType() != FileProcessingStepType.FPS_FINAL_UPDATE) {
+                this.cache.queueForUpdates(file);
             }
         } catch (Exception e) {
-            LOG.error(e.getMessage());
+            LOG.error("Step {} failed for {}: {}", nextUnknown, file.getFilename(), e.getMessage());
             file.setStepStatus(nextUnknown, TrafficLightType.TL_RED);
         }
     }

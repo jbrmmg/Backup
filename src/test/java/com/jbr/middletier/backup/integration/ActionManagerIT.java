@@ -70,7 +70,7 @@ public class ActionManagerIT {
     ActionManager actionManager;
 
     @Test
-    public void actionConfirm() {
+    void actionConfirm() {
         LOG.info("Check action confirm");
 
         FileInfo newFile = new FileInfo();
@@ -125,7 +125,7 @@ public class ActionManagerIT {
     }
 
     @Test
-    public void testConfirmAction() {
+    void testConfirmAction() {
         ModelMapper modelMapper = mock(ModelMapper.class);
         FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties properties = mock(ApplicationProperties.class);
@@ -160,7 +160,7 @@ public class ActionManagerIT {
     }
 
     @Test
-    public void testConfirmActionCreate() {
+    void testConfirmActionCreate() {
         ActionConfirmDTO actionConfirmDTO = mock(ActionConfirmDTO.class);
         when(actionConfirmDTO.getAction()).thenReturn("DELETE_DUP");
 

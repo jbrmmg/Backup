@@ -60,7 +60,7 @@ public class LoggingIT extends WebTester {
     DbLoggingManager dbLoggingManager;
 
     @Test
-    public void basicTest() throws Exception {
+    void basicTest() throws Exception {
         LOG.info("Basic logging test.");
 
         dbLoggingManager.debug("Debug message",1, "BKUP");
@@ -93,7 +93,7 @@ public class LoggingIT extends WebTester {
     }
 
     @Test
-    public void testCache() {
+    void testCache() {
         LOG.info("Cache test");
 
         dbLoggingManager.clearMessageCache();

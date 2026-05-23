@@ -12,12 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = MiddleTier.class)
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestGatherScheduler extends WebTester {
+class TestGatherScheduler extends WebTester {
     @Autowired
     GatherSynchronizeCtrl gatherSynchronizeCtrl;
 
     @Test
-    public void TestGather() {
+    void TestGather() {
         gatherSynchronizeCtrl.gatherCron();
         assertTrue(true);
     }

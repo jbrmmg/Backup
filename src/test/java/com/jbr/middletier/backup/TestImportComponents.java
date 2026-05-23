@@ -37,11 +37,11 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = MiddleTier.class)
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestImportComponents extends FileTester {
+class TestImportComponents extends FileTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestImportComponents.class);
 
     @Test
-    public void testDeleteStep() throws ImportProcessException {
+    void testDeleteStep() throws ImportProcessException {
         LOG.info("Delete step");
 
         ImportSourceManager mockImportSourceManager = mock(ImportSourceManager.class);
@@ -71,7 +71,7 @@ public class TestImportComponents extends FileTester {
     }
 
     @Test
-    public void testImportFileStep() throws IOException, ImportProcessException {
+    void testImportFileStep() throws IOException, ImportProcessException {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test1");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
@@ -161,7 +161,7 @@ public class TestImportComponents extends FileTester {
     }
 
     @Test
-    public void testReadStep() throws ImportProcessException {
+    void testReadStep() throws ImportProcessException {
         ImportSourceManager mockImportSourceManager = mock(ImportSourceManager.class);
 
         PreImportFileDTO file = new PreImportFileDTO();

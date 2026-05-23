@@ -85,7 +85,7 @@ public class PrintIT extends FileTester {
     private Source source;
 
     @BeforeEach
-    public void setupTest() throws IOException, InvalidLocationIdException, SourceAlreadyExistsException {
+    void setupTest() throws IOException, InvalidLocationIdException, SourceAlreadyExistsException {
         deleteDirectoryContents(new File(SOURCE_DIRECTORY).toPath());
         Files.createDirectories(new File(SOURCE_DIRECTORY).toPath());
 
@@ -107,7 +107,7 @@ public class PrintIT extends FileTester {
     }
 
     @AfterEach
-    public void cleanUpTest() {
+    void cleanUpTest() {
         // Remove the sources, files & directories.
         associatedFileDataManager.deleteAllSynchronize();
         fileSystemObjectManager.deleteAllFileObjects();
@@ -163,7 +163,7 @@ public class PrintIT extends FileTester {
     }
 
     @Test
-    public void testPrintController() throws Exception {
+    void testPrintController() throws Exception {
         String id = setupPrint("IMG_8231.jpg");
 
         SelectedPrintDTO print = new SelectedPrintDTO();
@@ -224,7 +224,7 @@ public class PrintIT extends FileTester {
     }
 
     @Test
-    public void testPrintManager() throws Exception {
+    void testPrintManager() throws Exception {
         String id = setupPrint("IMG_3891.jpeg");
 
         List<PrintSizeDTO> size = printManager.getPrintSizes();
@@ -283,7 +283,7 @@ public class PrintIT extends FileTester {
     }
 
     @Test
-    public void testExpireAndLabel() throws Exception {
+    void testExpireAndLabel() throws Exception {
         String id = setupPrint("IMG_3891.jpeg");
 
         FileExpiryDTO fileExpiry = new FileExpiryDTO();

@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestBackups {
+class TestBackups {
     private static final Logger LOG = LoggerFactory.getLogger(TestBackups.class);
 
     @Autowired
@@ -63,7 +63,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestCleanBackup() {
+    void TestCleanBackup() {
         try {
             File testFile = new File(applicationProperties.getDirectory().getName() + "/2020-01-01");
             Files.createDirectories(testFile.toPath());
@@ -88,7 +88,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestCleanBackupFailure() {
+    void TestCleanBackupFailure() {
         FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties mockApplicationProperties = mock(ApplicationProperties.class);
         ApplicationProperties.Directory directory = mock(ApplicationProperties.Directory.class);
@@ -112,7 +112,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestCleanBackupFailure2() throws IOException {
+    void TestCleanBackupFailure2() throws IOException {
         File testFile = new File(applicationProperties.getDirectory().getName() + "/20201401");
         Files.createDirectories(testFile.toPath());
         assertTrue(testFile.exists());
@@ -137,7 +137,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestZipBackup() {
+    void TestZipBackup() {
         try {
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
@@ -198,7 +198,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestZipBackupExists() {
+    void TestZipBackupExists() {
         try {
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
@@ -255,7 +255,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestZipDirectoryEmpty() {
+    void TestZipDirectoryEmpty() {
         try {
             FileSystem fileSystem = mock(FileSystem.class);
 
@@ -316,7 +316,7 @@ public class TestBackups {
 
 
     @Test
-    public void TestZipBackupFail() {
+    void TestZipBackupFail() {
         try {
             FileSystem fileSystem = mock(FileSystem.class);
 
@@ -383,7 +383,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestFileBackup() {
+    void TestFileBackup() {
         try {
             // Create a logging manager.
             DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
@@ -431,7 +431,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestFileBackupNoSource() {
+    void TestFileBackupNoSource() {
         try {
             // Create a logging manager.
             DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
@@ -475,7 +475,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestFileBackupNoSourceDir() {
+    void TestFileBackupNoSourceDir() {
         try {
             // Create a logging manager.
             DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
@@ -512,7 +512,7 @@ public class TestBackups {
 
 
     @Test
-    public void TestGitBackup() {
+    void TestGitBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
             if (!backupDir.exists()) {
@@ -597,7 +597,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestDatabaseBackup() {
+    void TestDatabaseBackup() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
             if (!backupDir.exists()) {
@@ -639,7 +639,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestDatabaseBackupTimeout() {
+    void TestDatabaseBackupTimeout() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
             if (!backupDir.exists()) {
@@ -679,7 +679,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestBackupBetween() {
+    void TestBackupBetween() {
         BackupDTO backupDTO = new BackupDTO();
         backupDTO.setId("TST1");
         backupDTO.setTime(100);
@@ -709,7 +709,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestInvalidType() {
+    void TestInvalidType() {
         try {
             // Perform the test.
             BackupDTO backupDTO = new BackupDTO();
@@ -730,7 +730,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestDatabaseInvalidDb() {
+    void TestDatabaseInvalidDb() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
             if (!backupDir.exists()) {
@@ -772,7 +772,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestDatabaseAlreadyDone() {
+    void TestDatabaseAlreadyDone() {
         try {
             File backupDir = new File("./target/testfiles/Backup");
             Files.createDirectories(backupDir.toPath());
@@ -820,7 +820,7 @@ public class TestBackups {
     }
 
     @Test
-    public void TestDatabaseBadConfig() {
+    void TestDatabaseBadConfig() {
         try {
             FileSystem fileSystem = mock(FileSystem.class);
 
@@ -866,7 +866,7 @@ public class TestBackups {
     }
 
     @Test
-    public void testBackupCtrlDisabled() {
+    void testBackupCtrlDisabled() {
         try {
             ApplicationProperties mockApplicationProperties = new ApplicationProperties();
             mockApplicationProperties.setEnabled(false);
@@ -881,7 +881,7 @@ public class TestBackups {
     }
 
     @Test
-    public void testDbBackup() {
+    void testDbBackup() {
         try {
             FileSystem fileSystem = mock(FileSystem.class);
 
@@ -908,7 +908,7 @@ public class TestBackups {
     }
 
     @Test
-    public void testDbBackup2() {
+    void testDbBackup2() {
         try {
             FileSystem fileSystem = mock(FileSystem.class);
 

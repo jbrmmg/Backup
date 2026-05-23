@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("ConstantConditions")
 @SpringBootTest(classes = MiddleTier.class)
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestBasicCRUD extends WebTester {
+class TestBasicCRUD extends WebTester {
     private static final Logger LOG = LoggerFactory.getLogger(TestBasicCRUD.class);
 
     @Autowired
@@ -45,7 +45,7 @@ public class TestBasicCRUD extends WebTester {
     ModelMapper modelMapper;
 
     @Test
-    public void BackupCRUD() {
+    void BackupCRUD() {
         try {
             BackupDTO backup = new BackupDTO();
             backup.setId("TST");
@@ -139,7 +139,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void TestCleanBackupDirect() {
+    void TestCleanBackupDirect() {
         try {
             // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
@@ -174,7 +174,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void LocationCRUD() {
+    void LocationCRUD() {
         try {
             LocationDTO location = new LocationDTO();
             location.setId(6);
@@ -237,7 +237,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void ClassificationCRUD() {
+    void ClassificationCRUD() {
         try {
             int classificationCount = (int)classificationRepository.count();
 
@@ -315,7 +315,7 @@ public class TestBasicCRUD extends WebTester {
     }
 
     @Test
-    public void HardwareCRUD() {
+    void HardwareCRUD() {
         try {
             HardwareDTO hardware = new HardwareDTO();
             hardware.setMacAddress("00:00:00:00:00:00");

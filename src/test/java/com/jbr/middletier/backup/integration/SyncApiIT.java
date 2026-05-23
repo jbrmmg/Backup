@@ -106,7 +106,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @BeforeEach
-    public void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
+    void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
         dbLoggingManager.clearMessageCache();
 
         addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false);
@@ -188,7 +188,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @AfterEach
-    public void cleanUpTest() {
+    void cleanUpTest() {
         // Remove the sources, files and directories.
         associatedFileDataManager.deleteAllSynchronize();
         actionManager.deleteAllActions();
@@ -200,7 +200,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void gather() throws Exception {
+    void gather() throws Exception {
         LOG.info("Gather Testing");
 
         // During this test create files in the following directories
@@ -301,7 +301,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void gatherIgnore() throws Exception {
+    void gatherIgnore() throws Exception {
         LOG.info("Gather ignore Testing");
 
         // During this test create files in the following directories
@@ -329,7 +329,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void getFileInvalidId() throws Exception {
+    void getFileInvalidId() throws Exception {
         // Check that the various get file URL's will fail for invalid id.
         int missingId = 1;
         String error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
@@ -355,7 +355,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void getFileInvalidType() throws Exception {
+    void getFileInvalidType() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
@@ -399,7 +399,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void synchronize() throws Exception {
+    void synchronize() throws Exception {
         LOG.info("Synchronize Testing");
 
         // Copy the resource files into the source directory
@@ -561,7 +561,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void gatherWithDelete() throws Exception {
+    void gatherWithDelete() throws Exception {
         LOG.info("Delete with Gather Testing");
 
         // During this test create files in the following directories
@@ -625,7 +625,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void moreFileProcessTesting() throws Exception {
+    void moreFileProcessTesting() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
@@ -705,7 +705,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testActionApi() throws Exception {
+    void testActionApi() throws Exception {
         // Need a file for the actions
         FileInfo file = new FileInfo();
         file.setName("Testing.txt");
@@ -760,7 +760,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testAssociateFileDataManager() throws Exception {
+    void testAssociateFileDataManager() throws Exception {
         LocationDTO locationDTO = new LocationDTO();
         locationDTO.setId(1);
         locationDTO.setName("Test");
@@ -792,7 +792,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void checkActionInvalid() throws Exception {
+    void checkActionInvalid() throws Exception {
         ConfirmActionRequest request = new ConfirmActionRequest();
         request.setId(1);
         request.setConfirm(true);
@@ -806,7 +806,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void duplicateTesting() throws Exception {
+    void duplicateTesting() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test7");
@@ -872,7 +872,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void duplicateTestingWithMD5() throws Exception {
+    void duplicateTestingWithMD5() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test8");
@@ -938,7 +938,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void syncWithDelete() throws Exception {
+    void syncWithDelete() throws Exception {
         // Copy the resource files into the source directory
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test2");
@@ -1076,7 +1076,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSyncWithFilesRemoved() throws Exception {
+    void testSyncWithFilesRemoved() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test9");
@@ -1226,7 +1226,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSyncWithDirectoryRemoved() throws Exception {
+    void testSyncWithDirectoryRemoved() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test10");
@@ -1376,7 +1376,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSyncFileToDirectory() throws Exception {
+    void testSyncFileToDirectory() throws Exception {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12_2");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
@@ -1428,7 +1428,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSyncDirectoryToFile() throws Exception {
+    void testSyncDirectoryToFile() throws Exception {
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test12");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
@@ -1480,7 +1480,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSyncEqualiseDate() throws Exception {
+    void testSyncEqualiseDate() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test11");
@@ -1549,7 +1549,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSyncSourceBusy() throws Exception {
+    void testSyncSourceBusy() throws Exception {
         // Check what happens when a synced directory has a file removed
         initialiseDirectories();
         List<StructureDescription> sourceDescription = getTestStructure("test4");
@@ -1581,7 +1581,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testSummary() throws Exception {
+    void testSummary() throws Exception {
         // During this test create files in the following directories
         initialiseDirectories();
 
@@ -1619,7 +1619,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void gatherMountCheck() throws Exception {
+    void gatherMountCheck() throws Exception {
         LOG.info("Mount check testing (gather)");
 
         // During this test create files in the following directories
@@ -1649,7 +1649,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void syncMountCheck() throws Exception {
+    void syncMountCheck() throws Exception {
         LOG.info("Mount check testing (Sync mount check)");
 
         // During this test create files in the following directories
@@ -1695,7 +1695,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void gatherMountCheckPositive() throws Exception {
+    void gatherMountCheckPositive() throws Exception {
         LOG.info("Mount check testing (positive)");
 
         initialiseDirectories();
@@ -1728,7 +1728,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void syncMountCheckPositive() throws Exception {
+    void syncMountCheckPositive() throws Exception {
         LOG.info("Mount check testing");
 
         // During this test create files in the following directories
@@ -1776,7 +1776,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void testRefresh() throws Exception {
+    void testRefresh() throws Exception {
         // During this test create files in the following directories
         initialiseDirectories();
 
@@ -1873,7 +1873,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void TestPrimarySourceDateChange() throws Exception {
+    void TestPrimarySourceDateChange() throws Exception {
         // Simulate a date change (but no MD5 change) on a primary source - should recalculate the MD5.
         initialiseDirectories();
 
@@ -1965,7 +1965,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void TestPrimarySourceDateAndMD5Change() throws Exception {
+    void TestPrimarySourceDateAndMD5Change() throws Exception {
         // Simulate a date change and MD5 change on a primary source - should recalculate the MD5.
         initialiseDirectories();
 
@@ -2052,7 +2052,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void TestPrimarySourceSizeChange() throws Exception {
+    void TestPrimarySourceSizeChange() throws Exception {
         // Simulate a size change on a primary source - should recalculate the MD5.
         initialiseDirectories();
 
@@ -2131,7 +2131,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void TestSyncSizeChange() throws Exception {
+    void TestSyncSizeChange() throws Exception {
         // Simulate a size change - should copy the file and regenerate the MD5
         initialiseDirectories();
 
@@ -2225,7 +2225,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void TestSyncNoSizeButMD5Change() throws Exception {
+    void TestSyncNoSizeButMD5Change() throws Exception {
         // Simulate an MD5 change - should copy the file and regenerate the MD5 on the destination.
         initialiseDirectories();
 
@@ -2319,7 +2319,7 @@ public class SyncApiIT extends FileTester {
     }
 
     @Test
-    public void TestSyncDateChangeNoCopy() throws Exception {
+    void TestSyncDateChangeNoCopy() throws Exception {
         // Simulate a date change on destination - there should be no file copy.
         initialiseDirectories();
 

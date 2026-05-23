@@ -63,7 +63,7 @@ public class FsoApiIT extends WebTester {
     SourceRepository sourceRepository;
 
     @Test
-    public void sourceAPI() throws Exception {
+    void sourceAPI() throws Exception {
         LOG.info("Source API Testing");
 
         // Use the default location (main drive).
@@ -173,7 +173,7 @@ public class FsoApiIT extends WebTester {
     }
 
     @Test
-    public void importSourceAPI() throws Exception {
+    void importSourceAPI() throws Exception {
         LOG.info("Import Source API Testing");
 
         // Use the default location (main drive).
@@ -213,7 +213,7 @@ public class FsoApiIT extends WebTester {
     }
 
     @Test
-    public void preImportSourceAPI() throws Exception {
+    void preImportSourceAPI() throws Exception {
         LOG.info("Import Source API Testing");
 
         // Use the default location (main drive).
