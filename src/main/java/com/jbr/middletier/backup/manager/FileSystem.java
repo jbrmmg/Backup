@@ -277,12 +277,27 @@ public class FileSystem {
         LOG.info("Command: {}", command);
 
         String[] cmd = new String[]{"bash", "-c", command};
-        final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        final Process backupProcess = new ProcessBuilder(cmd)
+                .redirectErrorStream(true)
                 .start();
 
-        backupProcess.waitFor(20L, TimeUnit.MINUTES);
+        String processOutput;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(backupProcess.getInputStream()))) {
+            processOutput = reader.lines().collect(Collectors.joining("\n"));
+        }
+
+        boolean completed = backupProcess.waitFor(20L, TimeUnit.MINUTES);
+        int exitCode = backupProcess.exitValue();
         backupProcess.destroyForcibly();
+
+        LOG.info("Command completed: {}, exit code: {}", completed, exitCode);
+        if(!processOutput.isEmpty()) {
+            LOG.info("Command output: {}", processOutput);
+        }
+        if(exitCode != 0) {
+            LOG.warn("Command failed with exit code {}: {}", exitCode, command);
+        }
+        LOG.info("Output file exists: {}", output.exists());
     }
 
     public File getImageFileFromVideoFile(File file) throws IOException, InterruptedException, NoSuchAlgorithmException {
