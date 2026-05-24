@@ -110,3 +110,6 @@ databaseChangeLog:
 
   - include:
       file: /db/changelog/db.changelog-038-source-update.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-039-image-transformer.yaml

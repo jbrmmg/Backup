@@ -12,5 +12,6 @@ public class ClassificationDTO {
     private String icon;
     private Boolean isImage;
     private Boolean isVideo;
+    private String imageTransformer;
     private Boolean checkMetaData;
 }

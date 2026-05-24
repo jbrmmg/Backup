@@ -5,11 +5,14 @@ import com.jbr.middletier.backup.dto.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.*;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Configuration
@@ -247,6 +250,14 @@ public class ApplicationProperties {
     }
 
     @Getter
+    public static class Transformer {
+        @Setter
+        private String command;
+        @Setter
+        private String location;
+    }
+
+    @Getter
     public static class Directory {
         @Setter
         private String name;
@@ -333,6 +344,8 @@ public class ApplicationProperties {
     @Setter
     @Getter
     private String version;
+    @Getter
+    private final Map<String, Transformer> transformers = new HashMap<>();
 
     public boolean getCacheWebLog() { return this.cacheWebLog; }
 

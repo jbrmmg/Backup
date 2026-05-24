@@ -44,6 +44,11 @@ public class Classification {
     private Boolean isVideo;
 
     @Setter
+    @Getter
+    @Column(name="image_transformer")
+    private String imageTransformer;
+
+    @Setter
     @Column(name="check_meta_data")
     private Boolean checkMetaData;
 

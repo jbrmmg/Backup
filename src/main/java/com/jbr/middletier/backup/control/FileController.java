@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -197,7 +198,7 @@ public class FileController {
     }
 
     @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
-    public byte[] getFileImage(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
+    public byte[] getFileImage(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException, InterruptedException, NoSuchAlgorithmException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
         if(file.isEmpty()) {
@@ -212,6 +213,11 @@ public class FileController {
 
         File imgPath = fileSystemObjectManager.getFile(loadedFile);
         LOG.info("Get file: {}", imgPath);
+
+        String transformer = loadedFile.getClassification().getImageTransformer();
+        if(transformer != null && !transformer.isEmpty()) {
+            imgPath = fileSystem.getTransformedImageFile(imgPath, transformer);
+        }
 
         return fileSystem.readAllBytes(imgPath);
     }

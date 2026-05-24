@@ -14,3 +14,7 @@ backup:
   enabled: false
   ffmpeg-command: cp %%INPUT%% %%OUTPUT%%
   summary-enabled: true
+  transformers:
+    stl:
+      command: cp %%INPUT%% %%OUTPUT%%
+      location: /tmp

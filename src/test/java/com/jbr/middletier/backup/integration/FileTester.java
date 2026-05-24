@@ -526,19 +526,23 @@ public class FileTester extends WebTester {
     }
 
     protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean image, boolean video) throws ClassificationIdException {
+        addClassification(associatedFileDataManager, regex, action, order, image, video, null);
+    }
+
+    protected void addClassification(AssociatedFileDataManager associatedFileDataManager, String regex, ClassificationActionType action, int order, boolean image, boolean video, String imageTransformer) throws ClassificationIdException {
         for(Classification nextClassification : associatedFileDataManager.findAllClassifications()) {
             if(nextClassification.getRegex().equalsIgnoreCase(regex)) {
                 return;
             }
         }
 
-        // If we get here, it should be added.
         ClassificationDTO newClassificationDTO = new ClassificationDTO();
         newClassificationDTO.setRegex(regex);
         newClassificationDTO.setOrder(order);
         newClassificationDTO.setIsVideo(video);
         newClassificationDTO.setIsImage(image);
         newClassificationDTO.setAction(action);
+        newClassificationDTO.setImageTransformer(imageTransformer);
 
         associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(newClassificationDTO));
     }
