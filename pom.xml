@@ -6,7 +6,7 @@
 
     <groupId>com.jbr.middle-backup</groupId>
     <artifactId>MiddleTier-Backup</artifactId>
-    <version>26.5.1-SNAPSHOT</version>
+    <version>26.5.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
     <name>MiddleTier-Backup</name>
