@@ -36,7 +36,7 @@ backup:
   ffmpeg-command: ffmpeg -i %%INPUT%% -movflags use_metadata_tags -qscale 0 %%OUTPUT%%
   transformers:
     stl:
-      command: f3d --output %%OUTPUT%% %%INPUT%%
+      command: /usr/bin/f3d --output %%OUTPUT%% %%INPUT%%
       location: /tmp/stl-cache
   gather-schedule: 0 0 0 * * ?
   gather-enabled: false
