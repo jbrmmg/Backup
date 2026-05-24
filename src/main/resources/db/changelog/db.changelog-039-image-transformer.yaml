@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 39
+      author: jason
+      changes:
+        - addColumn:
+            tableName: classification
+            columns:
+              - column:
+                  name: image_transformer
+                  type: varchar(100)

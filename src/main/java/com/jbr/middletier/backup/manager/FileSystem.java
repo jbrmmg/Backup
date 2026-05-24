@@ -1,7 +1,6 @@
 package com.jbr.middletier.backup.manager;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
-import com.jbr.middletier.backup.data.Classification;
 import com.jbr.middletier.backup.data.MD5;
 import com.jbr.middletier.backup.dto.ProcessResultDTO;
 import org.apache.commons.io.FileUtils;
@@ -313,6 +312,34 @@ public class FileSystem {
         String copyCommand = applicationProperties.getVidToImageCommand();
         runCommand(copyCommand, file, tempFile);
 
+        return tempFile;
+    }
+
+    public File getTransformedImageFile(File file, String transformerName) throws IOException, InterruptedException, NoSuchAlgorithmException {
+        ApplicationProperties.Transformer transformer = applicationProperties.getTransformers().get(transformerName);
+        if(transformer == null) {
+            throw new IllegalArgumentException("Unknown image transformer: " + transformerName);
+        }
+
+        String tempName = file.getPath().trim();
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] digestBytes = md.digest(tempName.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for(byte b : digestBytes) {
+            String hex = Integer.toHexString(0xFF & b);
+            if(hex.length() == 1) {
+                sb.append('0');
+            }
+            sb.append(hex);
+        }
+
+        tempName = transformer.getLocation() + "/" + sb + ".jpg";
+        File tempFile = new File(tempName);
+        if(tempFile.exists()) {
+            return tempFile;
+        }
+
+        runCommand(transformer.getCommand(), file, tempFile);
         return tempFile;
     }
 
