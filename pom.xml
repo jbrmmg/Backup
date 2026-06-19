@@ -6,12 +6,13 @@
 
     <groupId>com.jbr.middle-backup</groupId>
     <artifactId>MiddleTier-Backup</artifactId>
-    <version>26.5.4-SNAPSHOT</version>
+    <version>${revision}</version>
 
     <packaging>jar</packaging>
     <name>MiddleTier-Backup</name>
 
     <properties>
+        <revision>local-SNAPSHOT</revision>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
@@ -62,53 +63,6 @@
                         <goals>
                             <goal>repackage</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <artifactItems>
-                        <artifactItem>
-                            <groupId>com.jbr.script</groupId>
-                            <artifactId>Script</artifactId>
-                            <version>3.0.25</version>
-                            <type>zip</type>
-                            <overWrite>true</overWrite>
-                            <outputDirectory>${project.build.directory}/scripts</outputDirectory>
-                            <includes>**/*.sh</includes>
-                        </artifactItem>
-                    </artifactItems>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>src/main/resources/config/assembly.xml</descriptor>
-                            </descriptors>
-                            <encoding>${project.build.sourceEncoding}</encoding>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
