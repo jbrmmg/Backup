@@ -1,0 +1,26 @@
+services:
+  backup:
+    image: nexus.jbrmmg.me.uk:8084/backup:latest
+    container_name: backup
+    restart: unless-stopped
+    ports:
+      - "12013:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=pdn
+      - SERVER_PORT=8080
+      - DB_PDN_BACKUP_SERVER=${DB_PDN_BACKUP_SERVER}
+      - DB_PDN_BACKUP_USER=${DB_PDN_BACKUP_USER}
+      - DB_PDN_BACKUP_PASSWORD=${DB_PDN_BACKUP_PASSWORD}
+      - EMAIL_PDN_BACKUP_PASSWORD=${EMAIL_PDN_BACKUP_PASSWORD}
+    volumes:
+      - backup-logs:/app/logs
+      - /media:/media
+    networks:
+      - jbr-network
+
+volumes:
+  backup-logs:
+
+networks:
+  jbr-network:
+    external: true

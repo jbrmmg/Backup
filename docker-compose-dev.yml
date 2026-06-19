@@ -1,0 +1,26 @@
+services:
+  backup-dev:
+    image: nexus.jbrmmg.me.uk:8084/backup-dev:latest
+    container_name: backup-dev
+    restart: unless-stopped
+    ports:
+      - "10013:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8080
+      - DB_DEV_BACKUP_SERVER=${DB_DEV_BACKUP_SERVER}
+      - DB_DEV_BACKUP_USER=${DB_DEV_BACKUP_USER}
+      - DB_DEV_BACKUP_PASSWORD=${DB_DEV_BACKUP_PASSWORD}
+    volumes:
+      - backup-dev-logs:/app/logs
+      - /var/backup/dev:/home/jason/Working/Backup
+      - /var/backup/dev-zip:/home/jason/Working/BackupDevZip
+    networks:
+      - jbr-network
+
+volumes:
+  backup-dev-logs:
+
+networks:
+  jbr-network:
+    external: true

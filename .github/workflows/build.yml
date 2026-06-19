@@ -1,0 +1,112 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - Release
+
+jobs:
+  build:
+    runs-on: backup-prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Maven
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q maven
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << 'EOF'
+          <settings>
+            <servers>
+              <server>
+                <id>Snapshots</id>
+                <username>deployment</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>Releases</id>
+                <username>deployment</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>main</id>
+                <username>deployment</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+            </servers>
+            <mirrors>
+              <mirror>
+                <id>main</id>
+                <mirrorOf>central</mirrorOf>
+                <url>http://nexus.jbrmmg.me.uk:8081/repository/maven-public/</url>
+              </mirror>
+            </mirrors>
+            <profiles>
+              <profile>
+                <id>default</id>
+                <properties>
+                  <repository.url>http://nexus.jbrmmg.me.uk:8081/repository</repository.url>
+                </properties>
+              </profile>
+            </profiles>
+            <activeProfiles>
+              <activeProfile>default</activeProfile>
+            </activeProfiles>
+          </settings>
+          EOF
+
+      - name: Compute version
+        run: echo "VERSION=$(date +'%Y.%m').${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Build and Test with Maven
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+        run: mvn verify -Drevision=${{ env.VERSION }}
+
+      - name: Run Sonar
+        run: mvn sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Drevision=${{ env.VERSION }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f src/main/resources/docker/Dockerfile \
+            -t nexus.jbrmmg.me.uk:8083/backup:${{ github.sha }} \
+            -t nexus.jbrmmg.me.uk:8083/backup:latest \
+            .
+
+      - name: Push to Nexus Docker registry
+        run: |
+          docker login nexus.jbrmmg.me.uk:8083 \
+            -u deployment \
+            -p ${{ secrets.NEXUS_PASSWORD }}
+          docker push nexus.jbrmmg.me.uk:8083/backup:${{ github.sha }}
+          docker push nexus.jbrmmg.me.uk:8083/backup:latest
+
+      - name: Deploy
+        env:
+          DB_PDN_BACKUP_SERVER: ${{ secrets.DB_PDN_BACKUP_SERVER }}
+          DB_PDN_BACKUP_USER: ${{ secrets.DB_PDN_BACKUP_USER }}
+          DB_PDN_BACKUP_PASSWORD: ${{ secrets.DB_PDN_BACKUP_PASSWORD }}
+          EMAIL_PDN_BACKUP_PASSWORD: ${{ secrets.EMAIL_PDN_BACKUP_PASSWORD }}
+        run: |
+          docker login nexus.jbrmmg.me.uk:8084 \
+            -u deployment \
+            -p ${{ secrets.NEXUS_PASSWORD }}
+          echo "DB_PDN_BACKUP_SERVER=${DB_PDN_BACKUP_SERVER}" > .env
+          echo "DB_PDN_BACKUP_USER=${DB_PDN_BACKUP_USER}" >> .env
+          echo "DB_PDN_BACKUP_PASSWORD=${DB_PDN_BACKUP_PASSWORD}" >> .env
+          echo "EMAIL_PDN_BACKUP_PASSWORD=${EMAIL_PDN_BACKUP_PASSWORD}" >> .env
+          docker compose pull
+          docker compose up -d
