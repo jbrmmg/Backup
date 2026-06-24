@@ -11,6 +11,7 @@ services:
       - DB_DEV_BACKUP_SERVER=${DB_DEV_BACKUP_SERVER}
       - DB_DEV_BACKUP_USER=${DB_DEV_BACKUP_USER}
       - DB_DEV_BACKUP_PASSWORD=${DB_DEV_BACKUP_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
     volumes:
       - backup-dev-logs:/app/logs
       - /var/backup/dev:/home/jason/Working/Backup

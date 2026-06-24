@@ -12,6 +12,7 @@ services:
       - DB_PDN_BACKUP_USER=${DB_PDN_BACKUP_USER}
       - DB_PDN_BACKUP_PASSWORD=${DB_PDN_BACKUP_PASSWORD}
       - EMAIL_PDN_BACKUP_PASSWORD=${EMAIL_PDN_BACKUP_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
     volumes:
       - backup-logs:/app/logs
       - /media:/media
