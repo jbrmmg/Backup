@@ -369,11 +369,14 @@ class TestBackups {
 
             backupRepository.deleteAll();
 
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
-            Files.setPosixFilePermissions(newDir.toPath(),permissions);
-
-            FileUtils.deleteDirectory(newDir);
+            if(newDir.exists()) {
+                if(newDir.isDirectory()) {
+                    permissions.add(PosixFilePermission.OWNER_WRITE);
+                    permissions.add(PosixFilePermission.OWNER_EXECUTE);
+                    Files.setPosixFilePermissions(newDir.toPath(), permissions);
+                }
+                FileUtils.forceDelete(newDir);
+            }
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
