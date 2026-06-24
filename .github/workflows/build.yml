@@ -21,7 +21,7 @@ jobs:
       - name: Install Maven
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q maven
+          sudo apt-get install -y -q maven libimage-exiftool-perl
 
       - name: Configure Maven settings
         run: |
