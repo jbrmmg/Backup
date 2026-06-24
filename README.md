@@ -13,6 +13,9 @@ A Spring Boot REST API service for managing file backups, directory synchronizat
 | Build | Maven |
 | Coverage | JaCoCo |
 | Quality | SonarCloud |
+| CI/CD | GitHub Actions (self-hosted runners) |
+| Containers | Docker + Docker Compose |
+| Integration tests | TestContainers (MySQL) |
 
 ## Features
 
@@ -145,6 +148,23 @@ GET /actuator/health
 ## Database Migrations
 
 Schema is managed by Liquibase. Changelogs are in `src/main/resources/db/changelog/`. A separate set of H2-compatible changelogs exists under `db/changelog/h2/` for local and test use.
+
+## CI/CD
+
+The project builds and deploys via GitHub Actions on a self-hosted runner (`backup-prod` for Release branch, `backup-dev` for all other branches).
+
+The pipeline:
+1. Installs Maven and `exiftool` (`libimage-exiftool-perl`)
+2. Runs `mvn verify` — unit tests (H2) + integration tests (TestContainers/MySQL)
+3. Runs SonarCloud analysis
+4. Builds and pushes a Docker image to the Nexus registry
+5. Deploys via `docker compose`
+
+### Known CI gotchas
+
+- **`exiftool` must be installed** — the runner install step includes `libimage-exiftool-perl`; without it EXIF-related tests and production code will fail.
+- **Docker API version** — `src/test/resources/docker-java.properties` pins `api.version=1.44`. Without this, the docker-java client defaults to API 1.32 which modern Docker daemons reject with a 400 error. If integration tests fail with `client version 1.32 is too old`, check this file exists.
+- **TestContainers requires `DOCKER_HOST`** — the workflow sets `DOCKER_HOST: unix:///var/run/docker.sock` and `TESTCONTAINERS_RYUK_DISABLED: "true"` on the Maven step.
 
 ## Project Structure
 
