@@ -100,7 +100,7 @@ public class DatabaseBackup implements PerformBackup {
             String backupCommand = getBackupCommand(backupManager, backup);
             LOG.info("Command: {}", backupCommand);
 
-            String[] cmd = new String[]{"bash","-c",backupCommand};
+            String[] cmd = new String[]{"sh","-c",backupCommand};
             final Process backupProcess = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT)
                     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                     .start();

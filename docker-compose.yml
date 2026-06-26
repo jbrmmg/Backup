@@ -15,7 +15,13 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
     volumes:
       - backup-logs:/app/logs
-      - /media:/media
+      - /etc:/host/etc:ro
+      - /home/jason:/host/home/jason:ro
+      - type: bind
+        source: /media
+        target: /media
+        bind:
+          propagation: rshared
     networks:
       - jbr-network
 

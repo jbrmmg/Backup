@@ -276,7 +276,7 @@ public class FileSystem {
 
         LOG.info("Command: {}", command);
 
-        String[] cmd = new String[]{"bash", "-c", command};
+        String[] cmd = new String[]{"sh", "-c", command};
         final Process backupProcess = new ProcessBuilder(cmd)
                 .redirectErrorStream(true)
                 .start();
