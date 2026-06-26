@@ -115,6 +115,7 @@ public class ImportManager extends FileProcessor {
                 LOG.info("Import file cache is loading.");
                 updateCache();
             }
+
         } catch (Exception e) {
             this.valid = false;
             LOG.info("Error while initializing ImportManager, imports will be disabled.", e);
@@ -412,7 +413,7 @@ public class ImportManager extends FileProcessor {
         if(statusName != null && !statusName.isEmpty()) {
             status = TrafficLightType.getFromName(statusName);
         }
-        LOG.info("Import files: {} {}", step, status);
+        LOG.info("Import files: step={} status={}", step == null ? "any" : step, status == null ? "any" : status);
 
         // Get data from the pre-import directory.
         List<PreImportFileDTO> result = new ArrayList<>();

@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-RUN apk add --no-cache mysql-client && mkdir -p /app/logs
+RUN apk add --no-cache mysql-client ffmpeg exiftool && mkdir -p /app/logs
 
 COPY target/MiddleTier-Backup-*.jar app.jar
 

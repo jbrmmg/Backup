@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 mvn verify
 
 # Build only (skip all tests)
-mvn package -Dskip.surefire.tests=true
+mvn package -Dskip.surefire.tests=true -DskipITs
 
 # Unit tests only
 mvn test

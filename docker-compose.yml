@@ -17,6 +17,7 @@ services:
       - backup-logs:/app/logs
       - /etc:/host/etc:ro
       - /home/jason:/host/home/jason:ro
+      - /home/jason/Pictures/import:/var/import
       - type: bind
         source: /media
         target: /media
