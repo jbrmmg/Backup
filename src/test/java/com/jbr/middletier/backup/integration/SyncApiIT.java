@@ -690,13 +690,13 @@ public class SyncApiIT extends FileTester {
             missingId++;
         }
 
-        getMockMvc().perform(delete("/api/v1/files/detail?id=" + validId)
+        getMockMvc().perform(delete("/api/v1/file?id=" + validId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("fileName", is("Bills.ods")));
 
-        String error = Objects.requireNonNull(getMockMvc().perform(delete("/api/v1/files/detail?id=" + missingId)
+        String error = Objects.requireNonNull(getMockMvc().perform(delete("/api/v1/file?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
@@ -995,7 +995,7 @@ public class SyncApiIT extends FileTester {
         }
         assertNotEquals(-1, deleteId);
 
-        getMockMvc().perform(delete("/api/v1/files/detail?id=" + deleteId)
+        getMockMvc().perform(delete("/api/v1/file?id=" + deleteId)
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
