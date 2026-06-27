@@ -68,7 +68,7 @@ public class LoggingIT extends WebTester {
         dbLoggingManager.warn("Warning message",3, "SCRD");
         dbLoggingManager.error("Error message",4,"SHFS");
 
-        getMockMvc().perform(get("/jbr/int/backup/log")
+        getMockMvc().perform(get("/api/v1/logs")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)))

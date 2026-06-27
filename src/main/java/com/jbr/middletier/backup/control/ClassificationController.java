@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/jbr/ext/backup")
+@RequestMapping("/api/v1")
 public class ClassificationController {
     private static final Logger LOG = LoggerFactory.getLogger(ClassificationController.class);
 
@@ -36,26 +36,26 @@ public class ClassificationController {
         return result;
     }
 
-    @GetMapping(path="/classification")
+    @GetMapping(path="/classifications")
     public List<ClassificationDTO> getClassification() {
         return getLocations();
     }
 
-    @PostMapping(path="/classification")
+    @PostMapping(path="/classifications")
     public List<ClassificationDTO> createClassification(@NotNull @RequestBody ClassificationDTO classification) throws ClassificationIdException {
         LOG.info("create classification {}", classification);
         associatedFileDataManager.createClassification(associatedFileDataManager.convertToEntity(classification));
         return getLocations();
     }
 
-    @PutMapping(path="/classification")
+    @PutMapping(path="/classifications")
     public List<ClassificationDTO> updateClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
         LOG.info("update classification {}", classification);
         associatedFileDataManager.updateClassification(associatedFileDataManager.convertToEntity(classification));
         return getLocations();
     }
 
-    @DeleteMapping(path="/classification")
+    @DeleteMapping(path="/classifications")
     public List<ClassificationDTO> deleteClassification(@NotNull @RequestBody ClassificationDTO classification) throws InvalidClassificationIdException {
         LOG.info("delete classification {}", classification);
         associatedFileDataManager.deleteClassification(associatedFileDataManager.convertToEntity(classification));

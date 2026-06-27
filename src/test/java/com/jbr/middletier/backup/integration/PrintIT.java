@@ -135,7 +135,7 @@ public class PrintIT extends FileTester {
         labelRepository.save(label);
 
         // Import the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -172,41 +172,41 @@ public class PrintIT extends FileTester {
         print.setBorder(false);
         print.setBlackWhite(false);
 
-        getMockMvc().perform(post("/jbr/int/backup/print")
+        getMockMvc().perform(post("/api/v1/prints")
                     .content(this.json(print))
                     .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/unprint")
+        getMockMvc().perform(post("/api/v1/prints/unselect")
                         .content(id)
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/print")
+        getMockMvc().perform(post("/api/v1/prints")
                         .content(this.json(print))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/int/backup/prints")
+        getMockMvc().perform(get("/api/v1/prints")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].fileId",is(Integer.parseInt(id))))
                 .andExpect(jsonPath("$", hasSize(1)));
 
-        getMockMvc().perform(post("/jbr/int/backup/generate")
+        getMockMvc().perform(post("/api/v1/prints/generate")
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(delete("/jbr/int/backup/prints")
+        getMockMvc().perform(delete("/api/v1/prints")
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/int/backup/prints")
+        getMockMvc().perform(get("/api/v1/prints")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        getMockMvc().perform(get("/jbr/int/backup/print-size")
+        getMockMvc().perform(get("/api/v1/prints/sizes")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(25)));
@@ -216,7 +216,7 @@ public class PrintIT extends FileTester {
         testUpdate.setSizeId(16);
         testUpdate.setBorder(false);
         testUpdate.setBlackWhite(false);
-        getMockMvc().perform(put("/jbr/int/backup/print")
+        getMockMvc().perform(put("/api/v1/prints")
                         .content(this.json(testUpdate))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -290,7 +290,7 @@ public class PrintIT extends FileTester {
         fileExpiry.setExpiry(LocalDateTime.of(2023,12,3,10,25,8,9));
         fileExpiry.setId(Integer.parseInt(id));
 
-        getMockMvc().perform(put("/jbr/int/backup/expire")
+        getMockMvc().perform(put("/api/v1/files/expire")
                         .content(this.json(fileExpiry))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -298,7 +298,7 @@ public class PrintIT extends FileTester {
         fileExpiry = new FileExpiryDTO();
         fileExpiry.setId(Integer.parseInt(id));
 
-        getMockMvc().perform(put("/jbr/int/backup/expire")
+        getMockMvc().perform(put("/api/v1/files/expire")
                         .content(this.json(fileExpiry))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -307,7 +307,7 @@ public class PrintIT extends FileTester {
         fileLabel.setFileId(Integer.parseInt(id));
         fileLabel.getLabels().add(1);
 
-        getMockMvc().perform(post("/jbr/int/backup/label")
+        getMockMvc().perform(post("/api/v1/labels")
                         .content(this.json(fileLabel))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -317,7 +317,7 @@ public class PrintIT extends FileTester {
         fileLabel.setFileId(Integer.parseInt(id));
         fileLabel.getLabels().add(1);
 
-        getMockMvc().perform(delete("/jbr/int/backup/label")
+        getMockMvc().perform(delete("/api/v1/labels")
                         .content(this.json(fileLabel))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())

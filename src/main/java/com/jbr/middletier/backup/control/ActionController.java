@@ -21,7 +21,7 @@ import java.util.List;
 import static java.util.Comparator.comparing;
 
 @RestController
-@RequestMapping("/jbr/int/backup")
+@RequestMapping("/api/v1")
 public class ActionController {
     private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
@@ -47,14 +47,14 @@ public class ActionController {
         return actionManager.externalFindByConfirmed(false);
     }
 
-    @GetMapping(path="/confirmed-actions")
+    @GetMapping(path="/actions/confirmed")
     public List<ActionConfirmDTO> getConfirmedActions() {
         LOG.info("Get confirmed actions");
 
         return actionManager.externalFindByConfirmed(true);
     }
 
-    @GetMapping(path="/ignore")
+    @GetMapping(path="/ignored")
     public List<FileInfoDTO> getIgnoreFiles() {
         LOG.info("Get ignore files");
 
@@ -74,7 +74,7 @@ public class ActionController {
         return actionManager.confirmAction(action);
     }
 
-    @PostMapping(path="/actionemail")
+    @PostMapping(path="/actions/email")
     public  OkStatus emailActions() {
         actionManager.sendActionEmail();
 

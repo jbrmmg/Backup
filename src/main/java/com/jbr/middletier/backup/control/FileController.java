@@ -21,7 +21,7 @@ import java.util.Optional;
 import static java.util.Comparator.comparing;
 
 @RestController
-@RequestMapping("/jbr/int/backup")
+@RequestMapping("/api/v1")
 public class FileController {
     private static final Logger LOG = LoggerFactory.getLogger(FileController.class);
 
@@ -69,13 +69,13 @@ public class FileController {
         return driveManager.gather(sourceId);
     }
 
-    @PostMapping(path="/duplicate")
+    @PostMapping(path="/duplicates")
     public List<DuplicateDataDTO> duplicate() {
         LOG.info("Duplicate check");
         return duplicateManager.duplicateCheck();
     }
 
-    @PostMapping(path="/sync")
+    @PostMapping(path="/sync/run")
     public List<SyncDataDTO> synchronize(@RequestParam(name="syncId", required = false) Integer syncId) {
         LOG.info("Synchronize");
         return synchronizeManager.synchronize(syncId);
@@ -170,22 +170,22 @@ public class FileController {
         return result;
     }
 
-    @GetMapping(path="/file")
+    @GetMapping(path="/files/detail")
     public FileInfoExtra getFile(@RequestParam("id") Integer id) throws InvalidFileIdException {
         return fileSystemObjectManager.getFileExtra(id);
     }
 
-    @PostMapping(path="/refresh-file-data")
+    @PostMapping(path="/files/refresh")
     public FileInfoExtra refreshFileData(@RequestParam("id") Integer id) throws InvalidFileIdException {
         return fileSystemObjectManager.refreshFileData(id);
     }
 
-    @GetMapping(path="/findfile")
+    @GetMapping(path="/files/search")
     public List<String> findFile(@RequestParam("search") String search) {
         return fileSystemObjectManager.findFiles(search);
     }
 
-    @PutMapping(path="/expire")
+    @PutMapping(path="/files/expire")
     public FileInfoExtra expireFile(@RequestBody FileExpiryDTO expiry) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(expiry.getId(),FileSystemObjectType.FSO_FILE));
 
@@ -197,7 +197,7 @@ public class FileController {
         return getFile(expiry.getId());
     }
 
-    @GetMapping(path="/fileImage",produces= MediaType.IMAGE_JPEG_VALUE)
+    @GetMapping(path="/files/image",produces= MediaType.IMAGE_JPEG_VALUE)
     public byte[] getFileImage(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException, InterruptedException, NoSuchAlgorithmException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id,FileSystemObjectType.FSO_FILE));
 
@@ -238,7 +238,7 @@ public class FileController {
         return loadedFile;
     }
 
-    @GetMapping(path="/file-video-image",produces=MediaType.IMAGE_JPEG_VALUE)
+    @GetMapping(path="/files/video-thumbnail",produces=MediaType.IMAGE_JPEG_VALUE)
     public byte[] getFileVideoImage(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         File imgPath = fileSystemObjectManager.getImageFromVideoFile(getVideoFile(id));
         LOG.info("Get file (video): {}", imgPath);
@@ -246,7 +246,7 @@ public class FileController {
         return fileSystem.readAllBytes(imgPath);
     }
 
-    @GetMapping(path="/fileVideo",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(path="/files/video",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public byte[] getFileVideo(@RequestParam("id") Integer id) throws InvalidFileIdException, InvalidMediaTypeException, IOException {
         File imgPath = fileSystemObjectManager.getFile(getVideoFile(id));
         LOG.info("Get file (video image): {}", imgPath);

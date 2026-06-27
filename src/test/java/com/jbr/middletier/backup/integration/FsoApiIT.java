@@ -77,7 +77,7 @@ public class FsoApiIT extends WebTester {
         source.setStatus("OK");
 
         LOG.info("Create a source.");
-        getMockMvc().perform(post("/jbr/ext/backup/source")
+        getMockMvc().perform(post("/api/v1/sources")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -87,7 +87,7 @@ public class FsoApiIT extends WebTester {
         sourceRepository.findAllByOrderByIdAsc().forEach(nextSource -> id.set(nextSource.getIdAndType().getId()));
 
         LOG.info("Expect that the id is 1000000 - as that is the first.");
-        getMockMvc().perform(get("/jbr/ext/backup/source")
+        getMockMvc().perform(get("/api/v1/sources")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -108,13 +108,13 @@ public class FsoApiIT extends WebTester {
         source.setFilter("filter2");
 
         LOG.info("Update the source.");
-        getMockMvc().perform(put("/jbr/ext/backup/source")
+        getMockMvc().perform(put("/api/v1/sources")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         // Check the update.
-        getMockMvc().perform(get("/jbr/ext/backup/source")
+        getMockMvc().perform(get("/api/v1/sources")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -132,12 +132,12 @@ public class FsoApiIT extends WebTester {
         source.setFilter("");
         source.setStatus("OK");
 
-        getMockMvc().perform(post("/jbr/ext/backup/source")
+        getMockMvc().perform(post("/api/v1/sources")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/ext/backup/source")
+        getMockMvc().perform(get("/api/v1/sources")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
@@ -148,14 +148,14 @@ public class FsoApiIT extends WebTester {
         source.setId(id.get());
         source.setStatus("OK");
 
-        getMockMvc().perform(delete("/jbr/ext/backup/source")
+        getMockMvc().perform(delete("/api/v1/sources")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         sourceRepository.findAllByOrderByIdAsc().forEach(nextSource -> id.set(nextSource.getIdAndType().getId()));
 
-        getMockMvc().perform(get("/jbr/ext/backup/source")
+        getMockMvc().perform(get("/api/v1/sources")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -166,7 +166,7 @@ public class FsoApiIT extends WebTester {
         source.setId(id.get());
         source.setStatus("OK");
 
-        getMockMvc().perform(delete("/jbr/ext/backup/source")
+        getMockMvc().perform(delete("/api/v1/sources")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -188,7 +188,7 @@ public class FsoApiIT extends WebTester {
         source.setDestinationId(null);
 
         LOG.info("Create a source.");
-        getMockMvc().perform(post("/jbr/ext/backup/importSource")
+        getMockMvc().perform(post("/api/v1/sources/import")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -200,13 +200,13 @@ public class FsoApiIT extends WebTester {
         LOG.info("Update the source.");
         source.setId(id.get());
         source.setFilter("update filter");
-        getMockMvc().perform(put("/jbr/ext/backup/importSource")
+        getMockMvc().perform(put("/api/v1/sources/import")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Delete the remaining source.");
-        getMockMvc().perform(delete("/jbr/ext/backup/importSource")
+        getMockMvc().perform(delete("/api/v1/sources/import")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -227,7 +227,7 @@ public class FsoApiIT extends WebTester {
         source.setStatus("OK");
 
         LOG.info("Create a source.");
-        getMockMvc().perform(post("/jbr/ext/backup/preImportSource")
+        getMockMvc().perform(post("/api/v1/sources/pre-import")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -239,13 +239,13 @@ public class FsoApiIT extends WebTester {
         LOG.info("Update the source.");
         source.setId(id.get());
         source.setFilter("update filter");
-        getMockMvc().perform(put("/jbr/ext/backup/preImportSource")
+        getMockMvc().perform(put("/api/v1/sources/pre-import")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Delete the remaining source.");
-        getMockMvc().perform(delete("/jbr/ext/backup/preImportSource")
+        getMockMvc().perform(delete("/api/v1/sources/pre-import")
                         .content(this.json(source))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());

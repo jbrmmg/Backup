@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/jbr/int/backup")
+@RequestMapping("/api/v1")
 public class PrintController {
     private static final Logger LOG = LoggerFactory.getLogger(PrintController.class);
 
@@ -21,23 +21,23 @@ public class PrintController {
         this.printManager = printManager;
     }
 
-    @GetMapping(path="/print-size")
+    @GetMapping(path="/prints/sizes")
     public List<PrintSizeDTO> printSizes() {
         LOG.info("Get print sizes");
         return printManager.getPrintSizes();
     }
 
-    @PostMapping(path="/print")
+    @PostMapping(path="/prints")
     public Integer print(@RequestBody SelectedPrintDTO print) {
         return printManager.select(print);
     }
 
-    @PutMapping(path="/print")
+    @PutMapping(path="/prints")
     public Integer updatePrint(@RequestBody SelectedPrintDTO selected) {
         return printManager.updatePrint(selected);
     }
 
-    @PostMapping(path="/unprint")
+    @PostMapping(path="/prints/unselect")
     public Integer unprint(@RequestBody Integer id) {
         return printManager.unselect(id);
     }
@@ -52,7 +52,7 @@ public class PrintController {
         return printManager.deletePrints();
     }
 
-    @PostMapping(path="/generate")
+    @PostMapping(path="/prints/generate")
     public OkStatus doSomething() {
         LOG.info("Get a list of the P files");
 

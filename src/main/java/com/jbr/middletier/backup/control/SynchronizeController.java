@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/jbr/ext/backup")
+@RequestMapping("/api/v1")
 public class SynchronizeController {
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeController.class);
 
@@ -36,24 +36,24 @@ public class SynchronizeController {
         return result;
     }
 
-    @GetMapping(path="/synchronize")
+    @GetMapping(path="/sync")
     public List<SynchronizeDTO> getSynchronize() {
         return getSynchronizations();
     }
 
-    @PostMapping(path="/synchronize")
+    @PostMapping(path="/sync")
     public List<SynchronizeDTO> createSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws SynchronizeAlreadyExistsException {
         associatedFileDataManager.createSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }
 
-    @PutMapping(path="/synchronize")
+    @PutMapping(path="/sync")
     public List<SynchronizeDTO> updateSynchronize(@NotNull @RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         associatedFileDataManager.updateSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();
     }
 
-    @DeleteMapping(path="/synchronize")
+    @DeleteMapping(path="/sync")
     public List<SynchronizeDTO> deleteSynchronize(@RequestBody SynchronizeDTO synchronize) throws InvalidSynchronizeIdException {
         associatedFileDataManager.deleteSynchronize(associatedFileDataManager.convertToEntity(synchronize));
         return getSynchronizations();

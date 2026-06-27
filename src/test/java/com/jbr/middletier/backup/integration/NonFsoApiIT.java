@@ -114,13 +114,13 @@ public class NonFsoApiIT extends WebTester {
         newSync.setSource(source);
 
         LOG.info("Create a synchronize.");
-        getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+        getMockMvc().perform(post("/api/v1/sync")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         // Check can't create it again.
-        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/ext/backup/synchronize")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/api/v1/sync")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isConflict())
@@ -128,7 +128,7 @@ public class NonFsoApiIT extends WebTester {
         assertEquals("Synchronize with id (1) already exists.", error);
 
         LOG.info("Get the synchronize that was created");
-        getMockMvc().perform(get("/jbr/ext/backup/synchronize")
+        getMockMvc().perform(get("/api/v1/sync")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -139,13 +139,13 @@ public class NonFsoApiIT extends WebTester {
         newSync.setDestination(source);
         newSync.setSource(destination);
 
-        getMockMvc().perform(put("/jbr/ext/backup/synchronize")
+        getMockMvc().perform(put("/api/v1/sync")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Get the synchronize that was created (again)");
-        getMockMvc().perform(get("/jbr/ext/backup/synchronize")
+        getMockMvc().perform(get("/api/v1/sync")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -153,13 +153,13 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$[0].destination.id", is(newSource2.getIdAndType().getId())));
 
         LOG.info("Delete the remaining synchronize.");
-        getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+        getMockMvc().perform(delete("/api/v1/sync")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        error = Objects.requireNonNull(getMockMvc().perform(delete("/jbr/ext/backup/synchronize")
+        error = Objects.requireNonNull(getMockMvc().perform(delete("/api/v1/sync")
                         .content(this.json(newSync))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
@@ -179,13 +179,13 @@ public class NonFsoApiIT extends WebTester {
         location.setSize("1GB");
 
         LOG.info("Create a location.");
-        getMockMvc().perform(post("/jbr/ext/backup/location")
+        getMockMvc().perform(post("/api/v1/locations")
                         .content(this.json(location))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Get the location that was created");
-        getMockMvc().perform(get("/jbr/ext/backup/location")
+        getMockMvc().perform(get("/api/v1/locations")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)))
@@ -195,18 +195,18 @@ public class NonFsoApiIT extends WebTester {
 
         LOG.info("Modify the location.");
         location.setSize("2GB");
-        getMockMvc().perform(put("/jbr/ext/backup/location")
+        getMockMvc().perform(put("/api/v1/locations")
                         .content(this.json(location))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/ext/backup/location")
+        getMockMvc().perform(get("/api/v1/locations")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[4].size", is(location.getSize())));
 
         LOG.info("Delete the location.");
-        getMockMvc().perform(delete("/jbr/ext/backup/location")
+        getMockMvc().perform(delete("/api/v1/locations")
                         .content(this.json(location))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -222,13 +222,13 @@ public class NonFsoApiIT extends WebTester {
         hardwareDTO.setReservedIP("Y");
 
         LOG.info("Create a hardware.");
-        getMockMvc().perform(post("/jbr/ext/hardware")
+        getMockMvc().perform(post("/api/v1/hardware")
                         .content(this.json(hardwareDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Get the hardware that was created");
-        getMockMvc().perform(get("/jbr/ext/hardware")
+        getMockMvc().perform(get("/api/v1/hardware")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -238,7 +238,7 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$[0].reservedIP", is(hardwareDTO.getReservedIP())));
 
         LOG.info("Get the hardware that was created");
-        getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=" + hardwareDTO.getMacAddress())
+        getMockMvc().perform(get("/api/v1/hardware/details?macAddress=" + hardwareDTO.getMacAddress())
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("macAddress", is(hardwareDTO.getMacAddress())))
@@ -248,18 +248,18 @@ public class NonFsoApiIT extends WebTester {
 
         LOG.info("Modify the hardware.");
         hardwareDTO.setIp("12.231.9.22");
-        getMockMvc().perform(put("/jbr/ext/hardware")
+        getMockMvc().perform(put("/api/v1/hardware")
                         .content(this.json(hardwareDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/ext/hardware")
+        getMockMvc().perform(get("/api/v1/hardware")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].ip", is(hardwareDTO.getIp())));
 
         LOG.info("Delete the hardware.");
-        getMockMvc().perform(delete("/jbr/ext/hardware")
+        getMockMvc().perform(delete("/api/v1/hardware")
                         .content(this.json(hardwareDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -277,13 +277,13 @@ public class NonFsoApiIT extends WebTester {
         backupDTO.setType("XXXX");
 
         LOG.info("Create a backup.");
-        getMockMvc().perform(post("/jbr/ext/backup")
+        getMockMvc().perform(post("/api/v1/backup-jobs")
                         .content(this.json(backupDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Get the hardware that was created");
-        getMockMvc().perform(get("/jbr/ext/backup")
+        getMockMvc().perform(get("/api/v1/backup-jobs")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -296,7 +296,7 @@ public class NonFsoApiIT extends WebTester {
                 .andExpect(jsonPath("$[0].type", is(backupDTO.getType())));
 
         LOG.info("Get the hardware that was created");
-        getMockMvc().perform(get("/jbr/ext/backup/byId?id=" + backupDTO.getId())
+        getMockMvc().perform(get("/api/v1/backup-jobs/details?id=" + backupDTO.getId())
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id", is(backupDTO.getId())))
@@ -309,18 +309,18 @@ public class NonFsoApiIT extends WebTester {
 
         LOG.info("Modify the hardware.");
         backupDTO.setFileName("fred.prep.txt");
-        getMockMvc().perform(put("/jbr/ext/backup")
+        getMockMvc().perform(put("/api/v1/backup-jobs")
                         .content(this.json(backupDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/ext/backup")
+        getMockMvc().perform(get("/api/v1/backup-jobs")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].fileName", is(backupDTO.getFileName())));
 
         LOG.info("Delete the hardware.");
-        getMockMvc().perform(delete("/jbr/ext/backup")
+        getMockMvc().perform(delete("/api/v1/backup-jobs")
                         .content(this.json(backupDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -329,7 +329,7 @@ public class NonFsoApiIT extends WebTester {
     @Test
     void classificationApi() throws Exception {
         // Get the number of classifications
-        String response = getMockMvc().perform(get("/jbr/ext/backup/classification")
+        String response = getMockMvc().perform(get("/api/v1/classifications")
                         .contentType(getContentType()))
                 .andReturn()
                 .getResponse()
@@ -345,13 +345,13 @@ public class NonFsoApiIT extends WebTester {
         classificationDTO.setIsImage(true);
 
         LOG.info("Create a classification.");
-        getMockMvc().perform(post("/jbr/ext/backup/classification")
+        getMockMvc().perform(post("/api/v1/classifications")
                         .content(this.json(classificationDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Get the classification that was created");
-        getMockMvc().perform(get("/jbr/ext/backup/classification")
+        getMockMvc().perform(get("/api/v1/classifications")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(size + 1)))
@@ -365,18 +365,18 @@ public class NonFsoApiIT extends WebTester {
         LOG.info("Modify the classification.");
         classificationDTO.setId(size + 1);
         classificationDTO.setIcon("FlahrXX");
-        getMockMvc().perform(put("/jbr/ext/backup/classification")
+        getMockMvc().perform(put("/api/v1/classifications")
                         .content(this.json(classificationDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/ext/backup/classification")
+        getMockMvc().perform(get("/api/v1/classifications")
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[" + size + "].icon", is(classificationDTO.getIcon())));
 
         LOG.info("Delete the hardware.");
-        getMockMvc().perform(delete("/jbr/ext/backup/classification")
+        getMockMvc().perform(delete("/api/v1/classifications")
                         .content(this.json(classificationDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());

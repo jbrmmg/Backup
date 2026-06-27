@@ -117,7 +117,7 @@ public class EmailApiIT extends WebTester {
             assertTrue(action.toString().startsWith("Action Confirmed [null]"));
             actionConfirmRepository.save(action);
 
-            getMockMvc().perform(post("/jbr/int/backup/actionemail")
+            getMockMvc().perform(post("/api/v1/actions/email")
                             .contentType(getContentType()))
                     .andExpect(status().isOk());
 

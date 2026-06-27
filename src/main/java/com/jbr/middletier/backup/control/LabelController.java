@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/jbr/int/backup")
+@RequestMapping("/api/v1")
 public class LabelController {
     private final LabelManager labelManager;
 
@@ -28,7 +28,7 @@ public class LabelController {
         this.fileSystemObjectManager = fileSystemObjectManager;
     }
 
-    @PostMapping(path="label")
+    @PostMapping(path="/labels")
     public FileInfoExtra addLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(), FileSystemObjectType.FSO_FILE));
 
@@ -43,7 +43,7 @@ public class LabelController {
         return fileSystemObjectManager.getFileExtra(fileLabelDTO.getFileId());
     }
 
-    @DeleteMapping(path="label")
+    @DeleteMapping(path="/labels")
     public FileInfoExtra removeLabel(@RequestBody FileLabelDTO fileLabelDTO) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileLabelDTO.getFileId(),FileSystemObjectType.FSO_FILE));
 
@@ -58,7 +58,7 @@ public class LabelController {
         return fileSystemObjectManager.getFileExtra(fileLabelDTO.getFileId());
     }
 
-    @GetMapping(path="labels")
+    @GetMapping(path="/labels")
     public List<LabelDTO> labels() {
         return labelManager.getLabels();
     }

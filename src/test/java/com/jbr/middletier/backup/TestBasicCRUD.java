@@ -55,18 +55,18 @@ class TestBasicCRUD extends WebTester {
             backup.setBackupName("Test");
             backup.setDirectory("Test");
 
-            getMockMvc().perform(get("/jbr/ext/backup")
+            getMockMvc().perform(get("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
 
-            getMockMvc().perform(post("/jbr/ext/backup")
+            getMockMvc().perform(post("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            String error = getMockMvc().perform(post("/jbr/ext/backup")
+            String error = getMockMvc().perform(post("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().is(409))
@@ -75,7 +75,7 @@ class TestBasicCRUD extends WebTester {
             assertEquals("Backup with id (TST) already exists.", error);
 
             backup.setType("What");
-            getMockMvc().perform(put("/jbr/ext/backup")
+            getMockMvc().perform(put("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
@@ -83,52 +83,52 @@ class TestBasicCRUD extends WebTester {
             BackupDTO backup2 = new BackupDTO();
             backup2.setId("TSTX");
             backup2.setType("WhaT");
-            error = getMockMvc().perform(put("/jbr/ext/backup")
+            error = getMockMvc().perform(put("/api/v1/backup-jobs")
                             .content(this.json(backup2))
                             .contentType(getContentType()))
                             .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Backup with id (TSTX) not found.", error);
 
-            getMockMvc().perform(get("/jbr/ext/backup")
+            getMockMvc().perform(get("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].type",is("What")));
 
-            getMockMvc().perform(get("/jbr/ext/backup/byId?id=TST")
+            getMockMvc().perform(get("/api/v1/backup-jobs/details?id=TST")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            error = getMockMvc().perform(get("/jbr/ext/backup/byId?id=XXX")
+            error = getMockMvc().perform(get("/api/v1/backup-jobs/details?id=XXX")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Backup with id (XXX) not found.", error);
 
-            getMockMvc().perform(delete("/jbr/ext/backup")
+            getMockMvc().perform(delete("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            error = getMockMvc().perform(delete("/jbr/ext/backup")
+            error = getMockMvc().perform(delete("/api/v1/backup-jobs")
                             .content(this.json(backup2))
                             .contentType(getContentType()))
                             .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Backup with id (TSTX) not found.", error);
 
-            error = getMockMvc().perform(post("/jbr/ext/backup/run")
+            error = getMockMvc().perform(post("/api/v1/backup-jobs/run")
                             .content(this.json(backup2))
                             .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Backup with id () not found.", error);
 
-            getMockMvc().perform(get("/jbr/ext/backup")
+            getMockMvc().perform(get("/api/v1/backup-jobs")
                     .content(this.json(backup))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -160,7 +160,7 @@ class TestBasicCRUD extends WebTester {
 
             backupRepository.save(backup);
 
-            getMockMvc().perform(post("/jbr/ext/backup/run?id=" + backup.getId())
+            getMockMvc().perform(post("/api/v1/backup-jobs/run?id=" + backup.getId())
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
@@ -182,7 +182,7 @@ class TestBasicCRUD extends WebTester {
             location.setSize("1MB");
             location.setCheckDuplicates(false);
 
-            getMockMvc().perform(post("/jbr/ext/backup/location")
+            getMockMvc().perform(post("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -190,7 +190,7 @@ class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[4].id",is(6)))
                     .andExpect(jsonPath("$[4].name",is("Test")));
 
-            String error = getMockMvc().perform(post("/jbr/ext/backup/location")
+            String error = getMockMvc().perform(post("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isConflict())
@@ -198,7 +198,7 @@ class TestBasicCRUD extends WebTester {
             assertEquals("Location with id (6) already exists.", error);
 
             location.setName("TestUpd");
-            getMockMvc().perform(put("/jbr/ext/backup/location")
+            getMockMvc().perform(put("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -206,27 +206,27 @@ class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[4].id",is(6)))
                     .andExpect(jsonPath("$[4].name",is("TestUpd")));
 
-            getMockMvc().perform(delete("/jbr/ext/backup/location")
+            getMockMvc().perform(delete("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(4)));
 
-            error = getMockMvc().perform(put("/jbr/ext/backup/location")
+            error = getMockMvc().perform(put("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Location with id (6) not found.", error);
 
-            error = getMockMvc().perform(delete("/jbr/ext/backup/location")
+            error = getMockMvc().perform(delete("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Location with id (6) not found.", error);
 
-            getMockMvc().perform(get("/jbr/ext/backup/location")
+            getMockMvc().perform(get("/api/v1/locations")
                     .content(this.json(location))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -249,7 +249,7 @@ class TestBasicCRUD extends WebTester {
             classification.setAction(ClassificationActionType.CA_BACKUP);
             classification.setOrder(10131);
 
-            getMockMvc().perform(post("/jbr/ext/backup/classification")
+            getMockMvc().perform(post("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -270,40 +270,40 @@ class TestBasicCRUD extends WebTester {
 
             LOG.info("Classification {}", classification);
 
-            getMockMvc().perform(put("/jbr/ext/backup/classification")
+            getMockMvc().perform(put("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount + 1)))
                     .andExpect(jsonPath("$..action",hasItems("CA_BACKUP")));
 
-            getMockMvc().perform(get("/jbr/ext/backup/classification")
+            getMockMvc().perform(get("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount + 1)));
 
-            getMockMvc().perform(delete("/jbr/ext/backup/classification")
+            getMockMvc().perform(delete("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(classificationCount)));
 
-            String error = getMockMvc().perform(put("/jbr/ext/backup/classification")
+            String error = getMockMvc().perform(put("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Classification with id (" + id + ") not found.", error);
 
-            error = getMockMvc().perform(delete("/jbr/ext/backup/classification")
+            error = getMockMvc().perform(delete("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Classification with id (" + id + ") not found.", error);
 
-            error = getMockMvc().perform(post("/jbr/ext/backup/classification")
+            error = getMockMvc().perform(post("/api/v1/classifications")
                     .content(this.json(classification))
                     .contentType(getContentType()))
                     .andExpect(status().isConflict())
@@ -322,25 +322,25 @@ class TestBasicCRUD extends WebTester {
             hardware.setReservedIP("N");
             hardware.setName("Testing");
 
-            getMockMvc().perform(get("/jbr/ext/hardware")
+            getMockMvc().perform(get("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
 
-            getMockMvc().perform(post("/jbr/ext/hardware")
+            getMockMvc().perform(post("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            String error = getMockMvc().perform(post("/jbr/ext/hardware")
+            String error = getMockMvc().perform(post("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isConflict())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Hardware with id (00:00:00:00:00:00) already exists.", error);
 
-            getMockMvc().perform(get("/jbr/ext/hardware")
+            getMockMvc().perform(get("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
@@ -348,7 +348,7 @@ class TestBasicCRUD extends WebTester {
                     .andExpect(jsonPath("$[0].name",is("Testing")));
 
             hardware.setName("Testing2");
-            getMockMvc().perform(put("/jbr/ext/hardware")
+            getMockMvc().perform(put("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isOk());
@@ -356,41 +356,41 @@ class TestBasicCRUD extends WebTester {
             HardwareDTO hardware2 = new HardwareDTO();
             hardware2.setMacAddress("00:00:00:00:00:99");
             hardware2.setReservedIP("N");
-            getMockMvc().perform(put("/jbr/ext/hardware")
+            getMockMvc().perform(put("/api/v1/hardware")
                             .content(this.json(hardware2))
                             .contentType(getContentType()))
                     .andExpect(status().isNotFound());
 
-            getMockMvc().perform(get("/jbr/ext/hardware")
+            getMockMvc().perform(get("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].name",is("Testing2")));
 
-            error = getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:10")
+            error = getMockMvc().perform(get("/api/v1/hardware/details?macAddress=00:00:00:00:00:10")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isNotFound())
                     .andReturn().getResolvedException().getMessage();
             assertEquals("Hardware with id (00:00:00:00:00:10) not found.", error);
 
-            getMockMvc().perform(get("/jbr/ext/hardware/byId?macAddress=00:00:00:00:00:00")
+            getMockMvc().perform(get("/api/v1/hardware/details?macAddress=00:00:00:00:00:00")
                             .content(this.json(hardware))
                             .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            getMockMvc().perform(delete("/jbr/ext/hardware")
+            getMockMvc().perform(delete("/api/v1/hardware")
                             .content(this.json(hardware))
                             .contentType(getContentType()))
                     .andExpect(status().isOk());
 
-            getMockMvc().perform(delete("/jbr/ext/hardware")
+            getMockMvc().perform(delete("/api/v1/hardware")
                             .content(this.json(hardware2))
                             .contentType(getContentType()))
                     .andExpect(status().isNotFound());
 
-            getMockMvc().perform(get("/jbr/ext/hardware")
+            getMockMvc().perform(get("/api/v1/hardware")
                     .content(this.json(hardware))
                     .contentType(getContentType()))
                     .andExpect(status().isOk())
