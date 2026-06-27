@@ -92,50 +92,88 @@ Production database credentials are supplied via environment variables:
 
 ## REST API
 
-The API is self-documented via Swagger UI at `/swagger-ui.html` when the service is running.
+All endpoints are versioned under `/api/v1`. The API is self-documented via Swagger UI at `/swagger-ui.html` when the service is running.
 
-### Base paths
+### Endpoints by resource
 
-| Base path | Purpose |
-|---|---|
-| `/jbr/ext/backup` | Configuration — locations, sources, synchronizations, classifications |
-| `/jbr/int/backup` | Operations — actions, labels, prints, summary |
-| `/jbr/ext/hardware` | Hardware registry |
-
-### Key endpoints
-
-#### Configuration (`/jbr/ext/backup`)
+#### Actions (`/api/v1`)
 
 | Method | Path | Description |
 |---|---|---|
-| GET/POST/PUT/DELETE | `/location` | Manage physical locations |
-| GET/POST/PUT/DELETE | `/source` | Manage backup/sync source directories |
-| GET/POST/PUT/DELETE | `/importSource` | Manage import source directories |
-| GET/POST/PUT/DELETE | `/preImportSource` | Manage pre-import staging directories |
-| GET/POST/PUT/DELETE | `/postImportSource` | Manage post-import output directories |
-| GET/POST/PUT/DELETE | `/synchronize` | Manage synchronization pairs |
-| GET/POST/PUT/DELETE | `/classification` | Manage file classifications |
+| GET | `/actions` | List pending synchronisation actions |
+| POST | `/actions` | Confirm a pending action |
+| GET | `/actions/confirmed` | List confirmed actions |
+| POST | `/actions/email` | Send action summary email |
+| GET | `/summary` | Current backup summary (SSE stream also at `/events/summary`) |
+| GET | `/ignored` | List files permanently excluded from synchronisation |
 
-#### Operations (`/jbr/int/backup`)
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/actions` | List pending actions |
-| POST | `/actions` | Confirm an action |
-| GET | `/confirmed-actions` | List confirmed actions |
-| POST | `/actionemail` | Send action summary email |
-| GET | `/summary` | Get current backup summary |
-| GET | `/ignore` | List ignored files |
-| GET/POST/DELETE | `/label`, `/labels` | Manage file labels |
-| GET/POST/PUT/DELETE | `/print`, `/prints` | Manage print selections |
-
-#### Hardware (`/jbr/ext/hardware`)
+#### Files (`/api/v1`)
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/` | List all hardware |
-| GET | `/byId?macAddress=` | Get hardware by MAC address |
-| POST/PUT/DELETE | `/` | Create, update, or delete a hardware entry |
+| GET | `/files` | List all tracked files |
+| GET | `/files/detail?id=` | Get metadata for a single file |
+| DELETE | `/file?id=` | Delete a tracked file record |
+| GET | `/files/image?id=` | Serve file as JPEG image |
+| GET | `/files/video?id=` | Serve file as video stream |
+| GET | `/files/video-thumbnail?id=` | Serve video thumbnail as JPEG |
+| GET | `/files/search` | Search tracked files |
+| POST | `/gather` | Trigger a file system gather |
+| POST | `/sync/run` | Trigger a synchronisation run |
+| POST | `/duplicates` | Find duplicate files |
+| POST | `/hierarchy` | Get directory hierarchy |
+| POST | `/files/refresh` | Refresh file metadata |
+| PUT | `/files/expire` | Expire stale file records |
+| GET | `/events/files` | SSE stream of file system events |
+
+#### Import pipeline (`/api/v1/import`)
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/` | List import sources |
+| DELETE | `/file` | Delete a file from the import staging area |
+| DELETE | `/ignored` | Delete all ignored import files |
+| DELETE | `/active-photos` | Delete active photos from staging |
+| POST | `/photos` | Trigger photo import |
+| DELETE | `/confirmed` | Clear confirmed import files |
+| POST | `/file/un-ignore` | Un-ignore a specific file |
+| POST | `/un-ignore` | Un-ignore all files |
+| POST | `/file/recipe` | Set recipe for a file |
+| POST | `/file/backup` | Back up a file from import |
+| POST | `/file/destination` | Set destination for a file |
+| GET | `/events/files` | SSE stream of import file events |
+| DELETE | `/data` | Clear all import data |
+| DELETE | `/cache` | Clear import cache |
+| GET | `/file/image?name=` | Serve import file as JPEG |
+| GET | `/file/video?name=` | Serve import file as video |
+
+#### Configuration (`/api/v1`)
+
+| Method | Path | Description |
+|---|---|---|
+| GET/POST/PUT/DELETE | `/locations` | Physical storage location configuration |
+| GET/POST/PUT/DELETE | `/sources` | Source directory configuration |
+| GET/POST/PUT/DELETE | `/sync` | Synchronisation pair configuration |
+| GET/POST/PUT/DELETE | `/classifications` | File classification rules |
+| GET/POST/DELETE | `/labels` | User-defined file labels |
+| GET/POST/PUT/DELETE | `/prints` | Print selection management |
+| POST | `/prints/unselect` | Unselect all prints |
+| POST | `/prints/generate` | Generate print output |
+| GET | `/logs` | Application event log |
+| GET | `/version` | Service version |
+
+#### Backup jobs (`/api/v1/backup-jobs`)
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/` | List backup job configurations |
+| POST | `/run` | Trigger an immediate backup run |
+
+#### Hardware (`/api/v1/hardware`)
+
+| Method | Path | Description |
+|---|---|---|
+| GET/POST/PUT/DELETE | `/` | Manage network hardware entries (keyed by MAC address) |
 
 ### Actuator
 
