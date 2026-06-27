@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.dto.ClassificationDTO;
 import com.jbr.middletier.backup.exception.ClassificationIdException;
 import com.jbr.middletier.backup.exception.InvalidClassificationIdException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Classifications", description = "File type classification rules used during gather and import")
 public class ClassificationController {
     private static final Logger LOG = LoggerFactory.getLogger(ClassificationController.class);
 

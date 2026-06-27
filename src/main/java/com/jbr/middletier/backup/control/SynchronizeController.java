@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.dto.SynchronizeDTO;
 import com.jbr.middletier.backup.exception.InvalidSynchronizeIdException;
 import com.jbr.middletier.backup.exception.SynchronizeAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Synchronization", description = "Source/destination directory pair configuration for sync")
 public class SynchronizeController {
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeController.class);
 

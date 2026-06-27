@@ -647,7 +647,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         // Get the database files
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1982,7 +1982,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2011,7 +2011,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(1)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2040,7 +2040,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(0)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2069,7 +2069,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2098,7 +2098,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(1)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2119,7 +2119,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(0)))
                 .andExpect(jsonPath("$[1].md5Updates",is(1)));
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2148,7 +2148,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2167,7 +2167,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2198,7 +2198,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2242,7 +2242,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2261,7 +2261,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2292,7 +2292,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2336,7 +2336,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2371,7 +2371,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted",is(1)));
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2405,7 +2405,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted",is(0)));
 
-        getMockMvc().perform(get("/api/v1/files/details")
+        getMockMvc().perform(get("/api/v1/files")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())

@@ -2,6 +2,8 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.manager.importing.ImportManager;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/api/v1/import")
+@Tag(name = "Import", description = "Photo and media import pipeline")
 public class ImportController {
     private static final Logger LOG = LoggerFactory.getLogger(ImportController.class);
 
@@ -53,6 +56,7 @@ public class ImportController {
                 .build();
     }
 
+    @Operation(summary = "Delete a file from the import directory")
     @DeleteMapping(path = "/file")
     public String deleteImportFile(@RequestBody @Pattern(regexp="^[\\w\\-. ]+$",message="Filename cannot contain special characters") String filename) {
         LOG.info("Delete import file {}.", filename);
@@ -64,6 +68,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Delete all files marked as ignored")
     @DeleteMapping(path = "/ignored")
     public String deleteIgnoredFiles() {
         LOG.info("Delete any files that are ignored.");
@@ -75,6 +80,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Delete Apple Live Photo companion files from the import directory")
     @DeleteMapping(path = "/active-photos")
     public String deleteActivePhotos() {
         LOG.info("Delete any files that are Apple active photos.");
@@ -96,6 +102,7 @@ public class ImportController {
         return importManager.getImportFiles(limit,page,stepType,status);
     }
 
+    @Operation(summary = "Trigger the import pipeline to process queued photos")
     @PostMapping(path = "/photos")
     public String importPhotos() {
         LOG.info("Import the photos.");
@@ -121,6 +128,7 @@ public class ImportController {
         return importManager.getImportFile(name);
     }
 
+    @Operation(summary = "Remove files that have already been successfully imported")
     @DeleteMapping(path = "/confirmed")
     public String deleteConfirmedImports() {
         LOG.info("Remove any files that are already imported.");
@@ -132,6 +140,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Remove the ignore flag from a specific file")
     @PostMapping(path = "/file/un-ignore")
     public String unIgnoreFile(@RequestBody String filename) {
         LOG.info("remove file from ignore list.");
@@ -154,6 +163,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Clear ignore flags for all files currently in the import directory")
     @PostMapping(path = "/un-ignore")
     public String unIgnoreImport() {
         LOG.info("Remove the current files in the import directory from the ignore files.");
@@ -165,6 +175,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Route a file to the recipe special destination instead of the standard import path")
     @PostMapping(path = "/file/recipe")
     public String recipeFile(@RequestBody String filename) {
         LOG.info("Import the file as a recipe file.");
@@ -176,6 +187,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Route a file to the backup special destination instead of the standard import path")
     @PostMapping(path = "/file/backup")
     public String justBackupFile(@RequestBody String filename) {
         LOG.info("Import the file as a backup file.");
@@ -198,6 +210,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "SSE stream — pushes updated import file list every 2 seconds")
     @GetMapping(path="/events/files",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<List<PreImportFileDTO>>> fileUpdate() {
         try {
@@ -209,6 +222,7 @@ public class ImportController {
         return null;
     }
 
+    @Operation(summary = "SSE stream — pushes updated import summary every 5 seconds")
     @GetMapping(path="/events/summary",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<ImportFileSummaryDTO>> summaryUpdate() {
         try {
@@ -230,6 +244,7 @@ public class ImportController {
         return importManager.getFileContent(name);
     }
 
+    @Operation(summary = "Clear all import tracking records from the database")
     @DeleteMapping(path="/data")
     public String clearImportData() {
         LOG.info("Clear the import data.");
@@ -241,6 +256,7 @@ public class ImportController {
         return FAILED;
     }
 
+    @Operation(summary = "Clear the cached import file state (forces a re-scan on next poll)")
     @DeleteMapping(path="/cache")
     public String clearCache() {
         LOG.info("Clear the cached data.");

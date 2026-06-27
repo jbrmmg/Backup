@@ -2,6 +2,7 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.dto.DbLogDTO;
 import com.jbr.middletier.backup.manager.DbLoggingManager;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Logging", description = "Application event log stored in the database")
 public class LoggingController {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingController.class);
 

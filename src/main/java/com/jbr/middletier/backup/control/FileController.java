@@ -5,6 +5,8 @@ import com.jbr.middletier.backup.dto.*;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,7 @@ import static java.util.Comparator.comparing;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Files", description = "File system browsing, search, media serving, and sync operations")
 public class FileController {
     private static final Logger LOG = LoggerFactory.getLogger(FileController.class);
 
@@ -63,18 +66,21 @@ public class FileController {
         return result;
     }
 
+    @Operation(summary = "Scan source directories and update the database with current file system state")
     @PostMapping(path="/gather")
     public List<GatherDataDTO> gather(@RequestParam(name="sourceId", required = false) Integer sourceId) {
         LOG.info("Gather");
         return driveManager.gather(sourceId);
     }
 
+    @Operation(summary = "Identify duplicate files across all tracked locations")
     @PostMapping(path="/duplicates")
     public List<DuplicateDataDTO> duplicate() {
         LOG.info("Duplicate check");
         return duplicateManager.duplicateCheck();
     }
 
+    @Operation(summary = "Run directory synchronisation, optionally for a single sync pair")
     @PostMapping(path="/sync/run")
     public List<SyncDataDTO> synchronize(@RequestParam(name="syncId", required = false) Integer syncId) {
         LOG.info("Synchronize");
@@ -90,6 +96,7 @@ public class FileController {
         return parent.getParentId().map(FileSystemObjectId::getId).orElse(-1);
     }
 
+    @Operation(summary = "Navigate the directory hierarchy; pass id=-1 to list roots")
     @PostMapping(path="/hierarchy")
     public List<HierarchyResponse> hierarchy( @RequestBody HierarchyResponse lastResponse ) {
         List<HierarchyResponse> result = new ArrayList<>();
@@ -175,6 +182,7 @@ public class FileController {
         return fileSystemObjectManager.getFileExtra(id);
     }
 
+    @Operation(summary = "Re-read EXIF metadata and update the database record for a file")
     @PostMapping(path="/files/refresh")
     public FileInfoExtra refreshFileData(@RequestParam("id") Integer id) throws InvalidFileIdException {
         return fileSystemObjectManager.refreshFileData(id);
@@ -185,6 +193,7 @@ public class FileController {
         return fileSystemObjectManager.findFiles(search);
     }
 
+    @Operation(summary = "Set or clear the expiry date on a file (expired files are candidates for deletion)")
     @PutMapping(path="/files/expire")
     public FileInfoExtra expireFile(@RequestBody FileExpiryDTO expiry) throws InvalidFileIdException {
         Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(expiry.getId(),FileSystemObjectType.FSO_FILE));

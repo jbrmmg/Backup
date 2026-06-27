@@ -6,6 +6,7 @@ import com.jbr.middletier.backup.dataaccess.HardwareRepository;
 import com.jbr.middletier.backup.dto.HardwareDTO;
 import com.jbr.middletier.backup.exception.HardwareAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidHardwareIdException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/hardware")
+@Tag(name = "Hardware", description = "Network hardware registry (identified by MAC address)")
 public class HardwareController {
     private static final Logger LOG = LoggerFactory.getLogger(HardwareController.class);
 

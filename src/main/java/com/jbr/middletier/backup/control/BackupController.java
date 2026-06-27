@@ -9,6 +9,8 @@ import com.jbr.middletier.backup.dto.VersionDTO;
 import com.jbr.middletier.backup.exception.BackupAlreadyExistsException;
 import com.jbr.middletier.backup.exception.InvalidBackupIdException;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
@@ -18,12 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
-/**
- * Created by jason on 08/02/17.
- */
-
 @RestController
 @RequestMapping("/api/v1/backup-jobs")
+@Tag(name = "Backup Jobs", description = "Database and file backup job management")
 public class BackupController {
     private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
@@ -93,6 +92,7 @@ public class BackupController {
         return OkStatus.getOkStatus();
     }
 
+    @Operation(summary = "Trigger an immediate backup run for the specified job")
     @PostMapping(path="/run")
     public OkStatus performBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         // Check that the item exists.

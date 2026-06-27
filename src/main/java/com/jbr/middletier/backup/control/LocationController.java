@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.dto.LocationDTO;
 import com.jbr.middletier.backup.exception.InvalidLocationIdException;
 import com.jbr.middletier.backup.exception.LocationAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Locations", description = "Physical storage location configuration")
 public class LocationController {
     private static final Logger LOG = LoggerFactory.getLogger(LocationController.class);
 

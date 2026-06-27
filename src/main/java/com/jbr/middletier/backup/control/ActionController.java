@@ -8,6 +8,8 @@ import com.jbr.middletier.backup.manager.ActionManager;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.summary.Summary;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ import static java.util.Comparator.comparing;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Actions", description = "Pending file synchronisation actions and system summary")
 public class ActionController {
     private static final Logger LOG = LoggerFactory.getLogger(ActionController.class);
 
@@ -54,6 +57,7 @@ public class ActionController {
         return actionManager.externalFindByConfirmed(true);
     }
 
+    @Operation(summary = "List files permanently excluded from synchronisation")
     @GetMapping(path="/ignored")
     public List<FileInfoDTO> getIgnoreFiles() {
         LOG.info("Get ignore files");
@@ -74,6 +78,7 @@ public class ActionController {
         return actionManager.confirmAction(action);
     }
 
+    @Operation(summary = "Send a summary email of all pending actions")
     @PostMapping(path="/actions/email")
     public  OkStatus emailActions() {
         actionManager.sendActionEmail();

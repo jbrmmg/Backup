@@ -4,6 +4,8 @@ import com.jbr.middletier.backup.data.OkStatus;
 import com.jbr.middletier.backup.dto.PrintSizeDTO;
 import com.jbr.middletier.backup.dto.SelectedPrintDTO;
 import com.jbr.middletier.backup.manager.PrintManager;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Prints", description = "Photo print selection and generation")
 public class PrintController {
     private static final Logger LOG = LoggerFactory.getLogger(PrintController.class);
 
@@ -37,6 +40,7 @@ public class PrintController {
         return printManager.updatePrint(selected);
     }
 
+    @Operation(summary = "Remove a photo from the print selection list")
     @PostMapping(path="/prints/unselect")
     public Integer unprint(@RequestBody Integer id) {
         return printManager.unselect(id);
@@ -52,6 +56,7 @@ public class PrintController {
         return printManager.deletePrints();
     }
 
+    @Operation(summary = "Generate the print list from the current selected photos")
     @PostMapping(path="/prints/generate")
     public OkStatus doSomething() {
         LOG.info("Get a list of the P files");

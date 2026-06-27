@@ -7,6 +7,7 @@ import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.exception.InvalidSourceIdException;
 import com.jbr.middletier.backup.exception.SourceAlreadyExistsException;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -17,9 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Sources", description = "Source directory configuration for backup and import pipelines")
 public class SourceController {
     private static final Logger LOG = LoggerFactory.getLogger(SourceController.class);
 
