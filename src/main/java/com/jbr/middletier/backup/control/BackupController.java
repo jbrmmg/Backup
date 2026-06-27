@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 
 @RestController
-@RequestMapping("/jbr/ext/backup")
+@RequestMapping("/api/v1/backup-jobs")
 public class BackupController {
     private static final Logger LOG = LoggerFactory.getLogger(BackupController.class);
 
@@ -44,7 +44,7 @@ public class BackupController {
         this.applicationProperties = applicationProperties;
     }
 
-    @GetMapping(path="/byId")
+    @GetMapping(path="/details")
     public BackupDTO specificBackup(@RequestParam(value="id", defaultValue="") String id) throws InvalidBackupIdException {
         LOG.info("List hardware.");
         // Check that the item exists.

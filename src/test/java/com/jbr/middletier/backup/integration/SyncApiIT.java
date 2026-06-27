@@ -212,7 +212,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data for test1.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -232,7 +232,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         LOG.info("Gather the data for test2.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -252,7 +252,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         LOG.info("Gather the data from test 3.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -269,7 +269,7 @@ public class SyncApiIT extends FileTester {
         List<FileSystemObject> files = new ArrayList<>();
         fileSystemObjectManager.findAllByType(FileSystemObjectType.FSO_FILE).forEach(files::add);
         assertNotEquals(0, files.size());
-        getMockMvc().perform(get("/jbr/int/backup/file?id="+files.get(0).getIdAndType().getId())
+        getMockMvc().perform(get("/api/v1/files/detail?id="+files.get(0).getIdAndType().getId())
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -286,7 +286,7 @@ public class SyncApiIT extends FileTester {
         assertTrue(idOfJpeg.isPresent());
 
         // Get the details for the jpeg file.
-        getMockMvc().perform(get("/jbr/int/backup/file?id="+idOfJpeg.get())
+        getMockMvc().perform(get("/api/v1/files/detail?id="+idOfJpeg.get())
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -313,7 +313,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data for test 15.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -332,21 +332,21 @@ public class SyncApiIT extends FileTester {
     void getFileInvalidId() throws Exception {
         // Check that the various get file URL's will fail for invalid id.
         int missingId = 1;
-        String error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/file?id=" + missingId)
+        String error = Objects.requireNonNull(getMockMvc().perform(get("/api/v1/files/detail?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
         assertEquals("File with id ("+missingId+") not found.", error);
 
-        error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + missingId)
+        error = Objects.requireNonNull(getMockMvc().perform(get("/api/v1/files/image?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
                 .andReturn().getResolvedException()).getMessage();
         assertEquals("File with id ("+missingId+") not found.", error);
 
-        error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + missingId)
+        error = Objects.requireNonNull(getMockMvc().perform(get("/api/v1/files/video?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
@@ -361,7 +361,7 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test2");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -383,14 +383,14 @@ public class SyncApiIT extends FileTester {
         }
         assertTrue(testFile.isPresent());
 
-        String error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + testFile.get().getIdAndType().getId())
+        String error = Objects.requireNonNull(getMockMvc().perform(get("/api/v1/files/image?id=" + testFile.get().getIdAndType().getId())
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isBadRequest())
                 .andReturn().getResolvedException()).getMessage();
         assertEquals("File is not of type image", error);
 
-        error = Objects.requireNonNull(getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + testFile.get().getIdAndType().getId())
+        error = Objects.requireNonNull(getMockMvc().perform(get("/api/v1/files/video?id=" + testFile.get().getIdAndType().getId())
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isBadRequest())
@@ -409,7 +409,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data for test 2 (synchronize).");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -423,7 +423,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         LOG.info("Synchronize the data.");
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -442,7 +442,7 @@ public class SyncApiIT extends FileTester {
         assertEquals(0, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
 
         LOG.info("Gather the data again.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -489,7 +489,7 @@ public class SyncApiIT extends FileTester {
         }
 
         // Check get file info.
-        getMockMvc().perform(get("/jbr/int/backup/file?id=" + validId)
+        getMockMvc().perform(get("/api/v1/files/detail?id=" + validId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -497,27 +497,27 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("backups[0].name", is("Bills.ods")));
 
         // Get the image file.
-        getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + imageId)
+        getMockMvc().perform(get("/api/v1/files/image?id=" + imageId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         // Get the video file.
-        getMockMvc().perform(get("/jbr/int/backup/fileVideo?id=" + videoId)
+        getMockMvc().perform(get("/api/v1/files/video?id=" + videoId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         LOG.info("Get the hierarchy");
         HierarchyResponse hierarchyResponse = new HierarchyResponse();
-        getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+        getMockMvc().perform(post("/api/v1/hierarchy")
                         .content(this.json(hierarchyResponse))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         // Request another level
         hierarchyResponse.setId(this.source.getIdAndType().getId());
-        getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+        getMockMvc().perform(post("/api/v1/hierarchy")
                         .content(this.json(hierarchyResponse))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -535,14 +535,14 @@ public class SyncApiIT extends FileTester {
             }
         }
         hierarchyResponse.setId(directoryId);
-        getMockMvc().perform(post("/jbr/int/backup/hierarchy")
+        getMockMvc().perform(post("/api/v1/hierarchy")
                         .content(this.json(hierarchyResponse))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(8)));
 
         LOG.info("Check for duplicates in sync");
-        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+        getMockMvc().perform(post("/api/v1/duplicates")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -553,7 +553,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)));
 
         LOG.info("Check Summary");
-        getMockMvc().perform(get("/jbr/int/backup/summary")
+        getMockMvc().perform(get("/api/v1/summary")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -577,7 +577,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data for test 4.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -610,7 +610,7 @@ public class SyncApiIT extends FileTester {
         actionManager.confirmAction(confirmRequest);
 
         LOG.info("Gather the data after delete test.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -633,7 +633,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data for test 2.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -647,7 +647,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         // Get the database files
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -690,13 +690,13 @@ public class SyncApiIT extends FileTester {
             missingId++;
         }
 
-        getMockMvc().perform(delete("/jbr/int/backup/file?id=" + validId)
+        getMockMvc().perform(delete("/api/v1/files/detail?id=" + validId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("fileName", is("Bills.ods")));
 
-        String error = Objects.requireNonNull(getMockMvc().perform(delete("/jbr/int/backup/file?id=" + missingId)
+        String error = Objects.requireNonNull(getMockMvc().perform(delete("/api/v1/files/detail?id=" + missingId)
                         .content(this.json("testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
@@ -721,7 +721,7 @@ public class SyncApiIT extends FileTester {
         actionManager.confirmAction(confirmActionRequest);
 
         // Get the database files
-        getMockMvc().perform(get("/jbr/int/backup/actions")
+        getMockMvc().perform(get("/api/v1/actions")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -730,7 +730,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].action", is(ActionConfirmType.AC_DELETE.getTypeName())));
 
         // Get the database files
-        getMockMvc().perform(get("/jbr/int/backup/confirmed-actions")
+        getMockMvc().perform(get("/api/v1/actions/confirmed")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -742,17 +742,17 @@ public class SyncApiIT extends FileTester {
         request.setId(deleteAction.getId());
         request.setConfirm(true);
         request.setParameter("Blha");
-        getMockMvc().perform(post("/jbr/int/backup/actions")
+        getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(request))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/actionemail")
+        getMockMvc().perform(post("/api/v1/actions/email")
                         .content(this.json(request))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(get("/jbr/int/backup/summary")
+        getMockMvc().perform(get("/api/v1/summary")
                         .content(this.json(request))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -771,7 +771,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO.setLocation(locationDTO);
         sourceDTO.setStatus("OK");
 
-        String error = Objects.requireNonNull(getMockMvc().perform(put("/jbr/ext/backup/source")
+        String error = Objects.requireNonNull(getMockMvc().perform(put("/api/v1/sources")
                         .content(this.json(sourceDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
@@ -783,7 +783,7 @@ public class SyncApiIT extends FileTester {
         sourceDTO = new SourceDTO();
         sourceDTO.setId(this.source.getIdAndType().getId());
         sourceDTO.setStatus("OK");
-        error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/ext/backup/source")
+        error = Objects.requireNonNull(getMockMvc().perform(post("/api/v1/sources")
                         .content(this.json(sourceDTO))
                         .contentType(getContentType()))
                 .andExpect(status().isConflict())
@@ -797,7 +797,7 @@ public class SyncApiIT extends FileTester {
         request.setId(1);
         request.setConfirm(true);
         request.setParameter("Blha");
-        String error = Objects.requireNonNull(getMockMvc().perform(post("/jbr/int/backup/actions")
+        String error = Objects.requireNonNull(getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(request))
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound())
@@ -812,7 +812,7 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test7");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -824,7 +824,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         LOG.info("Check for duplicates in duplicate testing");
-        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+        getMockMvc().perform(post("/api/v1/duplicates")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -853,12 +853,12 @@ public class SyncApiIT extends FileTester {
         confirmActionRequest.setParameter("");
         confirmActionRequest.setConfirm(true);
 
-        getMockMvc().perform(post("/jbr/int/backup/actions")
+        getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(confirmActionRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+        getMockMvc().perform(post("/api/v1/duplicates")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -878,7 +878,7 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> sourceDescription = getTestStructure("test8");
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -890,7 +890,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].deletes", is(0)));
 
         LOG.info("Check for duplicates");
-        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+        getMockMvc().perform(post("/api/v1/duplicates")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -919,12 +919,12 @@ public class SyncApiIT extends FileTester {
         confirmActionRequest.setParameter("");
         confirmActionRequest.setConfirm(true);
 
-        getMockMvc().perform(post("/jbr/int/backup/actions")
+        getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(confirmActionRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/duplicate")
+        getMockMvc().perform(post("/api/v1/duplicates")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -946,7 +946,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data in sync with delete.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -967,7 +967,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         LOG.info("Synchronize the data (Sync with delete).");
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -995,7 +995,7 @@ public class SyncApiIT extends FileTester {
         }
         assertNotEquals(-1, deleteId);
 
-        getMockMvc().perform(delete("/jbr/int/backup/file?id=" + deleteId)
+        getMockMvc().perform(delete("/api/v1/files/detail?id=" + deleteId)
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -1017,14 +1017,14 @@ public class SyncApiIT extends FileTester {
         confirmActionRequest.setParameter("");
         confirmActionRequest.setConfirm(true);
 
-        getMockMvc().perform(post("/jbr/int/backup/actions")
+        getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(confirmActionRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
         // Process the gather and syncs again.
         LOG.info("Gather the data after action update.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1042,7 +1042,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].directoriesRemoved", is(0)))
                 .andExpect(jsonPath("$[0].deletes", is(1)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1056,7 +1056,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(1)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1083,7 +1083,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1103,7 +1103,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         LOG.info("Synchronize the data. (sync with files removed.)");
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1117,7 +1117,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1138,7 +1138,7 @@ public class SyncApiIT extends FileTester {
         File fileToDelete = new File(SOURCE_DIRECTORY + "/Documents/Bills.ods");
         Files.deleteIfExists(fileToDelete.toPath());
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1156,7 +1156,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].directoriesInserted", is(0)))
                 .andExpect(jsonPath("$[1].deletes", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1187,12 +1187,12 @@ public class SyncApiIT extends FileTester {
         confirmActionRequest.setParameter("");
         confirmActionRequest.setConfirm(true);
 
-        getMockMvc().perform(post("/jbr/int/backup/actions")
+        getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(confirmActionRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1206,7 +1206,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1233,7 +1233,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1254,7 +1254,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getSource(),sourceDescription);
 
         LOG.info("Synchronize the data. (sync with directory removed)");
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1268,7 +1268,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1289,7 +1289,7 @@ public class SyncApiIT extends FileTester {
         File directoryToDelete = new File(SOURCE_DIRECTORY + "/Documents/sub");
         FileUtils.deleteDirectory(directoryToDelete);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1306,7 +1306,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].filesRemoved", is(0)))
                 .andExpect(jsonPath("$[1].deletes", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1337,12 +1337,12 @@ public class SyncApiIT extends FileTester {
         confirmActionRequest.setParameter("");
         confirmActionRequest.setConfirm(true);
 
-        getMockMvc().perform(post("/jbr/int/backup/actions")
+        getMockMvc().perform(post("/api/v1/actions")
                         .content(this.json(confirmActionRequest))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1356,7 +1356,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1382,7 +1382,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1406,7 +1406,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1434,7 +1434,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1458,7 +1458,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(sourceDescription, SOURCE_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1490,7 +1490,7 @@ public class SyncApiIT extends FileTester {
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1512,7 +1512,7 @@ public class SyncApiIT extends FileTester {
         validateSource(fileSystemObjectManager,synchronize.getDestination(),destinationDescription);
 
         // Perform the sync.
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1526,7 +1526,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1559,7 +1559,7 @@ public class SyncApiIT extends FileTester {
         associatedFileDataManager.updateSourceStatus(this.destination, SourceStatusType.SST_GATHERING);
 
         // Gather the files.
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1591,7 +1591,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data for test summary.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1633,7 +1633,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data in mount check.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1661,7 +1661,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data in sync mount check.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1676,7 +1676,7 @@ public class SyncApiIT extends FileTester {
         associatedFileDataManager.updateSource(this.source);
 
         // Perform the sync.
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1712,7 +1712,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data in mount check positive.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1742,7 +1742,7 @@ public class SyncApiIT extends FileTester {
 
         // Perform a gather.
         LOG.info("Gather the data mount check test4.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1757,7 +1757,7 @@ public class SyncApiIT extends FileTester {
         associatedFileDataManager.updateSource(this.source);
 
         // Perform the sync.
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1789,7 +1789,7 @@ public class SyncApiIT extends FileTester {
 
         //gather
         LOG.info("Gather the data.");
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1818,7 +1818,7 @@ public class SyncApiIT extends FileTester {
         assertNull(fileInfo.getClassification());
 
         // Test the get file.
-        getMockMvc().perform(get("/jbr/int/backup/file?id=" + findId)
+        getMockMvc().perform(get("/api/v1/files/detail?id=" + findId)
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1840,7 +1840,7 @@ public class SyncApiIT extends FileTester {
         associatedFileDataManager.createClassification(jpgxClassification);
 
         // Perform a refresh
-        getMockMvc().perform(post("/jbr/int/backup/refresh-file-data?id="+findId)
+        getMockMvc().perform(post("/api/v1/files/refresh?id="+findId)
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1884,13 +1884,13 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> destinationDescription = getTestStructure("test18");
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1907,7 +1907,7 @@ public class SyncApiIT extends FileTester {
             fail();
         }
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1915,7 +1915,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(1)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1932,7 +1932,7 @@ public class SyncApiIT extends FileTester {
             fail();
         }
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1976,13 +1976,13 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> destinationDescription = getTestStructure("test18");
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -1992,7 +1992,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
                 .andExpect(jsonPath("$[1].size",is(1102542)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2003,7 +2003,7 @@ public class SyncApiIT extends FileTester {
         // Modify a byte within the file.
         modify(new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, false);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2011,7 +2011,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(1)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2021,7 +2021,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
                 .andExpect(jsonPath("$[1].size",is(1102542)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2032,7 +2032,7 @@ public class SyncApiIT extends FileTester {
         // Updating the date on the destination should not cause an MD5 update.
         modify(new File("./target/it_test/destination/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, false);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2040,7 +2040,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(0)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2063,13 +2063,13 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> destinationDescription = getTestStructure("test18");
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2079,7 +2079,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("56FDC164DC8A27C015170014821A7DCE")))
                 .andExpect(jsonPath("$[1].size",is(1102542)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2090,7 +2090,7 @@ public class SyncApiIT extends FileTester {
         // Modify add byte within the file.
         modify(new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, true);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2098,7 +2098,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(1)))
                 .andExpect(jsonPath("$[1].md5Updates",is(0)));
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2111,7 +2111,7 @@ public class SyncApiIT extends FileTester {
         // Modify add byte within the file.
         modify(new File("./target/it_test/destination/Photo/2013/October/AtHome/IMG_8231.jpgx"),5, 1102542, true);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2119,7 +2119,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].md5Updates",is(0)))
                 .andExpect(jsonPath("$[1].md5Updates",is(1)));
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2142,13 +2142,13 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> destinationDescription = getTestStructure("test19");
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2161,13 +2161,13 @@ public class SyncApiIT extends FileTester {
         // Modify add byte within the file.
         modify(new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.HEIC"),6, 443707, true);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2177,7 +2177,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("C56590F0A404CF1778574FD18675B56C")))
                 .andExpect(jsonPath("$[1].size",is(443707)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2192,13 +2192,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2208,7 +2208,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("E3BF544897461FDF8978CD2312E4C8D3")))
                 .andExpect(jsonPath("$[1].size",is(443708)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2236,13 +2236,13 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> destinationDescription = getTestStructure("test19");
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2255,13 +2255,13 @@ public class SyncApiIT extends FileTester {
         // Modify add byte within the file.
         modify(new File("./target/it_test/source/Photo/2013/October/AtHome/IMG_8231.HEIC"),6, 443707, false);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2271,7 +2271,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("C56590F0A404CF1778574FD18675B56C")))
                 .andExpect(jsonPath("$[1].size",is(443707)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2286,13 +2286,13 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2302,7 +2302,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].md5",is("1826804865212DDB2BE3498AB914A522")))
                 .andExpect(jsonPath("$[1].size",is(443707)));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2330,13 +2330,13 @@ public class SyncApiIT extends FileTester {
         List<StructureDescription> destinationDescription = getTestStructure("test19");
         copyFiles(destinationDescription, DESTINATION_DIRECTORY);
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2363,7 +2363,7 @@ public class SyncApiIT extends FileTester {
                         .atZone(ZoneId.systemDefault())
                         .toLocalDateTime());
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2371,7 +2371,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted",is(1)));
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2382,7 +2382,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].size",is(443707)))
                 .andExpect(jsonPath("$[1].date",startsWith(formatted.substring(0,13))));
 
-        getMockMvc().perform(post("/jbr/int/backup/sync")
+        getMockMvc().perform(post("/api/v1/sync/run")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2397,7 +2397,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(0)));
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
@@ -2405,7 +2405,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)))
                 .andExpect(jsonPath("$[1].filesInserted",is(0)));
 
-        getMockMvc().perform(get("/jbr/int/backup/files")
+        getMockMvc().perform(get("/api/v1/files/details")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk())

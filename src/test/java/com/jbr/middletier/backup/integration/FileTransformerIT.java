@@ -98,7 +98,7 @@ public class FileTransformerIT extends FileTester {
     void fileImageEndpointRunsTransformerAndReturnsImage() throws Exception {
         LOG.info("Testing image transformer via fileImage endpoint");
 
-        getMockMvc().perform(post("/jbr/int/backup/gather")
+        getMockMvc().perform(post("/api/v1/gather")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
@@ -112,7 +112,7 @@ public class FileTransformerIT extends FileTester {
                 .findFirst();
         assertTrue(stlFile.isPresent(), "STL file should be gathered into the database");
 
-        byte[] result = getMockMvc().perform(get("/jbr/int/backup/fileImage?id=" + stlFile.get().getIdAndType().getId())
+        byte[] result = getMockMvc().perform(get("/api/v1/files/image?id=" + stlFile.get().getIdAndType().getId())
                         .contentType(getContentType()))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -124,7 +124,7 @@ public class FileTransformerIT extends FileTester {
 
     @Test
     void fileImageEndpointReturnsNotFoundForInvalidId() throws Exception {
-        getMockMvc().perform(get("/jbr/int/backup/fileImage?id=99999")
+        getMockMvc().perform(get("/api/v1/files/image?id=99999")
                         .contentType(getContentType()))
                 .andExpect(status().isNotFound());
     }

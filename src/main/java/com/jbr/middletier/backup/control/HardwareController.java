@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/jbr/ext/hardware")
+@RequestMapping("/api/v1/hardware")
 public class HardwareController {
     private static final Logger LOG = LoggerFactory.getLogger(HardwareController.class);
 
@@ -30,7 +30,7 @@ public class HardwareController {
         this.modelMapper = modelMapper;
     }
 
-    @GetMapping(path="/byId")
+    @GetMapping(path="/details")
     public HardwareDTO specificHardware(@RequestParam(value="macAddress", defaultValue="00:00:00:00:00:00") String macAddress) throws InvalidHardwareIdException {
         LOG.info("List hardware by id.");
         // Check that the item exists.

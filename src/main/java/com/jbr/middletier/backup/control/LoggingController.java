@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/jbr/int/backup")
+@RequestMapping("/api/v1")
 public class LoggingController {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingController.class);
 
@@ -24,7 +24,7 @@ public class LoggingController {
         this.dbLoggingManager = dbLoggingManager;
     }
 
-    @GetMapping(path="/log")
+    @GetMapping(path="/logs")
     public List<DbLogDTO> getLog() {
         LOG.info("Get the log data");
 

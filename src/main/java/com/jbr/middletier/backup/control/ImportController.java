@@ -18,7 +18,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 
 @RestController
-@RequestMapping("/jbr/int/backup")
+@RequestMapping("/api/v1/import")
 public class ImportController {
     private static final Logger LOG = LoggerFactory.getLogger(ImportController.class);
 
@@ -53,7 +53,7 @@ public class ImportController {
                 .build();
     }
 
-    @DeleteMapping(path = "/delete-import-file")
+    @DeleteMapping(path = "/file")
     public String deleteImportFile(@RequestBody @Pattern(regexp="^[\\w\\-. ]+$",message="Filename cannot contain special characters") String filename) {
         LOG.info("Delete import file {}.", filename);
 
@@ -64,7 +64,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @DeleteMapping(path = "/delete-ignored")
+    @DeleteMapping(path = "/ignored")
     public String deleteIgnoredFiles() {
         LOG.info("Delete any files that are ignored.");
 
@@ -75,7 +75,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @DeleteMapping(path = "/delete-active-photos")
+    @DeleteMapping(path = "/active-photos")
     public String deleteActivePhotos() {
         LOG.info("Delete any files that are Apple active photos.");
 
@@ -86,7 +86,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @GetMapping(path = "/import-files")
+    @GetMapping(path = "/files")
     public List<PreImportFileDTO> getImportFiles(@RequestParam("limit") Integer limit,
                                                  @RequestParam(name="page", required = false) Integer page,
                                                  @RequestParam(name="stepType", required = false) String stepType,
@@ -96,7 +96,7 @@ public class ImportController {
         return importManager.getImportFiles(limit,page,stepType,status);
     }
 
-    @PostMapping(path = "/import-photos")
+    @PostMapping(path = "/photos")
     public String importPhotos() {
         LOG.info("Import the photos.");
 
@@ -107,21 +107,21 @@ public class ImportController {
         return FAILED;
     }
 
-    @GetMapping(path = "/import-files-summary")
+    @GetMapping(path = "/summary")
     public ImportFileSummaryDTO getImportFileSummary() {
         LOG.info("Get import file summary");
 
         return importManager.getImportSummary();
     }
 
-    @GetMapping(path = "/import-file")
+    @GetMapping(path = "/file")
     public PreImportFileDTO getImportFile(@RequestParam(name="name") String name) {
         LOG.info("Get the specified file.");
 
         return importManager.getImportFile(name);
     }
 
-    @DeleteMapping(path = "/delete-confirmed-imports")
+    @DeleteMapping(path = "/confirmed")
     public String deleteConfirmedImports() {
         LOG.info("Remove any files that are already imported.");
 
@@ -132,7 +132,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @PostMapping(path = "/un-ignore-file")
+    @PostMapping(path = "/file/un-ignore")
     public String unIgnoreFile(@RequestBody String filename) {
         LOG.info("remove file from ignore list.");
 
@@ -143,7 +143,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @PostMapping(path = "/ignore-file")
+    @PostMapping(path = "/file/ignore")
     public String ignoreFile(@RequestBody String filename) {
         LOG.info("Ignore the file.");
 
@@ -154,7 +154,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @PostMapping(path = "/un-ignore-import")
+    @PostMapping(path = "/un-ignore")
     public String unIgnoreImport() {
         LOG.info("Remove the current files in the import directory from the ignore files.");
 
@@ -165,7 +165,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @PostMapping(path = "/recipe-file")
+    @PostMapping(path = "/file/recipe")
     public String recipeFile(@RequestBody String filename) {
         LOG.info("Import the file as a recipe file.");
 
@@ -176,7 +176,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @PostMapping(path = "/backup-file")
+    @PostMapping(path = "/file/backup")
     public String justBackupFile(@RequestBody String filename) {
         LOG.info("Import the file as a backup file.");
 
@@ -187,7 +187,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @PostMapping(path = "update-destination")
+    @PostMapping(path = "/file/destination")
     public String updateDestination(@RequestBody @Valid DestinationUpdateDTO destinationUpdate) {
         LOG.info("Update the destination.");
 
@@ -198,7 +198,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @GetMapping(path="/file-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(path="/events/files",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<List<PreImportFileDTO>>> fileUpdate() {
         try {
             return this.updateNotifier;
@@ -209,7 +209,7 @@ public class ImportController {
         return null;
     }
 
-    @GetMapping(path="/summary-updates",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(path="/events/summary",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<ImportFileSummaryDTO>> summaryUpdate() {
         try {
             return this.updateSummaryNotifier;
@@ -220,17 +220,17 @@ public class ImportController {
         return null;
     }
 
-    @GetMapping(path="/import-image",produces= MediaType.IMAGE_JPEG_VALUE)
+    @GetMapping(path="/file/image",produces= MediaType.IMAGE_JPEG_VALUE)
     public byte[] getFileImage(@RequestParam(name="name") String name) {
         return importManager.getFileContent(name);
     }
 
-    @GetMapping(path="/import-video",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(path="/file/video",produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public byte[] getFileVideo(@RequestParam(name="name") String name) {
         return importManager.getFileContent(name);
     }
 
-    @DeleteMapping(path="/clear-import-data")
+    @DeleteMapping(path="/data")
     public String clearImportData() {
         LOG.info("Clear the import data.");
 
@@ -241,7 +241,7 @@ public class ImportController {
         return FAILED;
     }
 
-    @DeleteMapping(path="/clear-cache")
+    @DeleteMapping(path="/cache")
     public String clearCache() {
         LOG.info("Clear the cached data.");
 
