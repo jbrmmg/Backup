@@ -3,8 +3,6 @@ services:
     image: nexus.jbrmmg.me.uk:8084/backup-dev:latest
     container_name: backup-dev
     restart: unless-stopped
-    ports:
-      - "10013:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SERVER_PORT=8080
