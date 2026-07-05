@@ -11,19 +11,15 @@ services:
       - DB_DEV_BACKUP_PASSWORD=${DB_DEV_BACKUP_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
     volumes:
-      - backup-dev-logs:/app/logs
-      - /var/backup/dev:/home/jason/Working/Backup
-      - /var/backup/dev-zip:/home/jason/Working/BackupDevZip
-      - /etc:/host/etc:ro
-      - /home/jason:/host/home/jason:ro
-      - /var/backup/dev-import:/var/import
-      - type: bind
-        source: /media
-        target: /media
-        bind:
-          propagation: rshared
+      - backup-logs:/app/logs
+      - /home/jason/test-backup/etc:/host/etc:ro
+      - /home/jason/test-backup/home:/host/home/jason:ro
+      - /home/jason/test-backup/import:/var/import
+      - /home/jason/test-backup/media:/media
     networks:
-      - jbr-network
+      jbr-network:
+        aliases:
+          - backup
 
 volumes:
   backup-dev-logs:
