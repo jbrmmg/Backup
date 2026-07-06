@@ -104,7 +104,7 @@ jobs:
           docker login nexus.jbrmmg.me.uk:8084 \
             -u deployment \
             -p ${{ secrets.NEXUS_PASSWORD }}
-          echo "DB_PDN_BACKUP_SERVER=${DB_PDN_BACKUP_SERVER}" > .env
+          echo "DB_PDN_BACKUP_SERVER=${DB_PDN_BACKUP_SERVER}?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true" > .env
           echo "DB_PDN_BACKUP_USER=${DB_PDN_BACKUP_USER}" >> .env
           echo "DB_PDN_BACKUP_PASSWORD=${DB_PDN_BACKUP_PASSWORD}" >> .env
           echo "EMAIL_PDN_BACKUP_PASSWORD=${EMAIL_PDN_BACKUP_PASSWORD}" >> .env

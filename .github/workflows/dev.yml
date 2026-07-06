@@ -100,7 +100,7 @@ jobs:
           docker login nexus.jbrmmg.me.uk:8084 \
             -u deployment \
             -p ${{ secrets.NEXUS_PASSWORD }}
-          echo "DB_DEV_BACKUP_SERVER=${DB_DEV_BACKUP_SERVER}" > .env
+          echo "DB_DEV_BACKUP_SERVER=${DB_DEV_BACKUP_SERVER}?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true" > .env
           echo "DB_DEV_BACKUP_USER=${DB_DEV_BACKUP_USER}" >> .env
           echo "DB_DEV_BACKUP_PASSWORD=${DB_DEV_BACKUP_PASSWORD}" >> .env
           docker compose -f docker-compose-dev.yml pull
