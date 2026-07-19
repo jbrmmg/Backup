@@ -57,6 +57,9 @@ backup:
     from: system@jbrmmg.me.uk
     enabled: false
 
+server:
+  forward-headers-strategy: framework
+
 management:
   endpoint:
     health:
