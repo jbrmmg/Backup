@@ -344,6 +344,9 @@ public class ApplicationProperties {
     @Setter
     @Getter
     private String version;
+    @Setter
+    @Getter
+    private int jobRunRetentionDays = 7;
     @Getter
     private final Map<String, Transformer> transformers = new HashMap<>();
 

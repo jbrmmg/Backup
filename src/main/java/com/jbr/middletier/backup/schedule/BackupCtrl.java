@@ -2,23 +2,22 @@ package com.jbr.middletier.backup.schedule;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
+import com.jbr.middletier.backup.data.BackupJobRun;
+import com.jbr.middletier.backup.data.RunStatus;
+import com.jbr.middletier.backup.dataaccess.BackupJobRunRepository;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
-import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
-import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.type.PerformBackup;
 import com.jbr.middletier.backup.type.TypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-
-/**
- * Created by jason on 11/02/17.
- */
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class BackupCtrl {
@@ -26,71 +25,77 @@ public class BackupCtrl {
 
     private final TypeManager typeManager;
     private final BackupManager backupManager;
-    private final DbLoggingManager dbLoggingManager;
     private final BackupRepository backupRepository;
+    private final BackupJobRunRepository backupJobRunRepository;
     private final ApplicationProperties applicationProperties;
     private final FileSystem fileSystem;
 
     @Autowired
     public BackupCtrl(TypeManager typeManager,
                       BackupManager backupManager,
-                      DbLoggingManager dbLoggingManager, BackupRepository backupRepository,
+                      BackupRepository backupRepository,
+                      BackupJobRunRepository backupJobRunRepository,
                       ApplicationProperties applicationProperties,
                       FileSystem fileSystem) {
         this.typeManager = typeManager;
         this.backupManager = backupManager;
-        this.dbLoggingManager = dbLoggingManager;
         this.backupRepository = backupRepository;
+        this.backupJobRunRepository = backupJobRunRepository;
         this.applicationProperties = applicationProperties;
         this.fileSystem = fileSystem;
     }
 
+    private void pruneOldRuns() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(applicationProperties.getJobRunRetentionDays());
+        backupJobRunRepository.deleteByStartedAtBefore(cutoff);
+    }
+
     private void performBackups(List<Backup> backups) {
         try {
-            // Initialise the backup directory.
             backupManager.initialiseDay(fileSystem);
-
-            // Process backups.
-            for (Backup backup : backups) {
-                LOG.info("Perform backup {}",backup.getId());
-
-                // Get the backup type.
-                PerformBackup performBackup = typeManager.getBackup(backup.getType());
-
-                // Perform the backup.
-                performBackup.performBackup(backupManager,dbLoggingManager,fileSystem,backup);
-            }
         } catch (Exception ex) {
-            LOG.error("Failed to perform backup",ex);
+            LOG.error("Failed to initialise backup directory", ex);
+            for (Backup backup : backups) {
+                BackupJobRun run = new BackupJobRun(backup.getId());
+                run.complete(RunStatus.FAILED, ex.getMessage());
+                backupJobRunRepository.save(run);
+            }
+            return;
+        }
+
+        for (Backup backup : backups) {
+            LOG.info("Perform backup {}", backup.getId());
+            BackupJobRun run = new BackupJobRun(backup.getId());
+            backupJobRunRepository.save(run);
+
+            try {
+                PerformBackup performBackup = typeManager.getBackup(backup.getType());
+                RunStatus status = performBackup.performBackup(backupManager, fileSystem, backup);
+                run.complete(status, performBackup.getSummary());
+            } catch (Exception ex) {
+                LOG.error("Failed to perform backup {}", backup.getId(), ex);
+                run.complete(RunStatus.FAILED, ex.getMessage());
+            }
+
+            backupJobRunRepository.save(run);
         }
     }
 
     public void performBackup(Backup backup) {
-        List<Backup> backupList = new ArrayList<>();
-        backupList.add(backup);
-
-        performBackups(backupList);
+        performBackups(List.of(backup));
     }
 
     @Scheduled(cron = "#{@applicationProperties.schedule}")
     public void scheduleBackup() {
         LOG.info("Backup");
-        if(!applicationProperties.getEnabled()) {
+        if (!applicationProperties.getEnabled()) {
             LOG.warn("Disabled!");
             return;
         }
 
-        // Get the current time, and look for any backup that has
-        Calendar calendar = Calendar.getInstance();
-        int endTime = calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE);
-        int startTime = endTime - 120;
+        pruneOldRuns();
 
-        List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(startTime,endTime)));
-
-        // Sort the list by the backup time.
-        backupList.sort(Comparator.comparingLong(Backup::getTime));
-
-        // If any backups return, perform the backup.
+        List<Backup> backupList = backupRepository.findAllByOrderByTimeAsc();
         performBackups(backupList);
     }
 }

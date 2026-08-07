@@ -2,9 +2,9 @@ package com.jbr.middletier.backup.type;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
-import com.jbr.middletier.backup.manager.DbLoggingManager;
-import com.jbr.middletier.backup.manager.FileSystem;
+import com.jbr.middletier.backup.data.RunStatus;
 import com.jbr.middletier.backup.manager.BackupManager;
+import com.jbr.middletier.backup.manager.FileSystem;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +17,12 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Created by jason on 16/02/17.
- */
 @Component
-public class ZipupBackup implements PerformBackup  {
+public class ZipupBackup implements PerformBackup {
     private static final Logger LOG = LoggerFactory.getLogger(ZipupBackup.class);
 
     private final ApplicationProperties applicationProperties;
+    private String lastSummary = "";
 
     @Autowired
     public ZipupBackup(ApplicationProperties applicationProperties) {
@@ -36,9 +34,14 @@ public class ZipupBackup implements PerformBackup  {
         return TypeManager.ZIPUP_TYPE;
     }
 
+    @Override
+    public String getSummary() {
+        return lastSummary;
+    }
+
     private void getAllFiles(File dir, List<File> fileList) throws IOException {
         File[] files = dir.listFiles();
-        if(files != null) {
+        if (files != null) {
             for (File file : files) {
                 fileList.add(file);
                 if (file.isDirectory()) {
@@ -52,26 +55,18 @@ public class ZipupBackup implements PerformBackup  {
     }
 
     private void writeZipFile(String outputFilename, File directoryToZip, List<File> fileList) throws IOException {
-        FileOutputStream fos = new FileOutputStream(outputFilename);
-        ZipOutputStream zos = new ZipOutputStream(fos);
-
-        for (File file : fileList) {
-            if (!file.isDirectory()) { // we only zip files, not directories
-                addToZip(directoryToZip, file, zos);
+        try (FileOutputStream fos = new FileOutputStream(outputFilename);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+            for (File file : fileList) {
+                if (!file.isDirectory()) {
+                    addToZip(directoryToZip, file, zos);
+                }
             }
         }
-
-        zos.close();
-        fos.close();
     }
 
-    private void addToZip(File directoryToZip, File file, ZipOutputStream zos) throws
-            IOException {
-
-        try(FileInputStream fis = new FileInputStream(file)) {
-
-            // we want the zipEntry's path to be a relative path that is relative
-            // to the directory being zipped, so chop off the rest of the path
+    private void addToZip(File directoryToZip, File file, ZipOutputStream zos) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file)) {
             String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1);
             LOG.info("Writing {} to zip file", zipFilePath);
             ZipEntry zipEntry = new ZipEntry(zipFilePath);
@@ -82,39 +77,38 @@ public class ZipupBackup implements PerformBackup  {
             while ((length = fis.read(bytes)) >= 0) {
                 zos.write(bytes, 0, length);
             }
-
             zos.closeEntry();
         }
     }
 
     @Override
-    public void performBackup(BackupManager backupManager, DbLoggingManager dbLoggingManager, FileSystem fileSystem, Backup backup) {
+    public RunStatus performBackup(BackupManager backupManager, FileSystem fileSystem, Backup backup) {
         try {
-            dbLoggingManager.info("Zipup backup",null,backup.getId());
+            LOG.info("Zipup backup");
             String zipFilename = String.format("%s/backups.zip", applicationProperties.getZipDirectory());
 
-            // If zip file exists, delete it.
             File zipFile = new File(zipFilename);
             if (zipFile.exists()) {
                 FileUtils.forceDelete(zipFile);
             }
 
-            // Zip up today's directory.
             File directoryToZip = new File(backupManager.todaysDirectory());
             List<File> fileList = new ArrayList<>();
-
-            LOG.info("Getting references to all files in: {}",directoryToZip.getCanonicalPath());
-
+            LOG.info("Getting references to all files in: {}", directoryToZip.getCanonicalPath());
             getAllFiles(directoryToZip, fileList);
 
-            LOG.info("Creating zip file");
+            int fileCount = (int) fileList.stream().filter(f -> !f.isDirectory()).count();
 
+            LOG.info("Creating zip file");
             writeZipFile(zipFilename, directoryToZip, fileList);
 
             LOG.info("Done");
+            lastSummary = String.format("Zip created, %d files", fileCount);
+            return RunStatus.SUCCESS;
         } catch (Exception ex) {
-            LOG.error("Failed to perform zip backup",ex);
-            dbLoggingManager.error("zipup backup " + ex,null,backup.getId());
+            LOG.error("Failed to perform zip backup", ex);
+            lastSummary = ex.getMessage();
+            return RunStatus.FAILED;
         }
     }
 }

@@ -115,5 +115,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-039-image-transformer.yaml
 
   - include:
+      file: /db/changelog/db.changelog-040-backup-job-run.yaml
+
+  - include:
       file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

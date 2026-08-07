@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 40
+      author: jason
+      changes:
+        - createTable:
+            tableName: backup_job_run
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: backup_id
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: started_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: finished_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message
+                  type: varchar(500)

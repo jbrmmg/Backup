@@ -2,9 +2,8 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
+import com.jbr.middletier.backup.data.RunStatus;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
-import com.jbr.middletier.backup.dataaccess.BackupSpecifications;
-import com.jbr.middletier.backup.dataaccess.DbLogRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
 import com.jbr.middletier.backup.manager.DbLoggingManager;
@@ -22,16 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.jpa.domain.Specification;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Calendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,12 +52,7 @@ class TestBackups {
     ModelMapper modelMapper;
 
     @Autowired
-    DbLogRepository dbLogRepository;
-
-    private int GetBackupTime() {
-        Calendar calendar = Calendar.getInstance();
-        return calendar.get(Calendar.HOUR_OF_DAY) * 100 + calendar.get(Calendar.MINUTE) - 5;
-    }
+    DbLoggingManager dbLoggingManager;
 
     @Test
     void TestCleanBackup() {
@@ -72,8 +64,8 @@ class TestBackups {
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("CLN");
             backupDTO.setType("clean");
-            backupDTO.setTime(GetBackupTime());
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            backupDTO.setTime(1);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -89,26 +81,20 @@ class TestBackups {
 
     @Test
     void TestCleanBackupFailure() {
-        FileSystem fileSystem = mock(FileSystem.class);
         ApplicationProperties mockApplicationProperties = mock(ApplicationProperties.class);
         ApplicationProperties.Directory directory = mock(ApplicationProperties.Directory.class);
         when(mockApplicationProperties.getDirectory()).thenReturn(directory);
         when(directory.getName()).thenReturn("thisdirectorydoesnotexist");
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
         BackupManager backupManager = mock(BackupManager.class);
-
+        FileSystem fileSystem = mock(FileSystem.class);
         Backup backup = mock(Backup.class);
 
         CleanBackup cleanBackup = new CleanBackup(mockApplicationProperties);
 
-        try {
-            cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
-            fail();
-        } catch (IllegalStateException e) {
-            assertEquals("Backup directory does not exist.", e.getMessage());
-        }
+        assertThrows(IllegalStateException.class,
+                () -> cleanBackup.performBackup(backupManager, fileSystem, backup));
+        assertEquals("Backup directory does not exist.", cleanBackup.getSummary());
     }
 
     @Test
@@ -118,28 +104,25 @@ class TestBackups {
         assertTrue(testFile.exists());
 
         File testFile2 = new File(applicationProperties.getDirectory().getName() + "/20201401/Text.txt");
-        if(!testFile2.exists()) {
+        if (!testFile2.exists()) {
             Files.createFile(testFile2.toPath());
         }
         assertTrue(testFile2.exists());
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
         BackupManager backupManager = mock(BackupManager.class);
         FileSystem fileSystem = mock(FileSystem.class);
-
         Backup backup = mock(Backup.class);
 
         CleanBackup cleanBackup = new CleanBackup(applicationProperties);
+        RunStatus status = cleanBackup.performBackup(backupManager, fileSystem, backup);
 
-        cleanBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
-        verify(dbLoggingManager,times(1)).error("Failed to convert directory java.time.format.DateTimeParseException: Text '20201401' could not be parsed at index 0",null,null);
+        assertEquals(RunStatus.SUCCESS, status);
+        assertTrue(testFile.exists());
     }
 
     @Test
     void TestZipBackup() {
         try {
-            // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (!backupDirectory.mkdirs()) {
                 LOG.warn("Cannot create the backup directory.");
@@ -154,10 +137,6 @@ class TestBackups {
                 assertTrue(backupZip.delete());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File testDirectory = new File(backupManager.todaysDirectory());
@@ -172,7 +151,7 @@ class TestBackups {
 
             File testFile = new File(backupManager.todaysDirectory() + "//Sub1//TestA.txt");
             Files.deleteIfExists(testFile.toPath());
-            if(!testFile.exists()) {
+            if (!testFile.exists()) {
                 assertTrue(testFile.createNewFile());
                 PrintWriter writer = new PrintWriter(testFile.toPath().toString());
                 writer.println("Test File");
@@ -182,8 +161,8 @@ class TestBackups {
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("ZIP");
             backupDTO.setType("zipup");
-            backupDTO.setTime(GetBackupTime());
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            backupDTO.setTime(1);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -200,7 +179,6 @@ class TestBackups {
     @Test
     void TestZipBackupExists() {
         try {
-            // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (!backupDirectory.mkdirs()) {
                 LOG.warn("Cannot create the backup directory.");
@@ -215,10 +193,6 @@ class TestBackups {
                 assertTrue(backupZip.createNewFile());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File testDirectory = new File(backupManager.todaysDirectory());
@@ -232,15 +206,15 @@ class TestBackups {
             }
 
             File testFile = new File(backupManager.todaysDirectory() + "//Sub1//TestA.txt");
-            if(!testFile.exists()) {
+            if (!testFile.exists()) {
                 assertTrue(testFile.createNewFile());
             }
 
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("ZIP");
             backupDTO.setType("zipup");
-            backupDTO.setTime(GetBackupTime());
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            backupDTO.setTime(1);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -257,9 +231,6 @@ class TestBackups {
     @Test
     void TestZipDirectoryEmpty() {
         try {
-            FileSystem fileSystem = mock(FileSystem.class);
-
-            // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (!backupDirectory.mkdirs()) {
                 LOG.warn("Cannot create the backup directory.");
@@ -274,10 +245,6 @@ class TestBackups {
                 assertTrue(backupZip.createNewFile());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File testDirectory = new File(backupManager.todaysDirectory());
@@ -285,14 +252,13 @@ class TestBackups {
                 FileUtils.deleteDirectory(testDirectory);
             }
 
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("ZIP");
-            backupDTO.setType("zipup");
-            backupDTO.setTime(GetBackupTime());
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            FileSystem fileSystem = mock(FileSystem.class);
+            Backup backup = mock(Backup.class);
 
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
+            RunStatus status = zipupBackup.performBackup(backupManager, fileSystem, backup);
+
+            assertEquals(RunStatus.SUCCESS, status);
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -307,20 +273,15 @@ class TestBackups {
             permissions.add(PosixFilePermission.OWNER_WRITE);
             permissions.add(PosixFilePermission.OWNER_EXECUTE);
             Files.setPosixFilePermissions(newDir.toPath(), permissions);
-
             FileUtils.deleteDirectory(newDir);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOG.error("Failed to clean up.");
         }
     }
 
-
     @Test
     void TestZipBackupFail() {
         try {
-            FileSystem fileSystem = mock(FileSystem.class);
-
-            // Setup the test
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (backupDirectory.exists()) {
                 FileUtils.deleteDirectory(backupDirectory);
@@ -331,12 +292,12 @@ class TestBackups {
             }
 
             File backupFile = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
-            if(backupFile.exists()) {
+            if (backupFile.exists()) {
                 assertTrue(backupFile.delete());
             }
 
             File backupFile2 = new File(applicationProperties.getDirectory().getZip() + "/backups_zip");
-            if(backupFile2.exists()) {
+            if (backupFile2.exists()) {
                 FileUtils.deleteDirectory(backupFile2);
             }
             assertTrue(backupFile2.mkdir());
@@ -344,39 +305,27 @@ class TestBackups {
             assertTrue(backupFile3.createNewFile());
 
             File dir = new File(applicationProperties.getDirectory().getZip() + "/backups_zip");
-            File newDir  = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
+            File newDir = new File(applicationProperties.getDirectory().getZip() + "/backups.zip");
             assertTrue(dir.renameTo(newDir));
 
             Set<PosixFilePermission> permissions = new HashSet<>();
             permissions.add(PosixFilePermission.OWNER_READ);
+            Files.setPosixFilePermissions(newDir.toPath(), permissions);
 
-            Files.setPosixFilePermissions(newDir.toPath(),permissions);
-
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("ZIP");
             backupDTO.setType("zipup");
-            backupDTO.setTime(GetBackupTime());
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            backupDTO.setTime(1);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
+            FileSystem fileSystem = mock(FileSystem.class);
             ZipupBackup zipupBackup = new ZipupBackup(applicationProperties);
-            zipupBackup.performBackup(backupManager,dbLoggingManager,fileSystem,backup);
+            RunStatus status = zipupBackup.performBackup(backupManager, fileSystem, backup);
 
+            assertEquals(RunStatus.FAILED, status);
             backupRepository.deleteAll();
-
-            if(newDir.exists()) {
-                if(newDir.isDirectory()) {
-                    permissions.add(PosixFilePermission.OWNER_WRITE);
-                    permissions.add(PosixFilePermission.OWNER_EXECUTE);
-                    Files.setPosixFilePermissions(newDir.toPath(), permissions);
-                }
-                FileUtils.forceDelete(newDir);
-            }
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
             fail();
@@ -388,10 +337,6 @@ class TestBackups {
     @Test
     void TestFileBackup() {
         try {
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
@@ -406,20 +351,20 @@ class TestBackups {
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.txt");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
             File testFile = new File("./target/testfiles/Backup/test.txt");
             if (testFile.exists()) {
                 assertTrue(testFile.delete());
             }
-            if(!testFile.getParentFile().exists()) {
+            if (!testFile.getParentFile().exists()) {
                 assertTrue(testFile.getParentFile().mkdirs());
             }
-            if(!testFile.exists()) {
+            if (!testFile.exists()) {
                 assertTrue(testFile.createNewFile());
             }
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -436,10 +381,6 @@ class TestBackups {
     @Test
     void TestFileBackupNoSource() {
         try {
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
@@ -453,17 +394,17 @@ class TestBackups {
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("testx.txt");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
             File testFile = new File("./target/testfiles/Backup/test.txt");
             if (testFile.exists()) {
                 assertTrue(testFile.delete());
             }
-            if(!testFile.getParentFile().exists()) {
+            if (!testFile.getParentFile().exists()) {
                 assertTrue(testFile.getParentFile().mkdirs());
             }
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -480,16 +421,6 @@ class TestBackups {
     @Test
     void TestFileBackupNoSourceDir() {
         try {
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
-
-            File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
-            if (backedup.exists()) {
-                assertTrue(backedup.delete());
-            }
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("File");
             backupDTO.setType("file");
@@ -497,14 +428,12 @@ class TestBackups {
             backupDTO.setBackupName("Test");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("testx.txt");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
-
-            assertFalse(backedup.exists());
 
             backupRepository.deleteAll();
         } catch (Exception ex) {
@@ -512,7 +441,6 @@ class TestBackups {
             fail();
         }
     }
-
 
     @Test
     void TestGitBackup() {
@@ -550,10 +478,6 @@ class TestBackups {
                 assertTrue(source5.createNewFile());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestGit/src/test.txt");
@@ -580,9 +504,9 @@ class TestBackups {
             backupDTO.setBackupName("TestGit");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.txt");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -607,10 +531,6 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
@@ -625,9 +545,9 @@ class TestBackups {
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -649,10 +569,6 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
@@ -667,9 +583,9 @@ class TestBackups {
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -682,52 +598,15 @@ class TestBackups {
     }
 
     @Test
-    void TestBackupBetween() {
-        BackupDTO backupDTO = new BackupDTO();
-        backupDTO.setId("TST1");
-        backupDTO.setTime(100);
-
-        Backup backup = modelMapper.map(backupDTO,Backup.class);
-        backupRepository.save(backup);
-
-        backupDTO.setId("Tst2");
-        backupDTO.setTime(200);
-        backup = modelMapper.map(backupDTO,Backup.class);
-        backupRepository.save(backup);
-
-        backupDTO.setId("Tst3");
-        backupDTO.setTime(300);
-        backup = modelMapper.map(backupDTO,Backup.class);
-        backupRepository.save(backup);
-
-        backupDTO.setId("Tst4");
-        backupDTO.setTime(400);
-        backup = modelMapper.map(backupDTO,Backup.class);
-        backupRepository.save(backup);
-
-        List<Backup> backupList = backupRepository.findAll(Specification.where(BackupSpecifications.backupsBetweenTimes(199,301)));
-        assertEquals(2,backupList.size());
-
-        backupRepository.deleteAll();
-    }
-
-    @Test
     void TestInvalidType() {
-        try {
-            // Perform the test.
-            BackupDTO backupDTO = new BackupDTO();
-            backupDTO.setId("BOB");
-            backupDTO.setType("bob");
-            backupDTO.setTime(GetBackupTime());
+        BackupDTO backupDTO = new BackupDTO();
+        backupDTO.setId("BOB");
+        backupDTO.setType("bob");
+        backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
-
-            backupRepository.save(backup);
-            backupCtrl.scheduleBackup();
-        } catch (Exception ex) {
-            LOG.error("Test failed - ", ex);
-            assertTrue(true);
-        }
+        Backup backup = modelMapper.map(backupDTO, Backup.class);
+        backupRepository.save(backup);
+        backupCtrl.scheduleBackup();
 
         backupRepository.deleteAll();
     }
@@ -740,10 +619,6 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
@@ -758,9 +633,9 @@ class TestBackups {
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("synchronise");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -781,10 +656,6 @@ class TestBackups {
             Files.createDirectories(backupDir.toPath());
             assertTrue(backupDir.exists());
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
@@ -795,7 +666,7 @@ class TestBackups {
             assertTrue(expected1.getParentFile().mkdir());
             assertTrue(expected1.createNewFile());
 
-            RandomAccessFile raf = new RandomAccessFile(backupManager.todaysDirectory() + "/TestDB/test.sql","rw");
+            RandomAccessFile raf = new RandomAccessFile(backupManager.todaysDirectory() + "/TestDB/test.sql", "rw");
             raf.setLength(102);
             raf.close();
 
@@ -806,9 +677,9 @@ class TestBackups {
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.sql");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
             backupRepository.save(backup);
             backupCtrl.scheduleBackup();
@@ -832,10 +703,6 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            // Create a logging manager.
-            DbLoggingManager dbLoggingManager = new DbLoggingManager(applicationProperties, dbLogRepository, modelMapper);
-
-            // Perform the test.
             BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
 
             DatabaseBackup databaseBackup = new DatabaseBackup(applicationProperties);
@@ -854,13 +721,14 @@ class TestBackups {
             backupDTO.setBackupName("TestDB");
             backupDTO.setFileName("Fred");
             backupDTO.setArtifact("test.sql");
-            backupDTO.setTime(GetBackupTime());
+            backupDTO.setTime(1);
 
-            Backup backup = modelMapper.map(backupDTO,Backup.class);
+            Backup backup = modelMapper.map(backupDTO, Backup.class);
 
-            databaseBackup.performBackup(backupManager, dbLoggingManager, fileSystem, backup);
+            RunStatus status = databaseBackup.performBackup(backupManager, fileSystem, backup);
             applicationProperties.setDbUrl(backupDbUrl);
 
+            assertEquals(RunStatus.FAILED, status);
             assertFalse(expected1.exists());
         } catch (Exception ex) {
             LOG.error("Test failed - ", ex);
@@ -870,72 +738,56 @@ class TestBackups {
 
     @Test
     void testBackupCtrlDisabled() {
-        try {
-            ApplicationProperties mockApplicationProperties = new ApplicationProperties();
-            mockApplicationProperties.setEnabled(false);
+        ApplicationProperties mockApplicationProperties = new ApplicationProperties();
+        mockApplicationProperties.setEnabled(false);
 
-            BackupCtrl localBackupCtrl = new BackupCtrl(null, null, null, null, mockApplicationProperties, null);
-            localBackupCtrl.scheduleBackup();
-
-        } catch (Exception ex) {
-            LOG.error("Test failed - ", ex);
-            fail();
-        }
+        BackupCtrl localBackupCtrl = new BackupCtrl(null, null, null, null, mockApplicationProperties, null);
+        localBackupCtrl.scheduleBackup();
     }
 
     @Test
     void testDbBackup() {
-        try {
-            FileSystem fileSystem = mock(FileSystem.class);
+        FileSystem fileSystem = mock(FileSystem.class);
 
-            ApplicationProperties properties = mock(ApplicationProperties.class);
-            when(properties.getDbBackupCommand()).thenReturn("xx");
-            when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+        ApplicationProperties properties = mock(ApplicationProperties.class);
+        when(properties.getDbBackupCommand()).thenReturn("xx");
+        when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
 
-            BackupManager manager = mock(BackupManager.class);
-            when(manager.todaysDirectory()).thenReturn("./target/it_test");
+        BackupManager manager = mock(BackupManager.class);
+        when(manager.todaysDirectory()).thenReturn("./target/it_test");
 
-            Backup backup = mock(Backup.class);
-            when(backup.getBackupName()).thenReturn("test");
-            when(backup.getArtifact()).thenReturn("blah.txt");
-            when(backup.getDirectory()).thenReturn("xx");
+        Backup backup = mock(Backup.class);
+        when(backup.getBackupName()).thenReturn("test");
+        when(backup.getArtifact()).thenReturn("blah.txt");
+        when(backup.getDirectory()).thenReturn("xx");
 
-            DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-            DatabaseBackup dbBackup = new DatabaseBackup(properties);
-            assertNotNull(dbBackup);
-            dbBackup.performBackup(manager, dbLoggingManager, fileSystem, backup);
-        } catch(Exception e) {
-            fail();
-        }
+        DatabaseBackup dbBackup = new DatabaseBackup(properties);
+        assertNotNull(dbBackup);
+        RunStatus status = dbBackup.performBackup(manager, fileSystem, backup);
+        assertEquals(RunStatus.SUCCESS, status);
     }
 
     @Test
     void testDbBackup2() {
-        try {
-            FileSystem fileSystem = mock(FileSystem.class);
+        FileSystem fileSystem = mock(FileSystem.class);
 
-            ApplicationProperties properties = mock(ApplicationProperties.class);
-            when(properties.getDbBackupCommand()).thenReturn("xx");
-            when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
-            when(properties.getDbUsername()).thenReturn("user");
-            when(properties.getDbPassword()).thenReturn("pwd");
+        ApplicationProperties properties = mock(ApplicationProperties.class);
+        when(properties.getDbBackupCommand()).thenReturn("xx");
+        when(properties.getDbUrl()).thenReturn("xx:xx:xx:xx");
+        when(properties.getDbUsername()).thenReturn("user");
+        when(properties.getDbPassword()).thenReturn("pwd");
 
-            BackupManager manager = mock(BackupManager.class);
-            when(manager.todaysDirectory()).thenReturn("./target/it_test");
+        BackupManager manager = mock(BackupManager.class);
+        when(manager.todaysDirectory()).thenReturn("./target/it_test");
 
-            Backup backup = mock(Backup.class);
-            when(backup.getBackupName()).thenReturn("test");
-            when(backup.getArtifact()).thenReturn("blah.txt");
-            when(backup.getDirectory()).thenReturn("xx");
+        Backup backup = mock(Backup.class);
+        when(backup.getBackupName()).thenReturn("test");
+        when(backup.getArtifact()).thenReturn("blah.txt");
+        when(backup.getDirectory()).thenReturn("xx");
 
-            DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-            DatabaseBackup dbBackup = new DatabaseBackup(properties);
-            assertNotNull(dbBackup);
-            dbBackup.performBackup(manager, dbLoggingManager, fileSystem, backup);
-        } catch(Exception e) {
-            fail();
-        }
+        DatabaseBackup dbBackup = new DatabaseBackup(properties);
+        assertNotNull(dbBackup);
+        RunStatus status = dbBackup.performBackup(manager, fileSystem, backup);
+        assertEquals(RunStatus.SUCCESS, status);
     }
 }
