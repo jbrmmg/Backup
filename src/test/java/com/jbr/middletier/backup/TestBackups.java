@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -281,6 +282,9 @@ class TestBackups {
 
     @Test
     void TestZipBackupFail() {
+        // Root bypasses POSIX file permissions, so the permission-restricted directory
+        // can be deleted and the backup succeeds rather than failing as expected.
+        assumeFalse("root".equals(System.getProperty("user.name")), "Skipping: file permission restrictions are not enforced when running as root");
         try {
             File backupDirectory = new File(applicationProperties.getDirectory().getName());
             if (backupDirectory.exists()) {
