@@ -30,7 +30,8 @@ public class ActionController {
 
     private final FileSystemObjectManager fileSystemObjectManager;
     private final ActionManager actionManager;
-    private final Summary summary;
+    private final ApplicationProperties applicationProperties;
+    private final AssociatedFileDataManager associatedFileDataManager;
 
     @Contract(pure = true)
     @Autowired
@@ -38,9 +39,12 @@ public class ActionController {
                             ActionManager actionManager,
                             ApplicationProperties applicationProperties,
                             AssociatedFileDataManager associatedFileDataManager) {
+        LOG.info("Initialise the Action Controller.");
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
-        this.summary = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
+        this.applicationProperties = applicationProperties;
+        this.associatedFileDataManager = associatedFileDataManager;
+        Summary.getInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
     }
 
     @GetMapping(path="/actions")
@@ -88,6 +92,8 @@ public class ActionController {
 
     @GetMapping(path="/summary")
     public Summary summary() {
-        return this.summary;
+        Summary current = Summary.getInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
+        LOG.info("Request Summary - {}", current.isValid());
+        return current;
     }
 }

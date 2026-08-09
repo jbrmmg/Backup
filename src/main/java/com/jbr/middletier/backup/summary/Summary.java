@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused")
 public class Summary {
@@ -32,6 +34,8 @@ public class Summary {
                                       ApplicationProperties applicationProperties) implements Runnable {
 
         private void processNextSource(SourceDTO nextSourceDTO) {
+            LOG.info("Process the next source {}", nextSourceDTO.getPath());
+
             // Check to see if there is an import source.
             Optional<ImportSource> importSource = associatedFileDataManager.findImportSourceIfExists(nextSourceDTO.getId());
             if (importSource.isPresent()) {
@@ -58,6 +62,7 @@ public class Summary {
         @Override
         public void run() {
             try {
+                LOG.info("Run Summary");
                 instance.sources = new ArrayList<>();
 
                 if (Boolean.TRUE.equals(applicationProperties.getSummaryEnabled())) {
@@ -73,17 +78,23 @@ public class Summary {
                 }
             } catch (Exception e) {
                 LOG.error("Failed to get the summary: ", e);
+            } finally {
+                instance.initLatch.countDown();
             }
         }
     }
+
+    private final CountDownLatch initLatch = new CountDownLatch(1);
 
     private static Summary instance = null;
 
     public static Summary getInstance(AssociatedFileDataManager associatedFileDataManager, FileSystemObjectManager fileSystemObjectManager, ApplicationProperties applicationProperties) {
         if(instance != null) {
+            LOG.info("Reusing the instance of summary.");
             return instance;
         }
 
+        LOG.info("Creating instance of summary");
         instance = new Summary();
 
         SummaryInitializer initializer = new SummaryInitializer(instance, associatedFileDataManager, fileSystemObjectManager,applicationProperties);
@@ -93,6 +104,7 @@ public class Summary {
     }
 
     public static void forceInstance(AssociatedFileDataManager associatedFileDataManager, FileSystemObjectManager fileSystemObjectManager, ApplicationProperties applicationProperties) {
+        LOG.info("Force the creation of the summary.");
         instance = null;
 
         instance = new Summary();
@@ -103,6 +115,11 @@ public class Summary {
     private Summary() {
         LOG.info("Initialise the summary data.");
         this.valid = false;
+    }
+
+    public void awaitValid(long timeoutMs) throws InterruptedException {
+        LOG.info("Awaiting valid state.");
+        initLatch.await(timeoutMs, TimeUnit.MILLISECONDS);
     }
 
     public List<SourceDTO> getSources() {

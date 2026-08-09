@@ -553,6 +553,7 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[1].failed", is(false)));
 
         LOG.info("Check Summary");
+        Summary.forceInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
         getMockMvc().perform(get("/api/v1/summary")
                         .content(this.json("Testing"))
                         .contentType(getContentType()))
@@ -752,6 +753,7 @@ public class SyncApiIT extends FileTester {
                         .contentType(getContentType()))
                 .andExpect(status().isOk());
 
+        Summary.forceInstance(associatedFileDataManager, fileSystemObjectManager, applicationProperties);
         getMockMvc().perform(get("/api/v1/summary")
                         .content(this.json(request))
                         .contentType(getContentType()))
