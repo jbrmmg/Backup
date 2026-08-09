@@ -47,9 +47,6 @@ backup:
 
   zip-directory: /home/jason/Working/BackupDevZip
 
-server:
-  port: 13013
-
 info:
   app:
     version: Debug

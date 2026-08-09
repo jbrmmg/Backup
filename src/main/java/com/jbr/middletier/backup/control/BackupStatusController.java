@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/jbr/ext/backup/status")
+@RequestMapping("/api/v1//backup/status")
 @Tag(name = "Backup Status", description = "Backup job run status and history")
 public class BackupStatusController {
 
