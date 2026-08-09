@@ -75,6 +75,12 @@ jobs:
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: mvn verify -Drevision=${{ env.VERSION }}
 
+      - name: Set up JDK 21 for Sonar
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
       - name: Run Sonar
         run: mvn sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Drevision=${{ env.VERSION }}
 
