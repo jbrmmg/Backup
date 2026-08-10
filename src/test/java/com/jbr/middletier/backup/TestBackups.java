@@ -3,6 +3,7 @@ package com.jbr.middletier.backup;
 import com.jbr.middletier.backup.config.ApplicationProperties;
 import com.jbr.middletier.backup.data.Backup;
 import com.jbr.middletier.backup.data.RunStatus;
+import com.jbr.middletier.backup.dataaccess.BackupJobRunRepository;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
@@ -13,6 +14,7 @@ import com.jbr.middletier.backup.type.CleanBackup;
 import com.jbr.middletier.backup.type.DatabaseBackup;
 import com.jbr.middletier.backup.type.ZipupBackup;
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -47,6 +49,9 @@ class TestBackups {
     BackupRepository backupRepository;
 
     @Autowired
+    BackupJobRunRepository backupJobRunRepository;
+
+    @Autowired
     BackupCtrl backupCtrl;
 
     @Autowired
@@ -54,6 +59,11 @@ class TestBackups {
 
     @Autowired
     DbLoggingManager dbLoggingManager;
+
+    @BeforeEach
+    void clearJobRuns() {
+        backupJobRunRepository.deleteAll();
+    }
 
     @Test
     void TestCleanBackup() {

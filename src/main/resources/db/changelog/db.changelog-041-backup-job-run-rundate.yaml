@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 41
+      author: jason
+      changes:
+        - addColumn:
+            tableName: backup_job_run
+            columns:
+              - column:
+                  name: run_date
+                  type: date
+        - addUniqueConstraint:
+            tableName: backup_job_run
+            columnNames: backup_id, run_date
+            constraintName: uq_backup_job_run_backup_id_run_date

@@ -3,6 +3,7 @@ package com.jbr.middletier.backup.data;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,6 +17,9 @@ public class BackupJobRun {
 
     @Column(name = "backup_id")
     private String backupId;
+
+    @Column(name = "run_date")
+    private LocalDate runDate;
 
     @Column(name = "started_at")
     private LocalDateTime startedAt;
@@ -33,8 +37,16 @@ public class BackupJobRun {
 
     public BackupJobRun(String backupId) {
         this.backupId = backupId;
+        this.runDate = LocalDate.now();
         this.startedAt = LocalDateTime.now();
         this.status = RunStatus.RUNNING.name();
+    }
+
+    public void reset() {
+        this.status = RunStatus.RUNNING.name();
+        this.startedAt = LocalDateTime.now();
+        this.finishedAt = null;
+        this.message = null;
     }
 
     public void complete(RunStatus runStatus, String completionMessage) {

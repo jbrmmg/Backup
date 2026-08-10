@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -46,8 +46,14 @@ public class BackupCtrl {
     }
 
     private void pruneOldRuns() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(applicationProperties.getJobRunRetentionDays());
-        backupJobRunRepository.deleteByStartedAtBefore(cutoff);
+        LocalDate cutoff = LocalDate.now().minusDays(applicationProperties.getJobRunRetentionDays());
+        backupJobRunRepository.deleteByRunDateBefore(cutoff);
+    }
+
+    private BackupJobRun findOrCreateRun(String backupId) {
+        return backupJobRunRepository
+                .findByBackupIdAndRunDate(backupId, LocalDate.now())
+                .orElseGet(() -> new BackupJobRun(backupId));
     }
 
     private void performBackups(List<Backup> backups) {
@@ -56,16 +62,24 @@ public class BackupCtrl {
         } catch (Exception ex) {
             LOG.error("Failed to initialise backup directory", ex);
             for (Backup backup : backups) {
-                BackupJobRun run = new BackupJobRun(backup.getId());
-                run.complete(RunStatus.FAILED, ex.getMessage());
-                backupJobRunRepository.save(run);
+                BackupJobRun run = findOrCreateRun(backup.getId());
+                if (!RunStatus.SUCCESS.name().equals(run.getStatus())) {
+                    run.complete(RunStatus.FAILED, ex.getMessage());
+                    backupJobRunRepository.save(run);
+                }
             }
             return;
         }
 
         for (Backup backup : backups) {
+            BackupJobRun run = findOrCreateRun(backup.getId());
+            if (RunStatus.SUCCESS.name().equals(run.getStatus())) {
+                LOG.info("Backup {} already succeeded today, skipping", backup.getId());
+                continue;
+            }
+
             LOG.info("Perform backup {}", backup.getId());
-            BackupJobRun run = new BackupJobRun(backup.getId());
+            run.reset();
             backupJobRunRepository.save(run);
 
             try {

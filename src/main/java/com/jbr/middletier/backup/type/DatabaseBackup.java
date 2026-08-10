@@ -82,7 +82,7 @@ public class DatabaseBackup implements PerformBackup {
                 if (destinationFile.length() > 100) {
                     LOG.info("Already backed up, exiting");
                     lastSummary = String.format("Database %s backed up", backup.getArtifact());
-                    return RunStatus.SKIPPED;
+                    return RunStatus.SUCCESS;
                 }
             }
 

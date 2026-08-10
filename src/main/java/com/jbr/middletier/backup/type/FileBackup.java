@@ -48,7 +48,7 @@ public class FileBackup implements PerformBackup {
             LOG.info("File exists - {}/{}", destinationDirectory, artifactName);
             if (fileSize == destinationFile.length()) {
                 LOG.info("Already backed up, exiting");
-                return RunStatus.SKIPPED;
+                return RunStatus.SUCCESS;
             }
         }
 

@@ -5,11 +5,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BackupJobRunRepository extends CrudRepository<BackupJobRun, Long> {
-    List<BackupJobRun> findByBackupIdOrderByStartedAtDesc(String backupId, Pageable pageable);
-    void deleteByStartedAtBefore(LocalDateTime cutoff);
+    Optional<BackupJobRun> findByBackupIdAndRunDate(String backupId, LocalDate runDate);
+    List<BackupJobRun> findAllByOrderByRunDateDescStartedAtAsc();
+    List<BackupJobRun> findByBackupIdOrderByRunDateDesc(String backupId, Pageable pageable);
+    void deleteByRunDateBefore(LocalDate cutoff);
 }
