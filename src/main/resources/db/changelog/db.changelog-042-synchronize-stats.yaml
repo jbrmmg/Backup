@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 42
+      author: jason
+      changes:
+        - addColumn:
+            tableName: synchronize
+            columns:
+              - column:
+                  name: start_time
+                  type: datetime
+              - column:
+                  name: end_time
+                  type: datetime
+              - column:
+                  name: files_copied
+                  type: int
+              - column:
+                  name: directories_copied
+                  type: int
+              - column:
+                  name: files_deleted
+                  type: int
+              - column:
+                  name: directories_deleted
+                  type: int
+              - column:
+                  name: sources_removed
+                  type: int
+              - column:
+                  name: dates_updated
+                  type: int
+              - column:
+                  name: files_warned
+                  type: int

@@ -5,6 +5,7 @@ import com.jbr.middletier.backup.data.DirectoryInfo;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.ImportSource;
 import com.jbr.middletier.backup.data.Source;
+import com.jbr.middletier.backup.data.Synchronize;
 import com.jbr.middletier.backup.dto.ImportSourceDTO;
 import com.jbr.middletier.backup.dto.SourceDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
@@ -13,6 +14,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +61,38 @@ public class Summary {
             }
         }
 
+        private void enrichWithSynchronizeData() {
+            Map<Integer, String> groupBySourceId = new HashMap<>();
+            Map<Integer, Synchronize> syncByDestinationId = new HashMap<>();
+
+            for (Synchronize sync : associatedFileDataManager.findAllSynchronize()) {
+                String groupName = Paths.get(sync.getSource().getPath()).getFileName().toString();
+                groupBySourceId.put(sync.getSource().getIdAndType().getId(), groupName);
+                groupBySourceId.put(sync.getDestination().getIdAndType().getId(), groupName);
+                syncByDestinationId.put(sync.getDestination().getIdAndType().getId(), sync);
+            }
+
+            for (SourceDTO sourceDTO : instance.sources) {
+                String group = groupBySourceId.get(sourceDTO.getId());
+                if (group != null) {
+                    sourceDTO.setGroup(group);
+                }
+
+                Synchronize sync = syncByDestinationId.get(sourceDTO.getId());
+                if (sync != null) {
+                    sourceDTO.setSyncStartTime(sync.getStartTime());
+                    sourceDTO.setSyncEndTime(sync.getEndTime());
+                    sourceDTO.setSyncFilesCopied(sync.getFilesCopied());
+                    sourceDTO.setSyncDirectoriesCopied(sync.getDirectoriesCopied());
+                    sourceDTO.setSyncFilesDeleted(sync.getFilesDeleted());
+                    sourceDTO.setSyncDirectoriesDeleted(sync.getDirectoriesDeleted());
+                    sourceDTO.setSyncSourcesRemoved(sync.getSourcesRemoved());
+                    sourceDTO.setSyncDatesUpdated(sync.getDatesUpdated());
+                    sourceDTO.setSyncFilesWarned(sync.getFilesWarned());
+                }
+            }
+        }
+
         @Override
         public void run() {
             try {
@@ -70,6 +104,8 @@ public class Summary {
                     for (Source nextSource : associatedFileDataManager.findAllSource()) {
                         processNextSource(associatedFileDataManager.convertToDTO(nextSource));
                     }
+
+                    enrichWithSynchronizeData();
 
                     // Set the object to valid.
                     instance.validAt = new Date();

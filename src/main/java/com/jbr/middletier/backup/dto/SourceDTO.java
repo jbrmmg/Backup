@@ -2,6 +2,8 @@ package com.jbr.middletier.backup.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class SourceDTO {
     private Integer id;
@@ -17,6 +19,16 @@ public class SourceDTO {
     private long largestFile;
     private Boolean gatherMetaData;
     private Boolean primary;
+    private String group;
+    private LocalDateTime syncStartTime;
+    private LocalDateTime syncEndTime;
+    private Integer syncFilesCopied;
+    private Integer syncDirectoriesCopied;
+    private Integer syncFilesDeleted;
+    private Integer syncDirectoriesDeleted;
+    private Integer syncSourcesRemoved;
+    private Integer syncDatesUpdated;
+    private Integer syncFilesWarned;
 
     public SourceDTO() {
         setId(null);

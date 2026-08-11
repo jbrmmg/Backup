@@ -119,3 +119,6 @@ databaseChangeLog:
 
   - include:
       file: /db/changelog/db.changelog-041-backup-job-run-rundate.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-042-synchronize-stats.yaml

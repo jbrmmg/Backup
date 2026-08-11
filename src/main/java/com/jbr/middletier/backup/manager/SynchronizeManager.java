@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -140,8 +141,27 @@ public class SynchronizeManager {
         fileSystem.createDirectory(directory.toPath());
     }
 
+    private void saveSynchronizeStats(Synchronize synchronize) {
+        try {
+            associatedFileDataManager.updateSynchronize(synchronize);
+        } catch (Exception e) {
+            LOG.warn("Failed to save synchronize stats for id {}", synchronize.getId(), e);
+        }
+    }
+
     private SyncDataDTO processSynchronize(Synchronize nextSynchronize) {
         SyncDataDTO result = new SyncDataDTO(nextSynchronize.getId());
+
+        nextSynchronize.setStartTime(LocalDateTime.now());
+        nextSynchronize.setEndTime(null);
+        nextSynchronize.setFilesCopied(null);
+        nextSynchronize.setDirectoriesCopied(null);
+        nextSynchronize.setFilesDeleted(null);
+        nextSynchronize.setDirectoriesDeleted(null);
+        nextSynchronize.setSourcesRemoved(null);
+        nextSynchronize.setDatesUpdated(null);
+        nextSynchronize.setFilesWarned(null);
+        saveSynchronizeStats(nextSynchronize);
 
         try {
             dbLoggingManager.info("Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath(),nextSynchronize.getSource().getIdAndType().getId(), null);
@@ -207,6 +227,16 @@ public class SynchronizeManager {
         } catch (Exception e) {
             LOG.warn("Failure in {} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath(), e);
             result.setProblems();
+        } finally {
+            nextSynchronize.setEndTime(LocalDateTime.now());
+            nextSynchronize.setFilesCopied(result.getCount(SyncDataDTO.SyncDataCountType.FILES_COPIED));
+            nextSynchronize.setDirectoriesCopied(result.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_COPIED));
+            nextSynchronize.setFilesDeleted(result.getCount(SyncDataDTO.SyncDataCountType.FILES_DELETED));
+            nextSynchronize.setDirectoriesDeleted(result.getCount(SyncDataDTO.SyncDataCountType.DIRECTORIES_DELETED));
+            nextSynchronize.setSourcesRemoved(result.getCount(SyncDataDTO.SyncDataCountType.SOURCES_REMOVED));
+            nextSynchronize.setDatesUpdated(result.getCount(SyncDataDTO.SyncDataCountType.DATES_UPDATED));
+            nextSynchronize.setFilesWarned(result.getCount(SyncDataDTO.SyncDataCountType.FILES_WARNED));
+            saveSynchronizeStats(nextSynchronize);
         }
 
         return result;
