@@ -44,6 +44,7 @@ backup:
   enabled: false
   job-run-retention-days: 7
   summary-enabled: true
+  summary-refresh-hours: 4
   import-threads: 5
   service-name: middletier-backup-dbg
   web-log-url:

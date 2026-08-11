@@ -314,6 +314,9 @@ public class ApplicationProperties {
     private Boolean summaryEnabled;
     @Setter
     @Getter
+    private int summaryRefreshHours = 4;
+    @Setter
+    @Getter
     private Integer importThreads;
     @Setter
     @Getter
