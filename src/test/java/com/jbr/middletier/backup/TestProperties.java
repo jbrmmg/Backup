@@ -34,8 +34,6 @@ class TestProperties {
         assertEquals("directory", test.getReviewDirectory());
         test.setServiceName("service");
         assertEquals("service", test.getServiceName());
-        test.setWebLogUrl("url");
-        assertEquals("url", test.getWebLogUrl());
         test.getDirectory().setDateFormat("dd/mm");
         assertEquals("dd/mm", test.getDirectory().getDateFormat());
         test.getDirectory().setDays(1);

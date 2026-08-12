@@ -208,7 +208,6 @@ public class ApplicationProperties {
         modelMapper.createTypeMap(HardwareDTO.class,Hardware.class);
         modelMapper.createTypeMap(Backup.class,BackupDTO.class);
         modelMapper.createTypeMap(BackupDTO.class,Backup.class);
-        modelMapper.createTypeMap(DbLog.class,DbLogDTO.class);
         modelMapper.createTypeMap(FileInfo.class,ImportFileBaseDTO.class).addMappings(mapper -> mapper.map(FileInfo::getName,ImportFileBaseDTO::setFilename));
 
         modelMapper.createTypeMap(ImportFile.class,ImportFileDTO.class).addMappings(mapper -> {
@@ -301,11 +300,6 @@ public class ApplicationProperties {
     private String zipDirectory;
     @Getter
     @Setter
-    private String webLogUrl;
-    @Setter
-    private boolean cacheWebLog;
-    @Getter
-    @Setter
     private String schedule;
     @Setter
     private boolean enabled;
@@ -352,8 +346,6 @@ public class ApplicationProperties {
     private int jobRunRetentionDays = 7;
     @Getter
     private final Map<String, Transformer> transformers = new HashMap<>();
-
-    public boolean getCacheWebLog() { return this.cacheWebLog; }
 
     public boolean getEnabled() { return this.enabled; }
 

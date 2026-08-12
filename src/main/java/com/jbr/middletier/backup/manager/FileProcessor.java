@@ -25,18 +25,15 @@ public abstract class FileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FileProcessor.class);
 
     protected final FileSystemObjectManager fileSystemObjectManager;
-    protected final DbLoggingManager dbLoggingManager;
     protected final ActionManager actionManager;
     protected final AssociatedFileDataManager associatedFileDataManager;
     protected final FileSystem fileSystem;
 
-    protected FileProcessor(DbLoggingManager dbLoggingManager,
-                  ActionManager actionManager,
+    protected FileProcessor(ActionManager actionManager,
                   AssociatedFileDataManager associatedFileDataManager,
                   FileSystemObjectManager fileSystemObjectManager,
                   FileSystem fileSystem) {
         this.fileSystemObjectManager = fileSystemObjectManager;
-        this.dbLoggingManager = dbLoggingManager;
         this.actionManager = actionManager;
         this.associatedFileDataManager = associatedFileDataManager;
         this.fileSystem = fileSystem;

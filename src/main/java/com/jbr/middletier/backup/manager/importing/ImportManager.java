@@ -3,7 +3,11 @@ package com.jbr.middletier.backup.manager.importing;
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.*;
-import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.manager.ActionManager;
+import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
+import com.jbr.middletier.backup.manager.FileProcessor;
+import com.jbr.middletier.backup.manager.FileSystem;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.util.ImageSize;
 import com.jbr.middletier.backup.util.LatLong;
 import org.slf4j.Logger;
@@ -46,12 +50,11 @@ public class ImportManager extends FileProcessor {
                          AssociatedFileDataManager associatedFileDataManager,
                          FileSystemObjectManager fileSystemObjectManager,
                          IgnoreFileRepository ignoreFileRepository,
-                         DbLoggingManager dbLoggingManager,
                          ActionManager actionManager,
                          FileSystem fileSystem,
                          ImportFileCache importFileCache,
                          ImportSourceManager importSourceManager) {
-        super(dbLoggingManager,actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
+        super(actionManager,associatedFileDataManager,fileSystemObjectManager,fileSystem);
         this.importFileRepository = importFileRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.importFileCache = importFileCache;

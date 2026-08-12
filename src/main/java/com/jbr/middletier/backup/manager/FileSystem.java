@@ -28,12 +28,10 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 public class FileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(FileSystem.class);
 
-    private final DbLoggingManager dbLoggingManager;
     private final ApplicationProperties applicationProperties;
 
     @Autowired
-    public FileSystem(DbLoggingManager dbLoggingManager, ApplicationProperties applicationProperties) {
-        this.dbLoggingManager = dbLoggingManager;
+    public FileSystem(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
     }
 
@@ -62,7 +60,6 @@ public class FileSystem {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {}", file);
-            dbLoggingManager.error(String.format("File delete failure: %s", file),id,null);
             processResult.setProblems();
         }
     }
@@ -82,7 +79,6 @@ public class FileSystem {
             }
         } catch (IOException e) {
             LOG.warn("Failed to delete file {}", file, e);
-            dbLoggingManager.error(String.format("Directory delete failure: %s", file),id,null);
             processResult.setProblems();
         }
     }
@@ -164,7 +160,6 @@ public class FileSystem {
             return Optional.of(md5);
         } catch (Exception ex) {
             LOG.error("Failed to get MD5, ",ex);
-            dbLoggingManager.error("Cannot get MD5 - " + path.toString(), id, null);
         }
 
         return Optional.empty();
@@ -178,7 +173,7 @@ public class FileSystem {
         try(Stream<Path> pathStream = Files.walk(path)) {
             pathStream.forEach(walker::processNextPath);
         } catch(IOException e) {
-            dbLoggingManager.error("Failed to walk + " + path, null, null);
+            LOG.error("Failed to walk {}", path);
             throw e;
         }
     }

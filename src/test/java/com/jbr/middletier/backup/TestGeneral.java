@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.exception.ApiError;
 import com.jbr.middletier.backup.manager.*;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.schedule.GatherSynchronizeCtrl;
+import com.jbr.middletier.backup.schedule.SummaryCtrl;
 import com.jbr.middletier.backup.util.DebugPhysicalNamingStrategyImpl;
 import com.jbr.middletier.backup.util.FileSearch;
 import com.jbr.middletier.backup.util.ImageSize;
@@ -317,27 +318,24 @@ class TestGeneral extends WebTester {
         when(applicationProperties.getGatherEnabled()).thenReturn(true);
 
         ActionManager mockActionManager = mock(ActionManager.class);
-
         DriveManager driveManager = mock(DriveManager.class);
-
         DuplicateManager duplicateManager = mock(DuplicateManager.class);
-
         SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
-
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+        SummaryCtrl summaryCtrl = mock(SummaryCtrl.class);
 
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
                 mockActionManager,
                 driveManager,
                 duplicateManager,
                 synchronizeManager,
-                dbLoggingManager);
+                summaryCtrl);
 
         gatherSynchronizeCtrl.gatherCron();
         verify(mockActionManager, times(1)).sendActionEmail();
         verify(driveManager, times(1)).gather(null);
         verify(duplicateManager, times(1)).duplicateCheck();
         verify(synchronizeManager, times(1)).synchronize(null);
+        verify(summaryCtrl, times(1)).refreshSummary();
     }
 
     @Test
@@ -349,25 +347,23 @@ class TestGeneral extends WebTester {
         doThrow(new IllegalStateException()).when(mockActionManager).sendActionEmail();
 
         DriveManager driveManager = mock(DriveManager.class);
-
         DuplicateManager duplicateManager = mock(DuplicateManager.class);
-
         SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
-
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+        SummaryCtrl summaryCtrl = mock(SummaryCtrl.class);
 
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
                 mockActionManager,
                 driveManager,
                 duplicateManager,
                 synchronizeManager,
-                dbLoggingManager);
+                summaryCtrl);
 
         gatherSynchronizeCtrl.gatherCron();
         verify(mockActionManager, times(1)).sendActionEmail();
         verify(driveManager, times(0)).gather(null);
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize(null);
+        verify(summaryCtrl, times(0)).refreshSummary();
     }
 
     @Test
@@ -376,28 +372,24 @@ class TestGeneral extends WebTester {
         when(applicationProperties.getGatherEnabled()).thenReturn(false);
 
         ActionManager mockActionManager = mock(ActionManager.class);
-        doThrow(new IllegalStateException()).when(mockActionManager).sendActionEmail();
-
         DriveManager driveManager = mock(DriveManager.class);
-
         DuplicateManager duplicateManager = mock(DuplicateManager.class);
-
         SynchronizeManager synchronizeManager = mock(SynchronizeManager.class);
-
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
+        SummaryCtrl summaryCtrl = mock(SummaryCtrl.class);
 
         GatherSynchronizeCtrl gatherSynchronizeCtrl = new GatherSynchronizeCtrl(applicationProperties,
                 mockActionManager,
                 driveManager,
                 duplicateManager,
                 synchronizeManager,
-                dbLoggingManager);
+                summaryCtrl);
 
         gatherSynchronizeCtrl.gatherCron();
         verify(mockActionManager, times(0)).sendActionEmail();
         verify(driveManager, times(0)).gather(null);
         verify(duplicateManager, times(0)).duplicateCheck();
         verify(synchronizeManager, times(0)).synchronize(null);
+        verify(summaryCtrl, times(0)).refreshSummary();
     }
 
     @Test
@@ -417,13 +409,9 @@ class TestGeneral extends WebTester {
 
     @Test
     void synchronizeProblem1() {
-        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
-        when(idAndType.getId()).thenReturn(1);
-
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(null);
         when(syncSource.getPath()).thenReturn("Source");
-        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(null);
@@ -438,35 +426,21 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
-
-        ActionManager mockActionManager = mock(ActionManager.class);
-
-        FileSystem fileSystem = mock(FileSystem.class);
-
         SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
-                mockFileSystemObjectManager,
-                mockActionManager,
-                fileSystem);
+                mock(FileSystemObjectManager.class),
+                mock(ActionManager.class),
+                mock(FileSystem.class));
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         assertEquals(1, syncData.size());
         assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",1,null);
     }
 
     @Test
     void synchronizeProblem2() {
-        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
-        when(idAndType.getId()).thenReturn(3);
-
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
         when(syncSource.getPath()).thenReturn("Source");
-        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(null);
@@ -481,40 +455,25 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
-
-        ActionManager mockActionManager = mock(ActionManager.class);
-
-        FileSystem fileSystem = mock(FileSystem.class);
-
         SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
-                mockFileSystemObjectManager,
-                mockActionManager,
-                fileSystem);
+                mock(FileSystemObjectManager.class),
+                mock(ActionManager.class),
+                mock(FileSystem.class));
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         assertEquals(1, syncData.size());
         assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as source not OK",3,null);
     }
 
     @Test
     void synchronizeProblem3() {
-        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
-        when(idAndType.getId()).thenReturn(5);
-
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
-        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(null);
         when(syncDestination.getPath()).thenReturn("Destination");
-        when(syncDestination.getIdAndType()).thenReturn(idAndType);
 
         Synchronize synchronize = mock(Synchronize.class);
         when(synchronize.getSource()).thenReturn(syncSource);
@@ -525,40 +484,25 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
-
-        ActionManager mockActionManager = mock(ActionManager.class);
-
-        FileSystem fileSystem = mock(FileSystem.class);
-
         SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
-                mockFileSystemObjectManager,
-                mockActionManager,
-                fileSystem);
+                mock(FileSystemObjectManager.class),
+                mock(ActionManager.class),
+                mock(FileSystem.class));
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         assertEquals(1, syncData.size());
         assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",5,null);
     }
 
     @Test
     void synchronizeProblem4() {
-        FileSystemObjectId idAndType = mock(FileSystemObjectId.class);
-        when(idAndType.getId()).thenReturn(6);
-
         Source syncSource = mock(Source.class);
         when(syncSource.getStatus()).thenReturn(SourceStatusType.SST_OK);
         when(syncSource.getPath()).thenReturn("Source");
-        when(syncSource.getIdAndType()).thenReturn(idAndType);
 
         Source syncDestination = mock(Source.class);
         when(syncDestination.getStatus()).thenReturn(SourceStatusType.SST_ERROR);
         when(syncDestination.getPath()).thenReturn("Destination");
-        when(syncDestination.getIdAndType()).thenReturn(idAndType);
 
         Synchronize synchronize = mock(Synchronize.class);
         when(synchronize.getSource()).thenReturn(syncSource);
@@ -569,24 +513,14 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
-
-        ActionManager mockActionManager = mock(ActionManager.class);
-
-        FileSystem fileSystem = mock(FileSystem.class);
-
         SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
-                mockFileSystemObjectManager,
-                mockActionManager,
-                fileSystem);
+                mock(FileSystemObjectManager.class),
+                mock(ActionManager.class),
+                mock(FileSystem.class));
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         assertEquals(1, syncData.size());
         assertTrue(syncData.get(0).hasProblems());
-        verify(dbLoggingManager, times(1)).warn("Skipping as destination not OK",6,null);
     }
 
     @Test
@@ -608,20 +542,13 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSynchronize()).thenReturn(synchronizeList);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
         FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
         when(mockFileSystemObjectManager.createDbRoot(synchronize.getSource())).thenThrow(NullPointerException.class);
 
-        ActionManager mockActionManager = mock(ActionManager.class);
-
-        FileSystem fileSystem = mock(FileSystem.class);
-
         SynchronizeManager synchronizeManager = new SynchronizeManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
                 mockFileSystemObjectManager,
-                mockActionManager,
-                fileSystem);
+                mock(ActionManager.class),
+                mock(FileSystem.class));
 
         List<SyncDataDTO> syncData = synchronizeManager.synchronize(null);
         assertEquals(1, syncData.size());
@@ -641,10 +568,6 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSource()).thenReturn(sources);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
-
         ActionManager mockActionManager = mock(ActionManager.class);
         List<ActionConfirm> deletes = new ArrayList<>();
         when(mockActionManager.findConfirmedDeletes()).thenReturn(deletes);
@@ -654,9 +577,8 @@ class TestGeneral extends WebTester {
         doThrow(new IOException("Failed")).when(fileSystem).createDirectory(any(Path.class));
 
         DriveManager driveManager = new DriveManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
                 mockActionManager,
-                mockFileSystemObjectManager,
+                mock(FileSystemObjectManager.class),
                 fileSystem);
 
         List<GatherDataDTO> gatherData = driveManager.gather(null);
@@ -677,21 +599,14 @@ class TestGeneral extends WebTester {
         AssociatedFileDataManager mockAssociatedFileDataManager = mock(AssociatedFileDataManager.class);
         when(mockAssociatedFileDataManager.findAllSource()).thenReturn(sources);
 
-        DbLoggingManager dbLoggingManager = mock(DbLoggingManager.class);
-
-        FileSystemObjectManager mockFileSystemObjectManager = mock(FileSystemObjectManager.class);
-
         ActionManager mockActionManager = mock(ActionManager.class);
         List<ActionConfirm> deletes = new ArrayList<>();
         when(mockActionManager.findConfirmedDeletes()).thenReturn(deletes);
 
-        FileSystem fileSystem = mock(FileSystem.class);
-
         DriveManager driveManager = new DriveManager(mockAssociatedFileDataManager,
-                dbLoggingManager,
                 mockActionManager,
-                mockFileSystemObjectManager,
-                fileSystem);
+                mock(FileSystemObjectManager.class),
+                mock(FileSystem.class));
 
         List<GatherDataDTO> gatherData = driveManager.gather(null);
         assertEquals(1, gatherData.size());
@@ -1285,19 +1200,6 @@ class TestGeneral extends WebTester {
     }
 
     @Test
-    void testDbLog() {
-        DbLog dbLog = new DbLog();
-        dbLog.setId(1);
-        dbLog.setDate(LocalDateTime.now());
-        dbLog.setType(DbLogType.DLT_DEBUG);
-        dbLog.setMessage("Test");
-
-        assertEquals(1,dbLog.getId().intValue());
-        assertEquals(DbLogType.DLT_DEBUG,dbLog.getType());
-        assertEquals("Test",dbLog.getMessage());
-    }
-
-    @Test
     void testFileSystemImageData() {
         Map<String,String> metadata = getMetadata("2022:01:21 11:04:10");
 
@@ -1574,7 +1476,7 @@ class TestGeneral extends WebTester {
         applicationProperties.setVidToImageLocation("target/");
         applicationProperties.setVidToImageCommand("cp %%INPUT%% %%OUTPUT%%");
 
-        FileSystem fileSystem = new FileSystem(null,applicationProperties);
+        FileSystem fileSystem = new FileSystem(applicationProperties);
 
         File testFile = new File("src/test/resources/synchronise/20171224_152453.mp4");
         File resultFile;

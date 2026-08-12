@@ -24,6 +24,7 @@ public class SourceDTO {
     private LocalDateTime gatherFinished;
     private LocalDateTime syncStartTime;
     private LocalDateTime syncEndTime;
+    private Integer syncId;
     private Integer syncFilesCopied;
     private Integer syncDirectoriesCopied;
     private Integer syncFilesDeleted;

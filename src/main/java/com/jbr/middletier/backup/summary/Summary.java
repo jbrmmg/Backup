@@ -80,6 +80,7 @@ public class Summary {
 
                 Synchronize sync = syncByDestinationId.get(sourceDTO.getId());
                 if (sync != null) {
+                    sourceDTO.setSyncId(sync.getId());
                     sourceDTO.setSyncStartTime(sync.getStartTime());
                     sourceDTO.setSyncEndTime(sync.getEndTime());
                     sourceDTO.setSyncFilesCopied(sync.getFilesCopied());

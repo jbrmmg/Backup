@@ -7,7 +7,6 @@ import com.jbr.middletier.backup.dataaccess.BackupJobRunRepository;
 import com.jbr.middletier.backup.dataaccess.BackupRepository;
 import com.jbr.middletier.backup.dto.BackupDTO;
 import com.jbr.middletier.backup.manager.BackupManager;
-import com.jbr.middletier.backup.manager.DbLoggingManager;
 import com.jbr.middletier.backup.manager.FileSystem;
 import com.jbr.middletier.backup.schedule.BackupCtrl;
 import com.jbr.middletier.backup.type.CleanBackup;
@@ -56,9 +55,6 @@ class TestBackups {
 
     @Autowired
     ModelMapper modelMapper;
-
-    @Autowired
-    DbLoggingManager dbLoggingManager;
 
     @BeforeEach
     void clearJobRuns() {
@@ -148,7 +144,7 @@ class TestBackups {
                 assertTrue(backupZip.delete());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File testDirectory = new File(backupManager.todaysDirectory());
             if (!testDirectory.exists()) {
@@ -204,7 +200,7 @@ class TestBackups {
                 assertTrue(backupZip.createNewFile());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File testDirectory = new File(backupManager.todaysDirectory());
             if (!testDirectory.exists()) {
@@ -256,7 +252,7 @@ class TestBackups {
                 assertTrue(backupZip.createNewFile());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File testDirectory = new File(backupManager.todaysDirectory());
             if (testDirectory.exists()) {
@@ -326,7 +322,7 @@ class TestBackups {
             permissions.add(PosixFilePermission.OWNER_READ);
             Files.setPosixFilePermissions(newDir.toPath(), permissions);
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             BackupDTO backupDTO = new BackupDTO();
             backupDTO.setId("ZIP");
@@ -351,7 +347,7 @@ class TestBackups {
     @Test
     void TestFileBackup() {
         try {
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
             if (backedup.exists()) {
@@ -395,7 +391,7 @@ class TestBackups {
     @Test
     void TestFileBackupNoSource() {
         try {
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File backedup = new File(backupManager.todaysDirectory() + "/Test/test.txt");
             if (backedup.exists()) {
@@ -492,7 +488,7 @@ class TestBackups {
                 assertTrue(source5.createNewFile());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestGit/src/test.txt");
             if (expected1.exists()) {
@@ -545,7 +541,7 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -583,7 +579,7 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -633,7 +629,7 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -670,7 +666,7 @@ class TestBackups {
             Files.createDirectories(backupDir.toPath());
             assertTrue(backupDir.exists());
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             File expected1 = new File(backupManager.todaysDirectory() + "/TestDB/test.sql");
             if (expected1.exists()) {
@@ -717,7 +713,7 @@ class TestBackups {
                 assertTrue(backupDir.mkdirs());
             }
 
-            BackupManager backupManager = new BackupManager(applicationProperties, dbLoggingManager);
+            BackupManager backupManager = new BackupManager(applicationProperties);
 
             DatabaseBackup databaseBackup = new DatabaseBackup(applicationProperties);
             String backupDbUrl = applicationProperties.getDbUrl();

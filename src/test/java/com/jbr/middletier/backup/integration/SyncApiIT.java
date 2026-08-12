@@ -73,9 +73,6 @@ public class SyncApiIT extends FileTester {
     }
 
     @Autowired
-    DbLoggingManager dbLoggingManager;
-
-    @Autowired
     FileSystemObjectManager fileSystemObjectManager;
 
     @Autowired
@@ -107,8 +104,6 @@ public class SyncApiIT extends FileTester {
 
     @BeforeEach
     void setupClassification() throws IOException, InvalidClassificationIdException, InvalidLocationIdException, SourceAlreadyExistsException, SynchronizeAlreadyExistsException, ClassificationIdException {
-        dbLoggingManager.clearMessageCache();
-
         addClassification(associatedFileDataManager,".*\\._\\.ds_store$", ClassificationActionType.CA_DELETE, 1, false, false);
         addClassification(associatedFileDataManager,".*\\.ds_store$", ClassificationActionType.CA_IGNORE, 2, false, false);
         addClassification(associatedFileDataManager,".*\\.heic$", ClassificationActionType.CA_BACKUP, 2, true, false);
@@ -436,10 +431,6 @@ public class SyncApiIT extends FileTester {
                 .andExpect(jsonPath("$[0].sourcesRemoved", is(1)))
                 .andExpect(jsonPath("$[0].datesUpdated", is(0)))
                 .andExpect(jsonPath("$[0].filesWarned", is(1)));
-
-        // Check that no errors.
-        assertEquals(1, dbLoggingManager.getMessageCache(DbLogType.DLT_WARNING).size());
-        assertEquals(0, dbLoggingManager.getMessageCache(DbLogType.DLT_ERROR).size());
 
         LOG.info("Gather the data again.");
         getMockMvc().perform(post("/api/v1/gather")

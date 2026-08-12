@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 44
+      author: jason
+      changes:
+        - dropTable:
+            tableName: log

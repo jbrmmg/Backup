@@ -27,7 +27,6 @@ public class SynchronizeManager {
     private static final Logger LOG = LoggerFactory.getLogger(SynchronizeManager.class);
 
     private final AssociatedFileDataManager associatedFileDataManager;
-    private final DbLoggingManager dbLoggingManager;
     private final ActionManager actionManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
@@ -35,12 +34,10 @@ public class SynchronizeManager {
 
     @Autowired
     public SynchronizeManager(AssociatedFileDataManager associatedFileDataManager,
-                              DbLoggingManager dbLoggingManager,
                               FileSystemObjectManager fileSystemObjectManager,
                               ActionManager actionManager,
                               FileSystem fileSystem) {
         this.associatedFileDataManager = associatedFileDataManager;
-        this.dbLoggingManager = dbLoggingManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.actionManager = actionManager;
         this.fileSystem = fileSystem;
@@ -49,7 +46,6 @@ public class SynchronizeManager {
     private void warn(DbCompareNode node, SyncDataDTO result) {
         result.increment(SyncDataDTO.SyncDataCountType.FILES_WARNED);
         LOG.warn("File warning- {}/{}", node.getSource().getFSO().getName(), node.getSource().getFSO().getIdAndType());
-        dbLoggingManager.warn(String.format("File warning - %s/%s", node.getSource().getFSO().getName(), node.getSource().getFSO().getIdAndType()),node.getSource().getFSO().getIdAndType().getId(),null);
     }
 
     private void backup(DbCompareNode node, Source destination, SyncDataDTO result) {
@@ -80,7 +76,7 @@ public class SynchronizeManager {
                 fileSystemObjectManager.save(destinationFileInfo);
             }
         } catch(Exception ex) {
-            dbLoggingManager.error("Failed to backup " + node.toString(),node.getSource().getFSO().getIdAndType().getId(),null);
+            LOG.error("Failed to backup {}", node, ex);
         }
     }
 
@@ -95,7 +91,7 @@ public class SynchronizeManager {
         DbFile dbFile = (DbFile)node.getDestination();
 
         // Delete the file specified in the node.
-        dbLoggingManager.info(String.format(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType()),dbFile.getFSO().getIdAndType().getId(),null);
+        LOG.info(ERROR_FORMAT, dbFile.getFSO().getName(), dbFile.getFSO().getIdAndType());
         actionManager.deleteFileIfConfirmed((FileInfo)dbFile.getFSO(), result);
 
         // If there is a sub-action of remove source then that should be deleted too.
@@ -110,7 +106,7 @@ public class SynchronizeManager {
         File directory = fileSystemObjectManager.getFile(dbDirectory.getFSO());
 
         // Delete the file specified in the node.
-        dbLoggingManager.info(String.format(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType()),dbDirectory.getFSO().getIdAndType().getId(), null);
+        LOG.info(ERROR_FORMAT, dbDirectory.getFSO().getName(), dbDirectory.getFSO().getIdAndType());
         fileSystem.deleteDirectoryIfEmpty(directory);
     }
 
@@ -164,28 +160,28 @@ public class SynchronizeManager {
         saveSynchronizeStats(nextSynchronize);
 
         try {
-            dbLoggingManager.info("Synchronize - " + nextSynchronize.getSource().getPath() + " -> " + nextSynchronize.getDestination().getPath(),nextSynchronize.getSource().getIdAndType().getId(), null);
+            LOG.info("Synchronize - {} -> {}", nextSynchronize.getSource().getPath(), nextSynchronize.getDestination().getPath());
 
             if (nextSynchronize.getSource().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getSource().getStatus())) {
-                dbLoggingManager.warn("Skipping as source not OK",nextSynchronize.getSource().getIdAndType().getId(),null);
+                LOG.warn("Skipping as source not OK");
                 result.setProblems();
                 return result;
             }
 
             if (nextSynchronize.getDestination().getStatus() == null || !SourceStatusType.SST_OK.equals(nextSynchronize.getDestination().getStatus())) {
-                dbLoggingManager.warn("Skipping as destination not OK",nextSynchronize.getDestination().getIdAndType().getId(),null);
+                LOG.warn("Skipping as destination not OK");
                 result.setProblems();
                 return result;
             }
 
             if(!fileSystem.validateMountCheck(nextSynchronize.getSource().getMountCheck())) {
-                dbLoggingManager.warn("Skipping as source mount check failed",nextSynchronize.getSource().getIdAndType().getId(),null);
+                LOG.warn("Skipping as source mount check failed");
                 result.setProblems();
                 return result;
             }
 
             if(!fileSystem.validateMountCheck(nextSynchronize.getDestination().getMountCheck())) {
-                dbLoggingManager.warn("Skipping as destination mount check failed.",nextSynchronize.getDestination().getIdAndType().getId(),null);
+                LOG.warn("Skipping as destination mount check failed.");
                 result.setProblems();
                 return result;
             }

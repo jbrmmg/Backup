@@ -19,11 +19,9 @@ public class BackupManager {
     private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
 
     private final ApplicationProperties applicationProperties;
-    private final DbLoggingManager dbLoggingManager;
 
-    public BackupManager(ApplicationProperties applicationProperties, DbLoggingManager dbLoggingManager) {
+    public BackupManager(ApplicationProperties applicationProperties) {
         this.applicationProperties = applicationProperties;
-        this.dbLoggingManager = dbLoggingManager;
     }
 
     public String todaysDirectory() {
@@ -49,7 +47,7 @@ public class BackupManager {
         // If not exists, create it.
         if(!fileSystem.directoryExists(todaysDirectoryPath.toPath())) {
             fileSystem.createDirectory(todaysDirectoryPath.toPath());
-            dbLoggingManager.info("Created directory + " + todaysDirectoryPath,null,null);
+            LOG.info("Created directory {}", todaysDirectoryPath);
         }
     }
 }
