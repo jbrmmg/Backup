@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -42,6 +43,8 @@ public class DriveManager extends FileProcessor {
             return;
         }
 
+        nextSource.setGatherStart(LocalDateTime.now());
+        nextSource.setGatherFinished(null);
         associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_GATHERING);
         dbLoggingManager.info("Gather - " + nextSource.getPath(),nextSource.getIdAndType().getId(),null);
 
@@ -53,6 +56,7 @@ public class DriveManager extends FileProcessor {
 
             updateDatabase(nextSource, deleteActions, gatherData);
 
+            nextSource.setGatherFinished(LocalDateTime.now());
             associatedFileDataManager.updateSourceStatus(nextSource,SourceStatusType.SST_OK);
         } catch (IOException e) {
             associatedFileDataManager.updateSourceStatus(nextSource, SourceStatusType.SST_ERROR);

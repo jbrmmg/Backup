@@ -20,6 +20,8 @@ public class SourceDTO {
     private Boolean gatherMetaData;
     private Boolean primary;
     private String group;
+    private LocalDateTime gatherStart;
+    private LocalDateTime gatherFinished;
     private LocalDateTime syncStartTime;
     private LocalDateTime syncEndTime;
     private Integer syncFilesCopied;

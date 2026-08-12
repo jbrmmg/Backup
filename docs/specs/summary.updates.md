@@ -25,3 +25,7 @@ Add the following attributes to the synchronize object:
 When synchronise runs it should update the start time and set the other attributes to null, when it completes update the end time and all the counts.
 
 These attributes should be then returned on the destination source in the summary.
+
+### Gather Status Information
+
+Update the Source JPA and database to include two extra values - gatherStart and gatherFinished.  Start should be set when the gather for that source starts, and the end set when it completes.  These two values should then be included on the summary information.

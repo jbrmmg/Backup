@@ -6,6 +6,7 @@ import lombok.Setter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Entity
@@ -38,6 +39,16 @@ public class Source extends FileSystemObject {
     @Setter
     @Column(name="primary_source")
     private Boolean primary;
+
+    @Setter
+    @Getter
+    @Column(name="gather_start")
+    private LocalDateTime gatherStart;
+
+    @Setter
+    @Getter
+    @Column(name="gather_finished")
+    private LocalDateTime gatherFinished;
 
     protected Source(FileSystemObjectType sourceType) {
         super(sourceType);

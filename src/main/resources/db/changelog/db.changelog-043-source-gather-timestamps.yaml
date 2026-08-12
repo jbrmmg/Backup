@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 43
+      author: jason
+      changes:
+        - addColumn:
+            tableName: source
+            columns:
+              - column:
+                  name: gather_start
+                  type: datetime
+              - column:
+                  name: gather_finished
+                  type: datetime

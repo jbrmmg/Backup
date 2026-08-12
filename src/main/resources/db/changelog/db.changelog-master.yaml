@@ -122,3 +122,6 @@ databaseChangeLog:
 
   - include:
       file: /db/changelog/db.changelog-042-synchronize-stats.yaml
+
+  - include:
+      file: /db/changelog/db.changelog-043-source-gather-timestamps.yaml
