@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 45
+      author: jason
+      changes:
+        - addColumn:
+            tableName: classification
+            columns:
+              - column:
+                  name: is_browser
+                  type: boolean
+
+        - update:
+            columns:
+              - column:
+                  name: is_browser
+                  valueBoolean: "false"
+            tableName: classification

@@ -4,6 +4,7 @@ import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dataaccess.*;
 import com.jbr.middletier.backup.dto.FileInfoDTO;
 import com.jbr.middletier.backup.dto.FileInfoExtra;
+import com.jbr.middletier.backup.exception.FileMetaDataMissingException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.filetree.database.DbRoot;
 import com.jbr.middletier.backup.util.FileSearch;
@@ -570,5 +571,48 @@ public class FileSystemObjectManager {
     public void deleteMetaData(MetaData metaData) {
         // Save the metadata.
         this.metaDataRepository.delete(metaData);
+    }
+
+    private FileInfo getFileInfoWithMetaData(Integer id) throws InvalidFileIdException, FileMetaDataMissingException {
+        Optional<FileSystemObject> file = findFileSystemObject(new FileSystemObjectId(id, FileSystemObjectType.FSO_FILE));
+        if (file.isEmpty() || !(file.get() instanceof FileInfo fileInfo)) {
+            throw new InvalidFileIdException(id);
+        }
+        if (findMetaDataForFile(fileInfo).isEmpty()) {
+            throw new FileMetaDataMissingException(id);
+        }
+        return fileInfo;
+    }
+
+    public FileInfoExtra setFileDate(Integer id, LocalDateTime date) throws InvalidFileIdException, FileMetaDataMissingException {
+        FileInfo fileInfo = getFileInfoWithMetaData(id);
+        File associatedFile = getFile(fileInfo);
+
+        fileSystem.writeExifDate(associatedFile, date);
+        fileSystem.setFileDateTime(associatedFile, date.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
+
+        updateMD5(fileInfo, id, associatedFile);
+
+        MetaData metaData = findMetaDataForFile(fileInfo).get();
+        metaData.setDate(date);
+        metaDataRepository.save(metaData);
+
+        return getFileExtra(id);
+    }
+
+    public FileInfoExtra setFileLocation(Integer id, Double latitude, Double longitude) throws InvalidFileIdException, FileMetaDataMissingException {
+        FileInfo fileInfo = getFileInfoWithMetaData(id);
+        File associatedFile = getFile(fileInfo);
+
+        fileSystem.writeExifLocation(associatedFile, latitude, longitude);
+
+        updateMD5(fileInfo, id, associatedFile);
+
+        MetaData metaData = findMetaDataForFile(fileInfo).get();
+        metaData.setLatitude(latitude);
+        metaData.setLongitude(longitude);
+        metaDataRepository.save(metaData);
+
+        return getFileExtra(id);
     }
 }

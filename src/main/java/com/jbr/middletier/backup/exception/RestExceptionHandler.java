@@ -42,6 +42,11 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND,"Invalid file id", ex));
     }
 
+    @ExceptionHandler(FileMetaDataMissingException.class)
+    protected ResponseEntity<Object> handleFileMetaDataMissing(FileMetaDataMissingException ex) {
+        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"File does not have metadata", ex));
+    }
+
     @ExceptionHandler({InvalidMediaTypeException.class})
     public ResponseEntity<Object> handleInvalidMidiaTypeException(InvalidMediaTypeException ex) {
         return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST,"Invalid file type for request.",ex));

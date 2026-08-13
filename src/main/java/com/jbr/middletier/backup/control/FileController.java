@@ -2,6 +2,10 @@ package com.jbr.middletier.backup.control;
 
 import com.jbr.middletier.backup.data.*;
 import com.jbr.middletier.backup.dto.*;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import com.jbr.middletier.backup.exception.FileMetaDataMissingException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.*;
@@ -261,6 +265,37 @@ public class FileController {
         LOG.info("Get file (video image): {}", imgPath);
 
         return imgPath == null ? new byte[0] : fileSystem.readAllBytes(imgPath);
+    }
+
+    @Operation(summary = "Update the date/time of a file that has metadata — writes EXIF, sets OS mtime, and recalculates MD5")
+    @PutMapping(path="/files/date")
+    public FileInfoExtra setFileDate(@RequestBody FileDateUpdateDTO update) throws InvalidFileIdException, FileMetaDataMissingException {
+        return fileSystemObjectManager.setFileDate(update.getId(), update.getDate());
+    }
+
+    @Operation(summary = "Update the GPS location of a file that has metadata — writes EXIF and recalculates MD5")
+    @PutMapping(path="/files/location")
+    public FileInfoExtra setFileLocation(@RequestBody FileLocationUpdateDTO update) throws InvalidFileIdException, FileMetaDataMissingException {
+        return fileSystemObjectManager.setFileLocation(update.getId(), update.getLatitude(), update.getLongitude());
+    }
+
+    @Operation(summary = "Download a file by id")
+    @GetMapping(path="/files/download")
+    public ResponseEntity<byte[]> downloadFile(@RequestParam("id") Integer id) throws InvalidFileIdException, IOException {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(id, FileSystemObjectType.FSO_FILE));
+
+        if (file.isEmpty()) {
+            throw new InvalidFileIdException(id);
+        }
+
+        FileInfo fileInfo = (FileInfo) file.get();
+        File physicalFile = fileSystemObjectManager.getFile(fileInfo);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(ContentDisposition.attachment().filename(fileInfo.getName()).build());
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity.ok().headers(headers).body(fileSystem.readAllBytes(physicalFile));
     }
 
     @DeleteMapping(path="/file")

@@ -14,4 +14,5 @@ public class ClassificationDTO {
     private Boolean isVideo;
     private String imageTransformer;
     private Boolean checkMetaData;
+    private Boolean isBrowser;
 }

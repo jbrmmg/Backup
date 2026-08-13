@@ -46,6 +46,12 @@ public class PrintController {
         return printManager.unselect(id);
     }
 
+    @Operation(summary = "Remove a specific size/type print for a photo")
+    @DeleteMapping(path="/prints/{fileId}/{sizeId}")
+    public Integer unprintOne(@PathVariable Integer fileId, @PathVariable Integer sizeId) {
+        return printManager.unselectOne(fileId, sizeId);
+    }
+
     @GetMapping(path="/prints")
     public List<SelectedPrintDTO> prints() {
         return printManager.getPrints();

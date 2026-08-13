@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -356,5 +357,48 @@ public class FileSystem {
     public void copyConvertMov(File source, File destination) throws IOException, InterruptedException {
         String copyCommand = applicationProperties.getFfmpegCommand();
         runCommand(copyCommand, source, destination);
+    }
+
+    public boolean writeExifDate(File file, LocalDateTime dateTime) {
+        try {
+            String formatted = dateTime.format(DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss"));
+            Process process = new ProcessBuilder(
+                    "exiftool",
+                    "-DateTimeOriginal=" + formatted,
+                    "-CreateDate=" + formatted,
+                    "-overwrite_original",
+                    file.getPath()
+            ).redirectErrorStream(true).start();
+            boolean completed = process.waitFor(1L, TimeUnit.MINUTES);
+            int exitCode = process.exitValue();
+            process.destroyForcibly();
+            return completed && exitCode == 0;
+        } catch (IOException | InterruptedException e) {
+            LOG.error("Failed to write EXIF date to {}", file, e);
+            return false;
+        }
+    }
+
+    public boolean writeExifLocation(File file, double latitude, double longitude) {
+        try {
+            String latRef = latitude >= 0 ? "N" : "S";
+            String lonRef = longitude >= 0 ? "E" : "W";
+            Process process = new ProcessBuilder(
+                    "exiftool",
+                    "-GPSLatitude=" + Math.abs(latitude),
+                    "-GPSLatitudeRef=" + latRef,
+                    "-GPSLongitude=" + Math.abs(longitude),
+                    "-GPSLongitudeRef=" + lonRef,
+                    "-overwrite_original",
+                    file.getPath()
+            ).redirectErrorStream(true).start();
+            boolean completed = process.waitFor(1L, TimeUnit.MINUTES);
+            int exitCode = process.exitValue();
+            process.destroyForcibly();
+            return completed && exitCode == 0;
+        } catch (IOException | InterruptedException e) {
+            LOG.error("Failed to write EXIF location to {}", file, e);
+            return false;
+        }
     }
 }

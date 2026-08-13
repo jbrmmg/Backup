@@ -19,6 +19,7 @@ public class FileDTO {
     private String md5;
     private boolean isImage;
     private boolean isVideo;
+    private boolean isBrowser;
     private String icon;
     private String path;
     private String locationName;
@@ -37,10 +38,12 @@ public class FileDTO {
         if(fileInfo.getClassification() !=null) {
             this.isImage = fileInfo.getClassification().getIsImage();
             this.isVideo = fileInfo.getClassification().getIsVideo();
+            this.isBrowser = fileInfo.getClassification().getIsBrowser();
             this.icon = fileInfo.getClassification().getIcon();
         } else {
             this.isImage = false;
             this.isVideo = false;
+            this.isBrowser = false;
             this.icon = "fa-file-o";
         }
         this.fullFilename = fullFilename;

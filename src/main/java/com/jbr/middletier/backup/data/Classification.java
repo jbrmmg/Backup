@@ -52,6 +52,10 @@ public class Classification {
     @Column(name="check_meta_data")
     private Boolean checkMetaData;
 
+    @Setter
+    @Column(name="is_browser")
+    private Boolean isBrowser;
+
     public Classification() {
         this.order = 0;
     }
@@ -62,6 +66,10 @@ public class Classification {
 
     public boolean getCheckMetaData() {
         return checkMetaData != null && checkMetaData;
+    }
+
+    public boolean getIsBrowser() {
+        return isBrowser != null && isBrowser;
     }
 
     public @NotNull Integer getOrder() { return this.order; }

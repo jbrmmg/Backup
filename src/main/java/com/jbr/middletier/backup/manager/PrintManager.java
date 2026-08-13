@@ -88,12 +88,7 @@ public class PrintManager {
     }
 
     private void removePrintRow(int fileId) {
-        for(Print next : printRepository.findAll()) {
-            if(next.getId().getFileId() == fileId) {
-                printRepository.delete(next);
-                break;
-            }
-        }
+        printRepository.deleteAll(printRepository.findByIdFileId(fileId));
     }
 
     public Integer unselect(Integer id) {
@@ -140,25 +135,35 @@ public class PrintManager {
     }
 
     public Integer updatePrint(SelectedPrintDTO print) {
-        // Update the print
         LOG.info("Update print details - {} {} {} {}",
                 print.getFileId(), print.getSizeId(), print.getBlackWhite(), print.getBorder());
 
-        // Delete if exists.
-        removePrintRow(print.getFileId());
+        PrintId printId = new PrintId();
+        printId.setFileId(print.getFileId());
+        printId.setSizeId(print.getSizeId());
 
-        // Create a print.
-        Print newPrint = new Print();
-        PrintId newPrintId = new PrintId();
-        newPrintId.setFileId(print.getFileId());
-        newPrintId.setSizeId(print.getSizeId());
-        newPrint.setId(newPrintId);
-        newPrint.setBlackWhite(print.getBlackWhite());
-        newPrint.setBorder(print.getBorder());
+        Print existing = printRepository.findById(printId).orElseGet(Print::new);
+        existing.setId(printId);
+        existing.setBlackWhite(print.getBlackWhite());
+        existing.setBorder(print.getBorder());
 
-        printRepository.save(newPrint);
+        printRepository.save(existing);
 
         return print.getFileId();
+    }
+
+    public Integer unselectOne(Integer fileId, Integer sizeId) {
+        Optional<FileSystemObject> file = fileSystemObjectManager.findFileSystemObject(new FileSystemObjectId(fileId, FileSystemObjectType.FSO_FILE));
+
+        if(file.isPresent()) {
+            PrintId printId = new PrintId();
+            printId.setFileId(fileId);
+            printId.setSizeId(sizeId);
+            printRepository.deleteById(printId);
+            return fileId;
+        }
+
+        return null;
     }
 
     public List<Integer> deletePrints() {
