@@ -92,6 +92,11 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ApiError(HttpStatus.CONFLICT,"Location already exists",ex));
     }
 
+    @ExceptionHandler({InvalidSearchRequestException.class})
+    public ResponseEntity<Object> handleInvalidSearchRequest(InvalidSearchRequestException ex) {
+        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), ex));
+    }
+
     private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
         return new ResponseEntity<>(apiError,apiError.getStatus());
     }
