@@ -224,39 +224,38 @@ public class FileSystem {
         return false;
     }
 
-    public Optional<FileSystemImageData> readImageMetaData(File file) {
+    private Optional<Map<String, String>> runExifTool(File file) {
         try {
-            // Use the Exif tool to read metadata from the specified file.
             Process process = new ProcessBuilder("exiftool", file.getPath()).start();
-
-            InputStream processInputStream = process.getInputStream();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(processInputStream));
-
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             List<String> tmp = reader.lines().toList();
-            Map<String,String> map = new HashMap<>();
-
-            for(String line : tmp) {
-                String key = line.substring(0,line.indexOf(":")).trim().toLowerCase();
-                String value = line.substring(line.indexOf(":")+1).trim().toLowerCase();
-
-                if(map.containsKey(key)) {
+            Map<String, String> map = new HashMap<>();
+            for (String line : tmp) {
+                String key = line.substring(0, line.indexOf(":")).trim().toLowerCase();
+                String value = line.substring(line.indexOf(":") + 1).trim().toLowerCase();
+                if (map.containsKey(key)) {
                     LOG.info("Line {} is a duplicate key {}", line, key);
                 } else {
-                    map.put(key,value);
+                    map.put(key, value);
                 }
             }
-
-            FileSystemImageData imageData = new FileSystemImageData(map);
-            if(imageData.isValid()) {
-                return Optional.of(imageData);
-            }
+            return Optional.of(map);
         } catch (IOException e) {
-            LOG.info("Failed to read any meta data from file",e);
+            LOG.info("Failed to read meta data from file", e);
+            return Optional.empty();
         }
+    }
 
-        // Return nothing
-        return Optional.empty();
+    public Optional<FileSystemImageData> readImageMetaData(File file) {
+        return runExifTool(file)
+                .map(FileSystemImageData::new)
+                .filter(FileSystemImageData::isValid);
+    }
+
+    public Optional<FileSystemCustomData> readCustomMetaData(File file) {
+        return runExifTool(file)
+                .map(FileSystemCustomData::new)
+                .filter(FileSystemCustomData::hasData);
     }
 
     public Set<String> listFilesInDirectory(File directory) {

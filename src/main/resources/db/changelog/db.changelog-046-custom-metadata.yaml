@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 46
+      author: jason
+      changes:
+        - createTable:
+            tableName: custom_meta_data
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: original_file
+                  type: varchar(255)
+              - column:
+                  name: original_md5
+                  type: varchar(32)
+              - column:
+                  name: original_size
+                  type: bigint

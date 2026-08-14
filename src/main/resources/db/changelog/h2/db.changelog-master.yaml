@@ -133,5 +133,8 @@ databaseChangeLog:
       file: /db/changelog/db.changelog-045-browser.yaml
 
   - include:
+      file: /db/changelog/db.changelog-046-custom-metadata.yaml
+
+  - include:
       file: /db/changelog/h2/db.changelog-999-dbgdata.yaml
 

@@ -1,5 +1,6 @@
 package com.jbr.middletier.backup.dto;
 
+import com.jbr.middletier.backup.data.CustomMetaData;
 import com.jbr.middletier.backup.data.FileInfo;
 import com.jbr.middletier.backup.data.MetaData;
 import lombok.Data;
@@ -14,9 +15,9 @@ public class FileInfoExtra {
     private final List<FileDTO> backups;
     private final List<String> labels;
 
-    public FileInfoExtra(FileInfo file, MetaData metaData, String fullFilename, String path, String location) {
+    public FileInfoExtra(FileInfo file, MetaData metaData, CustomMetaData customMetaData, String fullFilename, String path, String location) {
         this.file = new FileDTO(file,fullFilename,path,location);
-        this.metaData = metaData == null ? null : new MetaDataDTO(metaData);
+        this.metaData = metaData == null ? null : new MetaDataDTO(metaData, customMetaData);
         this.backups = new ArrayList<>();
         this.labels = new ArrayList<>();
     }

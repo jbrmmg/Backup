@@ -23,6 +23,7 @@ public class FileSystemObjectManager {
 
     private final FileRepository fileRepository;
     private final MetaDataRepository metaDataRepository;
+    private final CustomMetaDataRepository customMetaDataRepository;
     private final DirectoryRepository directoryRepository;
     private final IgnoreFileRepository ignoreFileRepository;
     private final AssociatedFileDataManager associatedFileDataManager;
@@ -34,6 +35,7 @@ public class FileSystemObjectManager {
     @Autowired
     public FileSystemObjectManager(FileRepository fileRepository,
                                    MetaDataRepository metaDataRepository,
+                                   CustomMetaDataRepository customMetaDataRepository,
                                    DirectoryRepository directoryRepository,
                                    IgnoreFileRepository ignoreFileRepository,
                                    AssociatedFileDataManager associatedFileDataManager,
@@ -45,6 +47,7 @@ public class FileSystemObjectManager {
 
         this.fileRepository = fileRepository;
         this.metaDataRepository = metaDataRepository;
+        this.customMetaDataRepository = customMetaDataRepository;
         this.directoryRepository = directoryRepository;
         this.ignoreFileRepository = ignoreFileRepository;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -382,19 +385,20 @@ public class FileSystemObjectManager {
         Optional<MetaData> result = Optional.empty();
 
         if(useMetaData && fileInfo.getClassification().getCheckMetaData()) {
-            // Is there metadata?
             result = findMetaDataForFile(fileInfo);
 
             if(result.isEmpty()) {
-                // Get the metadata.
                 Optional<FileSystemImageData> fileMetaData = this.fileSystem.readImageMetaData(associatedFile);
 
                 if(fileMetaData.isPresent()) {
                     result = Optional.of(new MetaData(id, fileMetaData.get()));
-
-                    // Save the metadata.
                     metaDataRepository.save(result.get());
                 }
+            }
+
+            if(customMetaDataRepository.findById(id).isEmpty()) {
+                Optional<FileSystemCustomData> customData = this.fileSystem.readCustomMetaData(associatedFile);
+                customData.ifPresent(data -> customMetaDataRepository.save(new CustomMetaData(id, data)));
             }
         }
 
@@ -465,7 +469,7 @@ public class FileSystemObjectManager {
 
         // Does the file have a classification? If not, see if it can be updated and if it's still not present, then nothing further can be done
         if(!updateClassification(fileInfo, id)) {
-            return new FileInfoExtra(fileInfo,null,associatedFile.getParent(), associatedFile.getPath(), associatedFile.getParent());
+            return new FileInfoExtra(fileInfo, null, null, associatedFile.getParent(), associatedFile.getPath(), associatedFile.getParent());
         }
 
         // Does the file require an MD5 and is it missing?
@@ -473,10 +477,12 @@ public class FileSystemObjectManager {
 
         // Does the file require metadata and is it missing?
         Optional<MetaData> metaData = getFileMetaData(useMetaData, fileInfo, id, associatedFile);
+        Optional<CustomMetaData> customMetaData = customMetaDataRepository.findById(id);
 
         // Create the FileInfoExtra
-        FileInfoExtra fileInfoExtra = new FileInfoExtra ( fileInfo,
+        FileInfoExtra fileInfoExtra = new FileInfoExtra(fileInfo,
                 metaData.orElse(null),
+                customMetaData.orElse(null),
                 associatedFile.getParent(),
                 associatedFile.getPath(),
                 associatedFile.getParent());
@@ -518,10 +524,11 @@ public class FileSystemObjectManager {
         }
 
         Optional<MetaData> metaData = metaDataRepository.findById(id);
+        Optional<CustomMetaData> customMetaData = customMetaDataRepository.findById(id);
 
         FileInfo originalFile = (FileInfo)file.get();
         File associatedFile = getFile(originalFile);
-        FileInfoExtra result = new FileInfoExtra(originalFile, metaData.orElse(null), associatedFile.getPath(), associatedFile.getPath(), associatedFile.getParent());
+        FileInfoExtra result = new FileInfoExtra(originalFile, metaData.orElse(null), customMetaData.orElse(null), associatedFile.getPath(), associatedFile.getPath(), associatedFile.getParent());
 
         // Check for backups
         long size = result.getFile().getSize();

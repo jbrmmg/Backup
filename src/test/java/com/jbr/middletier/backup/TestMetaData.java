@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
+import com.jbr.middletier.backup.manager.FileSystemCustomData;
 import com.jbr.middletier.backup.manager.FileSystemImageData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -208,5 +209,85 @@ class TestMetaData {
         assertTrue(videoData.isValid());
         assertTrue(videoData.isVideo());
         assertEquals(3661,videoData.getDuration(),0.00001);
+    }
+
+    @Test
+    void testCustomMetaDataFromConvertedMp4() {
+        File mp4 = new File("src/test/resources/synchronise/IMG_1015_converted.mp4");
+
+        Optional<FileSystemCustomData> customData = fileSystem.readCustomMetaData(mp4);
+
+        assertTrue(customData.isPresent(), "Converted MP4 should have custom metadata");
+        assertEquals("img_1015.mov", customData.get().getOriginalFile());
+        assertEquals("8d4f46976377897dfadf214d0526cf56", customData.get().getOriginalMd5());
+        assertEquals(1821435L, customData.get().getOriginalSize());
+    }
+
+    @Test
+    void testCustomMetaDataWithUnderscoreKeys() {
+        Map<String, String> map = new HashMap<>();
+        map.put("jbr_original_file", "IMG_1015.MOV");
+        map.put("jbr_original_file_md5", "8d4f46976377897dfadf214d0526cf56");
+        map.put("jbr_original_file_size", "12345678");
+
+        FileSystemCustomData customData = new FileSystemCustomData(map);
+
+        assertTrue(customData.hasData());
+        assertEquals("IMG_1015.MOV", customData.getOriginalFile());
+        assertEquals("8d4f46976377897dfadf214d0526cf56", customData.getOriginalMd5());
+        assertEquals(12345678L, customData.getOriginalSize());
+    }
+
+    @Test
+    void testCustomMetaDataWithSpaceKeys() {
+        Map<String, String> map = new HashMap<>();
+        map.put("jbr original file", "IMG_1015.MOV");
+        map.put("jbr original file md5", "8d4f46976377897dfadf214d0526cf56");
+        map.put("jbr original file size", "12345678");
+
+        FileSystemCustomData customData = new FileSystemCustomData(map);
+
+        assertTrue(customData.hasData());
+        assertEquals("IMG_1015.MOV", customData.getOriginalFile());
+        assertEquals("8d4f46976377897dfadf214d0526cf56", customData.getOriginalMd5());
+        assertEquals(12345678L, customData.getOriginalSize());
+    }
+
+    @Test
+    void testCustomMetaDataEmpty() {
+        Map<String, String> map = new HashMap<>();
+        map.put("mime type", "video/mp4");
+
+        FileSystemCustomData customData = new FileSystemCustomData(map);
+
+        assertFalse(customData.hasData());
+        assertNull(customData.getOriginalFile());
+        assertNull(customData.getOriginalMd5());
+        assertNull(customData.getOriginalSize());
+    }
+
+    @Test
+    void testCustomMetaDataPartial() {
+        Map<String, String> map = new HashMap<>();
+        map.put("jbr_original_file", "test.mov");
+
+        FileSystemCustomData customData = new FileSystemCustomData(map);
+
+        assertTrue(customData.hasData());
+        assertEquals("test.mov", customData.getOriginalFile());
+        assertNull(customData.getOriginalMd5());
+        assertNull(customData.getOriginalSize());
+    }
+
+    @Test
+    void testCustomMetaDataInvalidSize() {
+        Map<String, String> map = new HashMap<>();
+        map.put("jbr_original_file", "test.mov");
+        map.put("jbr_original_file_size", "not-a-number");
+
+        FileSystemCustomData customData = new FileSystemCustomData(map);
+
+        assertTrue(customData.hasData());
+        assertNull(customData.getOriginalSize());
     }
 }

@@ -1459,7 +1459,7 @@ class TestGeneral extends WebTester {
         assertEquals(214, (long)testDTO.getImageWidth());
         assertEquals(LocalDateTime.of(2024,10,21,2, 30,12), testDTO.getDate());
 
-        testDTO = new MetaDataDTO(metaData);
+        testDTO = new MetaDataDTO(metaData, null);
         assertEquals(12.2, testDTO.getDuration(),0.01);
         assertTrue(testDTO.getImage());
         assertFalse(testDTO.getVideo());

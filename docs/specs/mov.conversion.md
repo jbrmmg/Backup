@@ -18,7 +18,7 @@ The date/time in the meta data must be preserved from the original file (see Sta
 
 I would like to implement this in stages.
 
-## Stage 1 - Update the conversion process
+## Stage 1 - Update the conversion process ✅
 
 Modify the MOV -> MP4 conversion process to:
 
