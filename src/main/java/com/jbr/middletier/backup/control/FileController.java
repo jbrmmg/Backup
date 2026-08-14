@@ -9,6 +9,7 @@ import com.jbr.middletier.backup.exception.FileMetaDataMissingException;
 import com.jbr.middletier.backup.exception.InvalidFileIdException;
 import com.jbr.middletier.backup.exception.InvalidMediaTypeException;
 import com.jbr.middletier.backup.manager.*;
+import com.jbr.middletier.backup.schedule.SummaryCtrl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.Contract;
@@ -39,6 +40,7 @@ public class FileController {
     private final SynchronizeManager synchronizeManager;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final FileSystem fileSystem;
+    private final SummaryCtrl summaryCtrl;
 
     @Contract(pure = true)
     @Autowired
@@ -48,7 +50,8 @@ public class FileController {
                           DuplicateManager duplicateManager,
                           SynchronizeManager synchronizeManager,
                           FileSystemObjectManager fileSystemObjectManager,
-                          FileSystem fileSystem) {
+                          FileSystem fileSystem,
+                          SummaryCtrl summaryCtrl) {
         this.driveManager = driverManager;
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
@@ -56,6 +59,7 @@ public class FileController {
         this.duplicateManager = duplicateManager;
         this.synchronizeManager = synchronizeManager;
         this.fileSystem = fileSystem;
+        this.summaryCtrl = summaryCtrl;
     }
 
     @GetMapping(path="/files")
@@ -74,7 +78,9 @@ public class FileController {
     @PostMapping(path="/gather")
     public List<GatherDataDTO> gather(@RequestParam(name="sourceId", required = false) Integer sourceId) {
         LOG.info("Gather");
-        return driveManager.gather(sourceId);
+        List<GatherDataDTO> result = driveManager.gather(sourceId);
+        summaryCtrl.refreshSummary();
+        return result;
     }
 
     @Operation(summary = "Identify duplicate files across all tracked locations")
@@ -88,7 +94,9 @@ public class FileController {
     @PostMapping(path="/sync/run")
     public List<SyncDataDTO> synchronize(@RequestParam(name="syncId", required = false) Integer syncId) {
         LOG.info("Synchronize");
-        return synchronizeManager.synchronize(syncId);
+        List<SyncDataDTO> result = synchronizeManager.synchronize(syncId);
+        summaryCtrl.refreshSummary();
+        return result;
     }
 
     private int getParentId(Optional<FileSystemObject> optParent) {

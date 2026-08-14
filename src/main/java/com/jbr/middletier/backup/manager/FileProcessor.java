@@ -11,6 +11,7 @@ import com.jbr.middletier.backup.filetree.realworld.RwFile;
 import com.jbr.middletier.backup.filetree.realworld.RwNode;
 import com.jbr.middletier.backup.filetree.realworld.RwRoot;
 import com.jbr.middletier.backup.data.MetaData;
+import com.jbr.middletier.backup.data.CustomMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
@@ -246,6 +247,11 @@ public abstract class FileProcessor {
             if(imageData.isPresent() && imageData.get().isValid() && existingFile.getIdAndType() != null) {
                 // Save the metadata.
                 fileSystemObjectManager.saveMetaData(new MetaData(existingFile.getIdAndType().getId(), imageData.get()));
+            }
+
+            Optional<FileSystemCustomData> customData = fileSystem.readCustomMetaData(rwNode.getFile());
+            if(customData.isPresent() && existingFile.getIdAndType() != null) {
+                fileSystemObjectManager.saveCustomMetaData(new CustomMetaData(existingFile.getIdAndType().getId(), customData.get()));
             }
         }
 

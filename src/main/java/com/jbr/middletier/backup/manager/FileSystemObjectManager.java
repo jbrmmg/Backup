@@ -570,6 +570,10 @@ public class FileSystemObjectManager {
         this.metaDataRepository.save(metaData);
     }
 
+    public void saveCustomMetaData(CustomMetaData customMetaData) {
+        this.customMetaDataRepository.save(customMetaData);
+    }
+
     public void updateMetaData(MetaData metaData) {
         // Save the metadata.
         this.metaDataRepository.save(metaData);
