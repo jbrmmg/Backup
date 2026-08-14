@@ -53,8 +53,12 @@ public class CopyToImport extends ReadPreImportFile {
                 Files.deleteIfExists(destination.toPath());
             }
 
-            fileSystem.copyConvertMov(source,destination);
-            fileSystem.setFileFromLocalDateTime(destination, file == null ? null : file.getImportDate(), fileTime);
+            fileSystem.copyConvertMov(source, destination,
+                    file.getFilename(),
+                    file.getMd5(),
+                    file.getSize(),
+                    file.getImportDate());
+            fileSystem.setFileFromLocalDateTime(destination, file.getImportDate(), fileTime);
         } catch (Exception e) {
             LOG.error("Failed to copy MOV file", e);
             Thread.currentThread().interrupt();

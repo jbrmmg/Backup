@@ -354,9 +354,29 @@ public class FileSystem {
         return tempFile;
     }
 
-    public void copyConvertMov(File source, File destination) throws IOException, InterruptedException {
+    public void copyConvertMov(File source, File destination, String originalName, String originalMd5, Long originalSize, LocalDateTime originalDate) throws IOException, InterruptedException {
         String copyCommand = applicationProperties.getFfmpegCommand();
+
+        String description = String.format("converted from %s at %s",
+                originalName,
+                originalDate != null ? originalDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "unknown");
+
+        String metadataFlags = String.format(
+                "-metadata jbr_original_file='%s' " +
+                "-metadata jbr_original_file_md5='%s' " +
+                "-metadata jbr_original_file_size='%s' " +
+                "-metadata description='%s' ",
+                originalName,
+                originalMd5 != null ? originalMd5 : "",
+                originalSize != null ? originalSize : 0L,
+                description);
+
+        copyCommand = copyCommand.replace("%%OUTPUT%%", metadataFlags + "%%OUTPUT%%");
         runCommand(copyCommand, source, destination);
+
+        if (originalDate != null) {
+            writeExifDate(destination, originalDate);
+        }
     }
 
     public boolean writeExifDate(File file, LocalDateTime dateTime) {
