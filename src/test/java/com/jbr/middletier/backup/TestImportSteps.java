@@ -2,16 +2,20 @@ package com.jbr.middletier.backup;
 
 import com.jbr.middletier.MiddleTier;
 import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.CustomMetaDataRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.IgnoreFileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
+import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
 import com.jbr.middletier.backup.dto.ImportFileDTO;
 import com.jbr.middletier.backup.dto.PreImportFileDTO;
 import com.jbr.middletier.backup.manager.AssociatedFileDataManager;
 import com.jbr.middletier.backup.manager.FileSystem;
+import com.jbr.middletier.backup.manager.FileSystemObjectManager;
 import com.jbr.middletier.backup.manager.importing.FileProcessingStepType;
 import com.jbr.middletier.backup.manager.importing.ImportSourceManager;
 import com.jbr.middletier.backup.manager.importing.step.CheckActivePhotoFile;
+import com.jbr.middletier.backup.manager.importing.step.CheckDuplicateFile;
 import com.jbr.middletier.backup.manager.importing.step.CheckFileConfirmedImported;
 import com.jbr.middletier.backup.manager.importing.step.CheckFileIgnored;
 import com.jbr.middletier.backup.manager.importing.step.process.ImportFile;
@@ -414,5 +418,106 @@ class TestImportSteps {
         similarFile2.setType(FileSystemObjectType.FSO_FILE);
         importFile.addSimilarFile(similarFile2);
         assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(importFile));
+    }
+
+    @Test
+    void checkDuplicateFileByOriginalMd5() {
+        ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
+        AssociatedFileDataManager associatedFileDataManager = mock(AssociatedFileDataManager.class);
+        FileRepository fileRepository = mock(FileRepository.class);
+        FileSystemObjectManager fileSystemObjectManager = mock(FileSystemObjectManager.class);
+        CustomMetaDataRepository customMetaDataRepository = mock(CustomMetaDataRepository.class);
+
+        when(associatedFileDataManager.findAllSynchronize()).thenReturn(Collections.emptyList());
+        when(fileRepository.findByMd5(any())).thenReturn(Collections.emptyList());
+
+        // Library MP4 in the DB with its own MD5
+        FileInfo libraryMp4 = mock(FileInfo.class);
+        when(libraryMp4.getIdAndType()).thenReturn(new FileSystemObjectId(42, FileSystemObjectType.FSO_FILE));
+        when(libraryMp4.getSize()).thenReturn(1163000L);
+        when(libraryMp4.getMd5()).thenReturn(Optional.of(new MD5("AABBCCDDAABBCCDDAABBCCDDAABBCCDD")));
+        when(libraryMp4.getDate()).thenReturn(LocalDateTime.of(2025, 3, 2, 19, 25, 54));
+        // Path == name so validSource() skips the source list check
+        when(fileSystemObjectManager.getFile(libraryMp4)).thenReturn(new File("IMG_1015.mp4"));
+        when(fileRepository.findById(42)).thenReturn(Optional.of(libraryMp4));
+
+        // CustomMetaData linking the MP4 to the original MOV
+        CustomMetaData customMetaData = new CustomMetaData();
+        customMetaData.setId(42);
+        customMetaData.setOriginalFile("img_1015.mov");
+        customMetaData.setOriginalMd5("8D4F46976377897DFADF214D0526CF56");
+        customMetaData.setOriginalSize(1821435L);
+        when(customMetaDataRepository.findByOriginalMd5("8D4F46976377897DFADF214D0526CF56"))
+                .thenReturn(Collections.singletonList(customMetaData));
+
+        CheckDuplicateFile checkDuplicateFile = new CheckDuplicateFile(importFileRepository, importSourceManager,
+                associatedFileDataManager, fileRepository, fileSystemObjectManager, customMetaDataRepository);
+
+        // Re-presented MOV: its MD5 is the original MOV MD5 stored in custom_meta_data
+        PreImportFileDTO movFile = new PreImportFileDTO();
+        movFile.setFilename("IMG_1015.MOV");
+        movFile.setMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
+        movFile.setSize(1821435L);
+
+        TrafficLightType result = checkDuplicateFile.performStep(movFile);
+
+        // Not a duplicate (only one similar file found), but the library MP4 is now in the similar list
+        assertEquals(TrafficLightType.TL_GREEN, result);
+        assertEquals(1, movFile.getSimilarFiles().size());
+
+        ImportFileBaseDTO similar = movFile.getSimilarFiles().get(0);
+        assertEquals("img_1015.mov", similar.getOriginalFile());
+        assertEquals("8D4F46976377897DFADF214D0526CF56", similar.getOriginalMd5());
+        assertEquals(1821435L, similar.getOriginalSize());
+        assertEquals(LocalDateTime.of(2025, 3, 2, 19, 25, 54), similar.getDate());
+    }
+
+    @Test
+    void checkFileConfirmedImportedByOriginalCustomFields() {
+        ImportFileRepository importFileRepository = mock(ImportFileRepository.class);
+        ImportSourceManager importSourceManager = mock(ImportSourceManager.class);
+
+        CheckFileConfirmedImported checkFileConfirmedImported = new CheckFileConfirmedImported(importFileRepository, importSourceManager);
+
+        LocalDateTime originalDate = LocalDateTime.of(2025, 3, 2, 19, 25, 54);
+
+        // The incoming re-presented MOV
+        PreImportFileDTO movFile = new PreImportFileDTO();
+        movFile.setFilename("IMG_1015.MOV");
+        movFile.setMd5(new MD5("8D4F46976377897DFADF214D0526CF56"));
+        movFile.setSize(1821435L);
+        movFile.setImportDate(originalDate);
+
+        // The library MP4 as found by CheckDuplicateFile via custom metadata
+        ImportFileBaseDTO libraryMp4Entry = new ImportFileBaseDTO();
+        libraryMp4Entry.setType(FileSystemObjectType.FSO_FILE);
+        libraryMp4Entry.setFilename("IMG_1015.mp4");
+        libraryMp4Entry.setDate(originalDate);
+        libraryMp4Entry.setOriginalFile("img_1015.mov");
+        libraryMp4Entry.setOriginalMd5("8D4F46976377897DFADF214D0526CF56");
+        libraryMp4Entry.setOriginalSize(1821435L);
+        movFile.addSimilarFile(libraryMp4Entry);
+
+        assertEquals(TrafficLightType.TL_GREEN, checkFileConfirmedImported.performStep(movFile));
+
+        // Wrong original MD5 -> RED
+        libraryMp4Entry.setOriginalMd5("AABBCCDDAABBCCDDAABBCCDDAABBCCDD");
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(movFile));
+        libraryMp4Entry.setOriginalMd5("8D4F46976377897DFADF214D0526CF56");
+
+        // Wrong original size -> RED
+        libraryMp4Entry.setOriginalSize(9999L);
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(movFile));
+        libraryMp4Entry.setOriginalSize(1821435L);
+
+        // Wrong original filename -> RED
+        libraryMp4Entry.setOriginalFile("other.mov");
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(movFile));
+        libraryMp4Entry.setOriginalFile("img_1015.mov");
+
+        // Wrong date -> RED
+        libraryMp4Entry.setDate(originalDate.plusHours(1));
+        assertEquals(TrafficLightType.TL_RED, checkFileConfirmedImported.performStep(movFile));
     }
 }

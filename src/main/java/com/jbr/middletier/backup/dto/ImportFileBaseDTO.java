@@ -19,6 +19,12 @@ public class ImportFileBaseDTO {
     @Getter
     private volatile String md5;
     private volatile FileSystemObjectType type;
+    @Getter
+    private volatile String originalFile;
+    @Getter
+    private volatile String originalMd5;
+    @Getter
+    private volatile Long originalSize;
 
     public ImportFileBaseDTO() {
         LOG.trace("Create new Import File Base DTO.");

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class CheckFileConfirmedImported extends ImportStep {
@@ -78,17 +79,30 @@ public class CheckFileConfirmedImported extends ImportStep {
         return next.getDate().equals(file.getImportDate());
     }
 
+    private boolean checkByOriginalCustomFields(ImportFileBaseDTO next, PreImportFileDTO file) {
+        if(next.getOriginalMd5() == null || file.getMd5() == null) return false;
+        if(!next.getOriginalMd5().equals(file.getMd5())) return false;
+        if(!Objects.equals(next.getOriginalSize(), file.getSize())) return false;
+        if(next.getOriginalFile() == null || file.getFilename() == null) return false;
+        if(!next.getOriginalFile().equalsIgnoreCase(file.getFilename())) return false;
+        if(next.getDate() == null || file.getImportDate() == null) return false;
+        return next.getDate().equals(file.getImportDate());
+    }
+
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
         LOG.info("Checking if file has been imported {}", file.getImportName());
 
         // If it's been imported then there will be a similar file with the same name, md5, date/time and size.
+        // A converted MOV re-import is detected via the stored original custom fields.
         int count = 0;
         for(ImportFileBaseDTO next: file.getSimilarFiles()) {
             LOG.debug("Similar check {} {}", next.getFilename(), file.getImportName());
             LOG.debug("Similar check date 1 {}", next.getDate());
             LOG.debug("Similar check date 2 {}", file.getImportDate());
-            if(next.getType() == FileSystemObjectType.FSO_FILE && checkMD5(next, file) && checkFilename(next, file) && checkSize(next, file) && checkDate(next, file)) {
+            if(next.getType() == FileSystemObjectType.FSO_FILE &&
+                    (checkMD5(next, file) && checkFilename(next, file) && checkSize(next, file) && checkDate(next, file)
+                     || checkByOriginalCustomFields(next, file))) {
                 count++;
             }
         }

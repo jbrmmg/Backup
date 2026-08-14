@@ -1,6 +1,7 @@
 package com.jbr.middletier.backup.manager.importing.step;
 
 import com.jbr.middletier.backup.data.*;
+import com.jbr.middletier.backup.dataaccess.CustomMetaDataRepository;
 import com.jbr.middletier.backup.dataaccess.FileRepository;
 import com.jbr.middletier.backup.dataaccess.ImportFileRepository;
 import com.jbr.middletier.backup.dto.ImportFileBaseDTO;
@@ -28,6 +29,7 @@ public class CheckDuplicateFile extends ImportStep {
     private final FileRepository fileRepository;
     private final FileSystemObjectManager fileSystemObjectManager;
     private final AssociatedFileDataManager associatedFileDataManager;
+    private final CustomMetaDataRepository customMetaDataRepository;
     private final List<Source> validSources;
 
     @Autowired
@@ -35,12 +37,14 @@ public class CheckDuplicateFile extends ImportStep {
                                  ImportSourceManager importSourceManager,
                                  AssociatedFileDataManager associatedFileDataManager,
                                  FileRepository fileRepository,
-                                 FileSystemObjectManager fileSystemObjectManager) {
+                                 FileSystemObjectManager fileSystemObjectManager,
+                                 CustomMetaDataRepository customMetaDataRepository) {
         super(importFileRepository, importSourceManager);
         this.fileRepository = fileRepository;
         this.validSources = new ArrayList<>();
         this.fileSystemObjectManager = fileSystemObjectManager;
         this.associatedFileDataManager = associatedFileDataManager;
+        this.customMetaDataRepository = customMetaDataRepository;
     }
 
     @PostConstruct
@@ -118,12 +122,38 @@ public class CheckDuplicateFile extends ImportStep {
         }
     }
 
+    private void getSimilarByOriginalMd5(String md5, PreImportFileDTO importFile) {
+        for(CustomMetaData customMetaData : customMetaDataRepository.findByOriginalMd5(md5)) {
+            fileRepository.findById(customMetaData.getId()).ifPresent(fileInfo -> {
+                File file = validSource(fileInfo);
+                if(file != null) {
+                    ImportFileBaseDTO similar = new ImportFileBaseDTO();
+                    similar.setType(FileSystemObjectType.FSO_FILE);
+                    similar.setFilename(file.getPath());
+                    similar.setSize(fileInfo.getSize());
+                    similar.setMd5(fileInfo.getMd5().isPresent() ? fileInfo.getMd5().get() : null);
+                    similar.setDate(fileInfo.getDate());
+                    similar.setOriginalFile(customMetaData.getOriginalFile());
+                    similar.setOriginalMd5(customMetaData.getOriginalMd5());
+                    similar.setOriginalSize(customMetaData.getOriginalSize());
+
+                    boolean addToList = importFile.getSimilarFiles().stream()
+                            .noneMatch(next -> next.getFilename().equals(similar.getFilename()));
+                    if(addToList) {
+                        importFile.addSimilarFile(similar);
+                    }
+                }
+            });
+        }
+    }
+
     @Override
     public TrafficLightType performStep(PreImportFileDTO file) {
         LOG.info("Checking duplicate file {}", file.getImportName());
         if(file.getMd5Optional().isPresent()) {
             LOG.debug("Md5 found for {}", file.getMd5Optional().get());
             getSimilarByMd5AndSize(file.getMd5Optional().get().toString(), file.getSize(), file);
+            getSimilarByOriginalMd5(file.getMd5Optional().get().toString(), file);
         }
         if(file.getImportMd5Optional().isPresent()) {
             LOG.debug("Md5 (import) found for {}", file.getMd5Optional().get());

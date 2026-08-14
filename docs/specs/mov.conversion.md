@@ -30,7 +30,7 @@ Note: the filesystem timestamp is already being preserved correctly. Only the EX
 
 Confirm with unit tests - verify manually - do not move to Stage 2 until given go ahead.
 
-## Stage 2 - Additional optional meta-data
+## Stage 2 - Additional optional meta-data ✅
 
 As part of the reading of file information look for the custom meta-data properties - create a new optional object (including DB storage) called Custom Meta Data - this stores the three new custom properties (original file name, MD5, size).
 
