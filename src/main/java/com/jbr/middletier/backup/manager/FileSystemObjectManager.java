@@ -606,9 +606,12 @@ public class FileSystemObjectManager {
 
         fileSystem.writeExifLocation(associatedFile, latitude, longitude);
 
-        updateMD5(fileInfo, id, associatedFile);
-
         MetaData metaData = findMetaDataForFile(fileInfo).get();
+        if (metaData.getDate() != null) {
+            fileSystem.setFileDateTime(associatedFile, metaData.getDate().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
+        }
+
+        updateMD5(fileInfo, id, associatedFile);
         metaData.setLatitude(latitude);
         metaData.setLongitude(longitude);
         metaDataRepository.save(metaData);

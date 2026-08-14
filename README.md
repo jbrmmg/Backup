@@ -19,15 +19,17 @@ A Spring Boot REST API service for managing file backups, directory synchronizat
 
 ## Features
 
-- **Scheduled backups** — runs `mysqldump` on a configurable cron schedule; organises output into dated directories
-- **File synchronization** — mirrors source directories to destination directories and tracks differences in the database
+- **Scheduled backups** — runs `mysqldump` on a configurable cron schedule; organises output into dated directories; tracks per-job run history (start time, finish time, status, message)
+- **File synchronization** — mirrors source directories to destination directories and tracks differences in the database; records sync start/end time and per-run counts on the sync pair
 - **Media import pipeline** — three-stage pipeline (pre-import → import → post-import) for processing and organising incoming files, with configurable thread count
 - **File system tracking** — indexes files and directories in the database, stores metadata (EXIF, image size, GPS coordinates)
-- **Classifications** — rules-based classification of files by extension/type
+- **Classifications** — rules-based classification of files by extension/type; each classification carries flags for `image`, `video`, and `browser` (whether the file can be viewed directly in a browser)
+- **File search** — full-criteria search across backed-up files by filename glob, date range, size range, label, GPS bounding-box, and expiry range; results are paged
 - **Labels** — user-defined tags that can be applied to files
-- **Print selection** — workflow for selecting and tracking files chosen for printing
+- **Print selection** — workflow for selecting and tracking files chosen for printing, with per-file size selection
 - **Hardware registry** — tracks known hardware devices by MAC address
 - **Action queue** — pending file actions (copy, delete, etc.) with email notification support
+- **Scheduled summary refresh** — summary data is rebuilt on a configurable interval so the UI always sees up-to-date source grouping and gather timing
 - **Health & metrics** — Spring Boot Actuator endpoints exposed for monitoring
 
 ## Building
@@ -51,6 +53,9 @@ The service uses Spring profiles to select the configuration:
 | *(default)* | Local/debug using H2 in-memory database |
 | `dev` | Development environment |
 | `pdn` | Production (MySQL, port 12013) |
+| `dbg` | Debug (H2) |
+| `dbg-dev` | Debug against dev database |
+| `dbg-pdn` | Debug against production database |
 
 ```bash
 # Run locally (H2, debug)
@@ -60,7 +65,9 @@ java -jar target/MiddleTier-Backup-*.jar
 java -jar target/MiddleTier-Backup-*.jar --spring.profiles.active=pdn
 ```
 
-In production the service runs as a systemd unit (`middletier-backup.service`) on port **12013**.
+In production the service runs as a systemd unit (`middletier-backup.service`) on port **12013**, behind a single **nginx** reverse proxy.
+
+A `docker-compose-dev.yml` is provided for running a local development stack.
 
 ## Configuration
 
@@ -72,6 +79,7 @@ All custom properties are under the `backup.*` namespace. Key properties:
 | `backup.schedule` | Cron expression for the backup schedule | `0 20 0/1 * * ?` |
 | `backup.gather-enabled` | Enable file system gather on schedule | `false` |
 | `backup.gather-schedule` | Cron expression for the gather | `0 0 0 * * ?` |
+| `backup.summary-refresh-hours` | How often (hours) the summary is rebuilt on a schedule | `4` |
 | `backup.directory.name` | Root directory for backup output | — |
 | `backup.directory.date-format` | Date format used for daily subdirectories | `yyyy-MM-dd` |
 | `backup.directory.days` | Number of daily backup directories to retain | — |
@@ -117,7 +125,10 @@ All endpoints are versioned under `/api/v1`. The API is self-documented via Swag
 | GET | `/files/image?id=` | Serve file as JPEG image |
 | GET | `/files/video?id=` | Serve file as video stream |
 | GET | `/files/video-thumbnail?id=` | Serve video thumbnail as JPEG |
-| GET | `/files/search` | Search tracked files |
+| GET | `/files/download?id=` | Download the original file |
+| GET | `/files/search` | Search tracked files (simple) |
+| PUT | `/files/date` | Update the date metadata on a file |
+| PUT | `/files/location` | Update the location metadata on a file |
 | POST | `/gather` | Trigger a file system gather |
 | POST | `/sync/run` | Trigger a synchronisation run |
 | POST | `/duplicates` | Find duplicate files |
@@ -125,6 +136,14 @@ All endpoints are versioned under `/api/v1`. The API is self-documented via Swag
 | POST | `/files/refresh` | Refresh file metadata |
 | PUT | `/files/expire` | Expire stale file records |
 | GET | `/events/files` | SSE stream of file system events |
+
+#### Search (`/api/v1`)
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/backup/search` | Search backed-up files by filename glob, date range, size range, labels, GPS bounding-box, and expiry range; results are paged |
+
+Request body fields: `filename`, `dateFrom`, `dateTo`, `sizeMin`, `sizeMax`, `expiryFrom`, `expiryTo`, `labels`, `location` (south/west/north/east), `page`, `pageSize`.
 
 #### Import pipeline (`/api/v1/import`)
 
@@ -154,20 +173,23 @@ All endpoints are versioned under `/api/v1`. The API is self-documented via Swag
 | GET/POST/PUT/DELETE | `/locations` | Physical storage location configuration |
 | GET/POST/PUT/DELETE | `/sources` | Source directory configuration |
 | GET/POST/PUT/DELETE | `/sync` | Synchronisation pair configuration |
-| GET/POST/PUT/DELETE | `/classifications` | File classification rules |
+| GET/POST/PUT/DELETE | `/classifications` | File classification rules (includes `image`, `video`, `browser` flags) |
 | GET/POST/DELETE | `/labels` | User-defined file labels |
-| GET/POST/PUT/DELETE | `/prints` | Print selection management |
+| GET/POST/PUT | `/prints` | Print selection management |
+| GET | `/prints/sizes` | List available print sizes |
 | POST | `/prints/unselect` | Unselect all prints |
+| DELETE | `/prints/{fileId}/{sizeId}` | Remove a specific print selection |
+| DELETE | `/prints` | Remove all print selections |
 | POST | `/prints/generate` | Generate print output |
-| GET | `/logs` | Application event log |
 | GET | `/version` | Service version |
 
-#### Backup jobs (`/api/v1/backup-jobs`)
+#### Backup jobs (`/api/v1`)
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/` | List backup job configurations |
-| POST | `/run` | Trigger an immediate backup run |
+| GET | `/backup/status/jobs` | List all backup job run records (ordered by run date) |
+| GET | `/backup/status/jobs/{backupId}` | History for a specific backup job (latest `limit` runs, default 10) |
+| POST | `/backup-jobs/run` | Trigger an immediate backup run |
 
 #### Hardware (`/api/v1/hardware`)
 
@@ -217,6 +239,7 @@ src/main/java/com/jbr/middletier/backup/
   filetree/     File tree abstraction (real-world and database representations)
   manager/      Business logic managers
   manager/importing/  Multi-step import pipeline
-  schedule/     Scheduled tasks (backup, gather)
+  schedule/     Scheduled tasks (backup, gather, summary refresh)
+  summary/      Summary model rebuilt on a configurable schedule
   util/         Utilities (geo-coordinates, image metadata, file search)
 ```
