@@ -173,6 +173,10 @@ public class FileSystem {
     public void walkThePath(Path path, FileWalker walker) throws IOException {
         try(Stream<Path> pathStream = Files.walk(path)) {
             pathStream.forEach(walker::processNextPath);
+        } catch(UncheckedIOException e) {
+            // Files.walk streams wrap mid-iteration I/O errors in UncheckedIOException
+            LOG.error("Failed to walk {}", path);
+            throw e.getCause();
         } catch(IOException e) {
             LOG.error("Failed to walk {}", path);
             throw e;
